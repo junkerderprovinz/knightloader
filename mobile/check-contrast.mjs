@@ -21,16 +21,11 @@ const check = (what, ok) => {
   if (!ok) problems.push(what);
 };
 
-// The page and the card of each theme in src/theme/tokens.ts.
-const LIGHT_GROUNDS = ['#ffffff'];
+// The page and the card of each theme in src/theme/tokens.ts, and the light
+// theme's surface2, the darkest ground accent text stands on there.
+const LIGHT_GROUNDS = ['#ffffff', '#e8e8e8'];
 const DARK_GROUNDS = ['#161616', '#262626'];
 const OLED_GROUNDS = ['#000000', '#161616'];
-
-// tokens.inkFor's light mix, without react-native.
-const lightMix = (hex) => {
-  const n = parseInt(hex.slice(1), 16);
-  return '#' + [16, 8, 0].map((s) => Math.round(((n >> s) & 255) * 0.55).toString(16).padStart(2, '0')).join('');
-};
 
 const PRESETS = ['#FCC419', '#1D99F3', '#6FDC8C', '#FF8389', '#BE95FF', '#FF832B', '#3DDBD9', '#FF7EB6'];
 const sweep = [...PRESETS, '#FAFAFA', '#050505', '#777777', '#7B7B7B', '#0000FF', '#FFFF00'];
@@ -44,11 +39,17 @@ for (const hex of sweep) {
 
   const inks = phone.accentInks(hex);
   check(`${hex} as text gets the web's inks`, JSON.stringify(inks) === JSON.stringify(web.accentInks(hex)));
-  const light = inks.light ?? lightMix(hex);
-  const dark = inks.dark ?? hex;
+  // tokens.inkFor's steps, without react-native.
+  const light = inks.light ?? phone.darkenTo(hex, phone.INK_LIGHTNESS.light);
+  const dark = inks.dark ?? phone.lightenTo(hex, phone.INK_LIGHTNESS.dark);
   for (const g of LIGHT_GROUNDS) check(`${hex} as text reads at 4.5:1 on ${g}`, phone.contrastRatio(light, g) >= 4.5);
   for (const g of [...DARK_GROUNDS, ...OLED_GROUNDS]) check(`${hex} as text reads at 4.5:1 on ${g}`, phone.contrastRatio(dark, g) >= 4.5);
 }
+
+check(
+  `the light ink step is the web's, ${phone.INK_LIGHTNESS.light} against ${web.INK_LIGHTNESS.light}`,
+  phone.INK_LIGHTNESS.light === web.INK_LIGHTNESS.light,
+);
 
 for (const hex of PRESETS) {
   check(`preset ${hex} keeps its own ink as text`, phone.accentInks(hex).light === undefined && phone.accentInks(hex).dark === undefined);

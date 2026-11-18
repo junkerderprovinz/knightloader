@@ -545,8 +545,8 @@ function Choice({
       disabled={disabled}
       onClick={onClick}
       className="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3.5 rounded-[var(--radius-control)] bg-carbon-surface2 p-4
-        text-start transition-colors enabled:hover:bg-carbon-surface3 disabled:cursor-not-allowed disabled:opacity-45
-        focus-visible:shadow-[0_0_0_2px_var(--focus-ring)] focus-visible:outline-none"
+        text-start transition-colors enabled:hover:bg-hover disabled:cursor-not-allowed disabled:opacity-45
+        focus-visible:shadow-[0_0_0_var(--focus-ring-width)_var(--focus-ring)] focus-visible:outline-none"
     >
       <span className="grid h-11 w-11 place-items-center rounded-[var(--radius-control)] bg-accent text-accentContrast">{glyph}</span>
       <span>

@@ -91,7 +91,7 @@ function makeChrome({ chromium = true, granted = true } = {}) {
     },
     notifications: { create: async (id, o) => { calls.notified.push(o.message); }, clear: async () => {} },
     webRequest: { onResponseStarted: event() },
-    tabs: { onRemoved: event() },
+    tabs: { onRemoved: event(), onUpdated: event() },
   };
   return { chrome, calls, store, session, access };
 }

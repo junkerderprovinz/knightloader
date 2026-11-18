@@ -252,12 +252,13 @@ nothing about this shape blocks it later.
 ### Passing sign-ins on
 
 For the sites signed into through the browser (`internal/sitelogin`,
-Patreon and YouTube so far), the desktop app reads the session from the
+Patreon, YouTube, Instagram, X, Facebook, TikTok, Twitch, Vimeo and Reddit,
+each once it is added on the accounts page), the desktop app reads the session from the
 browsers on its own computer. Everywhere else, and for a browser the desktop
 app cannot read (Chrome on Windows, for one), the extension passes it on
 without a click (`signin.js`).
 
-Each instance of the group lists those sites as
+Each instance of the group lists the sites added there as
 `GET /api/sitelogins/handover`: the id, the name, the cookie domains and, as
 `signIn`, the names of the cookies only a signed-in session carries, nothing
 about a stored session. The background asks for that list when the browser starts, when the
@@ -265,7 +266,13 @@ extension is installed or updated, when it starts again more than ten minutes
 after the last sync, right after the phrase is entered on the settings page,
 when the popup or the settings page opens while no site is known yet, and once
 the browser grants the access. It keeps the list, so
-a click can ask for the access before anything else is awaited.
+a click can ask for the access before anything else is awaited. Each ask
+carries `?reads=patreon,youtube`, the sites this browser lets the extension
+read, and asks again in the same sync when that set has changed. The instance
+keeps it per browser and lists a site as `handsOver` while a browser still in
+the group reads it. Its sign-in window offers the user's own browser only
+then, or where it reads the browsers on its computer, and otherwise says what
+is missing. Switched off, the extension says once that it reads nothing.
 
 The access is `cookies` on the listed sites' own domains
 (`https://patreon.com/*` and `https://*.patreon.com/*`), kept for good. Both
@@ -288,11 +295,14 @@ in when one of the site's sign-in cookies is there. Of several, the one whose
 sign-in cookie changed last wins, then the one handed over before, then the
 default store. `cookies.onChanged` wakes the background for a change to a
 listed site's sign-in cookie outside a private store, and the burst a sign-in
-sets becomes one sync two seconds after it settles.
+sets becomes one sync two seconds after it settles. A tab that opens a listed
+site's `loginUrl` wakes it too, since a browser signed in already may change no
+cookie there.
 
 What went to which instance is kept as a SHA-256 digest of the sign-in
 cookies, never the session itself. A session goes out again only when the
-digest changes, so a tracking cookie changing sends nothing. A hand-over is
+digest changes, so a tracking cookie changing sends nothing, or when the
+instance lists the site as `waiting` after a sign-in began there. A hand-over is
 `POST /api/sitelogins/{id}/handover` with the site's cookies, sealed through
 the relay. The instance takes it from the extension alone, never from the
 phone or another instance. It keeps only the site's own live cookies, writes
@@ -333,25 +343,32 @@ what counts. A value sealed with Chrome's app-bound key (v20), in any
 browser, is not decrypted: the browser is named in the site's `unreadable`
 list instead, and the log says why once.
 
-`GET /api/sitelogins` answers per site, beside `state`, `account`, `expires`
-and `waiting`: `use` (`always` or `onNeed`), `source` (`browser`, `extension`
+`GET /api/sitelogins` lists every site on offer and answers per site, beside
+`state`, `account`, `expires` and `waiting`: `added` (whether it has a row,
+or is still offered in the card's picker), `use` (`always` or `onNeed`), `source` (`browser`, `extension`
 or empty), `browser` (the browser and profile, as "Firefox (default-release)",
 when `source` is `browser`), `unreadable` (the browsers whose cookies of the
 site could not be read) and `readsBrowsers`, which is true where this
 instance reads the browsers on its computer and false in a container, so the
 page knows whether a sign-in there or the extension is the way in.
 
-`POST /api/sitelogins/{id}/remove` disconnects a site whatever its session came
-from. It forgets the extension's session and stores a mark (service
-`sitelogins-off` in the credential store, one entry per site). While the mark
-is there, no browser here is read for the site, neither for its own links nor
-for the second try of a link on its domains, and the site reads
-`disconnected: true`. The browser stays signed in. `begin`, `POST
-/api/sitelogins/{id}/reconnect` and a hand-over that signs somebody in clear
-the mark; an empty hand-over only forgets the extension's session.
+`POST /api/sitelogins/{id}/add` gives a site its row (service
+`sitelogins-added` in the credential store, one entry per site), and
+`begin` and the sign-in browser add it too. A hand-over never does: one for a
+site that is not added is refused with 409. `POST
+/api/sitelogins/{id}/remove` takes the row away whatever the session came
+from. It forgets the stored session and stores a mark (service
+`sitelogins-off`), so no browser here is read for the site, neither for its
+own links nor for the second try of a link on its domains. The browser stays
+signed in. Adding the site again clears the mark. An empty hand-over only
+forgets the extension's session. A site never added and never removed gets
+the second try like any other site, with the cookies of all its domains.
+Once per install, a site with a stored session, and Patreon or
+YouTube where a browser here holds their sign-in, are added, so an
+install from before sites were added one by one keeps its rows.
 
 A site's `use` says when yt-dlp gets the session. Patreon's goes with every
-run. YouTube's is held back, since Google flags accounts that download a lot
+run. Every other site's is held back, since they flag accounts that download a lot
 while signed in, and goes only into a second run that follows at once when
 the first failed with `botCheck`, `membersOnly` or `signInRequired`
 (`ytdlp.NeedsSignIn`). Any other site gets the same second run with whatever

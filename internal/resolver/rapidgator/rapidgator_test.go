@@ -1,8 +1,12 @@
 package rapidgator
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"log"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -794,5 +798,64 @@ func TestAnEndedTwoFactorSessionAsksForANewCodeRatherThanThePassword(t *testing.
 	}
 	if b.Handed() {
 		t.Error("the login went to JDownloader, which cannot enter a code either")
+	}
+}
+
+func TestARefusedSignInIsLoggedInRapidgatorsWordsWithoutTheLogin(t *testing.T) {
+	var out bytes.Buffer
+	log.SetOutput(&out)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	srv := newServer(t, twoFactor())
+	c := NewClient(srv.URL, srv.Client())
+
+	c.Login(context.Background(), email, "letmein", "")
+	c.Login(context.Background(), email, password, "000000")
+
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	if len(lines) != 2 ||
+		!strings.Contains(lines[0], "Login or password is wrong") || !strings.Contains(lines[0], "without a two-factor code") ||
+		!strings.Contains(lines[1], "Invalid auth code") || !strings.Contains(lines[1], "with a two-factor code") {
+		t.Fatalf("logged %q, want each refusal in Rapidgator's words and whether a code went along", lines)
+	}
+	for _, secret := range []string{email, password, "letmein", "000000"} {
+		if strings.Contains(out.String(), secret) {
+			t.Errorf("the log carries %q", secret)
+		}
+	}
+}
+
+func TestAnAccountWaitingForItsActivationSaysSo(t *testing.T) {
+	err := classify("user/login", http.StatusUnauthorized, "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address.")
+
+	var le *LoginError
+	if !errors.As(err, &le) || !strings.Contains(le.Msg, "activat") {
+		t.Fatalf("an account waiting for its activation reads as %v, want the activation named", err)
+	}
+	if strings.Contains(le.Msg, "password") {
+		t.Errorf("the activation refusal blames the password: %s", le.Msg)
+	}
+}
+
+func TestRefusalsThatWaitForAMailedLinkNameTheirOwnStep(t *testing.T) {
+	for _, tc := range []struct {
+		details              string
+		activate, newAddress bool
+	}{
+		{details: "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address.", activate: true},
+		{details: "Error: Login from unusual IP. Please confirm it with the link sent to your email address.", newAddress: true},
+		{details: "Error: Login or password is wrong"},
+	} {
+		var le *LoginError
+		if !errors.As(classify("user/login", http.StatusUnauthorized, tc.details), &le) {
+			t.Fatalf("%q is no login refusal", tc.details)
+		}
+		if le.Activate != tc.activate || le.NewAddress != tc.newAddress {
+			t.Errorf("%q: Activate %v, NewAddress %v, want %v, %v", tc.details, le.Activate, le.NewAddress, tc.activate, tc.newAddress)
+		}
+		// Rapidgator answers a two-factor account without its code with
+		// either of the two as well.
+		if want := tc.activate || tc.newAddress; le.CodeMayHelp != want {
+			t.Errorf("%q: CodeMayHelp %v, want %v", tc.details, le.CodeMayHelp, want)
+		}
 	}
 }

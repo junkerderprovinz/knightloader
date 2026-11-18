@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/clicknupload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/filespace"
@@ -183,6 +184,15 @@ func (a *App) xfsLoginState(site *xfs.Site) hosterauth.OwnState {
 	case st.SignInHere:
 		own.Checked, own.Refused, own.SignInHere = true, true, true
 		own.Detail = site.Name + " asks for a second factor at sign-in, so sign in on its own page"
+	case st.Code == ownlogin.CodeWrong:
+		own.Checked, own.Refused, own.Code = true, true, string(st.Code)
+		own.Detail = site.Name + " did not take the two-factor code, so enter the current one"
+	case st.Code != "":
+		own.Checked, own.Refused, own.Code = true, true, string(st.Code)
+		own.Detail = site.Name + " asks for a two-factor code at sign-in, so enter it with the login"
+	case st.Activate:
+		own.Checked, own.Refused, own.Activate = true, true, true
+		own.Detail = site.Name + " says the account is not activated yet, so activate it with the link from its welcome mail"
 	case st.Refused:
 		own.Checked, own.Refused, own.Detail = true, true, site.Name+" turned this login down"
 	case !st.Checked:
@@ -256,6 +266,41 @@ func (a *App) changedXFSLogin(host string) {
 	if _, _, ok := a.xfsLogin(site); ok {
 		a.spawn(func() { a.checkXFSLogin(site, true) })
 	}
+}
+
+// xfsCodeTaker is the client of the site KnightLoader signs in to itself that
+// host belongs to, nil for none or one not made yet.
+func (a *App) xfsCodeTaker(host string) *xfs.Backend {
+	site := xfsSiteFor(host)
+	if site == nil || !site.OwnLogin {
+		return nil
+	}
+	a.bmu.RLock()
+	defer a.bmu.RUnlock()
+	return a.xfsBackends[site.ID]
+}
+
+// saveXFSLoginWithCode stores the login under host and has b sign it in with
+// the one-time code of its second factor, into the form the last sign-in
+// brought up while the login stays the same, and returns its row.
+func (a *App) saveXFSLoginWithCode(ctx context.Context, b *xfs.Backend, host, username, password, code string) (hosterauth.LoginState, error) {
+	site := b.Client().Site()
+	user, pass, _ := a.xfsLogin(site)
+	r := a.hosterAuth()
+	if err := r.SetLogin(host, username, password); err != nil {
+		return hosterauth.LoginState{}, err
+	}
+	if u, p, _ := a.xfsLogin(site); u != user || p != pass {
+		b.Forget()
+	}
+	b.SignInCode(ctx, code)
+	a.refreshPremiumHolds()
+	a.spawn(func() {
+		if _, err := r.Reconcile(a.ctx); err != nil {
+			log.Printf("hosterauth: reconcile after save failed: %v", err)
+		}
+	})
+	return a.hosterLoginRow(host), nil
 }
 
 // solveFor answers the captchas one of KnightLoader's own hoster clients

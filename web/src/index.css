@@ -38,6 +38,9 @@
   /* Hover for anything already filled with surface3. Tailwind only emits a
      utility for a key named in @theme; a missing key fails silently. */
   --color-carbon-hoverRaised: var(--carbon-hover-raised);
+  /* The accent's hover (rule 21): hover:bg-hover on anything the pointer can
+     reach, a button, a row, a menu entry or a tile. */
+  --color-hover: var(--hover);
   --color-toggleOff: var(--toggle-off);
 
   --color-accent: var(--accent);
@@ -311,7 +314,7 @@ body {
 .glim-window-button:focus-visible {
   outline: none;
 }
-/* A blank control on the ground, so it hovers to --carbon-hover (rule 21).
+/* A blank control on the ground, so it hovers to --hover (rule 21).
    Close hovers like the other two: it hides or quits the way the native
    button does, and nothing is lost that a red warning would guard. */
 .glim-window-square {
@@ -328,11 +331,11 @@ body {
   height: 1rem;
 }
 .glim-window-button:hover .glim-window-square {
-  background-color: var(--carbon-hover);
+  background-color: var(--hover);
   color: var(--carbon-text);
 }
 .glim-window-button:focus-visible .glim-window-square {
-  outline: 2px solid var(--focus-ring);
+  outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -371,6 +374,7 @@ body {
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
+  --brand-discord: #949cf7;
 
   /* The app tiles' marks that are one flat colour or one gradient, at rest.
      The dark theme lifts a colour a dark tile would swallow; the light theme
@@ -395,27 +399,11 @@ body {
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
-  /* The accent used as ink on the page's own ground. The theme only sets
-     --ink-mix, inherited from <html>, so every --accent-ink and --accent-glyph
-     in this file is the same mix and the rainbow blocks need no light-theme
-     twin. An accent the mix leaves under 4.5:1 on a theme's card gets that
-     theme's ink from applyAccent instead, as --accent-ink-dark or
-     --accent-ink-light. No preset needs one. */
-  --ink-mix:           100%;
-  --accent-ink:        var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
-  /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
-     subtree redefines this one and leaves --accent-ink on the single accent. */
-  --accent-glyph:      var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
   /* The theme's accent, reachable inside a rainbowed subtree where .glim-hue
      redefines --accent per row. A selection mark uses it so every selected row
      shows the same colour. Custom properties resolve where they are declared,
      so this stays :root's accent. */
   --accent-fixed:      var(--accent);
-  /* The speed graphs' download and seeding lines until lib/speedLines.ts
-     sets the colours chosen: the accent, and the blue that stands across
-     the wheel from the built-in gold. */
-  --line-download:     color-mix(in srgb, var(--accent) var(--ink-mix), black);
-  --line-seeding:      color-mix(in srgb, #1D99F3 var(--ink-mix), black);
 
   /* Carbon's support tones, shared with the siblings. Paused reuses neutral. */
   --status-info-text:    #FCC419;
@@ -448,7 +436,10 @@ body {
      it is --glim-scrim-blur, the same in every theme. */
   --glim-scrim: rgba(0, 0, 0, .72);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
-  --focus-ring: rgba(252, 196, 25, .55);
+  /* A field's placeholder. Muted text falls to 2.4:1 on a sub-card's surface3
+     field, so a placeholder takes the sub step, the dimmest that reads at
+     4.5:1 on every field fill. */
+  --field-placeholder: #c6c6c6;
 
 }
 
@@ -477,6 +468,7 @@ body {
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
+    --brand-discord: #5865f2;
     /* The app tiles' marks keep their brand's own colours on light. */
     --brand-android:           #32de84;
     --brand-docker:            #2396ed;
@@ -492,16 +484,13 @@ body {
     --carbon-text-muted: #6f6f6f;
     --sidebar-text:      #393939;
 
-    /* Only the ink is darkened; see the [data-theme="light"] block. */
+    /* The accent as ink is moved onto the light step below the theme blocks. */
     --accent:            #FCC419;
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
-    --ink-mix:           55%;
-    --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
-    --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
-    --status-info-text:    #8E6A00;
-    --status-info-bg:      rgba(142, 106, 0, 0.12);
+    --status-info-text:    #7C5F07;
+    --status-info-bg:      rgba(124, 95, 7, 0.12);
     --status-info-solid:   #A87D00;
 
     --status-ok-text:      #0e6027;
@@ -528,7 +517,7 @@ body {
     /* A light page separates the card from the page with less. */
     --glim-scrim: rgba(0, 0, 0, .62);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
-    --focus-ring: rgba(142, 106, 0, .5);
+    --field-placeholder: #525252;
 
   }
 }
@@ -554,6 +543,7 @@ body {
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
+  --brand-discord: #5865f2;
   --brand-android:           #32de84;
   --brand-docker:            #2396ed;
   --brand-unraid-from:       #e32929;
@@ -569,18 +559,14 @@ body {
   --sidebar-text:      #393939;
 
   /* The accent fill keeps its colour in both themes; only its use as ink gets
-     darker, because yellow text at 12px is unreadable on white. 55% toward
-     black gives Sunflower 4.95:1 on white, and every accent preset clears
-     4.5:1. */
+     darker, below the theme blocks, because yellow text at 12px is unreadable
+     on white. */
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
-  --ink-mix:           55%;
-  --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
-  --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
-  --status-info-text:    #8E6A00;
-  --status-info-bg:      rgba(142, 106, 0, 0.12);
+  --status-info-text:    #7C5F07;
+  --status-info-bg:      rgba(124, 95, 7, 0.12);
   --status-info-solid:   #A87D00;
 
   --status-ok-text:      #0e6027;
@@ -604,7 +590,7 @@ body {
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
   --glim-scrim: rgba(0, 0, 0, .62);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
-  --focus-ring: rgba(142, 106, 0, .5);
+  --field-placeholder: #525252;
 
 }
 
@@ -650,30 +636,162 @@ body {
   }
 }
 
+/* The accent used as ink: text or a line-drawn glyph on the page's own ground.
+   It is the accent moved in OKLab onto a lightness step, keeping its hue: down
+   to --ink-l-light on the light theme, up to --ink-l-dark on the dark ones.
+   OKLab's lightness follows the eye, so every preset reads at nearly the same
+   contrast. The light step is set on surface2, the darkest ground accent text
+   stands on in the light theme: the presets read at 4.6 to 5.3:1 on it and 5.7
+   to 6.4:1 on white. An accent already past the step is its own ink.
+   applyAccent sets --accent-ink-light or --accent-ink-dark only where a picked
+   colour would still miss 4.5:1 on a theme's card (lib/contrast.ts).
+   light-dark() picks the side by the color-scheme the theme blocks set, so a
+   rainbow position needs no twin per theme either (inkCss). */
+:root,
+[data-theme] {
+  --ink-l-light: 0.5;
+  --ink-l-dark: 0.74;
+  --accent-ink: light-dark(var(--accent-ink-light, oklab(from var(--accent) min(l, var(--ink-l-light)) calc(a * min(1, var(--ink-l-light) / l)) calc(b * min(1, var(--ink-l-light) / l)))), var(--accent-ink-dark, oklab(from var(--accent) max(l, var(--ink-l-dark)) calc(a * min(1, (1 - var(--ink-l-dark)) / (1 - l))) calc(b * min(1, (1 - var(--ink-l-dark)) / (1 - l))))));
+  /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
+     subtree redefines this one and leaves --accent-ink on the single accent. */
+  --accent-glyph: var(--accent-ink);
+  /* The ring is the accent ink, opaque. The ink reads at 4.5:1 on a theme's
+     card, which leaves at least 3:1 on every ground a ring stands on. */
+  --focus-ring: var(--accent-ink);
+  --focus-ring-width: 2px;
+  /* The speed graphs' download and seeding lines until lib/speedLines.ts
+     sets the colours chosen: the accent, and the blue that stands across
+     the wheel from the built-in gold. */
+  --line-download: var(--accent-ink);
+  --line-seeding: light-dark(oklab(from #1D99F3 min(l, var(--ink-l-light)) calc(a * min(1, var(--ink-l-light) / l)) calc(b * min(1, var(--ink-l-light) / l))), oklab(from #1D99F3 max(l, var(--ink-l-dark)) calc(a * min(1, (1 - var(--ink-l-dark)) / (1 - l))) calc(b * min(1, (1 - var(--ink-l-dark)) / (1 - l)))));
+}
+
 /* The hover step of a filled tone that has no surface ramp of its own
    (GlimStone rule 21): the fill mixed toward the theme's text colour, which is
    lighter on dark and darker on light, the way the ramp moves. 15% is about
    one step of the dark ramp, surface3 to hover-raised. Declared wherever a
-   theme is set, so --carbon-text is the one that theme defines. */
+   theme is set, so --carbon-text is the one that theme defines. On a mid-tone
+   picked accent that step would take the ink under 4.5:1, and applyAccent sets
+   the theme's hover as --accent-hover-light or --accent-hover-dark, a step
+   away from the ink instead (accentHovers in lib/contrast.ts). */
 :root,
 [data-theme] {
-  --accent-hover:      color-mix(in srgb, var(--accent) 85%, var(--carbon-text));
+  --accent-hover:      light-dark(var(--accent-hover-light, color-mix(in srgb, var(--accent) 85%, var(--carbon-text))), var(--accent-hover-dark, color-mix(in srgb, var(--accent) 85%, var(--carbon-text))));
   --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
   --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
   --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
+/* The ground of whatever the pointer is over, in the accent's hue (GlimStone
+   rule 21). A button, a row, a menu entry and a tile all take this one colour,
+   so two things lit side by side never differ. It keeps the OKLab lightness of
+   surface3, which lifts a row off the card and a quiet button off surface2
+   while the text and the secondary text on it keep 4.5:1. On the dark themes it
+   sits 0.007 below surface3, where a saturated green would otherwise take the
+   secondary text under 4.5:1. The chroma is a share of the accent's own, so a
+   grey accent leaves surface3's grey. Declared again inside a rainbow
+   position, so the hover takes the position's hue there, and in reactive mode
+   only once the position lights up. */
+:root,
+[data-theme],
+[data-rainbow] .glim-hue {
+  --hover-chroma: 0.3;
+  --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.432 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
+}
+
+/* OLED moves surface3 one Carbon step down, and the hover with it. data-oled
+   counts only while dark shows, and the light half is the one above. */
+[data-oled],
+[data-oled][data-rainbow] .glim-hue {
+  --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.338 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
+}
+
+/* The contrast step, for anyone whose system asks for more contrast. The
+   palette stays and only moves: the accent's ink takes a second lightness
+   step, so every preset reads at 8.8 to 9.8:1 as text on white, the sub and
+   muted text each move a step toward the text colour, borders darken to where
+   they read as lines, a card's hairline becomes a ring in the border colour,
+   and the focus ring thickens. The selectors are those of every theme block
+   above, so the step wins over each by coming later. */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme],
+  :root:not([data-theme="dark"]),
+  [data-theme="dark"][data-oled],
+  :root[data-oled]:not([data-theme="light"]) {
+    --focus-ring-width: 3px;
+    --carbon-border: light-dark(#6f6f6f, #8d8d8d);
+    --carbon-text-sub: light-dark(#393939, #e0e0e0);
+    --carbon-text-muted: light-dark(#525252, #c6c6c6);
+    --sidebar-text: light-dark(#161616, #f4f4f4);
+    --field-placeholder: light-dark(#393939, #e0e0e0);
+    --ink-l-light: 0.40;
+    --ink-l-dark: 0.84;
+    --status-neutral-text: light-dark(#525252, #c6c6c6);
+    --hairline: inset 0 0 0 1px var(--carbon-border);
+  }
+
+  /* Every field and pressable control draws its edge, which the calm look
+     leaves to the fill alone. The ring takes the edge's place while a control
+     has keyboard focus. */
+  :is(.glim-field, .glim-btn, .glim-toggle-track):not(:focus-visible) {
+    outline: 1px solid var(--carbon-border);
+    outline-offset: -1px;
+  }
+}
+
+/* Windows' contrast themes swap every colour for a system one and drop every
+   shadow, and the house draws its edges with fills and shadows, so a card, a
+   field or a switch would melt into the page. Each gets an edge in the system's
+   text colour instead, and a chosen or switched-on state takes the system's
+   selection colours, which the theme guarantees to read against each other. */
+@media (forced-colors: active) {
+  :is(.glim-card, .glim-well, .glim-subcard, .glim-modal-card, .glim-window, .glim-bubble, .glim-tile) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+  :is(.glim-field, .glim-btn):not(:focus-visible) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+  .glim-btn:disabled {
+    outline-color: GrayText;
+    color: GrayText;
+  }
+  :is(.glim-active, .glim-btn[aria-pressed="true"]) {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  .glim-toggle-track {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText;
+    background-color: ButtonFace;
+  }
+  .glim-toggle-thumb {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+  [aria-checked="true"] > .glim-toggle-track {
+    border-color: Highlight;
+    background-color: Highlight;
+  }
+  [aria-checked="true"] > .glim-toggle-track > .glim-toggle-thumb {
+    background-color: HighlightText;
+  }
+}
+
 /* The shaded list's grounds (lib/listShade.ts), see-through so they sit on
    whatever card holds the list, and mixed toward the text colour like the
    hover steps above, so one set serves light, dark and OLED. A package's links
-   alternate between the card's own ground and a faint step, a quiet zebra, its
-   header stands a hair above that, and the hover above all three. */
+   alternate between the card's own ground and a faint step, a quiet zebra, and
+   its header stands a hair above that. A hovered row takes --hover like every
+   other row. */
 :root,
 [data-theme] {
   --list-band-odd:   transparent;
   --list-band-even:  color-mix(in srgb, var(--carbon-text) 2%, transparent);
   --list-band-head:  color-mix(in srgb, var(--carbon-text) 4%, transparent);
-  --list-band-hover: color-mix(in srgb, var(--carbon-text) 7%, transparent);
 }
 
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
@@ -711,6 +829,13 @@ body {
   box-sizing: border-box;
 }
 
+/* Placeholders take the theme's own step, which reads at 4.5:1 on every field
+   fill. Firefox would dim it once more on its own. */
+::placeholder {
+  color: var(--field-placeholder);
+  opacity: 1;
+}
+
 /* The one raised surface. Never nest it. `position: relative` anchors
    SectionTitle's notch badge. Layered, so Tailwind's utilities (such as
    `absolute` on the language picker's dropdown) win over it; an unlayered rule
@@ -738,10 +863,13 @@ body {
 .glim-well .glim-field {
   background-color: var(--carbon-surface3);
 }
-/* A trigger's hover and a text field's focus step up from the tier the fields
-   stand on here. The input inside a field that draws its own box takes the
-   step with it, or it would show as a patch of the tier below. */
-.glim-well button.glim-field:hover,
+/* A trigger hovers to the accent's --hover, as everywhere. A text field's
+   focus steps up from the tier the fields stand on here, and the input inside
+   a field that draws its own box takes the step with it, or it would show as a
+   patch of the tier below. */
+.glim-well button.glim-field:hover {
+  background-color: var(--hover);
+}
 :is(.glim-well, .glim-subcard) :is(input, textarea).glim-field:focus,
 :is(.glim-well, .glim-subcard) .glim-field:has(input:focus),
 :is(.glim-well, .glim-subcard) .glim-field:has(input:focus) input {
@@ -750,7 +878,7 @@ body {
 
 /* A sub-card groups rows inside a card: flat, on the well's colour and at the
    card's radius. Fields and neutral buttons in it move one step up the ramp,
-   as fields do in a well, and their hover moves with them. Its name sits in
+   as fields do in a well, and hover to the accent's --hover. Its name sits in
    the notch on its top edge, so it is `relative` for the badge and stands a
    little further from what comes before it, which the badge's upper half
    reaches into. */
@@ -776,12 +904,7 @@ body {
 }
 .glim-subcard button.glim-field:hover,
 .glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet):hover {
-  background-color: var(--carbon-hover-raised);
-}
-/* The accent tint of a filled button (.glim-btn-subtle), from the tier a
-   button on a subcard hovers to. */
-.glim-subcard :is(button, a).glim-btn-subtle:not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+  background-color: var(--hover);
 }
 
 /* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
@@ -819,14 +942,14 @@ body {
   -moz-appearance: textfield;
 }
 
-/* A button on a surface2 tile stands one tier up the surface ramp and hovers
-   one more, or it would have no ground of its own. Unlayered, so it wins over
+/* A button on a surface2 tile stands one tier up the surface ramp, or it
+   would have no ground of its own, and hovers to the accent's --hover. Unlayered, so it wins over
    the fill the button's kind brings. */
 .kl-raised-btn {
   background-color: var(--carbon-surface3);
 }
 .kl-raised-btn:hover {
-  background-color: var(--carbon-hover-raised);
+  background-color: var(--hover);
 }
 
 /* Illustrations (pairing/pairingArt.tsx, components/GroupNet.tsx). A picture
@@ -852,7 +975,7 @@ body {
 [data-rainbow]:not([data-rainbow='reactive']) .kl-pic-hue,
 [data-rainbow='reactive'] .glim-hue:is(:hover, :focus-within) .kl-pic-hue {
   --accent: var(--item-hue);
-  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-glyph: var(--item-hue-glyph);
 }
 .kl-pic-lift {
   filter: drop-shadow(0 3px 3px rgb(0 0 0 / .28));
@@ -1008,10 +1131,11 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
-  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
-  --color-accentGlyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-glyph: var(--item-hue-glyph);
+  --color-accentGlyph: var(--item-hue-glyph);
   --accent-hover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
   --color-accentHover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
+  --color-hover: var(--hover);
 }
 
 /* Opt-in: the element's glyph takes the hue too, so a nav or tab bar reads as a
@@ -1065,7 +1189,7 @@ body {
   background-color: var(--list-band-head);
 }
 :where([data-shade]) > [data-band]:is(:hover, :has(:focus-visible)) {
-  background-color: var(--list-band-hover);
+  background-color: var(--hover);
 }
 
 /* The wash on a selected list row. A class rather than a `bg-accent/20`
@@ -1098,6 +1222,117 @@ body {
 @media (hover: none) {
   .glim-row-actions {
     opacity: 1;
+  }
+}
+
+/* An account table (AccountTable.tsx) never scrolls sideways. Its columns
+   take shares of its width and the name takes what they leave, and the plan,
+   expiry and traffic columns go as its well narrows. Under a pointer the
+   row's buttons lie over the row's end on the row's own ground while they
+   show, so they take no column. On a touch screen they always show and keep
+   a column of their own, which costs room sooner, and the narrowest well puts
+   the status under the name.
+
+   The table carries every column's share as --kl-<column>, and --kl-sum adds
+   up the shares of the columns shown, beside each rule that shows or hides
+   one, so a hidden column's room goes to the others in proportion. */
+.kl-accounts {
+  container-type: inline-size;
+}
+.kl-accounts table {
+  --kl-buttons: 0px;
+  --kl-sum: calc(var(--kl-service) + var(--kl-status));
+}
+.kl-accounts th:is(.kl-col-status, .kl-col-plan, .kl-col-expiry, .kl-col-traffic) {
+  width: calc(var(--kl-share) / var(--kl-sum) * (100cqw - var(--kl-buttons)));
+}
+.kl-accounts :is(.kl-col-plan, .kl-col-expiry, .kl-col-traffic),
+.kl-accounts .kl-status-under {
+  display: none;
+}
+@container (min-width: 34rem) {
+  .kl-accounts :is(.kl-col-plan, .kl-col-expiry) {
+    display: table-cell;
+  }
+  .kl-accounts table {
+    --kl-sum: calc(var(--kl-service) + var(--kl-status) + var(--kl-plan) + var(--kl-expiry));
+  }
+}
+@container (min-width: 43rem) {
+  .kl-accounts .kl-col-traffic {
+    display: table-cell;
+  }
+  .kl-accounts table {
+    --kl-sum: calc(var(--kl-service) + var(--kl-status) + var(--kl-plan) + var(--kl-expiry) + var(--kl-traffic));
+  }
+}
+.kl-accounts .kl-col-actions {
+  position: relative;
+  width: 0;
+  padding: 0;
+}
+/* The buttons lie on whatever ground the row shows: the hover colour under the
+   pointer, the focus grey when the focus stays in the row after a window closes. */
+.kl-accounts .glim-row {
+  --kl-row-ground: var(--hover);
+}
+.kl-accounts .glim-row:focus-within:not(:hover) {
+  --kl-row-ground: var(--carbon-surface3);
+}
+.kl-accounts .kl-col-actions > .glim-row-actions {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline: 1.5rem 0.5rem;
+  background: linear-gradient(to left, var(--kl-row-ground) calc(100% - 1rem), transparent);
+}
+.kl-accounts .kl-col-actions > .glim-row-actions:dir(rtl) {
+  background: linear-gradient(to right, var(--kl-row-ground) calc(100% - 1rem), transparent);
+}
+@media (hover: none) {
+  .kl-accounts table {
+    --kl-buttons: var(--row-actions);
+  }
+  .kl-accounts .kl-col-actions {
+    width: var(--row-actions);
+    padding-inline-end: 0.5rem;
+  }
+  .kl-accounts .kl-col-actions > .glim-row-actions {
+    position: static;
+    justify-content: flex-end;
+    padding: 0;
+    background: none;
+  }
+  /* Widest first, so the narrowest well's sum is the one that holds. */
+  @container (max-width: 56rem) {
+    .kl-accounts .kl-col-traffic {
+      display: none;
+    }
+    .kl-accounts table {
+      --kl-sum: calc(var(--kl-service) + var(--kl-status) + var(--kl-plan) + var(--kl-expiry));
+    }
+  }
+  @container (max-width: 44rem) {
+    .kl-accounts :is(.kl-col-plan, .kl-col-expiry) {
+      display: none;
+    }
+    .kl-accounts table {
+      --kl-sum: calc(var(--kl-service) + var(--kl-status));
+    }
+  }
+  @container (max-width: 34rem) {
+    .kl-accounts .kl-col-status {
+      display: none;
+    }
+    .kl-accounts .kl-status-under {
+      display: block;
+    }
+    .kl-accounts table {
+      --kl-sum: var(--kl-service);
+    }
   }
 }
 
@@ -1187,10 +1422,11 @@ body {
 .glim-badge-quiet:active .glim-btn-glyph { scale: 1; }
 
 /* Every other button takes the colour too when it is reached for: its glyph
-   in the accent, and a filled one's ground a step up the ramp with a little of
-   the accent in it. A bare one has no ground to tint, so its words take the
-   accent as well; a filled one keeps its words in the text colour, which the
-   accent on a tinted ground would not be legible against. Under a rainbow a
+   in the accent, and a filled one's ground the accent's --hover, the colour a
+   row, a menu entry and a tile take under the pointer. A bare one has no ground
+   to light, so its words take the accent as well; a filled one keeps its words
+   in the text colour, which the accent on a lit ground would not be legible
+   against. Under a rainbow a
    badge with a palette position takes its own hue, and every other button
    its place among the page's buttons, which takePageHue() sets inline. The
    ring still marks keyboard focus. */
@@ -1200,13 +1436,10 @@ body {
   --btn-tint: var(--accent-glyph);
 }
 [data-rainbow] .glim-tint-badge.glim-btn-subtle {
-  --btn-tint: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --btn-tint: var(--item-hue-glyph);
 }
-.glim-btn-subtle:not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-surface3), var(--btn-tint) 22%);
-}
-.glim-btn-neutral:not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+:is(.glim-btn-neutral, .glim-btn-subtle):not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
+  background-color: var(--hover);
 }
 :is(.glim-btn-neutral, .glim-btn-subtle):not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) > .glim-btn-glyph,
 .glim-btn-bare:not(:disabled):is(:hover, :focus-visible) {
@@ -1226,7 +1459,7 @@ body {
 [data-rainbow] .glim-badge-quiet.glim-tint-badge,
 [data-rainbow] .glim-badge-quiet.glim-tint-badge:is(:hover, :focus-within) { box-shadow: none; }
 [data-rainbow] .glim-badge-quiet.glim-tint-badge:is(:hover, :focus-visible) {
-  color: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  color: var(--item-hue-glyph);
 }
 [data-rainbow='reactive'] .glim-tint-badge {
   box-shadow: none;
@@ -1277,8 +1510,8 @@ body {
   --color-accentSoft: var(--item-hue-soft);
   /* The resting rule muted the glyph too and comes later at the same
      specificity, so the glyph has to be restated. */
-  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
-  --color-accentGlyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-glyph: var(--item-hue-glyph);
+  --color-accentGlyph: var(--item-hue-glyph);
 }
 
 /* SectionTitle's notch badge in reactive mode. The card owns the palette
@@ -1451,7 +1684,7 @@ body {
    input inside a search box rings the whole box, and a picker inside it
    rings itself. A second ring around it would draw the same focus twice. */
 :focus-visible:not(.glim-focus-drawn) {
-  outline: 2px solid var(--focus-ring);
+  outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -1516,6 +1749,14 @@ body {
 @keyframes glim-indeterminate {
   0%   { inset-inline-start: -35%; }
   100% { inset-inline-start: 100%; }
+}
+/* A loader stays out of sight for --busy-delay, so an answer that comes quickly
+   never flashes it. The wait is an animation delay and costs no timer. */
+@keyframes glim-busy-show {
+  from { visibility: hidden; }
+}
+.glim-busy-wait {
+  animation: glim-busy-show 0s var(--busy-delay, 400ms) both;
 }
 /* Translation only. The route wrapper plays this while the cards inside it
    animate their own transforms, and a scale on an ancestor makes the engine
@@ -2465,6 +2706,12 @@ body {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
 
+  /* The sign-in window has seen the sign-in: the page dims, the note arrives
+     the way a window does and its checkmark is drawn once it has. */
+  .kl-signed-in { animation: glim-fade-in var(--motion-scrim-dur) ease backwards; }
+  .kl-signed-in-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) backwards; }
+  .kl-signed-in-card .glim-check-draw { animation-delay: var(--motion-modal-dur); }
+
   /* The desktop app's popup pops up from its corner with a tilt and springs
      into place, and shrinks back into the corner when it goes. Meanwhile the
      knight celebrates: the mark hops and lands squashed, the sword swings to
@@ -2626,6 +2873,9 @@ body {
   /* The popup fades in and out and its knight stands still. */
   :root:not([data-motion="storm"]) .kl-popup { animation: glim-fade-in 160ms ease backwards; }
   :root:not([data-motion="storm"]) .kl-popup.kl-popup-leave { animation: kl-popup-out 160ms ease forwards; }
+  /* The sign-in note fades in like a window, its checkmark already drawn. */
+  :root:not([data-motion="storm"]) .kl-signed-in { animation: glim-fade-in 160ms ease backwards; }
+  :root:not([data-motion="storm"]) .kl-signed-in-card { animation: glim-fade-in 160ms ease backwards; }
 
   /* The storm restored, with the values from its token block. */
   :root[data-motion="storm"] .glim-page-enter {
@@ -2642,6 +2892,13 @@ body {
   :root[data-motion="storm"] .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
   :root[data-motion="storm"] .glim-modal-card {
     animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both;
+  }
+  :root[data-motion="storm"] .kl-signed-in { animation: glim-fade-in var(--motion-scrim-dur) ease backwards; }
+  :root[data-motion="storm"] .kl-signed-in-card {
+    animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) backwards;
+  }
+  :root[data-motion="storm"] .kl-signed-in-card .glim-check-draw {
+    animation: glim-check-draw var(--motion-check-dur) ease-out var(--motion-modal-dur) both;
   }
   :root[data-motion="storm"] .glim-locate {
     animation: glim-locate-ring calc(var(--motion-confirm-dur) * 2) ease-out;
@@ -2846,6 +3103,7 @@ body {
 .glim-paypal-mark { color: var(--brand-paypal); }
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
+.glim-discord-mark { color: var(--brand-discord); }
 .glim-house-mark { color: var(--accent-glyph); }
 /* The manual's book, in the yellow of the README's docs button. */
 .glim-docs-mark { color: var(--brand-docs); }
@@ -2923,6 +3181,7 @@ body {
 .glim-tile-umbrel  { --tile: #5351f3; --tile-ink: #ffffff; } /* 5.5:1 */
 .glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
 .glim-tile-github  { --tile: #181717; --tile-ink: #ffffff; } /* 17.9:1 */
+.glim-tile-discord { --tile: #5865f2; --tile-ink: #ffffff; } /* 4.6:1 */
 .glim-tile-paypal  { --tile: #003087; --tile-ink: #ffffff; } /* 13.4:1 */
 .glim-tile-bitcoin { --tile: #f7931a; --tile-ink: #161616; } /* 7.9:1 */
 /* Buy Me a Coffee's own near-black, the ink of their button. 13.8:1. */
@@ -3593,7 +3852,7 @@ body {
   box-shadow: var(--elevation), var(--hairline);
 }
 .kl-popup:hover {
-  background-color: var(--carbon-surface2);
+  background-color: var(--hover);
 }
 .kl-popup-open {
   display: flex;
@@ -3611,7 +3870,7 @@ body {
   border-radius: inherit;
 }
 .kl-popup-open:focus-visible {
-  outline: 2px solid var(--focus-ring);
+  outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: 2px;
 }
 /* A secondary action, so it shows on hover, and on focus. */

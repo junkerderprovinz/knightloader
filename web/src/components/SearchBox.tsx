@@ -75,7 +75,7 @@ export function SearchBox({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={keyDown}
         className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text caret-accentGlyph
-          placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
+          outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
         <button
@@ -87,7 +87,7 @@ export function SearchBox({
             own.current?.focus();
           }}
           className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)]
-            text-carbon-textMuted transition-colors hover:bg-carbon-hoverRaised hover:text-carbon-text"
+            text-carbon-textMuted transition-colors hover:bg-hover hover:text-carbon-text"
         >
           <IconClose width={13} height={13} />
         </button>

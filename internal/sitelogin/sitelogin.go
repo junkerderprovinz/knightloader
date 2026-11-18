@@ -37,8 +37,10 @@ type Site struct {
 
 	// signIn are the cookies only a signed-in session carries.
 	signIn []string
-	// checkURL, when set, answers who the session belongs to.
+	// checkURL, when set, answers who the session belongs to, and account
+	// reads the answer.
 	checkURL string
+	account  func(io.Reader) (string, State)
 }
 
 // Use is when a site's session goes to yt-dlp.
@@ -54,8 +56,29 @@ const (
 	OnNeed Use = "onNeed"
 )
 
-// Sites is every site offered, in the order the page shows them.
+// Sites is every site offered, by name. The cookie names are the ones
+// yt-dlp's extractor for the site takes a sign-in from.
 var Sites = []Site{
+	{
+		ID:       "facebook",
+		Name:     "Facebook",
+		Host:     "facebook.com",
+		LoginURL: "https://www.facebook.com/login/",
+		Domains:  []string{"facebook.com"},
+		Links:    []string{"fb.watch"},
+		Use:      OnNeed,
+		signIn:   []string{"c_user", "xs"},
+	},
+	{
+		ID:       "instagram",
+		Name:     "Instagram",
+		Host:     "instagram.com",
+		LoginURL: "https://www.instagram.com/accounts/login/",
+		Domains:  []string{"instagram.com"},
+		Links:    []string{"instagr.am"},
+		Use:      OnNeed,
+		signIn:   []string{"sessionid"},
+	},
 	{
 		ID:       "patreon",
 		Name:     "Patreon",
@@ -65,6 +88,60 @@ var Sites = []Site{
 		Use:      Always,
 		signIn:   []string{"session_id"},
 		checkURL: "https://www.patreon.com/api/current_user",
+		account:  patreonAccount,
+	},
+	{
+		ID:       "reddit",
+		Name:     "Reddit",
+		Host:     "reddit.com",
+		LoginURL: "https://www.reddit.com/login/",
+		Domains:  []string{"reddit.com"},
+		Links:    []string{"redd.it", "v.redd.it"},
+		Use:      OnNeed,
+		signIn:   []string{"reddit_session"},
+	},
+	{
+		ID:       "tiktok",
+		Name:     "TikTok",
+		Host:     "tiktok.com",
+		LoginURL: "https://www.tiktok.com/login",
+		Domains:  []string{"tiktok.com"},
+		Links:    []string{"www.tiktokv.com"},
+		Use:      OnNeed,
+		signIn:   []string{"sessionid", "sessionid_ss", "sid_tt"},
+		checkURL: "https://www.tiktok.com/passport/web/account/info/",
+		account:  tiktokAccount,
+	},
+	{
+		ID:       "twitch",
+		Name:     "Twitch",
+		Host:     "twitch.tv",
+		LoginURL: "https://www.twitch.tv/login",
+		Domains:  []string{"twitch.tv"},
+		Use:      OnNeed,
+		signIn:   []string{"auth-token"},
+	},
+	{
+		ID:       "vimeo",
+		Name:     "Vimeo",
+		Host:     "vimeo.com",
+		LoginURL: "https://vimeo.com/log_in",
+		Domains:  []string{"vimeo.com"},
+		Use:      OnNeed,
+		signIn:   []string{"vimeo"},
+		checkURL: "https://vimeo.com/_next/viewer",
+		account:  vimeoAccount,
+	},
+	{
+		// yt-dlp asks api.x.com, so only a session on x.com signs it in, while
+		// twitter.com still holds the cookies of an older sign-in.
+		ID:       "x",
+		Name:     "X",
+		Host:     "x.com",
+		LoginURL: "https://x.com/i/flow/login",
+		Domains:  []string{"x.com", "twitter.com"},
+		Use:      OnNeed,
+		signIn:   []string{"auth_token"},
 	},
 	{
 		// YouTube has no endpoint that names the account and is meant to be
@@ -261,8 +338,8 @@ func Check(ctx context.Context, client *http.Client, site Site, jar string, now 
 	return st
 }
 
-// ask fetches a Patreon-shaped current_user document with the site's live
-// cookies and reads the account's name from it.
+// ask fetches the site's account document with its live cookies and reads
+// the account's name from it.
 func ask(ctx context.Context, client *http.Client, site Site, cookies []jarCookie, now time.Time) (string, State) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, site.checkURL, nil)
 	if err != nil {
@@ -283,6 +360,22 @@ func ask(ctx context.Context, client *http.Client, site Site, cookies []jarCooki
 	case resp.StatusCode != http.StatusOK:
 		return "", Unchecked
 	}
+	return site.account(io.LimitReader(resp.Body, 1<<20))
+}
+
+// firstName is the first of names that is not blank.
+func firstName(names ...string) string {
+	for _, name := range names {
+		if name = strings.TrimSpace(name); name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
+// patreonAccount reads Patreon's current_user, which a session it turned
+// down gets a 401 for.
+func patreonAccount(body io.Reader) (string, State) {
 	var doc struct {
 		Data struct {
 			Attributes struct {
@@ -292,16 +385,61 @@ func ask(ctx context.Context, client *http.Client, site Site, cookies []jarCooki
 			} `json:"attributes"`
 		} `json:"data"`
 	}
-	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&doc); err != nil {
+	if err := json.NewDecoder(body).Decode(&doc); err != nil {
 		return "", Unchecked
 	}
 	a := doc.Data.Attributes
-	for _, name := range []string{a.FullName, a.FirstName, a.Vanity} {
-		if name = strings.TrimSpace(name); name != "" {
-			return name, SignedIn
-		}
+	return firstName(a.FullName, a.FirstName, a.Vanity), SignedIn
+}
+
+// tiktokSessionExpired is the error_code TikTok's account info answers a
+// session it does not take with, still with a 200.
+const tiktokSessionExpired = 13
+
+// tiktokAccount reads TikTok's account info.
+func tiktokAccount(body io.Reader) (string, State) {
+	var doc struct {
+		Message string `json:"message"`
+		Data    struct {
+			ScreenName string `json:"screen_name"`
+			Username   string `json:"username"`
+			Name       string `json:"name"`
+			ErrorCode  int    `json:"error_code"`
+		} `json:"data"`
 	}
-	return "", SignedIn
+	if err := json.NewDecoder(body).Decode(&doc); err != nil {
+		return "", Unchecked
+	}
+	switch {
+	case doc.Message == "success":
+		return firstName(doc.Data.ScreenName, doc.Data.Username), SignedIn
+	case doc.Data.ErrorCode == tiktokSessionExpired || doc.Data.Name == "session_expired":
+		return "", Expired
+	}
+	return "", Unchecked
+}
+
+// vimeoAccount reads the viewer Vimeo's own pages start from, whose user is
+// null for a visitor who is not signed in.
+func vimeoAccount(body io.Reader) (string, State) {
+	var doc map[string]json.RawMessage
+	if err := json.NewDecoder(body).Decode(&doc); err != nil {
+		return "", Unchecked
+	}
+	raw, ok := doc["user"]
+	if !ok {
+		return "", Unchecked
+	}
+	var user *struct {
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(raw, &user); err != nil {
+		return "", Unchecked
+	}
+	if user == nil {
+		return "", Expired
+	}
+	return firstName(user.Name), SignedIn
 }
 
 // cookieHeader is the Cookie header that carries the site's live cookies.

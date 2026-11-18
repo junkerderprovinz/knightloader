@@ -85,7 +85,6 @@ const (
 	DroppedAutoAdd     = "autoAdd"
 	DroppedAutoStart   = "autoStart"
 	DroppedForcedStart = "forcedStart"
-	DroppedLinkEnabled = "linkEnabled"
 	DroppedRename      = "renameAfter"
 	DroppedMoveTo      = "moveAfter"
 	DroppedStop        = "stopAfterRule"
@@ -141,6 +140,11 @@ func mapActions(r JDRule) (rules.Action, []Reason, *Reason) {
 		a.AutoExtract = &v
 		set = true
 	}
+	if r.LinkEnabledAction != nil {
+		v := *r.LinkEnabledAction
+		a.LinkEnabled = &v
+		set = true
+	}
 
 	var dropped []string
 	for _, d := range []struct {
@@ -150,7 +154,6 @@ func mapActions(r JDRule) (rules.Action, []Reason, *Reason) {
 		{r.AutoAdd != nil, DroppedAutoAdd},
 		{r.AutoStart != nil, DroppedAutoStart},
 		{r.ForcedStart != nil, DroppedForcedStart},
-		{r.LinkEnabledAction != nil, DroppedLinkEnabled},
 		{strings.TrimSpace(r.Rename) != "", DroppedRename},
 		{strings.TrimSpace(r.MoveTo) != "", DroppedMoveTo},
 		{r.StopAfterThisRule, DroppedStop},

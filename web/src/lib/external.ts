@@ -13,13 +13,26 @@ export function openExternal(url: string): void {
 }
 
 /**
- * openMail hands a mailto: address to the mail program. In a browser the page
- * navigates to it rather than opening it in a new tab, which would leave an
- * empty tab behind once the mail program has it.
+ * openTab opens url in a new tab and hands the tab back, so the page can show
+ * something else there later. The tab starts empty and follows a link of its
+ * own, so the site gets neither this page as its referrer nor a handle on it,
+ * as noopener and noreferrer would keep them. The desktop build hands the
+ * address to the system browser and gets no tab back.
  */
-export function openMail(url: string): void {
-  if (isDesktop()) void openURL(url);
-  else window.location.href = url;
+export function openTab(url: string): Window | null {
+  if (isDesktop()) {
+    void openURL(url);
+    return null;
+  }
+  const tab = window.open('', '_blank');
+  if (!tab) return null;
+  tab.opener = null;
+  const go = tab.document.createElement('a');
+  go.href = url;
+  go.rel = 'noreferrer';
+  tab.document.body.append(go);
+  go.click();
+  return tab;
 }
 
 /**

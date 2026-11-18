@@ -1,24 +1,18 @@
 // The window of one site signed into through the browser (internal/sitelogin),
-// opened from its row on the hoster card and from a failed download. Signing
-// in happens on the site, in the browser: an instance outside a container
-// reads the session from there and the extension passes it on, so the window
-// only says how it stands and notices a sign-in by itself.
+// opened from its row on the hoster card, from the card's picker and from a
+// failed download. Signing in happens on the site, in the browser: an instance
+// outside a container reads the session from there and the extension passes
+// it on, so the window only says how it stands and notices a sign-in by
+// itself. Removing the site is its row's to do, as for any account.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  type SiteLogin,
-  beginSiteLogin,
-  checkSiteLogin,
-  fetchSiteLogins,
-  reconnectSiteLogin,
-  removeSiteLogin,
-} from '../lib/api';
-import { openExternal } from '../lib/external';
+import { type SiteLogin, beginSiteLogin, checkSiteLogin, fetchSiteLogins } from '../lib/api';
+import { openTab } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { type SignInWays, nextStep, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
+import { type SignInWays, confirmInTab, nextStep, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
-import { IconClose, IconExternalLink, IconTrash } from '../lib/icons';
+import { IconClose, IconExternalLink } from '../lib/icons';
 import { Button, Modal } from './ui';
 import { SignInHereButton } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
@@ -68,10 +62,10 @@ export function SiteLoginDialog({
   const { t } = useT();
   const { toast } = useToast();
   const [site, setSite] = useState(initial);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const heard = useRef({ onChanged, onSignedIn, onClose });
   heard.current = { onChanged, onSignedIn, onClose };
+  const tab = useRef<Window | null>(null);
 
   const show = useCallback(
     (next: SiteLogin, arrived: boolean) => {
@@ -98,7 +92,10 @@ export function SiteLoginDialog({
     const timer = window.setInterval(() => {
       void fetchSiteLogins().then((all) => {
         const latest = all.find((s) => s.id === site.id);
-        if (latest && signedIn(latest)) show(latest, true);
+        if (latest && signedIn(latest)) {
+          confirmInTab(tab.current, latest.name);
+          show(latest, true);
+        }
       }, () => {});
     }, SIGNED_OUT_POLL_MS);
     return () => window.clearInterval(timer);
@@ -106,45 +103,16 @@ export function SiteLoginDialog({
 
   const showError = (e: unknown) => setError(message(e).replace(/^(Error|ApiError):\s*/, ''));
 
-  const signOut = async () => {
-    setBusy(true);
-    setError('');
-    try {
-      show(await removeSiteLogin(site.id), false);
-      toast(t('siteLogins.signedOutToast', { site: site.name }), 'info');
-    } catch (e) {
-      showError(e);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const reconnect = async () => {
-    setBusy(true);
-    setError('');
-    try {
-      const next = await reconnectSiteLogin(site.id);
-      show(next, signedIn(next));
-    } catch (e) {
-      showError(e);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // The site opens first, while the click still lets it. A removed site is
-  // signed in through KnightLoader too, so the browser's sign-in counts again.
+  // The site opens first, while the click still lets it. A site a failed
+  // download asks for may have no row yet, and signing in adds it.
   const openSite = () => {
-    openExternal(site.loginUrl);
-    if (site.disconnected) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
+    tab.current = openTab(site.loginUrl);
+    if (!site.listed) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
   };
 
   const from = sourceNote(site);
   const step = nextStep(site, ways);
   const signingIn = waiting || toSignIn;
-  // A browser that still holds the sign-in of a removed site brings it back
-  // in one step, which leaves the sign-in browser nothing to add.
-  const reconnectable = waiting && site.disconnected && ways.readsBrowsers;
 
   return (
     <Modal
@@ -153,28 +121,14 @@ export function SiteLoginDialog({
       hue={hue}
       onClose={onClose}
       // The way out opens the row and opening the site, the one step forward,
-      // ends it. Signing out, which leaves the browser signed in, is offered
-      // only once there is nothing to sign in to; an expired session is
-      // forgotten from its row's menu.
+      // ends it.
       footer={
         <>
-          <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} disabled={busy} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} onClick={onClose} />
           <span className="flex-1" />
-          {!signingIn && (
-            <Button kind="secondary" icon={<IconTrash width={16} height={16} />} disabled={busy} onClick={() => void signOut()}>
-              {t('siteLogins.signOut')}
-            </Button>
-          )}
-          {reconnectable && (
-            <Button kind="secondary" disabled={busy} onClick={() => void reconnect()}>
-              {t('siteLogins.reconnect')}
-            </Button>
-          )}
-          {signingIn && !reconnectable && (
-            <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
-          )}
-          {signingIn && (
-            <Button icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
+          {signingIn && <SignInHereButton site={site} hue={hue} onChanged={(s) => show(s, false)} />}
+          {signingIn && ways.readsBrowsers && (
+            <Button icon={<IconExternalLink />} onClick={openSite}>
               {t('siteLogins.open', { site: site.name })}
             </Button>
           )}

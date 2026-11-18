@@ -13,8 +13,8 @@ and audio a page plays so you can send them. A download button on video
 players sends the video you are watching when you press it. Outside YouTube,
 Vimeo, Dailymotion, Twitch and Bilibili it first asks your own instance whether
 it can download the page. Once you allow it, it also passes your sign-in to
-Patreon and YouTube on to your instances, so they can download what only a
-signed-in visitor sees. It has no analytics, no
+the sites you added on your instances, such as Patreon or YouTube, on to
+them, so they can download what only a signed-in visitor sees. It has no analytics, no
 advertising, no accounts and no tracking.
 
 It reaches your instances through a relay operated by the party named under "Who
@@ -136,7 +136,7 @@ These travel through the relay, and only your instances can read them:
   stream's address, and your browser's user agent, under the same rules. Cookies
   from a private window are never sent.
 - While passing sign-ins on is allowed (see below): the cookies your browser
-  holds for each site your instances list, today Patreon and YouTube, whenever
+  holds for each site you added on your instances, such as Patreon, whenever
   you sign in there or the sign-in changes, and an empty list once you sign
   out. Only that site's own cookies are sent, never those of a private window
   or of any other site. Your instance uses them to download that site's links
@@ -267,19 +267,24 @@ button in the popup.
 
 ## Passing sign-ins on
 
-Some sites, such as Patreon and YouTube, let a download through only for a
-signed-in visitor, and do not let a program sign in with a password. Your
-instances list those sites, and the extension can pass your browser's sign-in
-on to them, so you only sign in on the site as you always do.
+Some sites, such as Patreon, YouTube, Instagram or TikTok, let a download
+through only for a signed-in visitor, and do not let a program sign in with a
+password. Your instances list the ones you added there, and the extension can
+pass your browser's sign-in on to them, so you only sign in on the site as you
+always do. A site you did not add is neither listed nor read.
 
 This needs access to cookies on those sites, which your browser asks you for
 once when you click Allow in the popup or the settings. If taking over
 downloads or finding media already has access to cookies and all websites,
 nothing is asked. From then on, the extension reads the cookies of the listed
-sites continuously: when the browser starts, when you join a group, and every
-time one of their sign-in cookies changes. It reads the normal windows and
-each Firefox container, never a private window, and never the cookies of any
-other site. It sends a sign-in only when it differs from the one it last sent.
+sites continuously: when the browser starts, when you join a group, every
+time one of their sign-in cookies changes and when a tab opens one of their
+sign-in pages. It reads the normal windows and each Firefox container, never a
+private window, and never the cookies of any other site. It sends a sign-in
+only when it differs from the one it last sent, or when an instance is waiting
+for it. It tells your instances which of the listed sites it may read, so
+their sign-in window offers your own browser only where the sign-in can reach
+them.
 The switch "Pass my sign-ins to KnightLoader" in the settings turns this off
 and gives the access back.
 
@@ -298,7 +303,7 @@ and gives the access back.
 | `alarms` | Renewing this browser's place on the list of clipboard watchers once a minute, and in Firefox waking the watch after the browser paused it. |
 | `downloads` (optional) | Seeing a download start, holding it while your instance is asked, and cancelling it once the instance has it. Asked for when you switch taking over downloads on, and given back when you switch it off. |
 | `cookies` (optional) | Reading the cookies for the one address being handed over, so a download behind a login works on your instance. Asked for with taking over downloads or finding media. Also reading the sign-in of the sites your instances list, kept while passing sign-ins on is allowed. |
-| Access to the sites your instances list for sign-ins, today Patreon and YouTube (optional) | Reading their cookies to pass your sign-in on. Asked for once with Allow, included in the access to all websites, and given back when you switch passing sign-ins on off. |
+| Access to the sites you added on your instances for sign-ins, such as Patreon or YouTube (optional) | Reading their cookies to pass your sign-in on. Asked for once with Allow, included in the access to all websites, and given back when you switch passing sign-ins on off. |
 | `notifications` (optional) | The short note that names the instance a download went to. Asked for with taking over downloads. |
 | `webRequest` (optional) | Seeing which video and audio streams a page loads. Asked for with finding media, and given back when you switch it off. |
 | Access to all websites (optional) | Also needed for the cookies of any download site, for the media a page loads and for the download button on all other sites. Kept while any of Click'n'Load, taking over downloads, finding media or the button on all other sites is on. |

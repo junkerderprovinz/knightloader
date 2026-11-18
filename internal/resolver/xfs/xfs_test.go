@@ -14,6 +14,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs/xfstest"
@@ -510,7 +511,7 @@ func TestLinksOfTheSitesDomainsAreWrittenTheSameWay(t *testing.T) {
 	}
 }
 
-func TestASignInThatAsksForASecondFactorWaitsForASignInOnTheSitesOwnPage(t *testing.T) {
+func TestASignInThatAsksForASecondFactorWaitsForTheCode(t *testing.T) {
 	srv := xfstest.New(t, site.Host, nil)
 	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TwoFactor: true})
 	b, _, h := newBackend(srv)
@@ -519,14 +520,114 @@ func TestASignInThatAsksForASecondFactorWaitsForASignInOnTheSitesOwnPage(t *test
 	b.CheckLogin(context.Background(), true)
 	b.CheckLogin(context.Background(), true)
 
-	if st, _ := b.LoginStatus(); !st.SignInHere || b.Premium() {
+	if st, _ := b.LoginStatus(); st.Code != ownlogin.CodeNeeded || st.SignInHere || b.Premium() {
+		t.Errorf("state %+v, want the login waiting for the code", st)
+	}
+	if b.Handed() {
+		t.Error("the login went to JDownloader, which waits for the same code")
+	}
+	if n := srv.SignIns(); n != 1 {
+		t.Errorf("signed in %d times, want once: the password alone gets no further, and some sites mail a code for every try", n)
+	}
+}
+
+func TestTheCodeGoesIntoTheFormThePasswordBroughtUp(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	link := srv.Add("k3m9x2p7q1ab", xfstest.File{Name: "a.bin", Body: make([]byte, 1024)})
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TrafficMB: 51200, TwoFactor: true})
+	b, eng, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+	var saved xfs.Kept
+	b.SaveSession = func(k xfs.Kept) { saved = k }
+	b.CheckLogin(context.Background(), true)
+
+	b.SignInCode(context.Background(), xfstest.SecondFactor)
+
+	if st, _ := b.LoginStatus(); st.Code != "" || !b.Premium() {
+		t.Fatalf("state %+v, want the premium login the code signed in", st)
+	}
+	if n, codes := srv.SignIns(), srv.Codes(); n != 1 || codes != 1 {
+		t.Errorf("sent the password %d times and the code %d times, want each once", n, codes)
+	}
+	if saved.Cookies == "" || saved.OwnPage {
+		t.Errorf("kept %+v, want the session the code opened", saved)
+	}
+	b.Download("t1", link, nil, 1)
+	if got := awaitHandoff(t, eng); got.conns != 4 {
+		t.Errorf("handed on for %d connections, want the premium's four", got.conns)
+	}
+}
+
+func TestAWrongCodeAsksAgainAndTheNextGoesIntoTheSameSession(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TwoFactor: true})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+	b.CheckLogin(context.Background(), true)
+
+	b.SignInCode(context.Background(), "135790")
+	if st, _ := b.LoginStatus(); st.Code != ownlogin.CodeWrong || b.Premium() {
+		t.Fatalf("state %+v, want the code turned down", st)
+	}
+	b.CheckLogin(context.Background(), true)
+	if st, _ := b.LoginStatus(); st.Code != ownlogin.CodeWrong {
+		t.Errorf("a check turned the wrong code into %+v", st)
+	}
+	b.SignInCode(context.Background(), xfstest.SecondFactor)
+
+	if !b.Premium() {
+		t.Error("the right code did not sign the login in")
+	}
+	if n := srv.SignIns(); n != 1 {
+		t.Errorf("sent the password %d times, want once for both codes", n)
+	}
+}
+
+func TestACodeWithNoFormInHandGoesInRightAfterThePassword(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TwoFactor: true})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+
+	b.SignInCode(context.Background(), xfstest.SecondFactor)
+
+	if !b.Premium() {
+		t.Error("the code did not sign the login in")
+	}
+	if n, codes := srv.SignIns(), srv.Codes(); n != 1 || codes != 1 {
+		t.Errorf("sent the password %d times and the code %d times, want each once", n, codes)
+	}
+}
+
+func TestACodeFormWithACaptchaWaitsForASignInOnTheSitesOwnPage(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TwoFactor: true, CodeCaptcha: true})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+
+	b.CheckLogin(context.Background(), true)
+
+	if st, _ := b.LoginStatus(); !st.SignInHere || st.Code != "" || b.Premium() {
 		t.Errorf("state %+v, want the login waiting for a sign-in on the site's page", st)
 	}
 	if b.Handed() {
 		t.Error("the login went to JDownloader, which cannot enter the code either")
 	}
-	if n := srv.SignIns(); n != 1 {
-		t.Errorf("signed in %d times, want once: the password alone gets no further", n)
+}
+
+func TestAnAccountNotActivatedYetSaysSoAndStaysWithTheSiteClient(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), Inactive: true})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+
+	b.CheckLogin(context.Background(), true)
+
+	if st, _ := b.LoginStatus(); !st.Activate || !st.Refused || b.Premium() {
+		t.Errorf("state %+v, want an account waiting for its activation", st)
+	}
+	if b.Handed() {
+		t.Error("the login went to JDownloader, which the site would turn down the same")
 	}
 }
 

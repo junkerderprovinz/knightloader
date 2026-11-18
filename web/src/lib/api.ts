@@ -706,9 +706,8 @@ export interface Settings {
    *  of their own (lib/listCards.ts). The app reads them too. */
   torrentCard: boolean;
   finishedCard: boolean;
-  /** Kept as stored; no build acts on it (internal/settings). */
-  autoUpdateCheck: boolean;
-  /** Downloads a newer release for the next start. Only the desktop build acts on it. */
+  /** Downloads a newer release for the next start on the desktop build, and
+   *  looks for one on opening the Info card where KnightLoader cannot replace itself. */
   autoUpdate: boolean;
   /** Holds off sleep while a download runs. Only the desktop build acts on it. */
   keepAwake: boolean;
@@ -2542,7 +2541,7 @@ export type SiteLoginStateName = 'signedOut' | 'signedIn' | 'expired' | 'uncheck
  */
 export type SiteLoginSource = 'browser' | 'extension' | 'kl-browser' | '';
 
-/** One site signed into through the browser, a row of the hoster accounts. */
+/** One site signed into through the browser: a row of the hoster accounts once added, a tile of their picker before. */
 export interface SiteLogin {
   id: string;
   name: string;
@@ -2567,8 +2566,10 @@ export interface SiteLogin {
   unreadable: string[];
   /** Whether this instance reads the browsers on its computer; false in a container. */
   readsBrowsers: boolean;
-  /** Removed here: the browsers' sign-in is not used until the site is signed in through KnightLoader again. */
-  disconnected: boolean;
+  /** Whether the site has a row. One that was not added is offered in the picker, and its session is not used. */
+  listed: boolean;
+  /** Whether the extension in a browser of the group may read the site, so a sign-in there reaches this instance. */
+  handsOver?: boolean;
 }
 
 export async function fetchSiteLogins(): Promise<SiteLogin[]> {
@@ -2585,14 +2586,14 @@ export async function removeSiteLogin(id: string): Promise<SiteLogin> {
   return json<SiteLogin>(await post(siteLoginPath(id, 'remove'), {}));
 }
 
-/** beginSiteLogin signs a site in through KnightLoader, which uses the browsers' sign-in to a removed site again. */
+/** beginSiteLogin adds a site and waits for its sign-in. */
 export async function beginSiteLogin(id: string): Promise<SiteLogin> {
   return json<SiteLogin>(await post(siteLoginPath(id, 'begin'), {}));
 }
 
-/** reconnectSiteLogin uses the browsers' sign-in to a removed site again, without a new sign-in. */
-export async function reconnectSiteLogin(id: string): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(siteLoginPath(id, 'reconnect'), {}));
+/** addSiteLogin gives a site its row, with the sign-in a browser here already holds. */
+export async function addSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'add'), {}));
 }
 
 // The sign-in browser (internal/signinbrowser): a browser KnightLoader runs
@@ -3011,6 +3012,9 @@ export interface HosterLogin {
   /** The hoster takes the login again only with the one-time code of its
    *  second factor, which `code` says why. */
   askCode?: boolean;
+  /** A refusal for another reason, which `code` names, that a code may
+   *  still get past. */
+  codeMayHelp?: boolean;
   /** The sign-in browser's id for the hoster's own sign-in page, for a login
    *  that can be signed in there, and whether it waits for that. */
   signInSite?: string;

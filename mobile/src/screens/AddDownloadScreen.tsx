@@ -70,7 +70,7 @@ export default function AddDownloadScreen({
         style={[styles.textArea, { backgroundColor: c.surface, color: c.text, ...corners.control }]}
         multiline
         placeholder={t('addDownload.placeholder')}
-        placeholderTextColor={c.textMuted}
+        placeholderTextColor={c.fieldPlaceholder}
         value={text}
         onChangeText={setText}
         autoCapitalize="none"

@@ -45,7 +45,7 @@ describe('a spent download volume', () => {
       fallback,
     );
     expect(got?.line).toBe('Das Download-Volumen bei Debrid-Link für rapidgator.net ist aufgebraucht.');
-    expect(got?.next).toMatch(/^Ab .*30\.10\.26.* ist wieder Volumen da\. Warte bis dahin oder buch Traffic für das Konto nach\.$/);
+    expect(got?.next).toMatch(/^Ab .*30\.10\.2026.* ist wieder Volumen da\. Warte bis dahin oder buch Traffic für das Konto nach\.$/);
   });
 
   it('blames the hoster login, not the backend, when no service is named', () => {

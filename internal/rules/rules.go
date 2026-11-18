@@ -111,6 +111,9 @@ type Action struct {
 	Priority    *int   `json:"priority,omitempty"`
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
+	// LinkEnabled false adds the link disabled: it stays in the list and
+	// nothing starts it until somebody enables it.
+	LinkEnabled *bool `json:"linkEnabled,omitempty"`
 
 	// ExtractDir is where the content of this link's finished extraction is
 	// moved afterwards; empty leaves it to settings.ExtractMoveTo. It differs
@@ -182,7 +185,11 @@ type Candidate struct {
 	Filetype string
 	Filesize int64
 	Package  string
-	Added    time.Time
+	// PackageGuess is the name the collector would file the link under, which
+	// <jd:packagename> stands for while Package is empty. Conditions on the
+	// package do not see it.
+	PackageGuess string
+	Added        time.Time
 }
 
 // filled derives what the caller did not supply.
@@ -218,6 +225,7 @@ type Effect struct {
 	Priority    *int   `json:"priority,omitempty"`
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
+	LinkEnabled *bool  `json:"linkEnabled,omitempty"`
 	// ExtractDir is where the finished extraction's content is moved; see
 	// Action.ExtractDir.
 	ExtractDir string `json:"extractDir,omitempty"`
@@ -394,6 +402,10 @@ func snapshot(a Action) Action {
 		v := *a.Chunks
 		a.Chunks = &v
 	}
+	if a.LinkEnabled != nil {
+		v := *a.LinkEnabled
+		a.LinkEnabled = &v
+	}
 	return a
 }
 
@@ -460,6 +472,10 @@ func (m *Matcher) Apply(c Candidate) Effect {
 		if a.Chunks != nil {
 			v := *a.Chunks
 			e.Chunks = &v
+		}
+		if a.LinkEnabled != nil {
+			v := *a.LinkEnabled
+			e.LinkEnabled = &v
 		}
 		return true
 	})

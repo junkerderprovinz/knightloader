@@ -157,7 +157,7 @@ function Generations({ generations }: { generations: LogGeneration[] }) {
             href={logFileHref(g.index)}
             download
             className="inline-flex h-[var(--btn-h)] shrink-0 items-center rounded-[var(--radius-pill)] bg-carbon-surface2
-              px-2.5 text-xs font-medium text-carbon-textSub transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
+              px-2.5 text-xs font-medium text-carbon-textSub transition-colors hover:bg-hover hover:text-carbon-text"
           >
             {t('settings.diagnostics.fileDownload')}
           </a>

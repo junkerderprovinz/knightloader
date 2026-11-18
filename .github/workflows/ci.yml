@@ -73,7 +73,8 @@ jobs:
             # manifest, release.yml and the extension's version route.
             # check-module-lines.mjs reads the module codes from the two
             # routes files, check-one-name.mjs the app's English and German,
-            # and lib/taskError.test.ts the failure codes.
+            # check-root-layers.mjs the extension's stylesheet, and
+            # lib/taskError.test.ts the failure codes.
             web:
               - 'web/**'
               - 'mobile/app.json'
@@ -81,6 +82,7 @@ jobs:
               - 'mobile/src/i18n/en.ts'
               - 'mobile/src/i18n/de.ts'
               - 'extension/src/manifest.json'
+              - 'extension/src/glimstone.css'
               - '.github/workflows/release.yml'
               - 'internal/api/routes_browsertools.go'
               - 'internal/api/routes_features.go'
@@ -180,7 +182,7 @@ jobs:
 
       # Read from go.mod so CI and the Dockerfile's build stage cannot drift
       # apart.
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
           go-version-file: go.mod
 
@@ -262,7 +264,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
           go-version-file: go.mod
 
@@ -314,7 +316,7 @@ jobs:
       - name: List column widths
         run: node check-column-widths.mjs
 
-      - name: Hover ramp
+      - name: Every hover lights up in the accent
         run: node check-hover-ramp.mjs
 
       - name: Search query parser
@@ -388,6 +390,9 @@ jobs:
 
       - name: The version on a download card is the one it downloads
         run: node check-version-sources.mjs
+
+      - name: A layered root token is not shadowed by an unlayered default
+        run: node check-root-layers.mjs
 
       - name: A stretched plot does not decide its card's height
         run: node check-stretched-svg-height.mjs
@@ -511,6 +516,9 @@ jobs:
 
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs
+
+      - name: Every hover lights up in the accent
+        run: node extension/check-hover.mjs
 
       - name: Instances that are away
         run: node extension/check-away.mjs
@@ -732,7 +740,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
           go-version-file: desktop/go.mod
           cache-dependency-path: desktop/go.sum

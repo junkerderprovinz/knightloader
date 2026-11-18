@@ -49,7 +49,7 @@ export function SelectionReach({
           {...tipHoverProps}
           aria-label={aria}
           className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 transition-colors
-            hover:bg-carbon-surface3 hover:text-carbon-text focus-visible:text-carbon-text"
+            hover:bg-hover hover:text-carbon-text focus-visible:text-carbon-text"
           onClick={onReduce}
         >
           {t('select.hidden', { n: hidden })}

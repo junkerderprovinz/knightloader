@@ -58,12 +58,13 @@ type browserScan struct {
 	unreadable []string
 }
 
-// StartBrowserSessions reads the sites' sessions from the browsers on this
-// machine from now on: at once, every few minutes, and whenever one is asked
-// for and the last read is old. A container has no browser of its own, so
-// there this does nothing.
+// StartBrowserSessions reads the added sites' sessions from the browsers on
+// this machine from now on: at once, every few minutes, and whenever one is
+// asked for and the last read is old. A container has no browser of its own,
+// so there it only keeps the rows of the sessions it stores.
 func (a *App) StartBrowserSessions() {
 	if buildinfo.InContainer() {
+		a.takeOverSiteRows(nil)
 		return
 	}
 	st := a.siteLogins()
@@ -71,6 +72,7 @@ func (a *App) StartBrowserSessions() {
 	st.read = browsercookies.Read
 	st.mu.Unlock()
 	go func() {
+		a.takeOverSiteRows(browsercookies.Read)
 		tick := time.NewTicker(browserScanEvery)
 		defer tick.Stop()
 		for {
@@ -93,7 +95,7 @@ func (a *App) browserSession(site sitelogin.Site, maxAge time.Duration) browserS
 	st.mu.Lock()
 	read, lock := st.read, st.scanning[site.ID]
 	st.mu.Unlock()
-	if read == nil || a.siteStore().Disconnected(site.ID) {
+	if read == nil || !a.siteStore().Added(site.ID) {
 		return browserScan{}
 	}
 	// One read per site at a time: the accounts page and a download asking
@@ -245,10 +247,11 @@ func (a *App) siteSession(rawurl string) string {
 
 // signInSession is the session yt-dlp tries a link once more with after it
 // failed for want of a sign-in, for its SignIn hook: the site's own where it
-// is one of sitelogin.Sites, otherwise whatever a browser here holds for the
-// link's domain.
+// is added, otherwise whatever a browser here holds for the link's domain, or
+// for all of the domains of a site on offer that was never added.
 func (a *App) signInSession(rawurl string) string {
-	if site, ok := sitelogin.ForURL(rawurl); ok {
+	site, known := sitelogin.ForURL(rawurl)
+	if known && a.siteStore().Added(site.ID) {
 		return a.sessionOf(site)
 	}
 	st := a.siteLogins()
@@ -266,8 +269,15 @@ func (a *App) signInSession(rawurl string) string {
 	if err != nil || a.disconnectedDomain(domain) {
 		return ""
 	}
+	domains := []string{domain}
+	if known {
+		if a.siteStore().Disconnected(site.ID) {
+			return ""
+		}
+		domain, domains = site.Domains[0], site.Domains
+	}
 	now := time.Now()
-	found, _ := read([]string{domain})
+	found, _ := read(domains)
 	var best *browsercookies.Found
 	for i, f := range found {
 		if looksSignedIn(f.Cookies, now) && (best == nil || lastUsed(f.Cookies).After(lastUsed(best.Cookies))) {
@@ -277,7 +287,7 @@ func (a *App) signInSession(rawurl string) string {
 	if best == nil {
 		return ""
 	}
-	jar := sitelogin.JarFromCookies(sitelogin.Site{Domains: []string{domain}}, asBrowserCookies(best.Cookies), now)
+	jar := sitelogin.JarFromCookies(sitelogin.Site{Domains: domains}, asBrowserCookies(best.Cookies), now)
 	if jar != "" {
 		log.Printf("site sign-in: %s asked for a sign-in, so the link is tried again with the session from %s", domain, best.Profile)
 	}
@@ -293,6 +303,37 @@ func (a *App) disconnectedDomain(domain string) bool {
 		}
 	}
 	return false
+}
+
+// rowsBefore are the sites that had a row before sites were added one by
+// one, each of them always.
+var rowsBefore = []string{"patreon", "youtube"}
+
+// takeOverSiteRows adds, once, the sites in use before sites were added one
+// by one: those with a stored session and, where read reads the browsers
+// here, those of rowsBefore a browser holds a sign-in to and that were not
+// removed.
+func (a *App) takeOverSiteRows(read browserReader) {
+	store := a.siteStore()
+	if store.RowsTakenOver() {
+		return
+	}
+	for _, site := range sitelogin.Sites {
+		inUse := store.Session(site.ID) != ""
+		if !inUse && read != nil && slices.Contains(rowsBefore, site.ID) && !store.Disconnected(site.ID) {
+			inUse = a.scanBrowsers(site, read, false).from != ""
+		}
+		if !inUse {
+			continue
+		}
+		if err := store.SetAdded(site.ID, true); err != nil {
+			log.Printf("site sign-in: %s could not keep its row: %v", site.Name, err)
+			return
+		}
+	}
+	if err := store.SetRowsTakenOver(); err != nil {
+		log.Printf("site sign-in: the rows in use could not be marked as kept: %v", err)
+	}
 }
 
 // sessionWords are parts of the cookie names sites keep a sign-in under. A

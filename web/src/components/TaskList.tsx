@@ -28,6 +28,7 @@ import {
   fetchOptions,
   saveHosterPreset,
 } from '../lib/api';
+import { announce } from '../lib/announce';
 import { hueVars } from '../lib/appearance';
 import {
   pause,
@@ -71,6 +72,7 @@ import {
   Toggle,
   useTooltip,
 } from './ui';
+import { ResizeHandle } from './ResizeHandle';
 import { Tabs } from './Tabs';
 import { Dropdown } from './Dropdown';
 import { PathInput } from './FolderPicker';
@@ -426,7 +428,7 @@ function FilesTwisty({ open, onToggle, focusable }: { open: boolean; onToggle: (
         aria-label={label}
         {...hover}
         className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)] text-carbon-textSub
-          transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
+          transition-colors hover:bg-hover hover:text-carbon-text"
       >
         <Twisty open={open} />
       </button>
@@ -551,7 +553,7 @@ function TaskRow({
       className={`glim-row glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
       } relative grid items-center ${ROW_EDGES} py-[var(--row-pad)] transition-colors
-        hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
+        hover:bg-hover has-[:focus-visible]:bg-hover`}
     >
       {columns.map((col) => {
         const node = col.render(task, ctx);
@@ -811,7 +813,7 @@ function PackageName({
         aria-label={label}
         {...hover}
         className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)] text-carbon-textSub
-          transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
+          transition-colors hover:bg-hover hover:text-carbon-text"
       >
         <Twisty open={!collapsed} />
       </button>
@@ -1137,7 +1139,7 @@ function PackageRow({
         hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
       } ${allSelected ? 'glim-row-selected' : ''} ${
         divider ? 'border-t border-carbon-border/60' : ''
-      } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
+      } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-hover has-[:focus-visible]:bg-hover ${dnd.look(unit)}`}
     >
       {columns.map((col) => (
         <div
@@ -1327,59 +1329,6 @@ function scrollerOf(el: HTMLElement | null): HTMLElement | null {
 }
 
 /**
- * The 8px grab strip on a column's trailing edge. Its own component only so it
- * can hold a hook: it carries the house bubble rather than a native `title`
- * (see columns.tsx's Tip), and a hook cannot live inside the header's `map()`.
- * The handle is invisible furniture with no text of its own, which is the case
- * GlimStone says needs a tooltip unconditionally.
- */
-function ResizeHandle({
-  hint,
-  onResize,
-  onReset,
-}: {
-  hint: string;
-  onResize: (phase: 'start' | 'move' | 'end', e: PointerEvent<HTMLElement>) => void;
-  onReset: () => void;
-}) {
-  const tip = useTooltip<HTMLSpanElement>(hint);
-  // role/tabIndex dropped: this element already states role="separator", and
-  // the "note" role the hook hands out would replace it.
-  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
-  return (
-    <>
-      <span
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={hint}
-        {...hover}
-        onPointerDown={(e) => onResize('start', e)}
-        onPointerMove={(e) => onResize('move', e)}
-        onPointerUp={(e) => onResize('end', e)}
-        // A drag the browser takes away (a context menu, a window switch)
-        // must still settle the width, or the table keeps a hand-painted
-        // track list that the next render silently undoes.
-        onPointerCancel={(e) => onResize('end', e)}
-        onDoubleClick={onReset}
-        className="absolute inset-y-0 end-0 z-10 w-2 cursor-col-resize touch-none"
-      >
-        {/* The visible line, drawn inside the 8px grab area rather than as a
-            border on the cell: a border would sit at the edge of the column,
-            and the thing to aim at is the handle. Transparent until the header
-            is hovered, and always ignoring the pointer so it never eats the
-            drag it advertises. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-1 end-[3px] w-px bg-transparent
-            transition-colors group-hover/header:bg-carbon-border"
-        />
-      </span>
-      {tip.node}
-    </>
-  );
-}
-
-/**
  * The header: column labels, and the three things you can do to a column.
  *
  * The label is what a drag takes hold of and the resize handle is its sibling
@@ -1542,7 +1491,7 @@ function Header({
                 aria-haspopup="dialog"
                 aria-expanded={filterOpen === col.id}
                 onClick={(e) => openFilter(col.id, e.currentTarget)}
-                className={`relative me-1 grid h-5 w-5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors hover:bg-carbon-hover hover:text-carbon-text ${
+                className={`relative me-1 grid h-5 w-5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors hover:bg-hover hover:text-carbon-text ${
                   filters[col.id]?.active ? 'text-carbon-text' : 'text-carbon-textMuted'
                 }`}
               >
@@ -1649,7 +1598,7 @@ function HeaderTip({ onDone }: { onDone: () => void }) {
         aria-label={t('common.close')}
         title={t('common.close')}
         onClick={onDone}
-        className="grid h-5 w-5 place-items-center rounded-[var(--radius-control)] hover:bg-carbon-surface3 hover:text-carbon-text"
+        className="grid h-5 w-5 place-items-center rounded-[var(--radius-control)] hover:bg-hover hover:text-carbon-text"
       >
         <IconClose width={10} height={10} />
       </button>
@@ -2190,6 +2139,16 @@ export function TaskListCard({
   // beginGesture): the queue refuses a reorder with a sentence, and a move that
   // is refused in silence reads as a move the app never received.
   const { toast } = useToast();
+
+  // A focused row says it is selected, but nothing says how many a Shift+arrow
+  // or a click on a package has picked.
+  const picked = selection?.ids.size ?? 0;
+  const announced = useRef(picked);
+  useEffect(() => {
+    if (announced.current === picked) return;
+    announced.current = picked;
+    announce(`${picked} ${t('select.count')}`);
+  }, [picked, t]);
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, defaultSort(profile));

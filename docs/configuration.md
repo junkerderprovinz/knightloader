@@ -42,11 +42,11 @@ list of services, and where each one issues its key, is
 ## Sign-ins read from the browser
 
 No variable switches this. The desktop app, and a server started outside a
-container, read the sign-ins of Patreon and YouTube from the browsers of the
+container, read the sign-ins of the sites added under Hoster accounts from the browsers of the
 user KnightLoader runs as, and for any other site when a download there asks
 for one. A container reads no browser and takes the session from the browser
 extension instead. See
-[Getting links in](getting-links-in.md#patreon-and-youtube-signed-in-through-the-browser).
+[Getting links in](getting-links-in.md#sites-signed-in-through-the-browser).
 
 ## Trusted proxies
 

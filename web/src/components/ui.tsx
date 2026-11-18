@@ -24,17 +24,17 @@ type ButtonKind = 'primary' | 'secondary' | 'ghost';
 
 /**
  * Every kind hovers by a colour step (GlimStone rule 21). The surface kinds
- * take the next tier of the ramp (web/check-hover-ramp.mjs guards the
- * surface2/surface3 pair), and their glyph takes the accent (.glim-btn-subtle
- * and .glim-btn-bare in index.css). An accent fill is not on the ramp, so it steps
- * toward the theme's text colour through `--accent-hover`: opacity would let
- * the card show through, and a brightness step can only move one way while the
- * two themes need opposite directions.
+ * take the accent's `--hover`, the colour every row and menu entry takes too
+ * (web/check-hover-ramp.mjs), and their glyph takes the accent (.glim-btn-subtle
+ * and .glim-btn-bare in index.css). An accent fill steps toward the theme's
+ * text colour through `--accent-hover`: opacity would let the card show
+ * through, and a brightness step can only move one way while the two themes
+ * need opposite directions.
  */
 const kindClass: Record<ButtonKind, string> = {
   primary: 'bg-accent text-accentContrast hover:bg-accentHover',
-  secondary: 'glim-btn-subtle bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
-  ghost: 'glim-btn-bare text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
+  secondary: 'glim-btn-subtle bg-carbon-surface2 text-carbon-text hover:bg-hover',
+  ghost: 'glim-btn-bare text-carbon-textSub hover:bg-hover hover:text-carbon-text',
 };
 
 /**
@@ -206,7 +206,7 @@ export function Button({
   const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
+      className={`glim-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.97] ${
           transport
@@ -329,7 +329,7 @@ export function NamedHint({ name, hint }: { name?: string; hint: string }) {
  * hue-tinted tile.
  */
 const iconBadgeClass =
-  'glim-btn-subtle bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text';
+  'glim-btn-subtle bg-carbon-surface2 text-carbon-textSub hover:bg-hover hover:text-carbon-text';
 
 /**
  * IconTile is IconBadge's inert twin: the same square, the same `--btn-h`
@@ -404,7 +404,7 @@ export function LabelBadge({
   // mixes a little of its own ink into itself, so it keeps the state it
   // reports. The neutral badge takes the next tier of the ramp, and the hue
   // wash, an inset shadow, lies over that tier and moves with it.
-  const hoverClass = tone ? LABEL_TONE_HOVER[tone] : 'hover:bg-carbon-surface3';
+  const hoverClass = tone ? LABEL_TONE_HOVER[tone] : 'hover:bg-hover';
   const Tag = onClick ? 'button' : 'span';
   return (
     <Tag
@@ -1078,7 +1078,7 @@ export const segOn = 'bg-accent text-accentContrast';
 // bg-carbon-surface2 at rest, not transparent: every tab is a badge, not just
 // the selected one, or the strip reads as unfinished. See GlimStone's
 // design-language.md.
-export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-carbon-surface3 hover:text-carbon-text';
+export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-hover hover:text-carbon-text';
 
 /**
  * hueStyle is how one member of a set claims a palette position: the element
@@ -1111,10 +1111,10 @@ export const FIELD_BOX = `${FIELD_LOOK} h-[var(--btn-h)]`;
 
 /**
  * A field trigger opens something rather than taking text, so unlike a text
- * field it answers the pointer, one step up the ramp from its fill (rule 21).
- * index.css repeats the step for a trigger inside a well.
+ * field it answers the pointer, with the accent's hover (rule 21). index.css
+ * repeats it for a trigger inside a well.
  */
-export const FIELD_TRIGGER = `${FIELD_BOX} cursor-pointer hover:bg-carbon-surface3 disabled:pointer-events-none disabled:opacity-40`;
+export const FIELD_TRIGGER = `${FIELD_BOX} cursor-pointer hover:bg-hover disabled:pointer-events-none disabled:opacity-40`;
 
 /**
  * A field that takes text shows its focus by stepping its fill up the ramp,
@@ -1126,7 +1126,7 @@ const TYPED = 'glim-focus-drawn focus:bg-carbon-surface3';
 /** FIELD_INPUT is a one-line text field for an input that draws itself. */
 export const FIELD_INPUT = `${FIELD_BOX} ${TYPED}`;
 
-const inputClass = `${FIELD_LOOK} ${TYPED} w-full px-3 py-1.5 text-sm placeholder:text-carbon-textMuted`;
+const inputClass = `${FIELD_LOOK} ${TYPED} w-full px-3 py-1.5 text-sm`;
 
 // className is pulled out and merged rather than left in `props`: a JSX spread
 // applies later props last, so a caller's own className would replace the base
@@ -1172,13 +1172,13 @@ export function TextArea({
 
 /**
  * A stepper is part of the field, not a control beside it (GlimStone 1.6.0): no
- * ground of its own, only the ink changing on hover, and greyed out at its own
- * end of the range. A hover background here would bring back the property that
- * got the native spinner removed, one layer down.
+ * ground of its own, only the ink taking the accent on hover, and greyed out at
+ * its own end of the range. A hover background here would bring back the
+ * property that got the native spinner removed, one layer down.
  */
 const STEPPER =
   'flex h-3.5 w-4 items-center justify-center text-carbon-textMuted transition-colors ' +
-  'hover:text-carbon-text disabled:opacity-35 disabled:hover:text-carbon-textMuted';
+  'hover:text-accentGlyph disabled:opacity-35 disabled:hover:text-carbon-textMuted';
 
 /**
  * Solid triangles with rounded corners, not two-stroke chevrons (GlimStone
@@ -1538,7 +1538,7 @@ export function PasswordInput({
         onClick={() => setReveal((r) => !r)}
         aria-label={label}
         {...tipHoverProps}
-        className="absolute inset-y-0 end-0 flex w-[var(--btn-h)] items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
+        className="absolute inset-y-0 end-0 flex w-[var(--btn-h)] items-center justify-center text-carbon-textMuted transition-colors hover:text-accentGlyph"
       >
         {reveal ? <IconEyeOff width={16} height={16} /> : <IconEye width={16} height={16} />}
       </button>
@@ -1599,7 +1599,7 @@ export function Toggle({
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
         <span
-          className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
+          className={`glim-toggle-track relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
             checked ? 'bg-accent' : 'bg-toggleOff'
           } ${refused ? 'opacity-50' : ''}`}
         >
@@ -1610,7 +1610,7 @@ export function Toggle({
               it takes the fill's ink, or the light ramp's pale ground would
               vanish into a yellow or a green. */}
           <span
-            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+            className={`glim-toggle-thumb absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
               checked ? 'bg-accentContrast translate-x-4 rtl:-translate-x-4' : 'bg-carbon-background translate-x-0.5 rtl:-translate-x-0.5'
             }`}
           />
@@ -1887,11 +1887,15 @@ export function UnavailableNotice({
   );
 }
 
-// A quiet placeholder while a page's data is still on the wire. `nested`: see
-// EmptyState above, where the same whole-page or inside-a-card split applies.
+// A quiet placeholder while a page's data is still on the wire. It waits a
+// moment before it shows (.glim-busy-wait), so a quick answer never flashes it.
+// `nested`: see EmptyState above, where the same whole-page or inside-a-card
+// split applies.
 export function LoadingCard({ label, nested }: { label: string; nested?: boolean }) {
   return (
-    <div className={`${nested ? 'glim-well' : 'glim-card'} p-10 text-center text-sm text-carbon-textMuted`}>{label}</div>
+    <div className={`${nested ? 'glim-well' : 'glim-card'} glim-busy-wait p-10 text-center text-sm text-carbon-textMuted`}>
+      {label}
+    </div>
   );
 }
 

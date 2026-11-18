@@ -207,7 +207,7 @@ export function AddLinksForm({
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
       className={`relative rounded-[var(--radius-control)] m-3 flex-1 transition-colors ${
-        dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
+        dragOver ? 'bg-accentSoft shadow-[0_0_0_var(--focus-ring-width)_var(--focus-ring)]' : 'bg-carbon-surface2'
       }`}
     >
       <textarea
@@ -219,7 +219,7 @@ export function AddLinksForm({
         onKeyDown={(e) => {
           if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') void onAdd();
         }}
-        className="h-full min-h-[6rem] w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
+        className="h-full min-h-[6rem] w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text outline-none"
       />
       {dragOver && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--radius-control)]">

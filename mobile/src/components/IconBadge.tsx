@@ -612,6 +612,11 @@ export function Github({ color }: { color: string }) {
   return <Tinted source={require('../../assets/github-mark.png')} color={color} style={styles.fill} />;
 }
 
+/** Discord's mark, GlimStone's IconDiscord from Simple Icons (CC0). */
+export function Discord({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/discord-mark.png')} color={color} style={styles.fill} />;
+}
+
 /** PayPal's double P, from Simple Icons (CC0), as on the other two surfaces. */
 export function PayPal({ color }: { color: string }) {
   return <Tinted source={require('../../assets/paypal-mark.png')} color={color} style={styles.fill} />;
@@ -639,22 +644,6 @@ export function CoffeeArt({ cup, words }: { cup: string; words: string }) {
       <Tinted source={require('../../assets/coffee-cup.png')} color={cup} style={styles.layer} />
       <Tinted source={require('../../assets/coffee-lettering.png')} color={words} style={styles.layer} />
     </>
-  );
-}
-
-/**
- * The Email button's envelope, open while the button is pressed: GlimStone's
- * MAIL_SVG, IconMail at rest and Material's `email-open` lit, each in the
- * square its own ink is centred in, so the two read the same size and the
- * closed one sits in the middle of the button.
- */
-export function MailMark({ open, color }: { open: boolean; color: string }) {
-  return (
-    <Tinted
-      source={open ? require('../../assets/mail-open.png') : require('../../assets/mail-closed.png')}
-      color={color}
-      style={styles.fill}
-    />
   );
 }
 

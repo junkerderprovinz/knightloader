@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 )
 
@@ -35,6 +36,10 @@ type Backend struct {
 	*ownlogin.Login
 	*ownlogin.Tasks
 
+	// Solve answers a captcha a sign-in asks for. Nil answers none, which
+	// turns such a login down.
+	Solve hoster.Solve
+
 	host     Host
 	client   *Client
 	onUpdate func(taskID string, u core.Update)
@@ -48,7 +53,7 @@ func NewBackend(h Host, c *Client, eng Downloader, onUpdate func(taskID string, 
 	b.Login = ownlogin.NewLogin(ownlogin.Signer{
 		// The API has no second factor to send a code with.
 		Login: func(ctx context.Context, user, password, _ string) (string, Account, error) {
-			token, acct, err := c.Login(ctx, user, password)
+			token, acct, err := c.Login(ctx, user, password, b.ask(ctx))
 			return token, acct, b.named(err)
 		},
 		Account: func(ctx context.Context, token string) (Account, error) {
@@ -75,6 +80,14 @@ func (b *Backend) named(err error) error {
 		return nil
 	}
 	return fmt.Errorf("%s: %w", b.host.Name, err)
+}
+
+// ask answers the captchas of a sign-in through Solve, nil without one.
+func (b *Backend) ask(ctx context.Context) func(hoster.Captcha) (string, error) {
+	if b.Solve == nil {
+		return nil
+	}
+	return func(c hoster.Captcha) (string, error) { return hoster.AskAlone(ctx, b.Solve, c) }
 }
 
 // unlock asks the API for the file's download link. The traffic left is not
@@ -125,6 +138,8 @@ func reason(err error) core.Reason {
 		return core.ReasonAuth
 	case errors.Is(err, ErrTraffic), errors.Is(err, ErrQuota), errors.Is(err, ErrDenied):
 		return core.ReasonLimit
+	case errors.Is(err, hoster.ErrNoAnswer), errors.Is(err, errCaptchaRefused):
+		return core.ReasonCaptcha
 	case errors.Is(err, ErrBusy), errors.Is(err, errSession), errors.As(err, &api) && api.Status >= http.StatusInternalServerError:
 		return core.ReasonUnavailable
 	}

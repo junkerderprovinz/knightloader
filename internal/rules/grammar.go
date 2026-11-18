@@ -123,6 +123,7 @@ func Describe() Grammar {
 			// ExtractMoveTo (see Action.ExtractDir).
 			{ID: "extractDir", Kind: "template", Flavour: "packagizer"},
 			{ID: "chunks", Kind: "int", Flavour: "packagizer", Min: intPtr(1), Max: intPtr(MaxChunks)},
+			{ID: "linkEnabled", Kind: "bool", Flavour: "packagizer"},
 			{ID: "reject", Kind: "reject", Flavour: "filter"},
 			{ID: "reason", Kind: "template", Flavour: "filter"},
 		},

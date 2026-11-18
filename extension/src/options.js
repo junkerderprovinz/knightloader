@@ -133,6 +133,25 @@ const D_GITHUB =
   '-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27' +
   '1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95' +
   '.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z';
+// Discord's mark from Simple Icons, CC0 1.0, on a 24-unit grid, GlimStone's IconDiscord.
+const D_DISCORD =
+  'M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371' +
+  'c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495' +
+  'a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277' +
+  'C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561' +
+  'c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276' +
+  'c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057' +
+  'c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914' +
+  'a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095' +
+  'c.1202.099.246.1981.3728.2924' +
+  'a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067' +
+  'c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294' +
+  'a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286z' +
+  'M8.02 15.3312' +
+  'c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189' +
+  'zm7.9748 0' +
+  'c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189' +
+  'Z';
 /** Buy Me a Coffee's button artwork (appMarks.js), cup and lettering. */
 function coffeeArt() {
   const svg = document.createElementNS(NS, 'svg');
@@ -146,23 +165,6 @@ function coffeeArt() {
     svg.appendChild(path);
   }
   return svg;
-}
-
-/**
- * The mail button's envelope, closed and open. The open one takes over under
- * the pointer, on focus and under a finger through GlimStone's
- * .glim-mark-rest and .glim-mark-hover.
- */
-function mailMarks() {
-  return [
-    ['glim-mark-rest', MAIL_MARK.rest],
-    ['glim-mark-hover', MAIL_MARK.hover],
-  ].map(([cls, { d, box, evenodd }]) => {
-    const svg = glyph(d, 14, box);
-    if (evenodd) svg.firstChild.setAttribute('fill-rule', 'evenodd');
-    svg.setAttribute('class', cls);
-    return svg;
-  });
 }
 
 /**
@@ -1729,8 +1731,7 @@ async function renderAppearance() {
 // The GlimStone version comes from appearance.js, beside the ports it
 // describes, rather than from a number kept next to this card.
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
-const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
-const CONTACT_MAIL = 'hello@halleluja.design';
+const DISCORD_URL = 'https://discord.gg/2CTZyKaFb6';
 // The widget page for the coffee handle in the README's donate row.
 const COFFEE_WIDGET_URL = 'https://buymeacoffee.com/widget/page/junkerderprovinz?color=%23FFDD00';
 // PayPal's hosted donation button, the same address the web UI's About card
@@ -1768,7 +1769,7 @@ function renderAbout() {
   const versions = document.getElementById('versionRows');
   const text = document.getElementById('aboutText');
   const gh = document.getElementById('aboutGithub');
-  const mail = document.getElementById('aboutMail');
+  const discord = document.getElementById('aboutDiscord');
   if (!versions) return;
   document.getElementById('versionHeading').textContent = t('options.aboutVersion');
   // The extension carries KnightLoader's own number, so its release is the
@@ -1776,7 +1777,7 @@ function renderAbout() {
   const own = chrome.runtime.getManifest().version;
   versions.replaceChildren(
     versionRow('KnightLoader', `${REPO_URL}/releases/tag/v${own}`, own),
-    versionRow('GlimStone', `${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
+    versionRow('GlimStone', GLIMSTONE_RELEASE_URL, GLIMSTONE_VERSION),
   );
   text.textContent = t('options.aboutText');
   const coffeeText = document.getElementById('aboutCoffee');
@@ -1804,9 +1805,12 @@ function renderAbout() {
   if (reportText) reportText.textContent = t('options.aboutReport');
   gh.href = REPO_URL;
   readmeFace(gh, { name: t('options.aboutGithub'), mark: glyph(D_GITHUB, 14), markClass: 'glim-github-mark' });
-  // The subject names the product; a prefilled body would read like a form.
-  mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
-  readmeFace(mail, { name: t('options.aboutMail'), mark: mailMarks(), markClass: 'glim-house-mark' });
+  discord.href = DISCORD_URL;
+  readmeFace(discord, {
+    name: t('options.aboutDiscord'),
+    mark: glyph(D_DISCORD, 14, '0 0 24 24'),
+    markClass: 'glim-discord-mark',
+  });
   for (const row of aboutRows) fitReadmeText(row);
 }
 

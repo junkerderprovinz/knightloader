@@ -157,12 +157,14 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	for _, h := range keep2share.Hosts {
 		b := keep2share.NewBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
 		b.Checked, b.Moved, b.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(h.Site)
+		b.Solve = a.solveFor(h.Site)
 		fb := keep2share.NewFreeBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
 		a.own = append(a.own, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b},
 			free: a.newOwnFree(h.ID+"-free", h.Site, keep2share.FreeResolver{Host: h}, fb.Free, fb, b.Handed)})
 	}
 	nf := nitroflare.NewBackend(nitroflare.NewClient(nitroflare.DefaultSite, hc), eng, a.onUpdate)
 	nf.Checked, nf.Moved, nf.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(nitroflare.Site)
+	nf.Solve = a.solveFor(nitroflare.Site)
 	a.own = append(a.own, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site,
 		normalize: nitroflare.Normalize, be: nf, res: nitroflare.Resolver{Backend: nf}})
 	fn := filer.NewBackend(filer.NewClient(filer.DefaultSite, hc), eng, a.onUpdate)
@@ -180,6 +182,19 @@ func (a *App) ownHosterFor(id string) *ownHoster {
 	defer a.bmu.RUnlock()
 	for _, h := range a.own {
 		if h.id == id {
+			return h
+		}
+	}
+	return nil
+}
+
+// ownHosterAt is the hoster whose login is stored under host, nil for none.
+func (a *App) ownHosterAt(host string) *ownHoster {
+	site := hostalias.Canonical(host)
+	a.bmu.RLock()
+	defer a.bmu.RUnlock()
+	for _, h := range a.own {
+		if h.site == site {
 			return h
 		}
 	}
@@ -301,7 +316,9 @@ func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
 		if h.site == hostalias.Canonical(host) {
 			st := h.be.Status()
 			return hosterauth.OwnState{
-				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code), Handed: st.Handed, Premium: st.Premium,
+				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code),
+				Activate: st.Activate, NewAddress: st.NewAddress, CodeMayHelp: st.CodeMayHelp,
+				Handed: st.Handed, Premium: st.Premium,
 				Expiry: st.Expiry, TrafficLeft: st.TrafficLeft, TrafficMax: st.TrafficMax,
 			}, true
 		}

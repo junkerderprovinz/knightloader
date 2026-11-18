@@ -40,6 +40,8 @@ export interface RuleAction {
   priority?: number;
   autoExtract?: boolean;
   chunks?: number;
+  /** False adds the link disabled. */
+  linkEnabled?: boolean;
   /**
    * The Categories-page drawer to file the link into, by id, so later edits to
    * the drawer still apply. Absent means no opinion, not "clear it".
@@ -139,6 +141,7 @@ export interface LinkReport {
     priority?: number;
     autoExtract?: boolean;
     chunks?: number;
+    linkEnabled?: boolean;
     /** The id of the Categories-page drawer a rule filed the link under. */
     category?: string;
     matched?: string[];
@@ -294,7 +297,7 @@ function VariablesMenu({
           role="menuitem"
           onClick={() => onPick(v.tag)}
           className="flex w-full flex-col gap-0.5 rounded-[var(--radius-control)] px-2 py-1.5 text-start
-            transition-colors hover:bg-carbon-hover"
+            transition-colors hover:bg-hover"
         >
           <span className="glim-num text-[12px] text-carbon-text" dir="ltr">
             {v.tag}
@@ -359,7 +362,7 @@ function TemplateInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`${FIELD_INPUT} w-full px-3 text-sm placeholder:text-carbon-textMuted`}
+        className={`${FIELD_INPUT} w-full px-3 text-sm`}
       />
       {folder && (
         <Button
@@ -728,6 +731,7 @@ const ACTION_HINTS: Partial<Record<keyof RuleAction, TranslationKey>> = {
   priority: 'settings.rules.priorityHint',
   chunks: 'settings.rules.chunksHint',
   category: 'settings.rules.action.categoryHint',
+  linkEnabled: 'settings.rules.action.linkEnabledHint',
 };
 
 // The actions that name a folder, which get the folder chooser too.
@@ -913,10 +917,9 @@ export function ruleSummary(t: Translate, rule: Rule, flavour: Flavour): string 
     }
     if (rule.action.priority !== undefined) acts.push(`${actionLabel(t, 'priority')} ${rule.action.priority}`);
     if (rule.action.chunks !== undefined) acts.push(`${actionLabel(t, 'chunks')} ${rule.action.chunks}`);
-    if (rule.action.autoExtract !== undefined) {
-      acts.push(
-        `${actionLabel(t, 'autoExtract')} ${rule.action.autoExtract ? t('settings.rules.yes') : t('settings.rules.no')}`,
-      );
+    for (const key of ['autoExtract', 'linkEnabled'] as const) {
+      const v = rule.action[key];
+      if (v !== undefined) acts.push(`${actionLabel(t, key)} ${v ? t('settings.rules.yes') : t('settings.rules.no')}`);
     }
   }
 

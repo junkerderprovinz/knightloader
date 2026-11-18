@@ -98,10 +98,10 @@ var groupRefused = []string{
 	"PUT /api/vpn/routes",
 	"DELETE /api/vpn/{id}",
 	"GET /api/sitelogins",
+	"POST /api/sitelogins/{id}/add",
 	"POST /api/sitelogins/{id}/begin",
 	"POST /api/sitelogins/{id}/check",
 	"POST /api/sitelogins/{id}/remove",
-	"POST /api/sitelogins/{id}/reconnect",
 	// The sign-in browser signs in on the owner's behalf and streams what
 	// the owner types.
 	"GET /api/signinbrowser",

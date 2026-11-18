@@ -5,7 +5,7 @@ import { message } from '../lib/intake';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { IconClose, IconExternalLink, IconTrash, IconUndo } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
-import { signInFor, useSignInWays } from '../lib/siteLogins';
+import { readsBrowsers, signInFor } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, FieldGroup, Modal } from './ui';
 import { SiteLoginDialog } from './SiteLoginDialog';
@@ -45,7 +45,6 @@ export function FailureAdvice({
   // them, so a peer's row gets the advice without the button.
   const local = base === '/api';
   const asksForSignIn = local && advice?.fix === 'signin';
-  const ways = useSignInWays(sites, asksForSignIn);
   useEffect(() => {
     if (!asksForSignIn) return;
     void fetchSiteLogins().then(setSites, () => {});
@@ -58,7 +57,7 @@ export function FailureAdvice({
     return (
       <SiteLoginDialog
         site={signIn.site}
-        ways={ways}
+        ways={{ readsBrowsers: readsBrowsers(sites) }}
         toSignIn
         onSignedIn={() => void restartTasks([task.id], base).catch(() => {})}
         onClose={onClose}

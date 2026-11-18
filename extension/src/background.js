@@ -342,6 +342,16 @@ async function onSignInCookie(change) {
   signinTimer = setTimeout(() => void runSignIns(), SIGNIN_SETTLE_MS);
 }
 
+// A tab on a site's sign-in page is most likely one an instance opened to wait
+// for the sign-in, and a browser signed in already changes no cookie there.
+// Its address is visible only once the extension may read the site.
+chrome.tabs?.onUpdated.addListener((tabId, change) => {
+  if (change.url) void onSignInPage(change.url);
+});
+async function onSignInPage(url) {
+  if (signInPageOpened(await storedSites(), url)) void runSignIns();
+}
+
 // chrome.cookies exists only once the optional permission is granted, so the
 // listener is added at start when it is there and again after a grant.
 let signinWired = false;
@@ -366,7 +376,7 @@ void chrome.storage.local.get('signinSyncedAt').then(({ signinSyncedAt }) => {
   if (!(Date.now() - (signinSyncedAt ?? 0) < SIGNIN_RESYNC_MS)) void runSignIns();
 });
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.signinEnabled?.newValue === true) void runSignIns();
+  if (area === 'local' && changes.signinEnabled) void runSignIns();
 });
 // An instance that did not answer gets the session a minute later.
 chrome.alarms?.onAlarm.addListener((alarm) => {

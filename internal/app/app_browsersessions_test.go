@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"slices"
 	"strings"
 	"sync"
@@ -73,6 +74,7 @@ func youtubeIn(p browsercookies.Profile, value string) browsercookies.Found {
 func TestASessionSignedInInTheBrowserIsTakenWithoutDoingAnything(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane Doe"})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
 
 	s := stateOf(t, a, "patreon")
@@ -87,6 +89,7 @@ func TestASessionSignedInInTheBrowserIsTakenWithoutDoingAnything(t *testing.T) {
 func TestTheFreshestSessionAmongTheBrowsersWins(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	withBrowsers(t, a).set("patreon.com", patreonIn(edgeProfile, "OLDER", lastWeek), patreonIn(firefoxProfile, "NEWER", anHourAgo))
 
 	if s := stateOf(t, a, "patreon"); s.Browser != "Firefox (default-release)" {
@@ -100,6 +103,7 @@ func TestTheFreshestSessionAmongTheBrowsersWins(t *testing.T) {
 func TestASessionTheSiteTurnsDownGivesWayToTheNextBrowser(t *testing.T) {
 	stubSiteCheckByJar(t, "SIGNED-OUT")
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "SIGNED-OUT", anHourAgo), patreonIn(edgeProfile, "WORKS", lastWeek))
 
 	if s := stateOf(t, a, "patreon"); s.State != sitelogin.SignedIn || s.Browser != "Edge (Personal)" {
@@ -110,6 +114,7 @@ func TestASessionTheSiteTurnsDownGivesWayToTheNextBrowser(t *testing.T) {
 func TestOnlyASessionTheSiteTurnsDownReadsAsExpired(t *testing.T) {
 	stubSiteCheckByJar(t, "SIGNED-OUT")
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "SIGNED-OUT", anHourAgo))
 
 	if s := stateOf(t, a, "patreon"); s.State != sitelogin.Expired || s.Source != SourceBrowser {
@@ -123,6 +128,7 @@ func TestOnlyASessionTheSiteTurnsDownReadsAsExpired(t *testing.T) {
 func TestCookiesWithoutASignInAreNoSession(t *testing.T) {
 	checks := stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	withBrowsers(t, a).set("patreon.com", browsercookies.Found{Profile: firefoxProfile, Cookies: []browsercookies.Cookie{
 		{Host: "www.patreon.com", Name: "patreon_locale_code", Value: "en-US", Path: "/"},
 	}})
@@ -137,6 +143,7 @@ func TestCookiesWithoutASignInAreNoSession(t *testing.T) {
 func TestSigningOutInTheBrowserTakesEffect(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	b := withBrowsers(t, a)
 	b.set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
 	if s := stateOf(t, a, "patreon"); s.State != sitelogin.SignedIn {
@@ -155,14 +162,15 @@ func TestSigningOutInTheBrowserTakesEffect(t *testing.T) {
 func TestTheBrowsersAreNotReadOnEveryListing(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	b := withBrowsers(t, a)
 	b.set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
 	for range 3 {
 		a.SiteLogins()
 		a.siteSession("https://www.patreon.com/posts/1")
 	}
-	if n := b.reads(); n != len(sitelogin.Sites) {
-		t.Errorf("the browsers were read %d times, want once per site", n)
+	if n := b.reads(); n != 1 {
+		t.Errorf("the browsers were read %d times, want once for the one site added", n)
 	}
 }
 
@@ -184,6 +192,7 @@ func TestAHandedOverSessionStandsInWhenNoBrowserHasOne(t *testing.T) {
 func TestTheBrowsersSessionComesBeforeTheHandedOverOne(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
@@ -199,6 +208,7 @@ func TestTheBrowsersSessionComesBeforeTheHandedOverOne(t *testing.T) {
 func TestABrowserThatCannotBeReadIsNamed(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "youtube")
 	b := withBrowsers(t, a)
 	b.unreadable = []browsercookies.Unreadable{
 		{Profile: browsercookies.Profile{Browser: "Chrome", Name: "Default"}, Err: browsercookies.ErrAppBound},
@@ -212,6 +222,7 @@ func TestABrowserThatCannotBeReadIsNamed(t *testing.T) {
 func TestWithoutBrowserReadingTheListingSaysSo(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	s := stateOf(t, a, "patreon")
 	if s.Source != "" || s.Browser != "" || s.Unreadable == nil || len(s.Unreadable) != 0 {
 		t.Errorf("patreon = %+v, want no source and an empty list of unreadable browsers", s)
@@ -221,6 +232,7 @@ func TestWithoutBrowserReadingTheListingSaysSo(t *testing.T) {
 func TestABrowserSignInEndsTheWait(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	b := withBrowsers(t, a)
 	if s, _ := a.BeginSiteLogin("patreon"); !s.Waiting {
 		t.Fatalf("BeginSiteLogin = %+v, want it waiting", s)
@@ -240,6 +252,7 @@ func TestABrowserSignInEndsTheWait(t *testing.T) {
 func TestYouTubesSessionWaitsUntilAVideoAsksForIt(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "youtube")
 	withBrowsers(t, a).set("youtube.com", youtubeIn(firefoxProfile, "YT-SESSION"))
 
 	if got := a.siteSession("https://www.youtube.com/watch?v=x"); got != "" {
@@ -254,41 +267,64 @@ func TestYouTubesSessionWaitsUntilAVideoAsksForIt(t *testing.T) {
 	}
 }
 
-func vimeoIn(p browsercookies.Profile, cookies ...browsercookies.Cookie) browsercookies.Found {
+func dailymotionIn(p browsercookies.Profile, cookies ...browsercookies.Cookie) browsercookies.Found {
 	return browsercookies.Found{Profile: p, Cookies: cookies}
 }
 
 func TestAnySiteSignsInFromTheBrowserWhenALinkAsks(t *testing.T) {
 	a := siteApp(t)
 	b := withBrowsers(t, a)
-	b.set("vimeo.com", vimeoIn(firefoxProfile,
-		browsercookies.Cookie{Host: ".vimeo.com", Name: "vimeo", Value: "VIMEO-SESSION", Path: "/", Expires: time.Now().Add(time.Hour), LastUsed: anHourAgo},
-		browsercookies.Cookie{Host: ".vimeo.com", Name: "vuid", Value: "pl1", Path: "/"},
-		browsercookies.Cookie{Host: ".vimeo.com", Name: "vimeo_session_id", Value: "S", Path: "/"},
+	b.set("dailymotion.com", dailymotionIn(firefoxProfile,
+		browsercookies.Cookie{Host: ".dailymotion.com", Name: "sdx", Value: "DM-SESSION", Path: "/", Expires: time.Now().Add(time.Hour), LastUsed: anHourAgo},
+		browsercookies.Cookie{Host: ".dailymotion.com", Name: "v1st", Value: "pl1", Path: "/"},
+		browsercookies.Cookie{Host: ".dailymotion.com", Name: "access_token", Value: "S", Path: "/"},
 	))
-	got := a.signInSession("https://player.vimeo.com/video/123")
-	if !strings.Contains(got, "VIMEO-SESSION") {
-		t.Errorf("signInSession = %q, want the browser's vimeo.com cookies", got)
+	got := a.signInSession("https://www.dailymotion.com/video/x8abc")
+	if !strings.Contains(got, "DM-SESSION") {
+		t.Errorf("signInSession = %q, want the browser's dailymotion.com cookies", got)
 	}
-	if last := b.asked[len(b.asked)-1]; !slices.Equal(last, []string{"vimeo.com"}) {
+	if last := b.asked[len(b.asked)-1]; !slices.Equal(last, []string{"dailymotion.com"}) {
 		t.Errorf("the browsers were asked for %q, want the link's registrable domain", last)
 	}
 }
 
 func TestASiteWithoutASignedInLookingCookieGetsNothing(t *testing.T) {
 	a := siteApp(t)
-	withBrowsers(t, a).set("vimeo.com", vimeoIn(firefoxProfile,
-		browsercookies.Cookie{Host: ".vimeo.com", Name: "_ga", Value: "GA1", Path: "/"},
-		browsercookies.Cookie{Host: ".vimeo.com", Name: "vuid", Value: "pl1", Path: "/"},
+	withBrowsers(t, a).set("dailymotion.com", dailymotionIn(firefoxProfile,
+		browsercookies.Cookie{Host: ".dailymotion.com", Name: "_ga", Value: "GA1", Path: "/"},
+		browsercookies.Cookie{Host: ".dailymotion.com", Name: "v1st", Value: "pl1", Path: "/"},
 	))
-	if got := a.signInSession("https://vimeo.com/123"); got != "" {
+	if got := a.signInSession("https://www.dailymotion.com/video/x8abc"); got != "" {
 		t.Errorf("signInSession = %q, want nothing for cookies that sign nobody in", got)
+	}
+}
+
+// A site on offer that was never added is tried once more like any other,
+// with the cookies of all its domains.
+func TestASiteNotAddedStillGetsTheSecondTry(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	b := withBrowsers(t, a)
+	b.set("instagram.com", browsercookies.Found{Profile: firefoxProfile, Cookies: []browsercookies.Cookie{
+		{Host: ".instagram.com", Name: "sessionid", Value: "IG-SESSION", Path: "/", Secure: true, Expires: time.Now().Add(time.Hour), LastUsed: anHourAgo},
+	}})
+	if s := stateOf(t, a, "instagram"); s.Added || s.State != sitelogin.SignedOut {
+		t.Errorf("instagram = %+v, want no row and nothing read", s)
+	}
+	if got := a.signInSession("https://instagr.am/p/abc/"); !strings.Contains(got, "IG-SESSION") {
+		t.Errorf("an instagr.am link asking for a sign-in gets %q", got)
+	}
+	if last := b.asked[len(b.asked)-1]; !slices.Equal(last, []string{"instagram.com"}) {
+		t.Errorf("the browsers were asked for %q, want Instagram's domains", last)
+	}
+	if got := a.siteSession("https://www.patreon.com/posts/1"); got != "" {
+		t.Errorf("a Patreon that was never added sends %q with every link", got)
 	}
 }
 
 func TestWithoutBrowserReadingAnySiteGetsNothing(t *testing.T) {
 	a := siteApp(t)
-	if got := a.signInSession("https://vimeo.com/123"); got != "" {
+	if got := a.signInSession("https://www.dailymotion.com/video/x8abc"); got != "" {
 		t.Errorf("signInSession = %q", got)
 	}
 }
@@ -329,6 +365,7 @@ func TestThePastedCookieJarsAreGoneAfterAStart(t *testing.T) {
 func TestTheListingSaysWhetherThisInstanceReadsBrowsers(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	if s := stateOf(t, a, "patreon"); s.ReadsBrowsers {
 		t.Errorf("an instance that reads no browser says it does: %+v", s)
 	}
@@ -357,11 +394,12 @@ func TestAnEmptyHandOverSignsTheExtensionsSessionOut(t *testing.T) {
 	}
 }
 
-// Removing a site the browser signs in disconnects it here and leaves the
+// Removing a site the browser signs in takes its row away and leaves the
 // browser as it is.
-func TestRemovingABrowserSessionDisconnectsTheSite(t *testing.T) {
+func TestRemovingASiteDropsItsRowAndLeavesTheBrowserAlone(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	b := withBrowsers(t, a)
 	b.set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
 	if s := stateOf(t, a, "patreon"); s.State != sitelogin.SignedIn {
@@ -375,8 +413,8 @@ func TestRemovingABrowserSessionDisconnectsTheSite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s.State != sitelogin.SignedOut || !s.Disconnected || s.Source != "" || s.Browser != "" {
-		t.Errorf("after removing = %+v, want signed out and disconnected", s)
+	if s.Added || s.State != sitelogin.SignedOut || s.Source != "" || s.Browser != "" {
+		t.Errorf("after removing = %+v, want no row and signed out", s)
 	}
 	if got := a.siteSession(patreonPost); got != "" {
 		t.Errorf("yt-dlp still gets the browser's session: %q", got)
@@ -385,17 +423,18 @@ func TestRemovingABrowserSessionDisconnectsTheSite(t *testing.T) {
 		t.Errorf("the second try still gets the browser's session: %q", got)
 	}
 	if b.reads() != reads {
-		t.Errorf("the browsers were read %d more times for a disconnected site", b.reads()-reads)
+		t.Errorf("the browsers were read %d more times for a removed site", b.reads()-reads)
 	}
 }
 
-func TestADisconnectedSiteStaysDisconnectedAfterARestart(t *testing.T) {
+func TestARemovedSiteStaysRemovedAfterARestart(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	dir := t.TempDir()
 	a, err := newApp(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
+	addSites(t, a, "youtube")
 	if err := a.RemoveSiteLogin("youtube"); err != nil {
 		t.Fatal(err)
 	}
@@ -406,14 +445,18 @@ func TestADisconnectedSiteStaysDisconnectedAfterARestart(t *testing.T) {
 	}
 	t.Cleanup(func() { again.Close() })
 	withBrowsers(t, again).set("youtube.com", youtubeIn(firefoxProfile, "YT-SESSION"))
-	if s := stateOf(t, again, "youtube"); !s.Disconnected || s.State != sitelogin.SignedOut {
-		t.Errorf("after a restart youtube = %+v, want still disconnected", s)
+	if s := stateOf(t, again, "youtube"); s.Added || s.State != sitelogin.SignedOut {
+		t.Errorf("after a restart youtube = %+v, want still removed", s)
+	}
+	if got := again.signInSession("https://youtu.be/x"); got != "" {
+		t.Errorf("the second try reads a removed site: %q", got)
 	}
 }
 
-func TestSigningInThroughKnightLoaderConnectsTheSiteAgain(t *testing.T) {
+func TestSigningInThroughKnightLoaderAddsTheSiteAgain(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
 	if err := a.RemoveSiteLogin("patreon"); err != nil {
 		t.Fatal(err)
@@ -422,41 +465,47 @@ func TestSigningInThroughKnightLoaderConnectsTheSiteAgain(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s.Disconnected || s.State != sitelogin.SignedIn || s.Source != SourceBrowser {
-		t.Errorf("after signing in again = %+v, want the browser's session back", s)
+	if !s.Added || s.State != sitelogin.SignedIn || s.Source != SourceBrowser {
+		t.Errorf("after signing in again = %+v, want the row and the browser's session back", s)
 	}
 }
 
-func TestUsingTheBrowsersSignInAgainConnectsTheSite(t *testing.T) {
+func TestAddingASiteUsesTheBrowsersSignIn(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
 	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
-	if err := a.RemoveSiteLogin("patreon"); err != nil {
-		t.Fatal(err)
-	}
-	s, err := a.ReconnectSiteLogin("patreon")
+	s, err := a.AddSiteLogin("patreon")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s.Disconnected || s.State != sitelogin.SignedIn || s.Waiting {
-		t.Errorf("after reconnecting = %+v, want signed in from the browser and not waiting", s)
+	if !s.Added || s.State != sitelogin.SignedIn || s.Waiting {
+		t.Errorf("after adding = %+v, want signed in from the browser and not waiting", s)
+	}
+	if _, err := a.AddSiteLogin("example"); !errors.Is(err, ErrNoSuchSite) {
+		t.Errorf("adding an unknown site = %v, want ErrNoSuchSite", err)
 	}
 }
 
-func TestANewHandOverConnectsTheSiteAgain(t *testing.T) {
+// The extension hands over only what the instance lists, so a site that is
+// not added gets no row from a hand-over.
+func TestAHandOverForASiteThatIsNotAddedIsRefused(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	if err := a.RemoveSiteLogin("patreon"); err != nil {
 		t.Fatal(err)
 	}
-	s, err := a.HandOverSiteSession("patreon", []sitelogin.BrowserCookie{
-		{Domain: ".patreon.com", Path: "/", Secure: true, Expires: 1.9e9, Name: "session_id", Value: "PATREON-SECRET"},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s.Disconnected || s.State != sitelogin.SignedIn {
-		t.Errorf("after a hand-over = %+v, want signed in", s)
+	for _, id := range []string{"patreon", "instagram"} {
+		_, err := a.HandOverSiteSession(id, []sitelogin.BrowserCookie{
+			{Domain: ".patreon.com", Path: "/", Secure: true, Expires: 1.9e9, Name: "session_id", Value: "PATREON-SECRET"},
+			{Domain: ".instagram.com", Path: "/", Secure: true, Expires: 1.9e9, Name: "sessionid", Value: "IG-SECRET"},
+		})
+		if !errors.Is(err, ErrSiteNotAdded) {
+			t.Errorf("handing %s over = %v, want ErrSiteNotAdded", id, err)
+		}
+		if s := stateOf(t, a, id); s.Added || a.siteStore().Session(id) != "" {
+			t.Errorf("the hand-over gave %s %+v", id, s)
+		}
 	}
 }
 
@@ -464,12 +513,72 @@ func TestANewHandOverConnectsTheSiteAgain(t *testing.T) {
 func TestAnEmptyHandOverLeavesTheBrowsersSignInInUse(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
 	s, err := a.HandOverSiteSession("patreon", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s.Disconnected || s.Source != SourceBrowser {
+	if !s.Added || s.Source != SourceBrowser {
 		t.Errorf("after the extension signed out = %+v, want the browser's session still used", s)
+	}
+}
+
+// An install from before sites were added one by one keeps the rows it used:
+// a stored session, and a browser here that signs Patreon or YouTube in.
+func TestTheSitesInUseKeepTheirRowsAfterTheUpdate(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	store := a.siteStore()
+	if err := store.Set("patreon", patreonJar); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.SetDisconnected("youtube", true); err != nil {
+		t.Fatal(err)
+	}
+	b := &fakeBrowsers{found: map[string][]browsercookies.Found{}}
+	b.set("youtube.com", youtubeIn(firefoxProfile, "YT-SESSION"))
+	b.set("instagram.com", browsercookies.Found{Profile: firefoxProfile, Cookies: []browsercookies.Cookie{
+		{Host: ".instagram.com", Name: "sessionid", Value: "IG", Path: "/", Expires: time.Now().Add(time.Hour)},
+	}})
+	a.takeOverSiteRows(b.read)
+	for id, want := range map[string]bool{"patreon": true, "youtube": false, "instagram": false} {
+		if got := store.Added(id); got != want {
+			t.Errorf("%s added %v, want %v", id, got, want)
+		}
+	}
+
+	fresh := siteApp(t)
+	fb := &fakeBrowsers{found: map[string][]browsercookies.Found{}}
+	fb.set("youtube.com", youtubeIn(firefoxProfile, "YT-SESSION"))
+	fresh.takeOverSiteRows(fb.read)
+	if !fresh.siteStore().Added("youtube") || fresh.siteStore().Added("patreon") {
+		t.Errorf("a browser's YouTube sign-in did not keep its row alone")
+	}
+	if err := fresh.RemoveSiteLogin("youtube"); err != nil {
+		t.Fatal(err)
+	}
+	if err := fresh.siteStore().SetDisconnected("youtube", false); err != nil {
+		t.Fatal(err)
+	}
+	fresh.takeOverSiteRows(fb.read)
+	if fresh.siteStore().Added("youtube") {
+		t.Error("the rows were taken over a second time")
+	}
+}
+
+// A container reads no browser, so its stored sessions alone keep a row.
+func TestAContainerKeepsTheRowsOfItsStoredSessions(t *testing.T) {
+	prev := buildinfo.InContainer
+	buildinfo.InContainer = func() bool { return true }
+	t.Cleanup(func() { buildinfo.InContainer = prev })
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	if err := a.siteStore().Set("youtube", "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t1900000000\tSID\tYT\n"); err != nil {
+		t.Fatal(err)
+	}
+	a.StartBrowserSessions()
+	if s := stateOf(t, a, "youtube"); !s.Added {
+		t.Errorf("youtube = %+v, want its row kept", s)
 	}
 }

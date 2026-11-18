@@ -60,6 +60,11 @@ const (
 	codeOwnOff      = "ownOff"
 	codeSigningIn   = "signingIn"
 
+	// The codes of such a login waiting for the user to open a link the
+	// hoster mailed, by OwnState.Activate and OwnState.NewAddress.
+	codeOwnActivate   = "ownActivate"
+	codeOwnNewAddress = "ownNewAddress"
+
 	// The codes of such a login waiting for the one-time code of a second
 	// factor, by OwnState.Code.
 	codeOwnCodeNeeded = "ownCodeNeeded"
@@ -87,8 +92,10 @@ type LoginState struct {
 	// could not use it, so JD has it and the row says what JD thinks.
 	HandedOver bool `json:"handedOver,omitempty"`
 	// AskCode is a login that signs in again only once the user enters the
-	// one-time code of its second factor.
-	AskCode bool `json:"askCode,omitempty"`
+	// one-time code of its second factor, and CodeMayHelp one refused for
+	// another reason that a code may get past.
+	AskCode     bool `json:"askCode,omitempty"`
+	CodeMayHelp bool `json:"codeMayHelp,omitempty"`
 	// SignInSite is the sign-in browser's id for the login's site, for a
 	// login that can be signed in on the site's own page, and SignInHere is
 	// one that waits for that.
@@ -603,6 +610,13 @@ type OwnState struct {
 	Detail  string
 	// Captcha is a refusal until the user solves a captcha at the hoster.
 	Captcha bool
+	// Activate is a refusal until the user activates the account through
+	// the hoster's activation mail, and NewAddress one until the user confirms
+	// the address the sign-in came from through the link the hoster mailed.
+	Activate, NewAddress bool
+	// CodeMayHelp is such a refusal that the hoster also gives a login with
+	// a second factor that came without its code.
+	CodeMayHelp bool
 	// Code is a refusal until the user enters the one-time code of a second
 	// factor: "needed", "wrong" or "ended", as ownlogin.CodeAsk words it.
 	Code string
@@ -637,6 +651,10 @@ func (o OwnState) row(host, username string) LoginState {
 		st.Status, st.Code, st.Detail, st.AskCode = StatusRejected, codeAsks[o.Code], o.Detail, true
 	case o.Refused && o.Captcha:
 		st.Status, st.Code, st.Detail = StatusRejected, codeOwnCaptcha, o.Detail
+	case o.Refused && o.Activate:
+		st.Status, st.Code, st.Detail, st.CodeMayHelp = StatusRejected, codeOwnActivate, o.Detail, o.CodeMayHelp
+	case o.Refused && o.NewAddress:
+		st.Status, st.Code, st.Detail, st.CodeMayHelp = StatusRejected, codeOwnNewAddress, o.Detail, o.CodeMayHelp
 	case o.Refused:
 		st.Status, st.Code, st.Detail = StatusRejected, codeOwnInvalid, o.Detail
 	default:

@@ -1,8 +1,8 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
-// accounts come first, the own Usenet servers below them, then hoster logins
-// (the sites signed into through the browser among them), the logins for the
-// user's own servers and the captcha solvers' keys; the section follows the
+// accounts come first, the hoster logins below them (the sites signed into
+// through the browser among them), then the own Usenet servers, the logins for
+// the user's own servers and the captcha solvers' keys; the section follows the
 // catalogue's Group field, and every card draws an AccountTable. Under them
 // comes the Allow free downloads switch, since whether a link may be fetched
 // for free is a question of which accounts there are, and last the two
@@ -242,7 +242,7 @@ export function Accounts() {
   );
   const hosterSwitches = (
     <AccountSwitches
-      hue={2}
+      hue={1}
       accounts={(hoster.logins ?? []).map((l) => ({
         key: l.host,
         label: l.host,
@@ -283,7 +283,7 @@ export function Accounts() {
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
-          <AccountsTable label={t('accounts.debrid.title')} rows={debridRows} {...tableProps} />
+          <AccountsTable tableId="debrid" label={t('accounts.debrid.title')} rows={debridRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
@@ -294,17 +294,7 @@ export function Accounts() {
         )}
       </Card>
 
-      <Card hue={1} data-new="usenet-tiles" className="flex flex-col gap-3">
-        <UsenetServersSection
-          hue={1}
-          onChanged={() => setUsenetSaves((n) => n + 1)}
-          add={add(t('accounts.usenet.add'), () => setAdding('usenet'))}
-          adding={adding === 'usenet'}
-          onAddClose={() => setAdding(null)}
-        />
-      </Card>
-
-      <Card hue={2} className="flex flex-col gap-3">
+      <Card hue={1} className="flex flex-col gap-3">
         <SectionTitle
           hint={t('accounts.hoster.hint')}
           right={heading(hosterSwitches, add(t('accounts.newAccount'), () => setAdding('hoster')))}
@@ -312,6 +302,16 @@ export function Accounts() {
           {t('accounts.hoster.title')}
         </SectionTitle>
         <HosterLoginSection data={hoster} adding={adding === 'hoster'} onAddClose={() => setAdding(null)} />
+      </Card>
+
+      <Card hue={2} data-new="usenet-tiles" className="flex flex-col gap-3">
+        <UsenetServersSection
+          hue={2}
+          onChanged={() => setUsenetSaves((n) => n + 1)}
+          add={add(t('accounts.usenet.add'), () => setAdding('usenet'))}
+          adding={adding === 'usenet'}
+          onAddClose={() => setAdding(null)}
+        />
       </Card>
 
       {serverService && (
@@ -326,7 +326,7 @@ export function Accounts() {
             {t('accounts.server.title')}
           </SectionTitle>
           {serverRows.length > 0 ? (
-            <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
+            <AccountsTable tableId="server" label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
           ) : (
             <EmptyState
               nested
@@ -352,7 +352,7 @@ export function Accounts() {
           {t('accounts.captcha.title')}
         </SectionTitle>
         {solverRows.length > 0 ? (
-          <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
+          <AccountsTable tableId="captcha" label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
@@ -450,6 +450,7 @@ interface TableActions {
 }
 
 function AccountsTable({
+  tableId,
   label,
   rows,
   catalogue,
@@ -458,10 +459,11 @@ function AccountsTable({
   onToggle,
   onRemove,
   onEdit,
-}: TableActions & { label: string; rows: Account[] }) {
+}: TableActions & { tableId: string; label: string; rows: Account[] }) {
   const { t } = useT();
   return (
     <AccountTable
+      tableId={tableId}
       label={label}
       rows={rows.map((a): AccountRow => {
         const svc = catalogue.get(a.service);
@@ -485,34 +487,29 @@ function AccountsTable({
           onEdit: () => onEdit(a),
           // A credential from the container's environment cannot be removed here.
           onRemove: a.fromEnv ? undefined : () => onRemove(a),
-          menu: server
+          actions: server
             ? undefined
             : [
                 {
-                  id: 'actions',
-                  items: [
-                    {
-                      id: 'refresh',
-                      label: t('accounts.refresh'),
-                      icon: <IconRetry width={16} height={16} />,
-                      onSelect: () => onRefresh(a),
-                    },
-                    ...(renewable
-                      ? [
-                          {
-                            id: 'renew',
-                            label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
-                            icon: <IconExternalLink width={16} height={16} />,
-                            // Only with an expiry and somewhere to renew.
-                            disabled: !a.expiry || !svc?.whereUrl,
-                            onSelect: () => {
-                              if (svc?.whereUrl) openExternal(svc.whereUrl);
-                            },
-                          },
-                        ]
-                      : []),
-                  ],
+                  id: 'refresh',
+                  label: t('accounts.refresh'),
+                  icon: <IconRetry width={16} height={16} />,
+                  onSelect: () => onRefresh(a),
                 },
+                ...(renewable
+                  ? [
+                      {
+                        id: 'renew',
+                        label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
+                        icon: <IconExternalLink width={16} height={16} />,
+                        // Only with an expiry and somewhere to renew.
+                        disabled: !a.expiry || !svc?.whereUrl,
+                        onSelect: () => {
+                          if (svc?.whereUrl) openExternal(svc.whereUrl);
+                        },
+                      },
+                    ]
+                  : []),
               ],
         };
       })}

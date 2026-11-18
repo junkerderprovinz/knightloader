@@ -82,8 +82,8 @@
       button > svg,
       a.btnlike > svg { flex: 0 0 auto; }
       /* The accent kind steps toward the text colour under the pointer
-         (GlimStone 3.3.0); the subtle kind steps up the ramp with the tint in
-         it (.glim-btn-subtle in glimstone.css). */
+         (GlimStone 3.3.0); the subtle kind lights in the accent's --hover
+         (.glim-btn-subtle in glimstone.css). */
       button.primary:not(:disabled):hover { background: var(--accent-hover); }
       button.glim-btn-subtle,
       a.btnlike.glim-btn-subtle {
@@ -257,16 +257,16 @@
         transition: color 150ms ease;
       }
       .videoMark img { display: block; width: 24px; height: 24px; object-fit: contain; }
-      /* The tile steps up the ramp (rule 21). The switch's off track has the
-         same grey as that step on the dark ramp, so it moves toward the text
-         colour, as a filled tone's hover does. */
-      .videoTileOpen:focus-visible { background: var(--carbon-surface3); }
+      /* The tile lights in the accent's --hover (rule 21). The switch's off
+         track moves toward the text colour, as a filled tone's hover does, so
+         it stays apart from the lit tile. */
+      .videoTileOpen:focus-visible { background: var(--hover); }
       .videoTileOpen:focus-visible .videoMark { color: var(--accent-glyph); }
       .videoTileOpen:focus-visible ~ .glim-switch[aria-checked='false'] .glim-switch-track {
         background-color: color-mix(in srgb, var(--toggle-off), var(--carbon-text) 25%);
       }
       @media (hover: hover) {
-        .videoTile:hover > .videoTileOpen:not(:disabled) { background: var(--carbon-surface3); }
+        .videoTile:hover > .videoTileOpen:not(:disabled) { background: var(--hover); }
         .videoTile:hover > .videoTileOpen:not(:disabled) .videoMark { color: var(--accent-glyph); }
         .videoTile:hover > .glim-switch[aria-checked='false'] .glim-switch-track {
           background-color: color-mix(in srgb, var(--toggle-off), var(--carbon-text) 25%);
@@ -702,10 +702,8 @@
           <a id="aboutGithub" class="glim-readme-btn glim-brand-tile" target="_blank" rel="noreferrer noopener"></a>
           <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
         </div>
-        <!-- Our own button lights up in the accent; a third party's mark keeps
-             its colour. -->
-        <div class="glim-readme-btn-unit group glim-tile-house">
-          <a id="aboutMail" class="glim-readme-btn glim-brand-tile"></a>
+        <div class="glim-readme-btn-unit group glim-tile-discord">
+          <a id="aboutDiscord" class="glim-readme-btn glim-brand-tile" target="_blank" rel="noreferrer noopener"></a>
           <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
         </div>
       </div>

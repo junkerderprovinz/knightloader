@@ -45,14 +45,28 @@ func stateOf(t *testing.T, a *App, id string) SiteLoginState {
 	return SiteLoginState{}
 }
 
+// addSites adds sites on the accounts page, as picking them there does.
+func addSites(t *testing.T, a *App, ids ...string) {
+	t.Helper()
+	for _, id := range ids {
+		if _, err := a.AddSiteLogin(id); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 const patreonJar = "# Netscape HTTP Cookie File\n.patreon.com\tTRUE\t/\tTRUE\t1900000000\tsession_id\tPATREON-SECRET\n"
 
-func TestEverySiteStartsSignedOut(t *testing.T) {
+func TestEverySiteStartsSignedOutWithoutARow(t *testing.T) {
 	checks := stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
-	for _, s := range a.SiteLogins() {
-		if s.State != sitelogin.SignedOut || s.Waiting {
-			t.Errorf("%s = %+v, want signed out and not waiting", s.ID, s)
+	listed := a.SiteLogins()
+	if len(listed) != len(sitelogin.Sites) {
+		t.Errorf("the listing has %d sites, want every site on offer for the picker", len(listed))
+	}
+	for _, s := range listed {
+		if s.State != sitelogin.SignedOut || s.Waiting || s.Added {
+			t.Errorf("%s = %+v, want signed out, not waiting and not added", s.ID, s)
 		}
 	}
 	if checks.Load() != 0 {
@@ -64,8 +78,8 @@ func TestSigningInWaitsForTheSessionAndAStoredOneEndsTheWait(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane Doe"})
 	a := siteApp(t)
 	begun, err := a.BeginSiteLogin("patreon")
-	if err != nil || !begun.Waiting || begun.LoginURL == "" {
-		t.Fatalf("BeginSiteLogin = %+v, %v; want it waiting, with the login page", begun, err)
+	if err != nil || !begun.Waiting || !begun.Added || begun.LoginURL == "" {
+		t.Fatalf("BeginSiteLogin = %+v, %v; want it added and waiting, with the login page", begun, err)
 	}
 	got, err := a.storeSiteSession("patreon", patreonJar)
 	if err != nil {
@@ -96,6 +110,7 @@ func TestTheWaitForASessionEnds(t *testing.T) {
 func TestAHandedOverSessionKeepsOnlyTheSitesCookies(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	_, err := a.HandOverSiteSession("patreon", []sitelogin.BrowserCookie{
 		{Domain: ".patreon.com", Path: "/", Secure: true, Expires: 1.9e9, Name: "session_id", Value: "PATREON-SECRET"},
 		{Domain: ".google.com", Path: "/", Secure: true, Expires: 1.9e9, Name: "SID", Value: "GOOGLE-SECRET"},
@@ -112,6 +127,7 @@ func TestAHandedOverSessionKeepsOnlyTheSitesCookies(t *testing.T) {
 func TestAHandOverWithoutTheSitesCookiesStoresNothing(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	_, err := a.HandOverSiteSession("patreon", []sitelogin.BrowserCookie{{Domain: ".google.com", Name: "SID", Value: "x", Expires: 1.9e9}})
 	if !errors.Is(err, ErrNoSiteSession) {
 		t.Errorf("err = %v, want ErrNoSiteSession", err)
@@ -152,7 +168,7 @@ func TestTheListingReusesARecentCheck(t *testing.T) {
 	}
 }
 
-func TestSigningOutClearsTheSession(t *testing.T) {
+func TestRemovingASiteForgetsItsSession(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane"})
 	a := siteApp(t)
 	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
@@ -161,8 +177,8 @@ func TestSigningOutClearsTheSession(t *testing.T) {
 	if err := a.RemoveSiteLogin("patreon"); err != nil {
 		t.Fatal(err)
 	}
-	if s := stateOf(t, a, "patreon"); s.State != sitelogin.SignedOut || s.Account != "" {
-		t.Errorf("after signing out = %+v", s)
+	if s := stateOf(t, a, "patreon"); s.State != sitelogin.SignedOut || s.Account != "" || s.Added {
+		t.Errorf("after removing = %+v, want signed out without a row", s)
 	}
 	if got := a.siteSession("https://www.patreon.com/posts/1"); got != "" {
 		t.Errorf("yt-dlp still gets %q", got)
@@ -178,8 +194,8 @@ func TestYtdlpGetsTheSessionOfTheLinksSite(t *testing.T) {
 	if got := a.siteSession("https://www.patreon.com/posts/a-post-1"); got != patreonJar {
 		t.Errorf("siteSession(patreon link) = %q, want the stored session", got)
 	}
-	if got := a.siteSession("https://vimeo.com/1"); got != "" {
-		t.Errorf("siteSession(vimeo link) = %q, want nothing", got)
+	if got := a.siteSession("https://www.dailymotion.com/video/1"); got != "" {
+		t.Errorf("siteSession(dailymotion link) = %q, want nothing", got)
 	}
 	if a.ytdlpBackend("").Sessions == nil {
 		t.Error("the yt-dlp backend has no Sessions hook, so a signed-in site's links load anonymously")

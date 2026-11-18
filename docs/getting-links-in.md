@@ -448,19 +448,23 @@ browser check. If no other backend can take the link, the download fails with
 that message. A stored login stays where it is, since the check says nothing
 about it.
 
-## Patreon and YouTube, signed in through the browser
+## Sites signed in through the browser
 
 Some sites only show yt-dlp a post or a video when you are signed in, and
 they do not take a user name and password from a program: Patreon wants a
 captcha and a code it mails you. So KnightLoader borrows the sign-in of your
 own browser instead.
 
-Patreon and YouTube always have a row under **Hoster accounts**. Sign in to
-the site in your browser as you always do, and KnightLoader picks the sign-in
-up by itself, a sign-in from before included. The row then says who you are
-signed in as and where the sign-in came from, such as "from Firefox
+This works for Patreon, YouTube, Instagram, X, Facebook, TikTok, Twitch,
+Vimeo and Reddit. Add the site under **Hoster accounts** like any account:
+click **Add an account** on the card and pick it from the list, where it shows its
+domain under its name. Its window opens right away. Sign in to the site in
+your browser as you always do, and KnightLoader picks the sign-in up by
+itself, a sign-in from before included. The row then says who you are signed
+in as and where the sign-in came from, such as "from Firefox
 (default-release)" or "from the browser extension". Without a sign-in it says
-"Not signed in" and what to do.
+"Not signed in" and what to do. A site you have not added stays out of it.
+An install that had a Patreon or YouTube sign-in before keeps those rows.
 
 Where it comes from depends on where KnightLoader runs:
 
@@ -473,7 +477,7 @@ Where it comes from depends on where KnightLoader runs:
 - **The container** has no browser of its own, so the extension in the
   browser you use passes the sign-in on. Once the extension has joined your
   group, its popup and settings page ask once to let it read the cookies of
-  Patreon and YouTube. Click **Allow**. If taking over downloads or finding
+  the sites you added. Click **Allow**, and again when you add another site. If taking over downloads or finding
   media is already on, it has that access and asks nothing. From then on the
   extension hands a new sign-in over whenever you sign in, and tells
   KnightLoader when you sign out. Private windows are never read. Signed in
@@ -495,26 +499,24 @@ that browser holds, never what you typed, and the row says "from
 KnightLoader's sign-in browser". A sign-in there also takes back a
 **Remove**, and signing out of the site in that window signs KnightLoader out
 too. The window opens only the site and the pages it signs you in with, such
-as Google, Apple or Facebook for Patreon, and never an address in your own
+as Google, Apple or Facebook for Patreon or TikTok, and never an address in your own
 network. It closes after five minutes without input. Google sometimes turns a
 browser away that it does not know. The window then says so, and YouTube's
 sign-in works through the extension.
 
 Patreon's session goes along with every Patreon link, because Patreon lists
-and plays posts only for a signed-in account. YouTube's does not. Google
-flags accounts that download a lot while signed in, so a YouTube link loads
+and plays posts only for a signed-in account. The others' do not. These sites
+flag accounts that download a lot while signed in, so their links load
 without your session first. Only a video that asks for a sign-in (members
 only, age-restricted, private, or "confirm you're not a bot") is tried once
 more with it, right away.
 
 Want KnightLoader off a site but stay signed in in your browser? Choose
-**Remove** in the site's row menu, or **Sign out** in its window. KnightLoader
-forgets the sign-in, leaves your browser alone and no longer picks the
-browser's sign-in up for that site, not even when a download asks for one.
-The row then says "Removed from KnightLoader. Your browser stays signed in."
-To use the site again, open it from its window and sign in, or choose **Use
-the browser's sign-in again**, which takes the browser's sign-in back at
-once. A new sign-in passed on by the extension counts too.
+**Remove** in the site's row menu, the same as for any account. KnightLoader
+forgets the sign-in, drops the row, leaves your browser alone and stops
+reading the browser's sign-in for that site, even when a download asks for
+one. To use the site again, add it once more, and the browser's sign-in
+counts again at once.
 
 A session runs out after a while. The row then says so, and a download that
 fails on that site because it wants a signed-in account, a membership or a
@@ -535,7 +537,7 @@ can only add links gets at what your accounts open.
 ## Other sites that want you signed in
 
 In the desktop app and outside a container, this works for every site yt-dlp
-downloads from, not only Patreon and YouTube. When a download fails because
+downloads from, not only the sites you added. When a download fails because
 the site wants you signed in (a private or age-restricted video, a members'
 post, a login page), KnightLoader looks for that site's cookies in the
 browsers on the same computer. If one of them looks signed in, the download is
@@ -724,16 +726,22 @@ ddownload's own address. KnightLoader keeps the session, so a restart needs
 no new sign-in and no new captcha. The login stays with KnightLoader and does
 not go to JDownloader.
 
-An account with two-factor sign-in cannot be signed in from here, since the
-code only goes into ddownload's own page. The login's row then reads **Needs a
-sign-in**. Choose **Sign in here** in its row menu or in its window, sign in
-on ddownload's page in the sign-in browser with your password and the code,
-and KnightLoader takes the session from there. It keeps that session like any
+An account with two-factor sign-in works too. When ddownload asks for the
+code, the login's row reads **Needs a code** and its window shows a field for
+the six digits. KnightLoader puts them into ddownload's own code form, in the
+session the password opened, so ddownload sends no second code, and a code it
+turns down asks for the next one. The code is used once and stored nowhere.
+An account that is not activated yet says so on its row and points you to the
+link in ddownload's welcome mail.
+
+Where the code form also asks for a captcha, the row reads **Needs a sign-in**
+instead. Choose **Sign in here** in its row menu or in its window, sign in on
+ddownload's page in the sign-in browser with your password and the code, and
+KnightLoader takes the session from there. It keeps that session like any
 other, and once ddownload ends it the row asks for a new sign-in rather than
-KnightLoader trying the password again, also after a restart, so ddownload
-mails you no code you did not ask for. **Sign in here** is there for every
-login of these sites, so you can use it whenever a sign-in from here does not
-get through.
+KnightLoader trying the password again, also after a restart. **Sign in here**
+is there for every login of these sites, so you can use it whenever a sign-in
+from here does not get through.
 
 Without premium the download is free, and ddownload shows the same captcha
 before each file and a countdown of about a minute. Between two free

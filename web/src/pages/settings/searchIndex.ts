@@ -1353,7 +1353,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'settings.info.componentsIntro',
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
-        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoCheckHint' },
         { key: 'settings.info.componentsAuto', hint: 'settings.info.componentsAutoHint' },
         { key: 'settings.info.qbitVersion', hint: 'settings.info.qbitVersionHint' },
       ],
@@ -1373,7 +1372,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.info.helpTitle',
       hint: 'settings.info.helpHint',
       rows: [],
-      also: ['settings.about.github', 'settings.about.mail', 'settings.info.manual', 'settings.info.bugReport'],
+      also: ['settings.about.github', 'settings.about.discord', 'settings.info.manual', 'settings.info.bugReport'],
       body: ['settings.about.report'],
     },
     {

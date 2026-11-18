@@ -22,6 +22,9 @@ const REPLACE: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: false };
 const EXTEND: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: true };
 const PICK: SelectMods = { ctrlKey: true, metaKey: false, shiftKey: false };
 
+/** How many rows PageDown and PageUp move the focus, as in GlimStone's lists. */
+const PAGE_ROWS = 10;
+
 export interface ListKeyboard {
   /**
    * The row holding the tab stop, resolved to a fallback when the cursor's row
@@ -221,6 +224,14 @@ export function useListKeyboard({
       case 'End':
         take();
         goTo(rows.length - 1, mods);
+        return;
+      case 'PageDown':
+        take();
+        goTo(index + PAGE_ROWS, mods);
+        return;
+      case 'PageUp':
+        take();
+        goTo(index - PAGE_ROWS, mods);
         return;
       case ' ':
       // Older engines report 'Spacebar'.

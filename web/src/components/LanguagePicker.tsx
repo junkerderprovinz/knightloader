@@ -90,7 +90,7 @@ export function LanguagePicker({
               className={`flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-1.5 text-start text-sm transition-colors ${
                 l.code === lang
                   ? 'bg-carbon-surface2 text-carbon-text'
-                  : 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'
+                  : 'text-carbon-textSub hover:bg-hover hover:text-carbon-text'
               }`}
             >
               <Flag code={l.flag} />

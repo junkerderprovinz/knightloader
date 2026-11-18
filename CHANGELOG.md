@@ -95,6 +95,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The built-in torrent engine is gone.** qBittorrent does its work.
 
 ## [2.8.4] - 2026-11-14
+## [2.9.0] - 2026-11-17
 
 ### Added
 
@@ -109,15 +110,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the site and the pages it signs you in with, never your own network, and
   closes after five minutes without input. The extension still works the
   same way beside it.
-- **Patreon and YouTube sign in with your browser's own session.** The
-  desktop app, and a server outside a container, read it straight from
-  Firefox, LibreWolf, Waterfox, Zen, Edge, Brave, Opera, Vivaldi or Chromium
-  on the same computer, also when you signed in there long before. You do not
-  have to do anything, and the accounts page names the browser the session
-  came from. Sign out in the browser and KnightLoader is signed out too, or
-  remove the site in KnightLoader to stop using it while the browser stays
-  signed in. **Use the browser's sign-in again** brings it back.
-  Chrome on Windows locks its cookies away from every other program, and the
+- **Patreon, YouTube, Instagram, X, Facebook, Vimeo, TikTok, Twitch and
+  Reddit sign in with your browser's own session.** Add a site under Hoster
+  accounts with "Add an account", and the desktop app, and a server outside a
+  container, read its sign-in straight from Firefox, LibreWolf, Waterfox,
+  Zen, Edge, Brave, Opera, Vivaldi or Chromium on the same computer, also
+  when you signed in there long before. The accounts page names the browser
+  the session came from, and Remove drops a site like any other account while
+  the browser stays signed in. Patreon goes along with every link, the others
+  only with a link that asks for a sign-in. A sign-in kept from before keeps
+  its row. Chrome on Windows locks its cookies away from every other program, and the
   page tells you when that is the case. Your sessions only go along with
   links you added yourself, signed in, with an admin token or with the
   extension. Links from a token that may only add, the phone app, a feed or
@@ -126,9 +128,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   session.** When a yt-dlp download fails because the site asks for a
   sign-in, such as a private or age-restricted video, the desktop app tries it
   once more right away with that site's cookies from your browser.
-- **The browser extension passes your Patreon and YouTube sign-in on by
+- **The browser extension passes the sign-in of the sites you added on by
   itself,** for KnightLoader in a container, which has no browser to read.
-  It asks once to read those two sites' cookies (or nothing at all while
+  It asks once to read those sites' cookies (or nothing at all while
   taking over downloads or finding media is on), then hands the sign-in over
   whenever you sign in or it changes, also one from before, and tells your
   instance when you sign out. Private windows are never read, Firefox
@@ -139,13 +141,28 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   that signs you in. A download that fails because the site wants a
   signed-in account offers to sign in to that site and starts again once the
   sign-in is there.
+- **Packagizer rules can add a link disabled.** The new "Link enabled" action
+  adds a matching link switched off, so it stays in its package and nothing
+  starts it until you enable it.
+- **The Host filter in the link collector selects all links of a host in one
+  click,** so you can delete the mirror hosts you do not need in one go
+  ([#288](https://github.com/junkerderprovinz/knightloader/issues/288)).
+- **The browser extension's video button shows on other sites too,** on a
+  video you are watching, once your instance says yt-dlp can download the
+  page. Its switch is "All other sites" in the video button's settings, with
+  its own defaults for what a click downloads.
+- **Video sites can be added in the extension's settings,** each with its
+  own switch and its own defaults for what a click downloads. The sites have
+  a card of their own, where each row opens a window with that site's
+  settings.
+- **The video button always downloads with yt-dlp,** also on a site whose
+  links your instance hands to JDownloader, such as archive.org. Links you
+  paste keep their routing. Other clients can pin a link the same way, with
+  `resolver` on `POST /api/links` and `pinned=true` on
+  `GET /api/ytdlp/link`.
 
 ### Changed
 
-- **KnightLoader follows GlimStone 4.4.1,** and the Version card names it. A
-  switch that is on draws its knob in the accent's ink, so it stays easy to
-  see in the light theme. A group inside a card carries its name as a badge
-  on its top edge, like the card itself.
 - **A value a field cannot take is marked the same way in the web interface
   and the extension's settings.** The field turns red, and a line under it
   says why.
@@ -173,6 +190,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   week, and only downloads what is newer. "Update now" does it all at once.
   If you had switched off the automatic update of yt-dlp or JDownloader, the
   new switch stays off for you.
+- **KnightLoader's own row has one switch too, "Automatically update".** It
+  looks for a new version and, in the desktop app, installs it. A container
+  or a Flatpak only looks and says how it is updated. If you had switched off
+  either of the two old switches, the new one stays off for you.
+- **The hoster login window tests the login right away.** After Save it stays
+  open and says "Connected" once the hoster takes the login, or why it did
+  not, so you can correct it and save again without reopening anything.
 - **The installer fetches yt-dlp like the other components.** On Windows and
   Linux it lands in the data folder during the install, checked against
   yt-dlp's own checksums, so the copy KnightLoader keeps current is there from
@@ -192,6 +216,53 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   from, or how to sign in, sits in the (i) beside the state. The site's
   window keeps its buttons in the footer, with Close first and, until you are
   signed in, opening the site last as the one step forward.
+- **KnightLoader follows GlimStone 4.5.4,** and the Version card names it.
+  Whatever the pointer is over lights up in your accent colour, a button, a
+  row, a menu or a tile, in the link collector and the downloads too. Accent
+  text in the light theme stays easy to read on every grey it stands on.
+  Accent text reads equally well in every colour, and the contrast goes up
+  when the system asks for more, Windows contrast themes included. Lists and
+  menus take PageUp and PageDown, Home and End and jumps by letter, and screen
+  readers hear how many rows are picked. A switch that is on draws its knob in
+  the accent's ink, so it stays easy to see in the light theme, and a group
+  inside a card carries its name as a badge on its top edge. The desktop
+  installer follows PommelPorter 1.2.2, so its folder picker lights up in the
+  accent colour as well.
+- **The JDownloader import brings the default rules along.** The .rev and
+  .par2 rules arrive as rules that add those files disabled, and "Create
+  Subfolder by Packagename" turns on "Put each package in its own subfolder".
+  The rules that still cannot come over each say why
+  ([#289](https://github.com/junkerderprovinz/knightloader/issues/289)).
+- **The Help card points to Discord instead of email.** Next to GitHub, a
+  Discord button opens KnightLoader's server, and the sentence above it names
+  GitHub and Discord. The extension's settings and the phone app's About card
+  do the same.
+- **An account's options sit right on its row.** Point at a row on the
+  accounts page, or tab into it, and a button for each option comes in at its
+  end, such as Refresh, Disable, Edit credential and Remove, in the same order
+  on every card. The menu behind the gear is gone, and on a touch screen the
+  buttons are always there.
+- **Hoster logos come with KnightLoader.** The hosters in the "add a login"
+  picker show their logo at once instead of waiting for KnightLoader to fetch
+  it from each site, and some that never got one have it now. Hosts outside
+  that list are still looked up on their own site.
+- **Offline hosters are left out of the account picker.** A hoster is
+  offline when its site no longer answers, or when it shows a parked domain,
+  a web host's placeholder or a different site instead. Links to it still go
+  to JDownloader as before. KnightLoader asks such a site again once a week and
+  shows the hoster as soon as it answers.
+- **The sign-in window tells you when you are signed in.** A message in the
+  middle of the window asks you to click Done, and Done only works from then
+  on. Back sits on the other side of the footer and says what it does.
+- **The desktop installer downloads ffmpeg, Java and JDownloader while it
+  installs,** each with its own progress, so the app has everything at its
+  first start. Without a connection the app fetches them itself when it
+  starts, and the last page of the installer says why.
+- **The browser extension says when it is not connected yet.** Until you
+  enter your instance's connection phrase, the video button's menu, the
+  toolbar popup and the settings page say so at the top, with a button that
+  takes you to the phrase. A click on the video button leads there too,
+  instead of a menu with no qualities in it.
 
 ### Removed
 
@@ -200,8 +271,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   from your browser or the extension. Files pasted before are deleted at the
   next start.
 
+### Security
+
+- **A rare race in Go's HTTP server could crash KnightLoader's web server.**
+  KnightLoader is built with Go 1.27.4, which fixes it (GO-2026-6859), in the
+  container, the relay and the desktop app.
+- **Reading a brotli-compressed answer, such as JDownloader's status, could
+  take far more memory than it should.** The brotli library is at 1.2.8
+  (GO-2026-6888).
+
 ### Fixed
 
+- **Every date shows the full year,** such as an account's expiry date, in
+  the web interface and in the phone app. Some languages printed only its
+  last two digits.
 - **Rapidgator accounts with two-factor sign-in work.** When Rapidgator asks
   for the code, the login's window shows one more field for the six digits
   from your authenticator app, and KnightLoader signs in with it once without
@@ -210,15 +293,47 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   and the overview ask for a new code rather than trying the password again,
   which could get the account locked.
 - **ddownload, KatFile, Clicknupload, FileSpace and Uploadrar logins with
-  two-factor sign-in work.** Their code only goes into the site's own page, so
-  the login's row offers **Sign in here**, which opens that page in the
-  sign-in browser. Sign in there with your password and the code, and
-  KnightLoader downloads on the session you signed in to. When the session
-  ends, the row asks for a new sign-in instead of trying the password again.
+  two-factor sign-in work.** Once the site asks for the code, the login's
+  window shows a field for the six digits. KnightLoader puts them into the
+  site's own code form, in the session the password opened, so the site sends
+  no second code, and a wrong code asks for the next one. Where the code form
+  also wants a captcha, the login's row offers **Sign in here**, which opens
+  the site's page in the sign-in browser, and KnightLoader downloads on the
+  session you signed in to there. When that session ends, the row asks for a
+  new sign-in instead of trying the password again.
+- **A ddownload, KatFile, Clicknupload, FileSpace or Uploadrar account that is
+  not activated yet says so.** The login's row points you to the link in the
+  site's welcome mail. It told you to check the password before.
+- **Linksnappy signs in once and keeps the session.** KnightLoader signed in
+  afresh for the host list, for every unlock and for every account check, and
+  Linksnappy can mail a confirmation for each sign-in. The session is kept
+  sealed like your passwords, also across a restart, and KnightLoader checks
+  it the way JDownloader does and signs in again only once Linksnappy has
+  ended it.
 - **A Linksnappy account that waits for an emailed confirmation says so.**
   Linksnappy confirms a sign-in from a new place through a link it emails, and
   the account's check now tells you to open that link rather than showing
   Linksnappy's bare "Two-Factor Verification Required".
+- **Keep2Share, FileBoom, TezFiles and Nitroflare logins get past a captcha
+  at sign-in.** When the site wants one before it takes the login,
+  KnightLoader hands it to your captcha solver or the captcha prompt, the same
+  way as for free downloads, and signs in with the answer. A Keep2Share
+  sign-in the site holds off for a while no longer reads as a wrong password.
+  KnightLoader waits and tries again. Nitroflare gets the email address in
+  lower case, like JDownloader sends it.
+  the account's check tells you to open that link and names the page
+  Linksnappy gives for it, instead of showing Linksnappy's bare "Two-Factor
+  Verification Required".
+- **filer.net premium accounts read as JDownloader reads them.** KnightLoader
+  looked for fields filer.net's live API may not send, so a premium account
+  could read as free or as out of traffic. A refusal that comes without
+  filer.net's usual answer counts as a wrong password too, instead of handing
+  the login to JDownloader.
+- **A Rapidgator login that waits for an emailed link says which one.** An
+  account whose email address Rapidgator has not activated yet points you to
+  the link in Rapidgator's activation mail (check the spam folder too), and a
+  sign-in from a new IP address to the link Rapidgator just sent to confirm
+  it. Both told you to check the password before.
 - **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript
   runtime to read YouTube's player, and the desktop app had none, so some
   formats were missing. The desktop app fetches Deno during the install, or at
@@ -238,6 +353,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A paid Patreon post says that it needs a sign-in.** It fails at once
   instead of being retried, and the download row offers signing in to
   Patreon.
+- **Signing in to Patreon or YouTube from your own browser is for the
+  desktop app.** "Open in browser" in a site's sign-in window and "Open" in
+  an account's window only show where KnightLoader reads the sign-in from the
+  browsers on the computer. A container signs in in the window inside
+  KnightLoader. Once you sign in in the tab, the tab says you can close it.
 - **The JDownloader import explains a folder the container cannot see.** The
   folder picker says when a path is not mapped into the container and points
   to the Unraid shares path in the template
@@ -251,73 +371,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   vanished as soon as it appeared, so nothing showed what was wrong.
 - **Stopping KnightLoader waits for a group leave to finish,** so a stop
   right then no longer leaves the group half left.
-
-## [2.8.3] - 2026-11-13
-
-### Improved
-
-- **The browser extension says when it is not connected yet.** Until you
-  enter your instance's connection phrase, the video button's menu, the
-  toolbar popup and the settings page say so at the top, with a button that
-  takes you to the phrase. A click on the video button leads there too,
-  instead of a menu with no qualities in it.
-
-### Fixed
-
-- **The desktop app fetches ffmpeg again.** The project that publishes the
-  ffmpeg builds moved to a new address on GitHub, and KnightLoader refused
-  GitHub's redirect to it, so a new install had no ffmpeg and said it would
-  come at the first start. It fetches from the new address and follows such
-  a redirect within GitHub's API.
-
-## [2.8.2] - 2026-11-12
-
-### Added
-
-- **The browser extension's video button shows on other sites too,** on a
-  video you are watching, once your instance says yt-dlp can download the
-  page. Its switch is "All other sites" in the video button's settings, with
-  its own defaults for what a click downloads.
-- **Video sites can be added in the extension's settings,** each with its
-  own switch and its own defaults for what a click downloads. The sites have
-  a card of their own, where each row opens a window with that site's
-  settings.
-- **The video button always downloads with yt-dlp,** also on a site whose
-  links your instance hands to JDownloader, such as archive.org. Links you
-  paste keep their routing. Other clients can pin a link the same way, with
-  `resolver` on `POST /api/links` and `pinned=true` on
-  `GET /api/ytdlp/link`.
-
-### Fixed
-
-- **A pinned or Start menu KnightLoader shows the new icon after an update on
-  Windows.** The updater tells Explorer that the program changed, so Windows
-  no longer keeps the old program's icon in its cache.
-
-## [2.8.1] - 2026-11-12
-
-### Changed
-
-- **The desktop installer downloads ffmpeg, Java and JDownloader while it
-  installs,** each with its own progress, so the app has everything at its
-  first start. Without a connection the app fetches them itself, as before,
-  and the last page of the installer says why.
-
-### Security
-
-- **A rare race in Go's HTTP server could crash KnightLoader's web server.**
-  KnightLoader is built with Go 1.27.4, which fixes it (GO-2026-6859), in the
-  container, the relay and the desktop app.
-- **Reading a brotli-compressed answer, such as JDownloader's status, could
-  take far more memory than it should.** The brotli library is at 1.2.8
-  (GO-2026-6888).
-
-### Fixed
-
+- **`<jd:packagename>` in a Packagizer rule uses the name the link collector
+  would give the package.** Every pasted link's package and a rule's download
+  folder were called "package" instead
+  ([#288](https://github.com/junkerderprovinz/knightloader/issues/288)).
 - **A YouTube video sent right after installing the desktop app no longer
   fails with "No ffmpeg".** The app fetches ffmpeg when it first starts, and a
   video that needs it now shows "Waiting for ffmpeg" and starts once ffmpeg is
   in place ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
+- **A pinned or Start menu KnightLoader shows the new icon after an update on
+  Windows.** The updater tells Explorer that the program changed, so Windows
+  no longer keeps the old program's icon in its cache.
+- **The desktop app fetches ffmpeg from its new address.** The project that
+  publishes the ffmpeg builds moved to a new address on GitHub, and KnightLoader refused
+  GitHub's redirect to it, so a new install had no ffmpeg and said it would
+  come at the first start. It fetches from the new address and follows such
+  a redirect within GitHub's API.
 
 ## [2.8.0] - 2026-11-12
 

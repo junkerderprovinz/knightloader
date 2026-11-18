@@ -44,12 +44,25 @@ func (r *Runs) Ask(ctx context.Context, taskID, name string, solve Solve, c Capt
 		return "", ErrNoAnswer
 	}
 	r.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for the captcha " + name + " asks for"})
-	answer, err := solve(ctx, taskID, c)
+	return solveOnce(ctx, taskID, solve, c)
+}
+
+// AskAlone has solve answer c, a captcha no download waits on such as one
+// at a sign-in, and fails as Ask does.
+func AskAlone(ctx context.Context, solve Solve, c Captcha) (string, error) {
+	if solve == nil {
+		return "", ErrNoAnswer
+	}
+	return solveOnce(ctx, "", solve, c)
+}
+
+func solveOnce(ctx context.Context, taskID string, solve Solve, c Captcha) (string, error) {
+	text, err := solve(ctx, taskID, c)
 	switch {
 	case ctx.Err() != nil:
 		return "", ctx.Err()
 	case err != nil:
 		return "", fmt.Errorf("%w: %v", ErrNoAnswer, err)
 	}
-	return answer, nil
+	return text, nil
 }

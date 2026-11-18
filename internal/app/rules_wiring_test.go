@@ -556,6 +556,95 @@ func TestDerivedPackageLeavesRuleNamedTasksAlone(t *testing.T) {
 	}
 }
 
+// A pasted link has no package yet when the Packagizer runs, and a rule that
+// builds on <jd:packagename> means the name the collector would give the link,
+// not the placeholder word for an empty one.
+func TestPackagizerPackageNameStandsForTheGuessedName(t *testing.T) {
+	var base string
+	a, _ := newRuleApp(t, func(s *settings.Settings, b string) {
+		base = b
+		s.Packagizer = rules.Set{Rules: []rules.Rule{{
+			Name: "sort by host",
+			Conditions: []rules.Condition{
+				{Field: rules.FieldHoster, Op: rules.OpEquals, Value: "films.example"},
+			},
+			Action: rules.Action{
+				PackageName: "<jd:packagename> (<jd:hoster>)",
+				DownloadDir: filepath.Join(b, "<jd:packagename>"),
+			},
+		}}}
+	})
+
+	created := a.AddLinks([]string{
+		"https://films.example/Great.Film.2026.part01.rar",
+		"https://other.example/Great.Film.2026.part01.rar",
+	}, "")
+	if len(created) != 2 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	for _, task := range created {
+		switch hostOf(task.URL) {
+		case "films.example":
+			if want := "Great.Film.2026 (films.example)"; task.Package != want {
+				t.Errorf("package = %q, want %q", task.Package, want)
+			}
+			if want := filepath.Join(base, "Great.Film.2026"); task.Dir != want {
+				t.Errorf("folder = %q, want %q", task.Dir, want)
+			}
+		case "other.example":
+			if task.Package != "Great.Film.2026" {
+				t.Errorf("the link no rule touched is in %q, want Great.Film.2026", task.Package)
+			}
+		}
+	}
+}
+
+// A rule that switches a link off adds it disabled, so a recovery file stays
+// in the package without being fetched.
+func TestPackagizerAddsALinkSwitchedOff(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		off := false
+		s.Packagizer = rules.Set{Rules: []rules.Rule{{
+			Name:       "no par2",
+			Conditions: []rules.Condition{{Field: rules.FieldFiletype, Op: rules.OpMatches, Value: "(?i)^(?:par|par2)$"}},
+			Action:     rules.Action{LinkEnabled: &off},
+		}}}
+	})
+
+	created := a.AddLinks([]string{
+		"https://films.example/Great.Film.2026.part01.rar",
+		"https://films.example/Great.Film.2026.vol00+01.par2",
+	}, "")
+	if len(created) != 2 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	for _, task := range created {
+		par2 := strings.HasSuffix(task.URL, ".par2")
+		if task.Enabled == par2 {
+			t.Errorf("%s enabled = %v, want %v", task.URL, task.Enabled, !par2)
+		}
+	}
+}
+
+// A package the link arrived with is what <jd:packagename> stands for, guess
+// or not.
+func TestPackagizerPackageNameKeepsAGivenPackage(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Packagizer = rules.Set{Rules: []rules.Rule{{
+			Name:   "tag",
+			Action: rules.Action{PackageName: "<jd:packagename> [<jd:hoster>]"},
+		}}}
+	})
+
+	created := a.AddLinks([]string{"https://films.example/Great.Film.2026.part01.rar"}, "Chosen")
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	if want := "Chosen [films.example]"; created[0].Package != want {
+		t.Errorf("package = %q, want %q", created[0].Package, want)
+	}
+}
+
 // No backend accepts a destination file name: the engine is handed a directory
 // and names the file itself. Writing a rule's name onto the task would leave the
 // list showing one name while the disk holds another, and extraction and

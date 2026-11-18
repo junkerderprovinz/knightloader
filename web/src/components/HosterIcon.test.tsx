@@ -109,9 +109,9 @@ it('draws a mark of one dark ink in the text colour rather than on a plate', () 
   act(() => root.render(<HosterIcon host="https://www.9kw.eu/userapi.html" />));
   expect(img()).toBeNull();
   const ink = host.querySelector<HTMLElement>('.glim-logo-ink.glim-mark-rest');
-  expect(ink?.style.getPropertyValue('--logo-mask')).toBe('url("/hosters/9kw.eu.png")');
+  expect(ink?.style.getPropertyValue('--logo-mask')).toBe(`url("/hosters/9kw.eu.png?v=${__HOSTERS_VERSION__}")`);
   act(() => root.render(<HosterIcon host="https://2captcha.com/enterpage" />));
-  expect(img()?.getAttribute('src')).toBe('/hosters/2captcha.com.png');
+  expect(img()?.getAttribute('src')).toBe(`/hosters/2captcha.com.png?v=${__HOSTERS_VERSION__}`);
 });
 
 it('brings the mask a lit tile shows only onto a tile', () => {
@@ -120,7 +120,7 @@ it('brings the mask a lit tile shows only onto a tile', () => {
   expect(host.querySelector('.glim-mark-hover')).toBeNull();
   act(() => root.render(<HosterIcon host={lit} lit />));
   const mask = host.querySelector<HTMLElement>('.glim-mark-hover.glim-logo-ink');
-  expect(mask?.style.getPropertyValue('--logo-mask')).toBe(`url("/hosters/${lit}.lit.png")`);
+  expect(mask?.style.getPropertyValue('--logo-mask')).toBe(`url("/hosters/${lit}.lit.png?v=${__HOSTERS_VERSION__}")`);
 });
 
 it('knows every captcha service by the host of its catalogue link', () => {
@@ -169,7 +169,7 @@ it('draws every site KnightLoader signs in to from its bundled mark without aski
 it('draws a hoster from its bundled logo without asking the instance', () => {
   const fetch = answers(200);
   act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
-  expect(img()?.getAttribute('src')).toBe('/hosters/rapidgator.net.png');
+  expect(img()?.getAttribute('src')).toBe(`/hosters/rapidgator.net.png?v=${__HOSTERS_VERSION__}`);
   expect(img()?.getAttribute('loading')).toBe('lazy');
   expect(fetch).not.toHaveBeenCalled();
 });
@@ -371,4 +371,10 @@ it('loads an icon too large for the batch from its own address', async () => {
   act(() => root.render(<HosterIcon host="pixiv.net" />));
   await settle();
   expect(img()?.getAttribute('src')).toBe('/api/hosters/icon?host=pixiv.net');
+});
+
+it('asks for a bundled mark under the build of its logos, so a changed logo is fetched again', () => {
+  const mark = serviceMark('patreon.com');
+  expect(mark?.src).toMatch(/\/hosters\/patreon\.com\.png\?v=[0-9a-f]{8,}$/);
+  expect(mark?.mask).toMatch(/\?v=[0-9a-f]{8,}$/);
 });

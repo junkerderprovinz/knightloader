@@ -166,6 +166,8 @@
       '<circle cx="8" cy="4.6" r="0.9" fill="currentColor"/>' +
       '<path d="M8 7v4.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
     span.setAttribute('data-tip', text);
+    // A bare span may not carry a name, so it says what it is.
+    span.setAttribute('role', 'img');
     span.setAttribute('aria-label', text);
     span.tabIndex = 0;
     return span;

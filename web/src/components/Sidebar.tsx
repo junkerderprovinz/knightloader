@@ -118,7 +118,7 @@ export const navBase =
 const navActive = 'glim-active bg-accent text-accentContrast';
 // The 2px nudge toward the content makes hover readable on a quiet rail.
 export const navInactive =
-  'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text motion-safe:hover:translate-x-0.5 motion-safe:hover:rtl:-translate-x-0.5';
+  'text-[var(--sidebar-text)] hover:bg-hover hover:text-carbon-text motion-safe:hover:translate-x-0.5 motion-safe:hover:rtl:-translate-x-0.5';
 
 // In rainbow mode the glyph takes the row's hue.
 export const navHued = 'glim-hue glim-hue-icon';
@@ -357,7 +357,7 @@ async function signOut(): Promise<void> {
 // shape from page to page (GlimStone, "The bottom bar").
 export const barSegment =
   'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-pill)] text-meta font-medium leading-[14px] transition-colors duration-150 select-none';
-export const barIdle = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
+export const barIdle = 'text-[var(--sidebar-text)] hover:bg-hover hover:text-carbon-text';
 
 /** The smallest the bar's words go; a word too long even then is cut. */
 const BAR_WORD_FLOOR = 10;
@@ -535,7 +535,7 @@ function BarMore({
 
 /** A row of the More sheet: the entry's glyph tile, its name and its count. */
 const sheetRow =
-  'glim-row flex w-full items-center gap-3 rounded-[var(--radius-control)] px-2 py-2 text-start text-body text-carbon-text hover:bg-carbon-hover';
+  'glim-row flex w-full items-center gap-3 rounded-[var(--radius-control)] px-2 py-2 text-start text-body text-carbon-text hover:bg-hover';
 
 /**
  * PhoneBar is the rail at phone width: a card along the bottom, where a thumb

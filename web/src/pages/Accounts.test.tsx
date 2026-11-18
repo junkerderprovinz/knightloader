@@ -408,11 +408,11 @@ it('gives every card its own Add button at the end of its heading', async () => 
   stubCatalogue(services);
   await act(async () => root.render(page));
 
-  const titles = ['Debrid accounts', 'Usenet servers', 'Hoster accounts', 'Seedboxes', 'Captcha accounts'];
+  const titles = ['Debrid accounts', 'Hoster accounts', 'Usenet servers', 'Seedboxes', 'Captcha accounts'];
   expect(titles.map((t) => adder(t)?.textContent)).toEqual([
     'Add an account',
-    'Add a server',
     'Add an account',
+    'Add a server',
     'Add a seedbox',
     'Add an account',
   ]);
@@ -420,6 +420,21 @@ it('gives every card its own Add button at the end of its heading', async () => 
     (b) => /^Add /.test(b.textContent ?? '') && !b.closest('.glim-card'),
   );
   expect(loose).toEqual([]);
+});
+
+it('puts the hoster accounts right under the debrid ones, each card at the next palette place', async () => {
+  stubCatalogue(services);
+  await act(async () => root.render(page));
+
+  const cards = [...host.querySelectorAll<HTMLElement>('.glim-card')].slice(0, 5);
+  expect(cards.map((c) => c.querySelector('h2')?.textContent)).toEqual([
+    expect.stringMatching(/^Debrid accounts/),
+    expect.stringMatching(/^Hoster accounts/),
+    expect.stringMatching(/^Usenet servers/),
+    expect.stringMatching(/^Seedboxes/),
+    expect.stringMatching(/^Captcha accounts/),
+  ]);
+  expect(cards.map((c) => c.style.getPropertyValue('--item-hue'))).toEqual([0, 1, 2, 3, 4].map((n) => `var(--rb-${n})`));
 });
 
 it('offers no seedbox card where the instance has no such service', async () => {
@@ -696,6 +711,31 @@ it('keeps every connected debrid account in the download order, and says why one
   expect(rows[0].querySelector('[aria-label^="The last check"]')).toBeNull();
 });
 
+it.each([
+  [
+    'ownActivate',
+    'The hoster says the email address of this account is not activated yet. Activate it with the link in the hoster’s activation mail (check the spam folder too), then sign in again.',
+  ],
+  [
+    'ownNewAddress',
+    'The hoster saw a sign-in from a new IP address and wants it confirmed through the link it just emailed. Confirm it, then switch this login off and on again.',
+  ],
+])('says what a hoster login refused with %s waits for, not to check the password', async (code, words) => {
+  const refused = { host: 'rapidgator.net', username: 'john', status: 'rejected', code, enabled: true };
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/hosterauth/logins') return reply([refused]);
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
+      return reply([]);
+    }),
+  );
+  await act(async () => root.render(page));
+  const row = [...card('Hoster accounts').querySelectorAll('tr')].find((r) => r.textContent?.includes('rapidgator.net'))!;
+  expect(row.querySelector(`[aria-label="${words}"]`)).not.toBeNull();
+});
+
 /** stubPriority answers the download order with `rows` and records what the card saves. */
 function stubPriority(rows: unknown[], saved: unknown[]) {
   const debrid = { id: 'torbox', label: 'TorBox', kind: 'apiKey', group: 'debrid', whereUrl: '' };
@@ -814,8 +854,11 @@ describe('a hoster login with two-factor sign-in', () => {
     act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
   };
 
-  /** The server answers each save with the next of `rows`. */
-  function stubSaves(rows: unknown[]) {
+  /**
+   * The server answers each save with the next of `rows` and lists `stored`
+   * as the logins there are.
+   */
+  function stubSaves(rows: unknown[], { stored = [] as unknown[] } = {}) {
     const posted: Record<string, unknown>[] = [];
     vi.stubGlobal(
       'fetch',
@@ -824,6 +867,7 @@ describe('a hoster login with two-factor sign-in', () => {
           posted.push(JSON.parse(String(init.body)));
           return reply(rows[posted.length - 1]);
         }
+        if (url === '/api/hosterauth/logins') return reply(stored);
         if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
         if (url === '/api/settings') return reply({ premiumOnly: false });
         if (url === '/api/features') return reply({ modules: [], pages: [] });
@@ -835,24 +879,66 @@ describe('a hoster login with two-factor sign-in', () => {
 
   const asking = (code: string) => ({ host: 'rapidgator.net', username: 'john', status: 'rejected', code, enabled: true, askCode: true });
 
-  async function saveLogin() {
+  async function openNewLogin() {
     await act(async () => root.render(page));
     await addIn('Hoster accounts');
     const tile = [...document.querySelectorAll<HTMLButtonElement>('[data-new="hoster-logos"] button')].find((b) =>
       b.textContent?.startsWith('rapidgator.net'),
     )!;
     await act(async () => tile.click());
-    expect(field('Two-factor code')).toBeUndefined();
     type(field('Username')!, 'john');
     type(field('Password')!, 'hunter2');
+  }
+
+  async function openStored() {
+    await act(async () => root.render(page));
+    const row = [...card('Hoster accounts').querySelectorAll<HTMLElement>('tr')].find((r) => r.textContent?.includes('rapidgator.net'))!;
+    await act(async () => row.querySelector('td')!.click());
+  }
+
+  async function saveLogin() {
+    await openNewLogin();
+    expect(field('Sign-in code')).toBeUndefined();
     await act(async () => button('Save').click());
   }
+
+  it('leaves the code field out of a new login until the hoster asks for one', async () => {
+    const posted = stubSaves([{ host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }]);
+    await openNewLogin();
+    expect(field('Sign-in code')).toBeUndefined();
+    await act(async () => button('Save').click());
+
+    expect(posted).toEqual([{ host: 'rapidgator.net', username: 'john', password: 'hunter2' }]);
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Connected');
+  });
+
+  it.each(['ownInvalid', 'ownActivate', 'ownNewAddress'])('edits a login refused with %s without the code field', async (code) => {
+    stubSaves([], { stored: [{ host: 'rapidgator.net', username: 'john', status: 'rejected', code, enabled: true }] });
+    await openStored();
+    expect(field('Password')).toBeDefined();
+    expect(field('Sign-in code')).toBeUndefined();
+  });
+
+  it('keeps the code field on a login whose session ended, and signs in with the new code', async () => {
+    const posted = stubSaves([{ host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }], {
+      stored: [asking('ownCodeEnded')],
+    });
+    await openStored();
+    expect(document.querySelector('#hoster-code-note')?.textContent).toBe(
+      'The session has ended. Enter a new code to sign in again.',
+    );
+    expect(button('Save').disabled).toBe(true);
+    type(field('Sign-in code')!, '482913');
+    await act(async () => button('Save').click());
+
+    expect(posted).toEqual([{ host: 'rapidgator.net', username: 'john', password: '********', code: '482913' }]);
+  });
 
   it('asks for the code the hoster wants and signs in with it, keeping the window open until then', async () => {
     const posted = stubSaves([asking('ownCodeNeeded'), { host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }]);
     await saveLogin();
 
-    const code = field('Two-factor code')!;
+    const code = field('Sign-in code')!;
     expect(code.getAttribute('inputmode')).toBe('numeric');
     expect(code.getAttribute('autocomplete')).toBe('one-time-code');
     expect(button('Save').disabled).toBe(true);
@@ -864,18 +950,18 @@ describe('a hoster login with two-factor sign-in', () => {
       { host: 'rapidgator.net', username: 'john', password: 'hunter2' },
       { host: 'rapidgator.net', username: 'john', password: 'hunter2', code: '482913' },
     ]);
-    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Connected');
   });
 
   it('says so when the hoster turned the code down, and clears it for the next', async () => {
     stubSaves([asking('ownCodeNeeded'), asking('ownCodeWrong')]);
     await saveLogin();
-    type(field('Two-factor code')!, '000000');
+    type(field('Sign-in code')!, '000000');
     await act(async () => button('Save').click());
 
     expect(document.querySelector('[role="dialog"] [role="alert"]')?.textContent).toBe(
-      'That code did not work. Enter the one the app shows now.',
+      'That code did not work. Enter the current one from the app or the newest mail.',
     );
-    expect(field('Two-factor code')!.value).toBe('');
+    expect(field('Sign-in code')!.value).toBe('');
   });
 });

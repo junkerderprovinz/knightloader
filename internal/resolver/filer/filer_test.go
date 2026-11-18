@@ -181,6 +181,40 @@ func TestTheAccountIsReportedAsFilerDescribesIt(t *testing.T) {
 	}
 }
 
+func TestTheProfileIsReadAsJDownloadersPluginReadsIt(t *testing.T) {
+	until := time.Date(2030, 3, 1, 12, 30, 0, 0, time.UTC)
+	for _, c := range []struct {
+		name string
+		data string
+		want Account
+	}{
+		{
+			name: "premium",
+			data: `{"email":"john@example.com","state":"premium","until":1898598600,"traffic":85899345920,"maxtraffic":134217728000}`,
+			want: Account{Premium: true, Expiry: until, TrafficLeft: 80 << 30, TrafficMax: 125 << 30},
+		},
+		{
+			name: "premium without a maximum",
+			data: `{"state":"premium","until":"1898598600","traffic":"85899345920"}`,
+			want: Account{Premium: true, Expiry: until, TrafficLeft: 80 << 30, TrafficMax: 125 << 30},
+		},
+		{
+			name: "free",
+			data: `{"state":"free","until":false,"traffic":0}`,
+		},
+		{
+			name: "as the documentation writes it",
+			data: `{"premium":true,"until":1898598600,"traffic":134217728000,"traffic_left":85899345920}`,
+			want: Account{Premium: true, Expiry: until, TrafficLeft: 80 << 30, TrafficMax: 125 << 30},
+		},
+	} {
+		got, err := readProfile([]byte(c.data))
+		if err != nil || got != c.want {
+			t.Errorf("%s: readProfile = %+v, %v; want %+v", c.name, got, err, c.want)
+		}
+	}
+}
+
 func TestTrafficBelowZeroReadsAsNoneLeft(t *testing.T) {
 	acct := premium()
 	acct.TrafficLeft = -3 << 30
@@ -241,6 +275,8 @@ func TestEveryFailureReadsAsItsCause(t *testing.T) {
 	}{
 		{name: "wrong password", acct: premium(), pass: "letmein", reason: core.ReasonAuth, words: "email address and password"},
 		{name: "free account", acct: filertest.Account{Email: email, Password: password}, pass: password, reason: core.ReasonAuth, words: "premium"},
+		{name: "refused without an envelope", acct: premium(), pass: password, reason: core.ReasonAuth, words: "email address and password",
+			fail: func(s *filertest.Server) { s.FailBare("profile", http.StatusUnauthorized) }},
 		{name: "breached password", acct: premium(), pass: password, reason: core.ReasonAuth, words: "breach",
 			fail: func(s *filertest.Server) { s.Fail("profile", http.StatusForbidden, 403, "account_breach_locked") }},
 		{name: "folder password", acct: premium(), pass: password, reason: core.ReasonAuth, words: "password",

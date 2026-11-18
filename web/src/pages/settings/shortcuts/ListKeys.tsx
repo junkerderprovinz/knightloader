@@ -22,6 +22,7 @@ function keyRows(rtl: boolean): KeyRow[] {
     { label: 'keys.list.move', combos: ['up', 'down'] },
     { label: 'keys.list.moveKeep', combos: ['mod+up', 'mod+down'] },
     { label: 'keys.list.edges', combos: ['home', 'end'] },
+    { label: 'keys.list.page', combos: ['pageup', 'pagedown'] },
     { label: 'keys.list.pick', combos: ['space'] },
     { label: 'keys.list.range', combos: ['shift+up', 'shift+down'] },
     { label: 'keys.list.properties', combos: ['enter'] },

@@ -7,3 +7,6 @@ declare const __MOBILE_VERSION__: string;
 
 /** The release notes of every release by its x.y.z, substituted at build time from .github/release-notes. */
 declare const __RELEASE_NOTES__: Record<string, string>;
+
+/** A digest of public/hosters, substituted at build time, which the bundled logos' addresses carry. */
+declare const __HOSTERS_VERSION__: string;

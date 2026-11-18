@@ -57,13 +57,13 @@ func (a *App) StartHosterAuth() {
 // HosterHosts lists the hosts the "add a login" picker offers. Debrid services
 // are left out because KnightLoader speaks to each of them itself, on the
 // debrid card, and a login handed to JD would route the same service a second
-// way.
+// way. Offline hosters are left out too (app_offlinehosters.go).
 func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 	skip := debridServiceDomains()
 	all := a.hosterAuth().Hosts(ctx)
 	out := make([]hosterauth.Host, 0, len(all))
 	for _, h := range all {
-		if skip[serviceKey(h.ID)] || multihostersLeftOut[serviceKey(h.ID)] {
+		if key := serviceKey(h.ID); skip[key] || multihostersLeftOut[key] || a.hiddenOffline(key) {
 			continue
 		}
 		out = append(out, h)
@@ -123,15 +123,9 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 // code for a second factor, so the window that saved it hears whether the
 // hoster wants one. The code is stored nowhere.
 func (a *App) SaveHosterLogin(ctx context.Context, host, username, password, code string) (hosterauth.LoginState, error) {
-	var own *ownHoster
-	if ownSite(host) {
-		a.bmu.RLock()
-		for _, h := range a.own {
-			if h.site == hostalias.Canonical(host) {
-				own = h
-			}
-		}
-		a.bmu.RUnlock()
+	own := a.ownHosterAt(host)
+	if b := a.xfsCodeTaker(host); b != nil && code != "" {
+		return a.saveXFSLoginWithCode(ctx, b, host, username, password, code)
 	}
 	if own == nil {
 		if err := a.SetHosterLogin(host, username, password); err != nil {

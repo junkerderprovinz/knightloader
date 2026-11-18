@@ -1,7 +1,8 @@
 // Package filertest is a stand-in for filer.net: the parts of its API a
 // premium download goes through and the download server, with the refusals
 // the API hands out on request. The answers keep the shapes filer.net's API
-// documentation gives and the live API sends.
+// documentation gives, and the profile the one JDownloader's plugin reads
+// from the live API.
 package filertest
 
 import (
@@ -57,6 +58,8 @@ type Server struct {
 type failure struct {
 	http, code int
 	status     string
+	// bare is an answer without the envelope, a status line alone.
+	bare bool
 }
 
 // New starts a server that closes when the test ends.
@@ -90,7 +93,16 @@ func (s *Server) Add(id string, f File) string {
 func (s *Server) Fail(prefix string, httpStatus, code int, status string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.fail[prefix] = append(s.fail[prefix], failure{httpStatus, code, status})
+	s.fail[prefix] = append(s.fail[prefix], failure{http: httpStatus, code: code, status: status})
+}
+
+// FailBare makes the next call of the API path that starts with prefix
+// answer with httpStatus and a body that is no JSON, as a proxy in front of
+// the API does.
+func (s *Server) FailBare(prefix string, httpStatus int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.fail[prefix] = append(s.fail[prefix], failure{http: httpStatus, bare: true})
 }
 
 // FreeWait sets the wait a ticket comes with.
@@ -138,6 +150,10 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	for prefix, q := range s.fail {
 		if strings.HasPrefix(call, prefix) && len(q) > 0 {
 			s.fail[prefix] = q[1:]
+			if q[0].bare {
+				http.Error(w, http.StatusText(q[0].http), q[0].http)
+				return
+			}
 			envelope(w, q[0].http, q[0].code, q[0].status, map[string]any{})
 			return
 		}
@@ -152,12 +168,12 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		if acct == nil {
 			return
 		}
-		until := any(false)
+		data := map[string]any{"email": acct.Email, "state": "free", "register_date": 1600000000}
 		if acct.Premium {
-			until = acct.Until.Unix()
+			data["state"], data["until"] = "premium", acct.Until.Unix()
+			data["traffic"], data["maxtraffic"] = acct.TrafficLeft, acct.Traffic
 		}
-		envelope(w, http.StatusOK, 200, "success", map[string]any{"email": acct.Email, "premium": acct.Premium,
-			"until": until, "traffic": acct.Traffic, "traffic_left": acct.TrafficLeft, "register_date": 1600000000})
+		envelope(w, http.StatusOK, 200, "success", data)
 	case strings.HasPrefix(call, "status/") && r.Method == http.MethodGet:
 		id := strings.TrimSuffix(strings.TrimPrefix(call, "status/"), ".json")
 		f, found := s.files[id]

@@ -35,6 +35,11 @@ type Status struct {
 	// Captcha is a refusal that lasts until the user solves a captcha at the
 	// hoster.
 	Captcha bool
+	// Activate and NewAddress are refusals that last until the user opens
+	// the link the hoster mailed, as in LoginError.
+	Activate, NewAddress bool
+	// CodeMayHelp is a refusal a code may answer, as in LoginError.
+	CodeMayHelp bool
 	// Code is a refusal that lasts until the user enters the one-time code
 	// of a second factor, and says why.
 	Code CodeAsk
@@ -74,6 +79,13 @@ type LoginError struct {
 	// Captcha is set when the hoster wants a captcha solved first, which
 	// only the user can do.
 	Captcha bool
+	// Activate is an account the hoster wants activated through the link
+	// of its activation mail, and NewAddress a sign-in from an address the
+	// hoster wants confirmed through a link it mailed.
+	Activate, NewAddress bool
+	// CodeMayHelp is a refusal the hoster also gives a login with a second
+	// factor that came without its code, so a code may get past it.
+	CodeMayHelp bool
 	// Err is ErrNeedsCode, ErrWrongCode or ErrNewCode for a login waiting
 	// for a code.
 	Err error
@@ -304,7 +316,8 @@ func (l *Login) record(user, pass string, s Session, err error, coded bool) {
 		if ask != "" {
 			l.coded, l.asked = true, err
 		}
-		l.status = Status{Checked: true, Refused: true, Err: err.Error(), Captcha: refused.Captcha, Code: ask}
+		l.status = Status{Checked: true, Refused: true, Err: err.Error(), Captcha: refused.Captcha,
+			Activate: refused.Activate, NewAddress: refused.NewAddress, CodeMayHelp: refused.CodeMayHelp, Code: ask}
 	} else {
 		if coded {
 			l.coded = true

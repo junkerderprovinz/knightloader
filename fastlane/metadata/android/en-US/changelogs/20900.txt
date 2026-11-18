@@ -1,0 +1,1 @@
+Screen readers read out the captcha banner, every date shows the full year, and the Help card points to Discord. The rest of this release is for the server and the desktop app: signing in to Patreon and YouTube through your browser, two-factor codes for Rapidgator and other hosters, and one switch that keeps every component current.

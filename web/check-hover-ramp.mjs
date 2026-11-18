@@ -1,31 +1,22 @@
-// GlimStone rule 21: hover moves up the surface ramp.
+// GlimStone rule 21: whatever the pointer is over lights up in the accent.
 //
-// `--carbon-hover` (#353535) is the hover fill for something carrying no fill
-// of its own, a transparent row on a card. It sits below `--carbon-surface2`
-// (#393939), so on an element already filled with surface2 it makes that
-// element four units darker under the pointer, dimming at the moment somebody
-// is looking straight at it, which reads as no hover at all. Anything filled
-// with surface2 hovers to `--carbon-surface3` (#525252), the step this repo's
-// secondary button takes, and anything filled with surface3 to
-// `--carbon-hover-raised` (#6f6f6f), which exists because a control sitting on
-// surface3 would otherwise reach back down to `--carbon-hover`, a 29-unit drop.
+// `--hover` is one colour for a button, a row, a menu entry and a tile: the
+// lightness of surface3 in the accent's hue, which lifts a row off the card and
+// a filled control off surface2 while the text on it keeps 4.5:1
+// (components/hoverTint.test.ts measures it). A grey step under the pointer is
+// the old ramp, and beside a lit button it reads as a second, duller hover. The
+// grey steps stay for what is not a hover, a field's focus above all.
 //
-// The token table has said "hover on surface2" beside `--carbon-surface3` from
-// the beginning, and thirteen places across three apps still had it the other
-// way round, so a script rather than another paragraph.
+// So a component names one hover ground, `hover:bg-hover`. What the pointer
+// lights in a colour of its own may keep it: the accent and state fills step
+// along their own colour (`hover:bg-accentHover`, `hover:bg-statusFailHover`),
+// a mix of the accent or a state hue, and `hover:bg-transparent`. A disabled
+// control keeps its resting fill. A row that publishes its ground as a custom
+// property, `hover:[--row-ground:…]`, names `var(--hover)` there.
 //
-// It looks inside each string literal rather than at lines, which is where its
-// accuracy comes from: a variant table writes one class list per line, so
-//
-//   secondary: 'bg-carbon-surface2 … hover:bg-carbon-surface3',
-//   ghost:     'text-carbon-textSub hover:bg-carbon-hover …',
-//
-// has the fill and the hover on adjacent lines belonging to different variants,
-// and a line window flags the ghost variant, which has no fill at all and is
-// written right. Both near-misses in this repo were that shape.
-//
-// The limit: a class list split across two literals joined with `+` is read as
-// two, so a fill in one half and a hover in the other slips past.
+// It looks inside each string literal, so a class list split across two
+// literals joined with `+` is read as two, which changes nothing here since
+// every hover class is judged on its own.
 //
 // Run: `node web/check-hover-ramp.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -34,232 +25,50 @@ import { fileURLToPath } from 'node:url';
 
 const src = join(dirname(fileURLToPath(import.meta.url)), 'src');
 
-/** Each resting fill, and the hover it is allowed to take (rule 21). */
-const RAMP = [
-  { filled: 'bg-carbon-surface2', hover: 'hover:bg-carbon-surface3' },
-  { filled: 'bg-carbon-surface3', hover: 'hover:bg-carbon-hoverRaised' },
-];
-// Anchored, because `hover:bg-carbon-hoverRaised` contains
-// `hover:bg-carbon-hover`: a plain substring test reports every correctly
-// written surface3 control as the mistake it avoids.
-const WRONG = /hover:bg-carbon-hover(?![A-Za-z-])/;
-
 function sources(dir) {
   const found = [];
   for (const entry of readdirSync(dir)) {
     const path = join(dir, entry);
     if (statSync(path).isDirectory()) found.push(...sources(path));
-    else if (/\.tsx?$/.test(entry)) found.push(path);
+    else if (/\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry)) found.push(path);
   }
   return found;
 }
 
 const files = sources(src);
 if (files.length < 20) {
-  console.error(`check-hover-ramp: only ${files.length} source files found - wrong directory?`);
+  console.error(`check-hover-ramp: only ${files.length} source files found, wrong directory?`);
   process.exit(1);
 }
 
-/**
- * Plain quoted strings, and the static halves of template strings. A JSX
- * attribute, a double-quoted string right after `=`, may run over lines.
- */
-const QUOTED = /'(?:[^'\\\n]|\\.)*'|(?<==)"[^"]*"|"(?:[^"\\\n]|\\.)*"/g;
-const TEMPLATE = /`(?:[^`\\]|\\.)*`/g;
-
-/** Every piece of text that is one class list, with where it starts. */
-function classLists(text) {
-  const pieces = [];
-  for (const found of text.matchAll(QUOTED)) pieces.push([found[0], found.index]);
-  for (const found of text.matchAll(TEMPLATE)) {
-    // A template's `${…}` holds its own quoted strings, and QUOTED above has
-    // already taken those one by one. What is left here is the static text
-    // around them, which is a class list of its own.
-    let at = found.index;
-    for (const chunk of found[0].split(/\$\{[\s\S]*?\}/)) {
-      pieces.push([chunk, at]);
-      at += chunk.length;
-    }
-  }
-  return pieces;
-}
-
-// The second shape: a row that publishes its own ground as a custom property
-// names no `bg-carbon-*` class, so everything above is blind to it. A row
-// written like this,
-//
-//   [--row-ground:color-mix(in_srgb,var(--carbon-surface2)_80%,var(--carbon-surface))]
-//   hover:[--row-ground:var(--carbon-surface2)]
-//
-// is rule 21 broken where its own guard cannot see: a row resting on
-// the surface2 tier and hovering to surface2 flat, a step of 4/255 in the dark
-// theme, rgb(53,53,53) at rest against rgb(57,57,57) under the pointer, which
-// reads as no hover at all.
-//
-// The tier of a value is the highest ramp token it names, so a mix reading
-// "surface2 80%, surface" counts as surface2, the tone it is mostly made of.
-// The approximation runs in one direction only, asking for a bigger step than
-// strictly needed and never a smaller one.
-const TIERS = [
-  [/--carbon-hover-raised|--carbon-hoverRaised/, 4, '--carbon-hover-raised'],
-  [/--carbon-surface3/, 3, '--carbon-surface3'],
-  [/--carbon-surface2/, 2, '--carbon-surface2'],
-  [/--carbon-hover(?![A-Za-z-])/, 1, '--carbon-hover'],
-];
-/** The ramp tier a ground expression sits on. 0 is "the card, or nothing". */
-function tierOf(value, lists) {
-  // One level of indirection: a row may hover to `var(--row-hover)` and define
-  // `--row-hover` in the same class list. Following it reads such a row as the
-  // tier it paints rather than as tier 0.
-  const seen = new Set();
-  let v = value;
-  for (let i = 0; i < 4; i++) {
-    const ref = /^var\(\s*(--[A-Za-z0-9-]+)\s*\)$/.exec(v.trim());
-    if (!ref || seen.has(ref[1]) || TIERS.some(([re]) => re.test(v))) break;
-    seen.add(ref[1]);
-    const next = lists.get(ref[1]);
-    if (next === undefined) break;
-    v = next;
-  }
-  for (const [re, rank, name] of TIERS) if (re.test(v)) return [rank, name];
-  return [0, 'the card'];
-}
-
-/** Every `[--name:value]` in a class list, by name, rest and raised apart. */
-function grounds(piece) {
-  const rest = new Map();
-  const raised = [];
-  // `[--name:value]`, optionally behind variants (`hover:`, `has-[:x]:`). The
-  // value may hold brackets of its own - color-mix() does not, but var() plus a
-  // fallback would - so the scan counts them rather than stopping at the first
-  // `]`.
-  const re = /(^|\s)((?:[A-Za-z0-9:_.-]+(?:\[[^\]]*\])?:)*)\[(--[A-Za-z0-9-]+):/g;
-  let m;
-  while ((m = re.exec(piece)) !== null) {
-    let depth = 1;
-    let i = re.lastIndex;
-    for (; i < piece.length && depth > 0; i++) {
-      if (piece[i] === '[' || piece[i] === '(') depth++;
-      else if (piece[i] === ']' || piece[i] === ')') depth--;
-    }
-    const value = piece.slice(re.lastIndex, i - 1).replace(/_/g, ' ');
-    const variants = m[2];
-    if (variants === '') rest.set(m[3], value);
-    else if (/(^|:)hover:|focus-visible/.test(variants)) raised.push([m[3], value, variants]);
-  }
-  return { rest, raised };
-}
-
-// The third shape: a row with no fill of its own takes its ground from the
-// element around it, so
-//
-//   <div className="glim-well …">
-//     <tr className="glim-row … hover:bg-carbon-hover">
-//
-// rests on surface2 and hovers four units down, though its own class list is
-// written as rule 21 has it for a row on a card. The scan below follows the
-// JSX elements of one file to find the nearest one that paints a ground. A
-// row rendered by a component of another file is out of its sight.
-
-/** The ground an element paints for what sits inside it, null for none. */
-function groundOf(tag) {
-  const classes = new Set(tag.split(/[\s'"`{}]+/));
-  if (classes.has('glim-card') || classes.has('bg-carbon-surface')) return null;
-  if (['glim-well', 'glim-subcard', 'bg-carbon-surface2'].some((c) => classes.has(c))) return RAMP[0];
-  if (classes.has('bg-carbon-surface3')) return RAMP[1];
-  return undefined;
-}
-
-/** The index just past the string literal opening at i. */
-function skipString(text, i) {
-  const quote = text[i];
-  for (i++; i < text.length && text[i] !== quote; i++) {
-    if (text[i] === '\\') i++;
-    else if (quote === '`' && text[i] === '$' && text[i + 1] === '{') i = skipBraces(text, i + 1) - 1;
-  }
-  return i + 1;
-}
-
-/** The index just past the braces opening at i. */
-function skipBraces(text, i) {
-  let depth = 0;
-  for (; i < text.length; i++) {
-    const c = text[i];
-    if (c === "'" || c === '"' || c === '`') i = skipString(text, i) - 1;
-    else if (c === '{') depth++;
-    else if (c === '}' && --depth === 0) return i + 1;
-  }
-  return i;
-}
-
-/**
- * Every JSX tag of a file with the ground it sits on: [start, end, ground].
- * A `<` right after a name or a bracket is a type argument or a comparison,
- * not a tag.
- */
-function tags(text) {
-  const found = [];
-  const open = [];
-  const re = /(^|[^\w$.\])])<(\/?)([A-Za-z][\w.]*|)(?=[\s/>])/g;
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    const start = m.index + m[1].length;
-    let i = re.lastIndex;
-    for (; i < text.length && text[i] !== '>'; i++) {
-      const c = text[i];
-      if (c === '{') i = skipBraces(text, i) - 1;
-      else if (c === "'" || c === '"' || c === '`') i = skipString(text, i) - 1;
-    }
-    const tag = text.slice(start, i + 1);
-    re.lastIndex = i + 1;
-    if (m[2]) {
-      const at = open.findLastIndex((o) => o.name === m[3]);
-      if (at >= 0) open.length = at;
-      continue;
-    }
-    const ground = open.findLast((o) => o.ground !== undefined)?.ground ?? null;
-    found.push([start, i + 1, ground]);
-    if (!tag.endsWith('/>')) open.push({ name: m[3], ground: groundOf(tag) });
-  }
-  return found;
-}
+// A background under the pointer or the keyboard's hover, behind any variants.
+const HOVER_BG = /(?<![\w-])((?:[\w-]+(?:\[[^\]\s]*\])?:)*(?:group-)?(?:hover|has-\[:focus-visible\]):bg-(?:\[[^\]\s]+\]|[\w/-]+))/g;
+const LIT = /:bg-(hover|transparent|accent[\w]*|status\w*Hover|\[color-mix\(in_srgb,var\(--(status|accent|item-hue)-[^\]]+\])$/;
+const ROW_GROUND = /(?<![\w-])((?:[\w-]+:)*hover:\[--[\w-]+:([^\]\s]+)\])/g;
 
 const problems = [];
+let seen = 0;
 for (const path of files) {
   const text = readFileSync(path, 'utf8');
-  const jsx = tags(text);
-  for (const [piece, at] of classLists(text)) {
-    const line = () => text.slice(0, at).split('\n').length;
-    if (WRONG.test(piece)) {
-      const tier = RAMP.find((t) => piece.includes(t.filled));
-      const around = jsx.findLast(([start, end]) => start < at && at < end)?.[2];
-      if (tier) problems.push(`${path.slice(src.length + 1)}:${line()} -> ${tier.hover}`);
-      else if (around) {
-        problems.push(
-          `${path.slice(src.length + 1)}:${line()} -> ${around.hover}, a row on the ${around.filled.replace('bg-carbon-', '')} ground around it`,
-        );
-      }
-    }
-    const { rest, raised } = grounds(piece);
-    for (const [name, value, variants] of raised) {
-      if (!rest.has(name)) continue;
-      const [resting, restName] = tierOf(rest.get(name), rest);
-      const [up, upName] = tierOf(value, rest);
-      if (up > resting) continue;
-      problems.push(
-        `${path.slice(src.length + 1)}:${line()} -> ${variants}[${name}:…] rests on ${restName} and ` +
-          `rises to ${upName}: a row filled with one tone hovers to the tone above it`,
-      );
-    }
+  const at = (index) => `${path.slice(src.length + 1).split('\\').join('/')}:${text.slice(0, index).split('\n').length}`;
+  for (const m of text.matchAll(HOVER_BG)) {
+    seen++;
+    if (/(^|:)disabled:/.test(m[1]) || LIT.test(m[1])) continue;
+    problems.push(`${at(m.index)} ${m[1]} -> ${m[1].replace(/bg-(?:\[[^\]]+\]|[\w/-]+)$/, 'bg-hover')}`);
+  }
+  for (const m of text.matchAll(ROW_GROUND)) {
+    if (m[2].replace(/_/g, ' ') !== 'var(--hover)') problems.push(`${at(m.index)} ${m[1]} -> var(--hover)`);
   }
 }
 problems.sort();
 
+if (seen < 20) {
+  console.error(`check-hover-ramp: only ${seen} hover grounds found, has the class syntax changed?`);
+  process.exit(1);
+}
 if (problems.length) {
-  console.error(`check-hover-ramp: ${problems.length} filled element(s) hovering to the tone below their own.`);
-  console.error("Each line names the class it should carry instead:");
+  console.error(`check-hover-ramp: ${problems.length} hover(s) to a grey step instead of the accent's --hover:`);
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-
-console.log(`check-hover-ramp: ${files.length} files, every filled element hovers up the ramp.`);
+console.log(`check-hover-ramp: ${files.length} files, every one of ${seen} hover grounds lights up in the accent.`);

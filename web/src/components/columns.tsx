@@ -774,7 +774,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           type="button"
           {...openHover}
           className="glim-eyebrow max-w-[45%] shrink-0 truncate rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5
-            transition-colors hover:bg-carbon-surface3 hover:text-carbon-textSub"
+            transition-colors hover:bg-hover hover:text-carbon-textSub"
           onClick={() => setWhyOpen(true)}
         >
           {t(reason)}

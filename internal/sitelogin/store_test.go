@@ -73,6 +73,65 @@ func TestTheMarkNotToUseTheBrowserIsKeptPerSite(t *testing.T) {
 	}
 }
 
+func TestASiteIsAddedUntilItIsRemoved(t *testing.T) {
+	s := openStore(t)
+	if s.Added("instagram") {
+		t.Fatal("a site starts out added")
+	}
+	if err := s.SetAdded("instagram", true); err != nil {
+		t.Fatal(err)
+	}
+	if !s.Added("instagram") || s.Added("patreon") {
+		t.Errorf("instagram %v, patreon %v; want only instagram added", s.Added("instagram"), s.Added("patreon"))
+	}
+	if err := s.SetAdded("instagram", false); err != nil {
+		t.Fatal(err)
+	}
+	if s.Added("instagram") {
+		t.Error("removing kept the site")
+	}
+	if err := s.SetAdded("example", true); err == nil {
+		t.Error("a site that is not on offer was added")
+	}
+}
+
+func TestTheRowsAreTakenOverOnce(t *testing.T) {
+	s := openStore(t)
+	if s.RowsTakenOver() {
+		t.Fatal("a new store says the rows were taken over")
+	}
+	if err := s.SetRowsTakenOver(); err != nil {
+		t.Fatal(err)
+	}
+	if !s.RowsTakenOver() {
+		t.Error("the mark did not stick")
+	}
+}
+
+func TestEachBrowserSaysForItselfWhetherItReadsASite(t *testing.T) {
+	s := openStore(t)
+	if got := s.Readers("patreon"); len(got) != 0 {
+		t.Fatalf("a site starts out read by %v", got)
+	}
+	for _, app := range []string{"browser-a", "browser-b"} {
+		if err := s.SetReader("patreon", app, true); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.SetReader("patreon", "browser-a", false); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(s.Readers("patreon"), ","); got != "browser-b" {
+		t.Errorf("patreon is read by %q, want browser-b alone", got)
+	}
+	if got := s.Readers("youtube"); len(got) != 0 {
+		t.Errorf("youtube is read by %v, want nobody", got)
+	}
+	if err := s.SetReader("example", "browser-a", true); err == nil {
+		t.Error("a site that is not on offer got a reader")
+	}
+}
+
 func openStore(t *testing.T) *Store {
 	t.Helper()
 	a, err := accounts.Open(t.TempDir())

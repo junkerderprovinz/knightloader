@@ -1,9 +1,11 @@
 // Passing the browser's sign-ins on to KnightLoader (internal/sitelogin). Each
-// instance lists the sites whose session it borrows from the browser. Once the
-// browser lets the extension read those sites' cookies, the background hands a
-// site's session to every instance that lists it: at start, after pairing and
-// whenever a sign-in cookie changes, and an empty one once the browser signs
-// out. Cookies of private windows are never read.
+// instance lists the sites whose session it borrows from the browser, and
+// hears which of them this browser lets the extension read. Once it may read
+// them, the background hands a site's session to every instance that lists
+// it: at start, after pairing, whenever a sign-in cookie changes and when a
+// tab opens the site's sign-in page, and an empty one once the browser signs
+// out. An instance waiting for a sign-in gets the session even if it is the
+// one handed over before. Cookies of private windows are never read.
 //
 // Plain functions, so check-signin.mjs can run them without a browser.
 
@@ -39,11 +41,17 @@ function readableSite(site) {
   );
 }
 
-/** The sites each instance of the group lists, as { instance, sites }; an instance that did not answer lists none. */
-async function listedSites(siblings, call) {
+/**
+ * The sites each instance of the group lists, as { instance, sites }; an
+ * instance that did not answer lists none. `reads` are the ids of the sites
+ * this browser lets the extension read, which the instance's sign-in window
+ * goes by.
+ */
+async function listedSites(siblings, call, reads) {
+  const path = `${SIGNIN_LIST}?reads=${reads.map(encodeURIComponent).join(',')}`;
   return Promise.all(
     siblings.map(async (instance) => {
-      const list = await readJSON(call, instance.instanceId, SIGNIN_LIST);
+      const list = await readJSON(call, instance.instanceId, path);
       return { instance, answered: Array.isArray(list), sites: (Array.isArray(list) ? list : []).filter(readableSite) };
     }),
   );
@@ -54,13 +62,13 @@ function allSites(lists) {
   const byId = new Map();
   for (const { sites } of lists) {
     for (const s of sites) {
-      if (!byId.has(s.id)) byId.set(s.id, { id: s.id, name: s.name, domains: s.domains, signIn: s.signIn });
+      if (!byId.has(s.id)) byId.set(s.id, { id: s.id, name: s.name, loginUrl: s.loginUrl, domains: s.domains, signIn: s.signIn });
     }
   }
   return [...byId.values()];
 }
 
-/** The site names as a list in the page's language, such as "Patreon and YouTube". */
+/** The site names as a list in the page's language, such as "Instagram, Patreon and YouTube". */
 function siteNames(sites) {
   const names = sites.map((s) => s.name);
   try {
@@ -132,6 +140,31 @@ function signInCookieChanged(sites, change) {
   const c = change?.cookie;
   if (!c || privateStoreId(c.storeId)) return false;
   return sites.some((s) => s.signIn.includes(c.name) && siteOwns(s, c.domain));
+}
+
+/** Whether url is a listed site's sign-in page, which an instance opens while it waits for the sign-in. */
+function signInPageOpened(sites, url) {
+  let page;
+  try {
+    page = new URL(url);
+  } catch {
+    return false;
+  }
+  return sites.some((s) => {
+    try {
+      const login = new URL(s.loginUrl);
+      return page.origin === login.origin && page.pathname.startsWith(login.pathname);
+    } catch {
+      return false;
+    }
+  });
+}
+
+/** The ids of the sites the extension may read, which each list says to the instances. */
+async function readableIds(sites) {
+  const ids = [];
+  for (const site of sites) if ((await signinState([site])).on) ids.push(site.id);
+  return ids;
 }
 
 /** Sign-in cookie changes since the last sync, by store and domain, so the store changed last can win. */
@@ -247,15 +280,27 @@ function pickReading(readings, changed, lastStore) {
  * so the background tries again a little later.
  */
 async function syncSignIns(siblings, call) {
-  const { signinEnabled } = await chrome.storage.local.get('signinEnabled');
-  if (signinEnabled === false) return { retry: false };
-  const lists = await listedSites(siblings, call);
+  const { signinEnabled, signinReads } = await chrome.storage.local.get(['signinEnabled', 'signinReads']);
+  // Switched off, the instances hear once that this browser reads nothing.
+  if (signinEnabled === false) {
+    if (signinReads) {
+      const lists = await listedSites(siblings, call, []);
+      if (lists.every((l) => l.answered)) await chrome.storage.local.set({ signinReads: '' });
+    }
+    return { retry: false };
+  }
+  const told = await readableIds(await storedSites());
+  let lists = await listedSites(siblings, call, told);
+  if (!lists.some((l) => l.answered)) return { retry: false };
   const sites = allSites(lists);
-  if (lists.some((l) => l.answered)) await chrome.storage.local.set({ signinSites: sites });
+  await chrome.storage.local.set({ signinSites: sites });
   // A site an instance has just begun to list waits for its own access, and
-  // the others go on meanwhile.
-  const readable = [];
-  for (const site of sites) if ((await signinState([site])).on) readable.push(site);
+  // the others go on meanwhile. The lists went out with the sites known
+  // before, so the instances hear at once when this browser reads others.
+  const reads = await readableIds(sites);
+  if (reads.join() !== told.join()) lists = await listedSites(siblings, call, reads);
+  await chrome.storage.local.set({ signinReads: reads.join() });
+  const readable = sites.filter((s) => reads.includes(s.id));
   if (readable.length === 0) return { retry: false };
   let retry = lists.some((l) => !l.answered);
 
@@ -276,10 +321,11 @@ async function syncSignIns(siblings, call) {
     const print = best ? await sessionPrint(site, best.cookies) : '';
 
     for (const { instance, sites: listed } of lists) {
-      if (!listed.some((s) => s.id === site.id)) continue;
+      const entry = listed.find((s) => s.id === site.id);
+      if (!entry) continue;
       const id = instance.instanceId;
       const last = handed[id]?.[site.id];
-      if (best ? last?.print === print : !last) continue;
+      if (best ? last?.print === print && !entry.waiting : !last) continue;
       if (!best && last.refused) {
         delete handed[id][site.id];
         continue;

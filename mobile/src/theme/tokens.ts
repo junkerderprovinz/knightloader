@@ -1,6 +1,6 @@
 import { I18nManager, type TextStyle } from 'react-native';
 import type { Shape } from './appearance';
-import { accentInks } from './contrast';
+import { INK_LIGHTNESS, accentInks, darkenTo, lightenTo, validHex } from './contrast';
 
 // GlimStone's palette, as this app's tokens.
 //
@@ -44,6 +44,9 @@ export interface Palette {
   text: string;
   textSub: string;
   textMuted: string;
+  /** A field's placeholder: muted text falls under 4.5:1 on a raised field, so
+   *  it takes the sub step, the dimmest that reads on every field fill. */
+  fieldPlaceholder: string;
 
   /**
    * The five state families, each in all three steps: `text` is the word, `bg`
@@ -99,6 +102,7 @@ export interface Palette {
   brandBitcoin: string;
   brandPaypal: string;
   brandGithub: string;
+  brandDiscord: string;
   brandWindows: string;
   brandDocker: string;
 
@@ -123,6 +127,7 @@ export const DARK: Palette = {
   text: '#f4f4f4',
   textSub: '#c6c6c6',
   textMuted: '#8d8d8d',
+  fieldPlaceholder: '#c6c6c6',
 
   statusOkText: '#6fdc8c',
   statusOkBg: 'rgba(111, 220, 140, 0.13)',
@@ -148,12 +153,13 @@ export const DARK: Palette = {
   // any lighter the eye keeps reading the page behind the panel.
   scrim: 'rgba(0, 0, 0, 0.72)',
 
-  // On #393939 these measure 8.6, 5.0, 5.1 and 11.6 to 1, the extension's
-  // values.
+  // On #393939 these measure 8.6, 5.0, 5.1, 11.6 and 4.6 to 1, the
+  // extension's values.
   brandCoffee: '#ffdd00',
   brandBitcoin: '#f7931a',
   brandPaypal: '#4fb5f0',
   brandGithub: '#ffffff',
+  brandDiscord: '#949cf7',
   // 3.1 and 3.7 to 1, the web interface's values.
   brandWindows: '#2b88d8',
   brandDocker: '#2396ed',
@@ -193,6 +199,7 @@ export const LIGHT: Palette = {
   text: '#161616',
   textSub: '#525252',
   textMuted: '#6f6f6f',
+  fieldPlaceholder: '#525252',
 
   statusOkText: '#0e6027',
   statusOkBg: 'rgba(14, 96, 39, 0.11)',
@@ -204,8 +211,8 @@ export const LIGHT: Palette = {
   statusWarnBg: 'rgba(186, 78, 0, 0.10)',
   statusWarnSolid: '#ba4e00',
   statusWarnBgSoft: 'rgba(186, 78, 0, 0.05)',
-  statusInfoText: '#8E6A00',
-  statusInfoBg: 'rgba(142, 106, 0, 0.12)',
+  statusInfoText: '#7C5F07',
+  statusInfoBg: 'rgba(124, 95, 7, 0.12)',
   statusInfoSolid: '#A87D00',
   statusNeutralText: '#6f6f6f',
   statusNeutralBg: 'rgba(0, 0, 0, 0.045)',
@@ -216,11 +223,12 @@ export const LIGHT: Palette = {
   // mode looks like a power cut.
   scrim: 'rgba(0, 0, 0, 0.62)',
 
-  // On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1.
+  // On #e8e8e8 these measure 4.0, 4.1, 9.7, 14.6 and 3.8 to 1.
   brandCoffee: '#8a6d00',
   brandBitcoin: '#a85d00',
   brandPaypal: '#003087',
   brandGithub: '#181717',
+  brandDiscord: '#5865f2',
   // 3.7 and 4.2 to 1. Docker's lighter blue, which the dark theme takes,
   // measures 2.6 here, so this is the deeper one from its own tile.
   brandWindows: '#0078d4',
@@ -232,6 +240,7 @@ export type Brand =
   | 'bitcoin'
   | 'paypal'
   | 'github'
+  | 'discord'
   | 'windows'
   | 'apple'
   | 'linux'
@@ -256,6 +265,7 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   bitcoin: { fill: '#f7931a', ink: '#161616' },
   paypal: { fill: '#003087', ink: '#ffffff' },
   github: { fill: '#181717', ink: '#ffffff' },
+  discord: { fill: '#5865f2', ink: '#ffffff' },
   // The Apps cards' platforms, in the web interface's tile colours.
   windows: { fill: '#0078d4', ink: '#ffffff' },
   apple: { fill: '#6e6e73', ink: '#ffffff' },
@@ -274,31 +284,24 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
 };
 
 /**
- * inkFor is a colour used as text: on a light ground darkened 55% of the way
- * to black, on a dark one as given.
+ * inkFor is a colour used as text: moved in OKLab onto the theme's lightness
+ * step, down on a light ground and up on a dark one, keeping its hue.
  *
- * A colour on a fill needs no darkening, because the ink on top is computed
- * (see contrastOn). A colour used as ink does, since yellow text on white is
+ * A colour on a fill needs no step, because the ink on top is computed (see
+ * contrastOn). A colour used as ink does, since yellow text on white is
  * unreadable at 12px whichever yellow it is.
  *
- * The 55% is GlimStone's `color-mix(in srgb, var(--accent) var(--ink-mix),
- * black)`, and this function exists because React Native has no color-mix.
- * Every preset clears 4.5:1 with it on both grounds, so the app and its own
- * web interface show one blue for one setting. A picked or a system colour may
- * not, and then contrast.ts pushes it on just far enough, as the web does.
+ * The steps are GlimStone's --ink-l-light and --ink-l-dark, and this function
+ * exists because React Native has no relative colours. Every preset clears
+ * 4.5:1 with them on both grounds, so the app and its own web interface show
+ * one blue for one setting. A picked or a system colour may not, and then
+ * contrast.ts pushes it on just far enough, as the web does.
  */
 export function inkFor(hex: string, dark = false): string {
   const pushed = accentInks(hex)[dark ? 'dark' : 'light'];
   if (pushed) return pushed;
-  if (dark) return hex;
-  const m = /^#([0-9a-fA-F]{6})$/.exec(hex);
-  if (!m) return hex;
-  const n = parseInt(m[1], 16);
-  const mix = (c: number) => Math.round(c * 0.55);
-  const r = mix((n >> 16) & 255);
-  const g = mix((n >> 8) & 255);
-  const b = mix(n & 255);
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase()}`;
+  if (!validHex(hex)) return hex;
+  return dark ? lightenTo(hex, INK_LIGHTNESS.dark) : darkenTo(hex, INK_LIGHTNESS.light);
 }
 
 // The type scale, GlimStone's five sizes with one role each: a fixed reference

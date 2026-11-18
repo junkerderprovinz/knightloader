@@ -45,7 +45,7 @@ const patreon: SiteLogin = {
   state: 'signedOut',
   unreadable: [],
   readsBrowsers: true,
-  disconnected: false,
+  listed: true,
 };
 
 /** The colour class the state's words wear. */
@@ -75,13 +75,14 @@ it('paints a hoster login that waits for a sign-in or a code in the danger colou
   const data: HosterLogins = {
     logins: [login({ signInHere: true }), login({ host: 'ddownload.com', askCode: true })],
     sites: [],
-    ways: { readsBrowsers: false, extensionPaired: false },
+    ways: { readsBrowsers: false },
     hosts: [],
     load: async () => {},
     toggle: async () => {},
     toggleAll: async () => {},
     remove: async () => {},
     putSite: () => {},
+    addSite: async () => undefined,
     removeSite: async () => {},
   };
   act(() =>

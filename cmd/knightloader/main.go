@@ -172,6 +172,7 @@ func main() {
 	if envInt("KL_QBITTORRENT", 1) == 1 {
 		a.StartQBittorrent()
 	}
+	a.StartOfflineHosterCheck()
 	// Signed in to a site in a browser on this machine means signed in here;
 	// in a container this does nothing.
 	a.StartBrowserSessions()

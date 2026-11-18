@@ -16,7 +16,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
@@ -36,30 +35,6 @@ const (
 	// lsStarted is START's answer for a torrent that is under way.
 	lsStarted = "Already started."
 )
-
-// lsSessionAge is how long one login serves the torrent calls. The cookie
-// lasts far longer, but what Linksnappy answers once it drops a session is
-// not known, so a session is not trusted for hours on end.
-const lsSessionAge = 10 * time.Minute
-
-// login logs in unless a login within lsSessionAge still stands.
-func (l *Linksnappy) login(ctx context.Context) error {
-	l.mu.Lock()
-	fresh := !l.loggedIn.IsZero() && time.Since(l.loggedIn) < lsSessionAge
-	l.mu.Unlock()
-	if fresh {
-		return nil
-	}
-	return l.Authenticate(ctx)
-}
-
-// logout makes the next torrent call log in first. A refused call may be the
-// session gone stale.
-func (l *Linksnappy) logout() {
-	l.mu.Lock()
-	l.loggedIn = time.Time{}
-	l.mu.Unlock()
-}
 
 // torrentCall is envelope on a session that is logged in.
 func (l *Linksnappy) torrentCall(ctx context.Context, path string, q url.Values, out any) error {

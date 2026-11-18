@@ -2,9 +2,11 @@ package xfs
 
 import (
 	"html"
+	"maps"
 	"math"
 	"net/url"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -146,24 +148,31 @@ func readForm(tag, inner string) Form {
 	return f
 }
 
-// codeField is the field of the script's form for a second factor's code.
-var codeField = regexp.MustCompile(`^code\d*$`)
+// The fields of the script's form for a second factor's code: the code
+// itself, or the token a site mails for a sign-in from a new address.
+var (
+	codeField  = regexp.MustCompile(`^code\d*$`)
+	tokenField = regexp.MustCompile(`^new_ip_token$`)
+)
 
-// asksForCode reports whether a page after the password holds the form for
-// a second factor's code, as JDownloader's XFileSharingProBasic finds it. The
+// codeForm is the form of a page after the password that takes a second
+// factor's code, and the field the code goes in, as JDownloader's
+// XFileSharingProBasic finds them. It is nil for a page without one. The
 // sign-in form's captcha is a code field too, but beside the password.
-func (p page) asksForCode() bool {
-	for _, f := range p.forms {
+func (p page) codeForm() (*Form, string) {
+	for i, f := range p.forms {
 		if f.Password != "" {
 			continue
 		}
-		for name := range f.Fields {
-			if codeField.MatchString(name) {
-				return true
+		for _, field := range []*regexp.Regexp{codeField, tokenField} {
+			for _, name := range slices.Sorted(maps.Keys(f.Fields)) {
+				if field.MatchString(name) {
+					return &p.forms[i], name
+				}
 			}
 		}
 	}
-	return false
+	return nil, ""
 }
 
 // formWith is the page's form whose op field is op, nil when it has none.

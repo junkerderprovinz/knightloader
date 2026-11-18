@@ -1,11 +1,13 @@
 // The collector's facets narrow staged links by host, file type or package,
 // computed from the tasks on screen. The ▾ in the Hoster head opens the host,
 // the one in the Name head the file type and the package. Availability is not
-// a facet here because the Status head's quick filters already cover it.
+// a facet here because the Status head's quick filters already cover it. A
+// host also selects its links, so the mirrors on hosts nobody wants go in one
+// deletion.
 import { useMemo } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconClose } from '../lib/icons';
+import { IconClose, IconSelectAll } from '../lib/icons';
 import { IconBadge, InfoBubble, Toggle } from './ui';
 import { Tip, hostOf } from './columns';
 
@@ -97,24 +99,45 @@ function buildFacet(
   return [...m.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
-// The whole row answers a click: a <label> hands it to the switch inside.
+/**
+ * FacetSelecting lets the host facet select links: `visible` is what the list
+ * shows, so a selection never takes in a row nobody can see.
+ */
+export interface FacetSelecting {
+  visible: Task[];
+  selected: ReadonlySet<string>;
+  onSelect: (ids: string[], on: boolean) => void;
+}
+
+/** RowSelect is what a row's select button acts on, the ids it shows of that value. */
+interface RowSelect {
+  ids: string[];
+  all: boolean;
+  onSelect: (ids: string[], on: boolean) => void;
+}
+
+// The whole row answers a click: a <label> hands it to the switch inside. The
+// select button sits outside it, so a click on one never flips the other.
 function FacetRow({
   checked,
   label,
   count,
   hue,
   onToggle,
+  select,
 }: {
   checked: boolean;
   label: string;
   count: number;
   hue: number;
   onToggle: () => void;
+  select?: RowSelect;
 }) {
-  return (
+  const { t } = useT();
+  const row = (
     <label
-      className="flex w-full cursor-pointer items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1 text-xs
-        text-carbon-textSub transition-colors hover:bg-carbon-hover"
+      className="flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1 text-xs
+        text-carbon-textSub transition-colors hover:bg-hover"
     >
       <Tip tip={label} className="min-w-0 flex-1 truncate">
         {label}
@@ -123,6 +146,23 @@ function FacetRow({
       <Toggle hideLabel label={label} checked={checked} onChange={onToggle} hue={hue} />
     </label>
   );
+  if (!select) return row;
+  const name = t('collector.facets.selectHost', { host: label });
+  return (
+    <div className="flex min-w-0 items-center gap-1">
+      {row}
+      <IconBadge
+        quiet
+        icon={<IconSelectAll width={16} height={16} />}
+        title={name}
+        aria-label={name}
+        active={select.all}
+        disabled={select.ids.length === 0}
+        onClick={() => select.onSelect(select.ids, !select.all)}
+        data-new="collector-host-select"
+      />
+    </div>
+  );
 }
 
 function FacetGroup({
@@ -130,11 +170,13 @@ function FacetGroup({
   options,
   active,
   onToggle,
+  selectFor,
 }: {
   title: string;
   options: FacetOption[];
   active: ReadonlySet<string>;
   onToggle: (value: string) => void;
+  selectFor?: (value: string) => RowSelect;
 }) {
   if (options.length === 0) return null;
   return (
@@ -150,6 +192,7 @@ function FacetGroup({
             count={o.count}
             hue={i}
             onToggle={() => onToggle(o.value)}
+            select={selectFor?.(o.value)}
           />
         ))}
       </div>
@@ -174,13 +217,32 @@ export function CollectorFacets({
   selection,
   onChange,
   kinds,
+  selecting,
 }: {
   tasks: Task[];
   selection: FacetSelection;
   onChange: (next: FacetSelection) => void;
   kinds: FacetKind[];
+  selecting?: FacetSelecting;
 }) {
   const { t } = useT();
+
+  const shownByHost = useMemo(() => {
+    const m = new Map<string, string[]>();
+    for (const x of selecting?.visible ?? []) {
+      const h = hostOf(x);
+      const ids = m.get(h);
+      if (ids) ids.push(x.id);
+      else m.set(h, [x.id]);
+    }
+    return m;
+  }, [selecting?.visible]);
+  const selectHost = selecting
+    ? (value: string): RowSelect => {
+        const ids = shownByHost.get(value) ?? [];
+        return { ids, all: ids.length > 0 && ids.every((id) => selecting.selected.has(id)), onSelect: selecting.onSelect };
+      }
+    : undefined;
 
   const hostOptions = useMemo(
     () =>
@@ -233,7 +295,13 @@ export function CollectorFacets({
           a phone. */}
       <div className={`grid gap-4 ${kinds.length > 1 ? 'sm:grid-cols-2' : ''}`}>
         {kinds.includes('host') && (
-          <FacetGroup title={t('columns.host')} options={hostOptions} active={selection.host} onToggle={(v) => set('host', v)} />
+          <FacetGroup
+            title={t('columns.host')}
+            options={hostOptions}
+            active={selection.host}
+            onToggle={(v) => set('host', v)}
+            selectFor={selectHost}
+          />
         )}
         {kinds.includes('fileType') && (
           <FacetGroup

@@ -448,8 +448,7 @@ func TestRulesKnightLoaderCannotTestAreBlockedNotWidened(t *testing.T) {
 		{"type is not", map[string]any{"filetypeFilter": map[string]any{"enabled": true, "matchType": "IS_NOT", "videoFilesEnabled": true}}, "ruleTypeNot"},
 		{"java pattern", map[string]any{"filenameFilter": jdimporttest.Text("CONTAINS", `(?<=a)b`, true)}, "rulePattern"},
 		{"no condition", map[string]any{}, "ruleNoCondition"},
-		{"built in", map[string]any{"staticRule": true, "id": "OfflineView"}, "ruleBuiltin"},
-		{"folder per package", map[string]any{"staticRule": true, "id": "SubFolderByPackageRule"}, "ruleBuiltinPackageFolder"},
+		{"shipped rule this build does not know", map[string]any{"staticRule": true, "id": "SomethingNewView"}, "ruleBuiltin"},
 	}
 	for _, c := range cases {
 		over := map[string]any{"packageName": "x"}
@@ -513,12 +512,108 @@ func TestPackagizerActionsMapAndSayWhatIsLeftOut(t *testing.T) {
 
 func TestARuleThatOnlyDoesWhatKnightLoaderCannotIsBlocked(t *testing.T) {
 	t.Parallel()
+	m := mapOne(t, false, jdimporttest.Rule("start rev", map[string]any{
+		"filetypeFilter":   map[string]any{"enabled": true, "matchType": "IS", "customs": "rev"},
+		"autoStartEnabled": true,
+	}))
+	if m.Blocked == nil || m.Blocked.Code != "ruleNoAction" {
+		t.Fatalf("blocked = %+v, want ruleNoAction", m.Blocked)
+	}
+}
+
+func TestARuleThatSwitchesLinksOffComesOver(t *testing.T) {
+	t.Parallel()
 	m := mapOne(t, false, jdimporttest.Rule("rev off", map[string]any{
 		"filetypeFilter": map[string]any{"enabled": true, "matchType": "IS", "customs": "rev"},
 		"linkEnabled":    false,
 	}))
-	if m.Blocked == nil || m.Blocked.Code != "ruleNoAction" {
-		t.Fatalf("blocked = %+v, want ruleNoAction", m.Blocked)
+	if m.Blocked != nil {
+		t.Fatalf("blocked: %s", m.Blocked.Text)
+	}
+	if on := m.Rule.Action.LinkEnabled; on == nil || *on {
+		t.Errorf("link enabled = %v, want the rule to switch links off", on)
+	}
+	if len(m.Notes) != 0 {
+		t.Errorf("notes = %+v, want nothing left out", m.Notes)
+	}
+}
+
+// The rules JDownloader ships for recovery files come over as it defines them,
+// whatever the file holds besides their name and switch.
+func TestShippedRecoveryFileRulesComeOver(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		id      string
+		enabled bool
+		off     []string
+		on      []string
+	}{
+		{"DisableRevFilesPackageRule", true, []string{"Show.part01.rev", "SHOW.REV"}, []string{"Show.part01.rar", "Show.revised.mkv"}},
+		{"DisableParFilesPackageRule", false, []string{"Show.par2", "Show.vol07+08.PAR2", "Show.par"}, []string{"Show.part1.rar", "Show.par2.txt"}},
+	}
+	for _, c := range cases {
+		m := mapOne(t, false, jdimporttest.Rule("shipped "+c.id, map[string]any{
+			"staticRule": true, "id": c.id, "enabled": c.enabled,
+		}))
+		if m.Blocked != nil {
+			t.Errorf("%s: blocked: %s", c.id, m.Blocked.Text)
+			continue
+		}
+		if m.Name != "shipped "+c.id || m.Enabled != c.enabled || m.Rule.Disabled == c.enabled {
+			t.Errorf("%s: name %q, enabled %v, disabled %v; the name and switch come from the file", c.id, m.Name, m.Enabled, m.Rule.Disabled)
+		}
+		check := m.Rule
+		check.Disabled = false
+		matcher, problems := rules.Compile(rules.Set{Rules: []rules.Rule{check}})
+		if len(problems) > 0 {
+			t.Fatalf("%s: %v", c.id, problems)
+		}
+		for _, name := range c.off {
+			if e := matcher.Apply(rules.Candidate{Filename: name}); e.LinkEnabled == nil || *e.LinkEnabled {
+				t.Errorf("%s: %q should arrive switched off", c.id, name)
+			}
+		}
+		for _, name := range c.on {
+			if e := matcher.Apply(rules.Candidate{Filename: name}); e.LinkEnabled != nil {
+				t.Errorf("%s: %q should be left alone", c.id, name)
+			}
+		}
+	}
+}
+
+func TestTheShippedFolderPerPackageRuleBecomesTheSwitch(t *testing.T) {
+	t.Parallel()
+	m := mapOne(t, false, jdimporttest.Rule("Create Subfolder by Packagename", map[string]any{
+		"staticRule": true, "id": "SubFolderByPackageRule", "downloadDestination": "<jd:packagename>",
+	}))
+	if m.Blocked != nil {
+		t.Fatalf("blocked: %s", m.Blocked.Text)
+	}
+	if m.Setting != jdimport.SettingSubfolderByPackage {
+		t.Errorf("setting = %q, want %q", m.Setting, jdimport.SettingSubfolderByPackage)
+	}
+	if len(m.Notes) != 1 || m.Notes[0].Code != "ruleBuiltinPackageFolder" {
+		t.Errorf("notes = %+v, want the switch named", m.Notes)
+	}
+}
+
+func TestShippedRulesThatCannotComeOverSayWhy(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		id     string
+		filter bool
+		code   string
+	}{
+		{"SubFolderByPluginRule", false, "ruleBuiltinFolderStructure"},
+		{"OfflineView", true, "ruleBuiltinOffline"},
+		{"DupesView", true, "ruleBuiltinDupes"},
+		{"DirectHTTPView", true, "ruleBuiltinDirectHTTP"},
+	}
+	for _, c := range cases {
+		m := mapOne(t, c.filter, jdimporttest.Rule(c.id, map[string]any{"staticRule": true, "id": c.id, "accept": c.filter}))
+		if m.Blocked == nil || m.Blocked.Code != c.code {
+			t.Errorf("%s: blocked = %+v, want %s", c.id, m.Blocked, c.code)
+		}
 	}
 }
 

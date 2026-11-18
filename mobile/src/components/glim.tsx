@@ -896,6 +896,7 @@ export function ReadmeButton({
       bitcoin: c.brandBitcoin,
       paypal: c.brandPaypal,
       github: c.brandGithub,
+      discord: c.brandDiscord,
       windows: c.brandWindows,
       docker: c.brandDocker,
       // Neither has a colour of its own, so both take the words' ink.

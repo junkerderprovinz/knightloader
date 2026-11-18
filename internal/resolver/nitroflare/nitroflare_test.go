@@ -417,7 +417,7 @@ func TestThePasswordNeverShowsInAnError(t *testing.T) {
 	srv := nftest.New(t)
 	c := NewClient(srv.URL, srv.Client())
 	srv.Close()
-	_, _, err := c.Login(context.Background(), email, password)
+	_, _, err := c.Login(context.Background(), email, password, nil)
 	if err == nil || strings.Contains(err.Error(), password) || strings.Contains(err.Error(), "premiumKey") {
 		t.Errorf("a failed call reads %v; the API takes the password in the URL, which must not show", err)
 	}

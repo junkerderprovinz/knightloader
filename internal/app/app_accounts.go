@@ -390,7 +390,11 @@ var debridServices = []struct {
 	{"debridlink", 47, byKey(func(k string) debrid.Service { return debrid.NewDebridLink(k) })},
 	{"premiumize", 46, byKey(func(k string) debrid.Service { return debrid.NewPremiumize(k) })},
 	// Linksnappy logs in with the website's username and password.
-	{"linksnappy", 45, byLogin(func(u, p string) debrid.Service { return debrid.NewLinksnappy(u, p) })},
+	{"linksnappy", 45, byLogin(func(u, p string) debrid.Service {
+		l := debrid.NewLinksnappy(u, p)
+		l.Sessions = linksnappySessions
+		return l
+	})},
 	{"offcloud", 44, byKey(func(k string) debrid.Service { return debrid.NewOffcloud(k) })},
 	{"bestdebrid", 43, byKey(func(k string) debrid.Service { return debrid.NewBestDebrid(k) })},
 	{"cocoleech", 43, byKey(func(k string) debrid.Service { return debrid.NewCocoLeech(k) })},

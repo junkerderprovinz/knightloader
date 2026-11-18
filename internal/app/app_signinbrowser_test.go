@@ -120,14 +120,15 @@ func TestEachBrowserSignsInWithAProfileOfItsOwn(t *testing.T) {
 func TestASignInFromTheSignInBrowserTakesBackARemove(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
+	addSites(t, a, "patreon")
 	if err := a.RemoveSiteLogin("patreon"); err != nil {
 		t.Fatal(err)
 	}
-	if !stateOf(t, a, "patreon").Disconnected {
-		t.Fatal("Remove did not disconnect the site")
+	if stateOf(t, a, "patreon").Added {
+		t.Fatal("Remove kept the row")
 	}
 	a.signInBrowserSession(patreon(t), patreonJar)
-	if got := stateOf(t, a, "patreon"); got.Disconnected || got.Source != SourceSignInBrowser {
-		t.Errorf("after signing in in the window: %+v, want connected with the sign-in browser's session", got)
+	if got := stateOf(t, a, "patreon"); !got.Added || got.Source != SourceSignInBrowser {
+		t.Errorf("after signing in in the window: %+v, want the row back with the sign-in browser's session", got)
 	}
 }

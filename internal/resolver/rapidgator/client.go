@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -210,6 +211,13 @@ func (c *Client) call(ctx context.Context, method string, form url.Values, out a
 	}
 	details := cmp.Or(env.Details, env.ResponseDetails, env.Error)
 	if status != http.StatusOK || env.Error != "" {
+		if method == "user/login" {
+			with := "without"
+			if form.Has("code") {
+				with = "with"
+			}
+			log.Printf("rapidgator: Rapidgator refused the sign-in %s a two-factor code (status %d): %s", with, status, details)
+		}
 		return classify(method, status, details)
 	}
 	if err := json.Unmarshal(env.Response, out); err != nil {
@@ -243,8 +251,10 @@ func classify(method string, status int, details string) error {
 		return fmt.Errorf("%w (%s)", ErrNotPremium, strings.TrimPrefix(details, "Error: "))
 	case has("invalid auth code"):
 		return &LoginError{Msg: "rapidgator: the account signs in with a two-factor code, so enter the one the authenticator app shows", Err: ownlogin.ErrNeedsCode}
+	case has("activate your account"):
+		return &LoginError{Activate: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants the account's email address activated first, through the link in its activation mail"}
 	case has("unusual ip"):
-		return &LoginError{Msg: "rapidgator: Rapidgator wants this address confirmed through the link it emailed to the account"}
+		return &LoginError{NewAddress: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants this address confirmed through the link it emailed to the account"}
 	case has("login or password is wrong", "e-mail or password", "password cannot be blank", "login or password is missing"):
 		return &LoginError{Msg: "rapidgator: Rapidgator turned the login down, so check the email address and password"}
 	case has("frozen", "account locked"):

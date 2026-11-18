@@ -14,11 +14,12 @@ globalThis.ResizeObserver ??= class {
 let root: Root;
 let host: HTMLDivElement;
 let asked: string[];
+let monthly: boolean;
 
 function curve() {
   return {
-    unit: 'day',
-    buckets: [{ key: '2026-09-24', bytes: 5e9, count: 2, unsized: 0, byHost: null, byResolver: null }],
+    unit: monthly ? 'month' : 'day',
+    buckets: [{ key: monthly ? '2026-03' : '2026-09-24', bytes: 5e9, count: 2, unsized: 0, byHost: null, byResolver: null }],
     timeZone: 'UTC',
     trimmed: false,
   };
@@ -27,6 +28,7 @@ function curve() {
 beforeEach(async () => {
   vi.resetModules();
   asked = [];
+  monthly = false;
   vi.stubGlobal(
     'fetch',
     vi.fn((input: string) => {
@@ -85,6 +87,14 @@ describe('VolumeCard', () => {
   it('opens on thirty days', () => {
     expect(chosenStep()).toBe('30 days');
     expect(asked).toEqual(['30d']);
+  });
+
+  it('names a month with its year in four digits', async () => {
+    monthly = true;
+    await act(async () => step('12 months').click());
+    const labels = [...document.querySelectorAll('svg[role="img"] title')].map((n) => n.textContent);
+    expect(labels).toHaveLength(1);
+    expect(labels[0]).toMatch(/^\S+ 2026 /);
   });
 
   it('draws the steps under the chart', () => {

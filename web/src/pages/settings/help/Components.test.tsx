@@ -97,7 +97,6 @@ afterEach(() => {
 });
 
 const BASE = {
-  autoUpdateCheck: false,
   autoUpdate: false,
   componentsAutoUpdate: true,
 } as Settings;
@@ -160,7 +159,7 @@ describe('the Components card', () => {
   it('leads each version to its release or project page', async () => {
     await draw();
     expect(href('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
-    expect(href('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
+    expect(href('GlimStone')).toBe('https://github.com/junkerderprovinz/glimstone/releases/latest');
     expect(href('yt-dlp')).toBe('https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19');
     expect(href('FFmpeg')).toBe('https://ffmpeg.org/');
     expect(href('Deno')).toBe('https://github.com/denoland/deno/releases/tag/v2.9.8');
@@ -195,7 +194,7 @@ describe('the Components card', () => {
 
   it('gives the components one switch, below them, and KnightLoader its own', async () => {
     await draw();
-    expect(switches(group('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
+    expect(switches(group('KnightLoader'))).toEqual(['Automatically update']);
     for (const name of ['yt-dlp', 'FFmpeg', 'Deno', 'JDownloader backend']) expect(switches(group(name))).toEqual([]);
     const all = switches(card('Components'));
     expect(all.filter((s) => s === 'Update components automatically')).toHaveLength(1);
@@ -233,7 +232,7 @@ describe('the Components card', () => {
 
     act(() => root.unmount());
     root = createRoot(host);
-    await draw({ autoUpdateCheck: true });
+    await draw({ autoUpdate: true });
     expect(asked).toContain('GET /api/system/update-check');
     expect(asked).not.toContain(`POST ${UPDATE}`);
   });
@@ -364,17 +363,17 @@ describe('the Components card', () => {
     expect(version('KnightLoader').textContent).toBe('1.8.4');
   });
 
-  it('lets a container check on its own and greys out only the update it cannot do', async () => {
-    const patch = await draw({ autoUpdateCheck: false, autoUpdate: true });
+  it('gives a container the one switch, which looks for a release and says how the container is updated', async () => {
+    const patch = await draw({ autoUpdate: false });
     const panel = group('KnightLoader');
-    const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    expect(switches(panel)).toEqual(['Automatically update']);
+    const update = panel.querySelector<HTMLButtonElement>('[role="switch"]')!;
     expect(update.getAttribute('aria-checked')).toBe('false');
-    expect(update.parentElement!.className).toContain('opacity-40');
-    const tip = panel.querySelector('[data-glim-label="Check automatically"] [role="note"]');
-    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoCheckHint']);
-    await act(async () => check.click());
+    expect(update.parentElement!.className).not.toContain('opacity-40');
+    const tip = panel.querySelector('[data-glim-label="Automatically update"] [role="note"]');
+    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoUpdateContainerHint']);
     await act(async () => update.click());
-    expect(patch.mock.calls).toEqual([[{ autoUpdateCheck: true }]]);
+    expect(patch.mock.calls).toEqual([[{ autoUpdate: true }]]);
   });
 });
 
@@ -461,14 +460,25 @@ describe('installing an update on the desktop build', () => {
     expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
 
     const panel = group('KnightLoader');
-    const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
-    expect(update.getAttribute('aria-checked')).toBe('false');
-    expect(update.parentElement!.className).toContain('opacity-40');
-    const tip = panel.querySelector('[data-glim-label="Update automatically"] [role="note"]');
+    expect(switches(panel)).toEqual(['Automatically update']);
+    const update = panel.querySelector<HTMLButtonElement>('[role="switch"]')!;
+    expect(update.getAttribute('aria-checked')).toBe('true');
+    expect(update.parentElement!.className).not.toContain('opacity-40');
+    const tip = panel.querySelector('[data-glim-label="Automatically update"] [role="note"]');
     expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoUpdateStoreHint']);
-    await act(async () => check.click());
     await act(async () => update.click());
-    expect(patch.mock.calls).toEqual([[{ autoUpdateCheck: true }]]);
+    expect(patch.mock.calls).toEqual([[{ autoUpdate: false }]]);
+  });
+
+  it('gives the desktop build the one switch, which looks for updates and installs them', async () => {
+    desktop();
+    const patch = await draw({ autoUpdate: true });
+    const panel = group('KnightLoader');
+    expect(switches(panel)).toEqual(['Automatically update']);
+    const tip = panel.querySelector('[data-glim-label="Automatically update"] [role="note"]');
+    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoUpdateHint']);
+    await act(async () => panel.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
+    expect(patch.mock.calls).toEqual([[{ autoUpdate: false }]]);
   });
 });
 

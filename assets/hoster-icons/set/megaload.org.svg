@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">MEGALOAD</title>
+  <desc id="desc">MEGALOAD secure file hosting mark</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6842e9"/>
+      <stop offset="1" stop-color="#13b9a6"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd761"/>
+      <stop offset="1" stop-color="#ffad20"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#071225"/>
+  <rect x="22" y="22" width="468" height="468" rx="96" fill="url(#bg)" opacity=".18"/>
+  <path d="M116 354V157h61l79 100 79-100h61v197h-64V250l-76 93-76-93v104z" fill="#fff"/>
+  <path d="M256 69l24 29 38 3-20 32 9 37-36-9-33 20 2-38-29-25 37-12z" fill="url(#gold)"/>
+</svg>

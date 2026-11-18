@@ -73,13 +73,6 @@ export const MANUAL_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-32 0 512 512" class="glim-mark-rest" fill="currentColor"><path d="M96 0C43 0 0 43 0 96L0 416c0 53 43 96 96 96l288 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64c17.7 0 32-14.3 32-32l0-320c0-17.7-14.3-32-32-32L384 0 96 0zm0 384l256 0 0 64L96 448c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16zm16 48l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z" /></svg>' +
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0.125 14 14" class="glim-mark-hover" fill="currentColor"><path fill-rule="evenodd" d="M1 1.5H3.25C4.63 1.5 5.77 2.19 6.25 3.25V12.75C5.6 11.93 4.55 11.5 3.25 11.5H1A1 1 0 0 1 0 10.5V2.5A1 1 0 0 1 1 1.5ZM2.25 4.25a.75.75 0 0 0 0 1.5H4a.75.75 0 0 0 0-1.5H2.25ZM2.25 7.25a.75.75 0 0 0 0 1.5H4a.75.75 0 0 0 0-1.5H2.25ZM13 1.5H10.75C9.37 1.5 8.23 2.19 7.75 3.25V12.75C8.4 11.93 9.45 11.5 10.75 11.5H13A1 1 0 0 0 14 10.5V2.5A1 1 0 0 0 13 1.5ZM10 4.25a.75.75 0 0 0 0 1.5h1.75a.75.75 0 0 0 0-1.5H10ZM10 7.25a.75.75 0 0 0 0 1.5h1.75a.75.75 0 0 0 0-1.5H10Z" /></svg>';
 
-// The mail button's pair from glyphs.json: IconMail at rest and IconMailOpen
-// under the pointer, each in the viewBox cropped to its own ink so both read
-// the same size.
-export const MAIL_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" class="glim-mark-rest" fill="currentColor"><g> <path fill="currentColor" fill-rule="evenodd" d="M0 2.75a1.5 1.5 0 0 1 1.5 -1.5h11a1.5 1.5 0 0 1 1.5 1.5v0.342L7.383 7.504A0.72 0.72 0 0 1 7 7.607a0.72 0.72 0 0 1 -0.383 -0.103L0 3.092V2.75Zm0 1.844v6.656a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5 -1.5V4.594L8.073 8.546l-0.005 0.004A1.966 1.966 0 0 1 7 8.857c-0.375 0 -0.753 -0.102 -1.068 -0.307l-0.005 -0.004L0 4.594Z" clip-rule="evenodd" stroke-width="1"></path> </g></svg>' +
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 0.32 20 20" class="glim-mark-hover" fill="currentColor"><path d="M4,8L12,13L20,8V8L12,3L4,8V8M22,8V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V8C2,7.27 2.39,6.64 2.97,6.29L12,0.64L21.03,6.29C21.61,6.64 22,7.27 22,8Z" /></svg>';
-
 // KnightLoader's own logo from assets/logo.svg with its classes resolved to
 // fills, since a <style> in inline SVG would reach the whole page. The lit one
 // is the shield and sword in the tile's ink with the dark inner faces left

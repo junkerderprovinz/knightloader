@@ -331,3 +331,29 @@ func TestARuleRenameTooLongKeepsItsExtension(t *testing.T) {
 		t.Errorf("Filename = %q", got)
 	}
 }
+
+// A link with no package yet resolves <jd:packagename> to the name it would be
+// filed under, while a package condition still sees no package.
+func TestPackageNameFallsBackToTheGuess(t *testing.T) {
+	m, problems := Compile(Set{Rules: []Rule{
+		{Name: "named", Conditions: []Condition{{Field: FieldPackage, Op: OpContains, Value: "Show"}}, Action: Action{Comment: "had a package"}},
+		{Name: "all", Action: Action{PackageName: "<jd:packagename> - <jd:hoster>"}},
+	}})
+	if len(problems) > 0 {
+		t.Fatal(problems)
+	}
+	c := testCandidate()
+	c.Package, c.PackageGuess = "", "The Show S01"
+	e := m.Apply(c)
+	if want := "The Show S01 - example.org"; e.Package != want {
+		t.Errorf("package = %q, want %q", e.Package, want)
+	}
+	if e.Comment != "" {
+		t.Errorf("the package condition matched the guess and set comment %q", e.Comment)
+	}
+
+	c.Package = "Given"
+	if e := m.Apply(c); e.Package != "Given - example.org" {
+		t.Errorf("package = %q, want the given package to win over the guess", e.Package)
+	}
+}

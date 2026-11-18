@@ -199,7 +199,7 @@ export function CommandPalette() {
                     onClick={() => runIfEnabled(cmd)}
                     className={`flex w-full items-center gap-2.5 px-4 py-2 text-start text-sm transition-colors
                       outline-none disabled:pointer-events-none disabled:opacity-35 ${
-                        isActive ? 'bg-carbon-hover text-carbon-text' : 'text-carbon-textSub'
+                        isActive ? 'bg-hover text-carbon-text' : 'text-carbon-textSub'
                       }`}
                   >
                     {Icon && <Icon className="h-4 w-4 shrink-0 text-carbon-textMuted" />}

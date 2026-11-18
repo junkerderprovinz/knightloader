@@ -136,3 +136,22 @@ func TestABatchOfIconsStopsAtItsLimit(t *testing.T) {
 		t.Errorf("looked up %d hosts, want %d", asked, iconBatchMax)
 	}
 }
+
+// TestABatchWithNothingPendingIsKeptByTheBrowser: an answer without a pending
+// icon is the one the page would get again, so it need not be asked again.
+func TestABatchWithNothingPendingIsKeptByTheBrowser(t *testing.T) {
+	t.Parallel()
+	lookup := func(host string) ([]byte, string, error) {
+		if host == "dead.example.org" {
+			return nil, "", errors.New("no icon")
+		}
+		return []byte("png"), "image/png", nil
+	}
+	rec := httptest.NewRecorder()
+	hosterIconsHandler(lookup)(rec, httptest.NewRequest(http.MethodGet, "/api/hosters/icons?host=a.example.org&host=dead.example.org", nil))
+
+	cc := rec.Header().Get("Cache-Control")
+	if !strings.Contains(cc, "private") || !strings.Contains(cc, "max-age=604800") {
+		t.Errorf("Cache-Control = %q, want a private week", cc)
+	}
+}

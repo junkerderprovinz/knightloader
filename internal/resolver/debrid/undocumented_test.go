@@ -270,12 +270,12 @@ func TestLinksnappyAskingForTheEmailedConfirmationSaysSo(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	err := newLinksnappyAt(srv.URL).Authenticate(context.Background())
+	err := newLinksnappyAt(srv.URL + "/api").Authenticate(context.Background())
 
 	if err == nil || !strings.Contains(err.Error(), "link Linksnappy emailed") {
 		t.Errorf("error = %v, want it to send the user to the emailed link", err)
 	}
-	if err != nil && strings.Contains(err.Error(), "/verify/abc") {
-		t.Errorf("error = %q carries the confirmation link, which belongs in the user's mailbox only", err)
+	if err != nil && !strings.Contains(err.Error(), srv.URL+"/verify/abc") {
+		t.Errorf("error = %q, want the page Linksnappy names for the confirmation, as JDownloader shows it", err)
 	}
 }

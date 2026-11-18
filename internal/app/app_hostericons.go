@@ -2,9 +2,11 @@ package app
 
 // The site icon beside a hoster that has no logo in the page. Most hosters and
 // the captcha services ship one (web/src/lib/serviceMarks.ts), and the page
-// asks here only for the rest. Each instance fetches the icon from the site
-// itself, once, and keeps it on disk, a miss included, so the list of
-// someone's hoster accounts is never handed to a third-party icon service.
+// asks here only for the rest. The icons of the picker's hosters ship in the
+// binary (assets/hoster-icons) and answer at once. For any other host each
+// instance fetches the icon from the site itself, once, and keeps it on disk,
+// a miss included, so the list of someone's hoster accounts is never handed
+// to a third-party icon service.
 //
 // Candidates are the front page's own <link rel="icon"> hrefs, which may be on
 // another host (alldebrid.com keeps its icon on a CDN), the icons its web app
@@ -34,6 +36,7 @@ import (
 	_ "image/jpeg" // registers the JPEG decoder for iconPixelSize
 	_ "image/png"  // registers the PNG decoder for iconPixelSize
 	"io"
+	"io/fs"
 	"net"
 	"net/http"
 	"net/url"
@@ -47,6 +50,8 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	hostericons "github.com/junkerderprovinz/knightloader/assets/hoster-icons"
 )
 
 // iconMaxBytes caps what is read for one image, so a hostile host cannot make
@@ -111,9 +116,9 @@ const (
 	iconMaxKnown   = 1024
 )
 
-// fetchHostIcon is fetchFavicon, a variable so tests can stand in for the
+// fetchHostIcon is FetchSiteIcon, a variable so tests can stand in for the
 // network.
-var fetchHostIcon = fetchFavicon
+var fetchHostIcon = FetchSiteIcon
 
 // HosterIcon returns a host's site icon and its content type from what was
 // fetched before. ErrIconPending means the fetch has only just started; any
@@ -124,6 +129,9 @@ func (a *App) HosterIcon(host string) ([]byte, string, error) {
 	if host == "" || localName(host) {
 		return nil, "", errors.New("no public host")
 	}
+	if b, ct, ok := shippedIcon(host); ok {
+		return b, ct, nil
+	}
 	b, ct, known := a.cachedHosterIcon(host)
 	if !known {
 		a.fetchHosterIcon(host)
@@ -133,6 +141,33 @@ func (a *App) HosterIcon(host string) ([]byte, string, error) {
 		return nil, "", errors.New("no icon")
 	}
 	return b, ct, nil
+}
+
+// shippedIcons are the icon sets in the binary, in the order they are asked:
+// the owner's overrides, then the set scripts/hostericons wrote.
+var shippedIcons = []fs.FS{hostericons.Overrides, hostericons.Set}
+
+// shippedTypes are the file types a shipped icon comes in.
+var shippedTypes = []struct{ ext, contentType string }{
+	{"svg", "image/svg+xml"},
+	{"png", "image/png"},
+	{"webp", "image/webp"},
+}
+
+// shippedIcon finds host's icon in shippedIcons. A subdomain such as a
+// hoster's download server shows its domain's icon, the way the page's own
+// marks do.
+func shippedIcon(host string) ([]byte, string, bool) {
+	for _, set := range shippedIcons {
+		for h := strings.TrimPrefix(host, "www."); strings.Contains(h, "."); h = h[strings.IndexByte(h, '.')+1:] {
+			for _, t := range shippedTypes {
+				if b, err := fs.ReadFile(set, h+"."+t.ext); err == nil {
+					return b, t.contentType, true
+				}
+			}
+		}
+	}
+	return nil, "", false
 }
 
 // cachedHosterIcon answers from memory or, after a restart, from the files an
@@ -456,9 +491,10 @@ type iconCandidate struct {
 	declared int
 }
 
-// fetchFavicon returns the largest usable icon of host from the first of
-// iconOrigins that yields one.
-func fetchFavicon(ctx context.Context, host string) ([]byte, string, error) {
+// FetchSiteIcon returns the largest usable icon of host from the first of
+// iconOrigins that yields one. scripts/hostericons builds the shipped set
+// with it.
+func FetchSiteIcon(ctx context.Context, host string) ([]byte, string, error) {
 	return fetchIconsFrom(ctx, iconOrigins(host)...)
 }
 
@@ -476,8 +512,8 @@ func iconOrigins(host string) []string {
 	return append(out, "http://"+host)
 }
 
-// fetchIconsFrom is fetchFavicon for explicit origins, which tests can point at
-// local servers. The first origin that yields an image ends the search.
+// fetchIconsFrom is FetchSiteIcon for explicit origins, which tests can point
+// at local servers. The first origin that yields an image ends the search.
 func fetchIconsFrom(ctx context.Context, origins ...string) ([]byte, string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()

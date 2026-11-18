@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"slices"
 	"strings"
@@ -218,6 +219,94 @@ func TestATwoFactorRapidgatorLoginIsSavedAndThenSignedInWithItsCode(t *testing.T
 	cred, err := a.Accounts.GetCredential(hosterauth.Service, "rg.to")
 	if err != nil || cred.Password != "hunter2" || strings.Contains(fmt.Sprintf("%+v", cred), "482913") {
 		t.Errorf("stored %+v, %v; want the password kept and the code nowhere", cred, err)
+	}
+}
+
+func TestARapidgatorLoginTakesItsTwoFactorCodeUpFront(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
+	useRapidgator(a, srv)
+
+	row, err := a.SaveHosterLogin(context.Background(), "rg.to", "john@example.com", "hunter2", "482913")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Status != hosterauth.StatusActive || row.Tier != "premium" {
+		t.Errorf("saved with the code up front = %+v, want the active premium row", row)
+	}
+	if n := srv.Logins(); n != 1 {
+		t.Errorf("signed in %d times, want once, with the code", n)
+	}
+}
+
+func TestARefusedRapidgatorLoginAsksForTheCodeOnlyOnceThePasswordIsRight(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
+	useRapidgator(a, srv)
+	ctx := context.Background()
+
+	row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "letmein", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Code != "ownInvalid" || row.AskCode {
+		t.Fatalf("a wrong password = %+v, want it refused without asking for a code", row)
+	}
+	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Code != "ownCodeNeeded" || !row.AskCode {
+		t.Errorf("the right password = %+v, want the row asking for the code", row)
+	}
+}
+
+func TestARapidgatorRefusalWaitingForAMailedLinkNamesItsStepOnTheRow(t *testing.T) {
+	for details, code := range map[string]string{
+		"Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address.": "ownActivate",
+		"Error: Login from unusual IP. Please confirm it with the link sent to your email address.":                                           "ownNewAddress",
+	} {
+		a := newCrawlApp(t, false)
+		srv := rgServer(t)
+		srv.Fail("user/login", http.StatusUnauthorized, details)
+		useRapidgator(a, srv)
+
+		row, err := a.SaveHosterLogin(context.Background(), "rg.to", "john@example.com", "hunter2", "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if row.Status != hosterauth.StatusRejected || row.Code != code || row.AskCode {
+			t.Errorf("refused with %q, the row reads %+v, want %s without asking for a code", details, row, code)
+		}
+		if listed, _ := loginRow(a, "rg.to"); listed.Code != code {
+			t.Errorf("refused with %q, the accounts page lists %+v, want %s", details, listed, code)
+		}
+	}
+}
+
+func TestATwoFactorRapidgatorLoginRefusedAsNotActivatedOffersTheCode(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913",
+		NoCode: "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address."})
+	useRapidgator(a, srv)
+	ctx := context.Background()
+
+	row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Code != "ownActivate" || !row.CodeMayHelp {
+		t.Fatalf("the code-less sign-in = %+v, want the activation refusal offering the code", row)
+	}
+	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", accounts.Redacted, "482913")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Status != hosterauth.StatusActive {
+		t.Errorf("the sign-in with the code = %+v, want it active", row)
 	}
 }
 

@@ -70,13 +70,13 @@ export const RELEASES: Release[] = [
     ],
   },
   {
-    version: '2.8.4',
+    version: '2.9.0',
     changes: [
       {
         id: 'site-logins',
         to: ACCOUNTS,
         text: 'whatsnew.change.siteLogins',
-        names: { name: 'accounts.hoster.title', remove: 'accounts.remove', again: 'siteLogins.reconnect' },
+        names: { name: 'accounts.hoster.title', remove: 'accounts.remove' },
       },
       // Drawn in the windows a site's row and an XFS hoster's login open, where
       // this computer can start a sign-in browser.
@@ -91,6 +91,13 @@ export const RELEASES: Release[] = [
       },
       // Drawn only while a hoster waits for a code.
       { id: 'hoster-code', to: ACCOUNTS, text: 'whatsnew.change.hosterCode', names: { name: 'accounts.hoster.codeField' } },
+      // Drawn in the hoster login window once it has tested a login.
+      {
+        id: 'login-test',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.loginTest',
+        names: { save: 'accounts.save', connected: 'accounts.hoster.connected' },
+      },
       // Drawn only on a login that waits for a code or a sign-in.
       {
         id: 'login-waits',
@@ -103,6 +110,12 @@ export const RELEASES: Release[] = [
         to: ['/settings/help'],
         text: 'whatsnew.change.componentsSwitch',
         names: { name: 'settings.info.componentsTitle', auto: 'settings.info.componentsAuto', now: 'settings.info.updateNow' },
+      },
+      {
+        id: 'update-switch',
+        to: ['/settings/help'],
+        text: 'whatsnew.change.updateSwitch',
+        names: { name: 'settings.look.updatesAutoUpdate' },
       },
       { id: 'debrid-declined', text: 'whatsnew.change.debridDeclined' },
       {
@@ -129,11 +142,19 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.accountSwitches',
         names: { name: 'accounts.enableTitle' },
       },
-    ],
-  },
-  {
-    version: '2.8.2',
-    changes: [
+      // Drawn in the window the Host head's filter opens.
+      {
+        id: 'collector-host-select',
+        to: ['/collector'],
+        text: 'whatsnew.change.hostSelect',
+        names: { name: 'columns.host' },
+      },
+      {
+        id: 'jd-default-rules',
+        text: 'whatsnew.change.jdDefaultRules',
+        names: { name: 'settings.rules.action.linkEnabled', switch: 'settings.subfolderByPackage' },
+      },
+      { id: 'package-name-guess', text: 'whatsnew.change.packageNameGuess' },
       { id: 'video-any-site', text: 'whatsnew.change.videoAnySite' },
       { id: 'video-add-sites', text: 'whatsnew.change.videoAddSites' },
       { id: 'video-ytdlp', text: 'whatsnew.change.videoYtdlp' },

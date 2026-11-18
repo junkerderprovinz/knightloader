@@ -78,17 +78,29 @@ function page(ua, { stored = {}, system = 'rgb(224, 56, 62)', instance } = {}) {
     check(`the ink on ${hex} reads at 4.5:1`, web.contrastRatio(ink, hex) >= 4.5);
     check(`the ink on ${hex} is the web UI's`, ink === web.contrastOn(hex));
     check(`${hex} as text gets the web UI's inks`, JSON.stringify(ctx.accentInks(hex)) === JSON.stringify(web.accentInks(hex)));
+    check(`${hex} as a fill gets the web UI's hovers`, JSON.stringify(ctx.accentHovers(hex)) === JSON.stringify(web.accentHovers(hex)));
   }
+}
+
+{
+  // The stylesheet and the engine move the accent onto the web UI's steps, or
+  // the light ink would sit a shade off the web UI's on surface2.
+  const step = (text, re) => Number(re.exec(text)?.[1]);
+  const engine = step(read('src', 'appearance.js'), /const INK_LIGHTNESS = \{ light: ([\d.]+)/);
+  const sheet = step(read('src', 'glimstone.css'), /^  --ink-l-light: ([\d.]+);/m);
+  check(`appearance.js takes the light ink to ${engine}, the web UI to ${web.INK_LIGHTNESS.light}`, engine === web.INK_LIGHTNESS.light);
+  check(`glimstone.css takes the light ink to ${sheet}, the web UI to ${web.INK_LIGHTNESS.light}`, sheet === web.INK_LIGHTNESS.light);
 }
 
 {
   const { ctx, props } = page(FIREFOX);
   ctx.applyAccent('system');
   check(`Firefox paints the system's colour, got ${props['--accent']}`, props['--accent'] === '#E0383E');
-  ctx.applyAccent('#FFFF00');
-  check('a pale accent gets its own light ink', /^#[0-9A-F]{6}$/.test(props['--accent-ink-light'] ?? ''));
+  ctx.applyAccent('#777777');
+  check('a mid-tone grey gets its own light hover', /^#[0-9A-F]{6}$/.test(props['--accent-hover-light'] ?? ''));
+  check(`#777777 gets the web UI's hovers`, props['--accent-hover-light'] === web.accentHovers('#777777').light && !('--accent-hover-dark' in props));
   ctx.applyAccent('#1D99F3');
-  check('a preset leaves the inks to the stylesheet', !('--accent-ink-light' in props) && !('--accent-ink-dark' in props));
+  check('a preset leaves the inks and hovers to the stylesheet', !['--accent-ink-light', '--accent-ink-dark', '--accent-hover-light', '--accent-hover-dark'].some((k) => k in props));
 }
 
 {

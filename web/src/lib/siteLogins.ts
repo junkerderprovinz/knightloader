@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { type SiteLogin, fetchConnect } from './api';
+import type { SiteLogin } from './api';
+import { appAddress } from './basePath';
 import type { TranslationKey } from './i18n';
 
 /** What a site's row and window say of its sign-in. */
@@ -27,7 +27,6 @@ export function stateNote(site: SiteLogin): StateNote {
  * browser's session the site turned down.
  */
 export function sourceNote(site: SiteLogin): StateNote | undefined {
-  if (site.disconnected && !signedIn(site)) return { key: 'siteLogins.disconnected' };
   if (site.state === 'expired' && site.source === 'browser' && site.browser) {
     return { key: 'siteLogins.turnedDown', vars: { site: site.name, browser: site.browser } };
   }
@@ -38,13 +37,9 @@ export function sourceNote(site: SiteLogin): StateNote | undefined {
   return undefined;
 }
 
-/**
- * Where a sign-in can come from: an instance outside a container reads the
- * browsers on its computer, and anywhere else the extension passes it on.
- */
+/** SignInWays is where a sign-in can come from: the browsers on this computer, or only KnightLoader's own window. */
 export interface SignInWays {
   readsBrowsers: boolean;
-  extensionPaired: boolean;
 }
 
 /** readsBrowsers is whether the instance reads the browsers on its computer, as its sites say. */
@@ -53,32 +48,23 @@ export function readsBrowsers(sites: SiteLogin[]): boolean {
 }
 
 /**
- * useSignInWays says where this instance gets a sign-in from: outside a
- * container it reads the browsers on its computer, and a container needs a
- * browser of its group that has the extension.
+ * nextStep is the one thing that signs a site in, for a site without a
+ * working session: in the browser where the instance reads the sign-in, and
+ * in KnightLoader's own window anywhere else.
  */
-export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
-  const [extensionPaired, setExtensionPaired] = useState(false);
-  useEffect(() => {
-    if (!enabled) return;
-    void fetchConnect().then(
-      (c) => setExtensionPaired((c.apps ?? []).some((a) => a.deployment === 'extension' && a.approved)),
-      () => {},
-    );
-  }, [enabled]);
-  return { readsBrowsers: readsBrowsers(sites), extensionPaired };
+export function nextStep(site: SiteLogin, ways: SignInWays): StateNote | undefined {
+  if (signedIn(site)) return undefined;
+  const key = ways.readsBrowsers ? 'siteLogins.signInHere' : 'siteLogins.signInInKl';
+  return { key, vars: { site: site.name } };
 }
 
 /**
- * nextStep is the one thing that signs a site in, for a site without a
- * working session. A container with no extension in its group has no browser
- * to pick a sign-in up from, so the step names the extension.
+ * confirmInTab turns the tab a site was opened in into KnightLoader's word
+ * that it has the sign-in and the tab can go, as a site that signs an app in
+ * says it. A tab the user closed is left alone.
  */
-export function nextStep(site: SiteLogin, ways: SignInWays): StateNote | undefined {
-  // A removed site is not picked up from the browser, so its window says how.
-  if (signedIn(site) || site.disconnected) return undefined;
-  const key = ways.readsBrowsers || ways.extensionPaired ? 'siteLogins.signInHere' : 'siteLogins.signInExtension';
-  return { key, vars: { site: site.name } };
+export function confirmInTab(tab: Window | null, site: string): void {
+  if (tab && !tab.closed) tab.location.replace(`${appAddress()}/signedin?site=${encodeURIComponent(site)}`);
 }
 
 /** unreadableBrowsers is every browser any site could not be read from, once each. */
