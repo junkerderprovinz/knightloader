@@ -70,10 +70,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Design
 
-- **KnightLoader follows GlimStone 4.5.5.** In every window that offers tiles
+- **KnightLoader follows GlimStone 4.5.6.** In every window that offers tiles
   to pick from, the arrow keys move across the tiles, Enter takes the one tile
   a search leaves, and the search finds a name without minding accents or
-  hyphens.
+  hyphens. A window holding a choice you have made stays open on a click
+  beside it, so the choice is not lost.
 
 ### Changed
 
@@ -100,6 +101,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   contrast under Settings, Appearance, and every second package header takes a
   second shade, so folded packages stand apart. Suggested by @MueChris82
   ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
+- **Importing from JDownloader takes two buttons side by side,** like Download
+  backup and Upload backup. Choose zip reads a backup zip, Choose folder opens
+  a folder window to pick a JDownloader folder on the server.
+- **Packages arrive folded in the link collector too,** as on Downloads, and
+  one you open stays open.
 
 ### Removed
 
@@ -115,6 +121,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   installer took the folder after `/D=` only up to its first space, so
   `/D=C:\Program Files\KnightLoader` installed into `C:\Program`. It follows
   PommelPorter 1.2.3, which reads the whole folder.
+- **The link collector shows its links right away.** Every page opened a
+  connection of its own and waited for a full list over it, so with many links
+  a switch to the collector showed it empty for a while. All pages now share
+  one list.
+- **Start all no longer makes the sidebar flicker.** Every small step of the
+  Downloads and Link collector counts replayed their badges' animation. A
+  badge now waits until its count holds still and rolls once to the final
+  number.
 
 ## [2.9.0] - 2026-11-17
 
