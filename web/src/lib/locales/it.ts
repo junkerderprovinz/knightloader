@@ -3982,7 +3982,7 @@ export const it: Dict = {
   'settings.vpn.state.connecting': 'Connessione',
   'settings.vpn.state.failed': 'Non riuscito',
   'settings.vpn.state.saved': 'Configurato',
-  'settings.vpn.portForwardingHint': '{name} può inoltrare una porta a KnightLoader. I torrent passano comunque dalla VPN, ma solo verso l\'esterno: gli altri peer non li raggiungono dalla porta inoltrata.',
+  'settings.vpn.portForwardingHint': '{name} può inoltrare una porta a KnightLoader.',
   'settings.vpn.noPortForwardingHint': 'Gli altri peer non possono connettersi a te tramite {name}. I torrent si scaricano comunque, ma trovano meno peer e fanno meno seed.',
   'settings.vpn.custom': 'Configurazione WireGuard propria',
   'settings.vpn.note.kaspersky': 'La configurazione di Kaspersky smette di funzionare se resta inutilizzata per 24 ore, e vale per un solo dispositivo. In quel caso creane una nuova in My Kaspersky.',

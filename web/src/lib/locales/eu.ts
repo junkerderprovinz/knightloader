@@ -3994,7 +3994,7 @@ export const eu: Dict = {
   'settings.vpn.state.connecting': 'Konektatzen',
   'settings.vpn.state.failed': 'Huts egin du',
   'settings.vpn.state.saved': 'Konfiguratuta',
-  'settings.vpn.portForwardingHint': '{name}(e)k ataka bat birbidal dezake KnightLoaderrera. Torrentak VPNtik igarotzen dira oraindik, baina kanpora bakarrik: beste parekoek ezin dituzte birbideratutako atakatik iritsi.',
+  'settings.vpn.portForwardingHint': '{name}(e)k ataka bat birbidal dezake KnightLoaderrera.',
   'settings.vpn.noPortForwardingHint': 'Beste peerrek ezin dute zurekin konektatu {name} bidez. Torrentak deskargatzen jarraitzen dute, baina peer gutxiago aurkitzen dituzte eta seed gutxiago egiten dute.',
   'settings.vpn.custom': 'WireGuard konfigurazio propioa',
   'settings.vpn.note.kaspersky': 'Kasperskyren konfigurazioak ez du funtzionatzen 24 orduz erabili gabe badago, eta gailu baterako da. Orduan sortu berri bat My Kaspersky-n.',

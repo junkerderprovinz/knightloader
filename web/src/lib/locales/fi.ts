@@ -3999,7 +3999,7 @@ export const fi: Dict = {
   'settings.vpn.state.connecting': 'Yhdistetään',
   'settings.vpn.state.failed': 'Epäonnistui',
   'settings.vpn.state.saved': 'Määritetty',
-  'settings.vpn.portForwardingHint': '{name} voi ohjata portin KnightLoaderiin. Torrentit kulkevat silti VPN:n kautta, mutta vain ulospäin: muut vertaiset eivät tavoita niitä edelleenohjatun portin kautta.',
+  'settings.vpn.portForwardingHint': '{name} voi ohjata portin KnightLoaderiin.',
   'settings.vpn.noPortForwardingHint': 'Muut peerit eivät voi yhdistää sinuun palvelun {name} kautta. Torrentit latautuvat silti, mutta ne löytävät vähemmän peerejä ja jakavat vähemmän.',
   'settings.vpn.custom': 'Oma WireGuard-määritys',
   'settings.vpn.note.kaspersky': 'Kasperskyn määritys lakkaa toimimasta, jos sitä ei käytetä 24 tuntiin, ja se koskee yhtä laitetta. Luo silloin uusi My Kasperskyssä.',

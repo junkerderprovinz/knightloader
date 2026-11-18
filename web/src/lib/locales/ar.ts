@@ -3996,7 +3996,7 @@ export const ar: Dict = {
   'settings.vpn.state.connecting': 'جارٍ الاتصال',
   'settings.vpn.state.failed': 'فشل',
   'settings.vpn.state.saved': 'مُعدّ',
-  'settings.vpn.portForwardingHint': 'يمكن لـ {name} إعادة توجيه منفذ إلى KnightLoader. تظل التورنتات تمر عبر الـVPN، لكن نحو الخارج فقط: لا يصل إليها الأقران الآخرون عبر المنفذ المُعاد توجيهه.',
+  'settings.vpn.portForwardingHint': 'يمكن لـ {name} إعادة توجيه منفذ إلى KnightLoader.',
   'settings.vpn.noPortForwardingHint': 'لا يستطيع الأقران الآخرون الاتصال بك عبر {name}. تظل التورنتات تُنزَّل، لكنها تجد أقرانًا أقل وتبذر أقل.',
   'settings.vpn.custom': 'إعداد WireGuard خاص',
   'settings.vpn.note.kaspersky': 'تتوقف إعدادات Kaspersky عن العمل إذا لم تُستخدم 24 ساعة، وهي لجهاز واحد. أنشئ إعدادات جديدة في My Kaspersky عندها.',

@@ -3994,7 +3994,7 @@ export const is: Dict = {
   'settings.vpn.state.connecting': 'Tengist',
   'settings.vpn.state.failed': 'Mistókst',
   'settings.vpn.state.saved': 'Uppsett',
-  'settings.vpn.portForwardingHint': '{name} getur framsent gátt til KnightLoader. Torrent fara samt í gegnum VPN, en aðeins út á við: aðrir jafningjar ná ekki til þeirra um framsendu gáttina.',
+  'settings.vpn.portForwardingHint': '{name} getur framsent gátt til KnightLoader.',
   'settings.vpn.noPortForwardingHint': 'Aðrir jafningjar geta ekki tengst þér í gegnum {name}. Torrent hlaðast samt niður, en þau finna færri jafningja og sá minna.',
   'settings.vpn.custom': 'Eigin WireGuard-stilling',
   'settings.vpn.note.kaspersky': 'Stillingar Kaspersky hætta að virka ef þær eru ónotaðar í 24 klukkustundir og gilda fyrir eitt tæki. Búðu þá til nýjar í My Kaspersky.',

@@ -4301,7 +4301,7 @@ export const en = {
   'settings.vpn.state.connecting': 'Connecting',
   'settings.vpn.state.failed': 'Failed',
   'settings.vpn.state.saved': 'Set up',
-  'settings.vpn.portForwardingHint': '{name} can forward a port to KnightLoader. Torrents still go through the VPN, but only outwards: other peers cannot reach them through the forwarded port.',
+  'settings.vpn.portForwardingHint': '{name} can forward a port to KnightLoader.',
   'settings.vpn.noPortForwardingHint': 'Other peers cannot connect to you through {name}. Torrents still download, but they find fewer peers and seed less.',
   'settings.vpn.custom': 'Own WireGuard config',
   'settings.vpn.note.kaspersky': 'Kaspersky’s configuration stops working once it goes unused for 24 hours, and it covers one device. Create a new one in My Kaspersky when that happens.',

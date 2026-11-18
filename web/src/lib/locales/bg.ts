@@ -3999,7 +3999,7 @@ export const bg: Dict = {
   'settings.vpn.state.connecting': 'Свързване',
   'settings.vpn.state.failed': 'Неуспех',
   'settings.vpn.state.saved': 'Настроен',
-  'settings.vpn.portForwardingHint': '{name} може да пренасочи порт към KnightLoader. Торентите пак минават през VPN, но само навън: другите пиъри не могат да стигнат до тях през пренасочения порт.',
+  'settings.vpn.portForwardingHint': '{name} може да пренасочи порт към KnightLoader.',
   'settings.vpn.noPortForwardingHint': 'Другите пиъри не могат да се свържат с теб през {name}. Торентите пак се теглят, но намират по-малко пиъри и сийдват по-малко.',
   'settings.vpn.custom': 'Собствена WireGuard конфигурация',
   'settings.vpn.note.kaspersky': 'Конфигурацията на Kaspersky спира да работи, ако не се използва 24 часа, и важи за едно устройство. Тогава създай нова в My Kaspersky.',

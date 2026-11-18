@@ -3998,7 +3998,7 @@ export const sv: Dict = {
   'settings.vpn.state.connecting': 'Ansluter',
   'settings.vpn.state.failed': 'Misslyckades',
   'settings.vpn.state.saved': 'Konfigurerad',
-  'settings.vpn.portForwardingHint': '{name} kan vidarebefordra en port till KnightLoader. Torrenter går ändå genom VPN:et, men bara utåt: andra peers når dem inte genom den vidarebefordrade porten.',
+  'settings.vpn.portForwardingHint': '{name} kan vidarebefordra en port till KnightLoader.',
   'settings.vpn.noPortForwardingHint': 'Andra peers kan inte ansluta till dig via {name}. Torrents laddas ner som vanligt, men de hittar färre peers och delar mindre.',
   'settings.vpn.custom': 'Egen WireGuard-konfiguration',
   'settings.vpn.note.kaspersky': 'Kasperskys konfiguration slutar fungera om den inte används på 24 timmar, och den gäller en enhet. Skapa då en ny i My Kaspersky.',

@@ -3999,7 +3999,7 @@ export const el: Dict = {
   'settings.vpn.state.connecting': 'Σύνδεση',
   'settings.vpn.state.failed': 'Απέτυχε',
   'settings.vpn.state.saved': 'Ρυθμισμένο',
-  'settings.vpn.portForwardingHint': 'Το {name} μπορεί να προωθήσει μια θύρα στο KnightLoader. Τα torrent περνούν και πάλι από το VPN, αλλά μόνο προς τα έξω: οι άλλοι peers δεν τα φτάνουν μέσω της προωθημένης θύρας.',
+  'settings.vpn.portForwardingHint': 'Το {name} μπορεί να προωθήσει μια θύρα στο KnightLoader.',
   'settings.vpn.noPortForwardingHint': 'Άλλοι peers δεν μπορούν να συνδεθούν σε σένα μέσω του {name}. Τα torrent κατεβαίνουν κανονικά, αλλά βρίσκουν λιγότερους peers και κάνουν λιγότερο seeding.',
   'settings.vpn.custom': 'Δική σου διαμόρφωση WireGuard',
   'settings.vpn.note.kaspersky': 'Η ρύθμιση του Kaspersky σταματά να λειτουργεί αν μείνει 24 ώρες αχρησιμοποίητη, και ισχύει για μία συσκευή. Τότε φτιάξε νέα στο My Kaspersky.',

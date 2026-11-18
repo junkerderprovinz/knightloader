@@ -3989,7 +3989,7 @@ export const et: Dict = {
   'settings.vpn.state.connecting': 'Ühendan',
   'settings.vpn.state.failed': 'Ebaõnnestus',
   'settings.vpn.state.saved': 'Seadistatud',
-  'settings.vpn.portForwardingHint': '{name} saab pordi KnightLoaderile edasi suunata. Torrentid käivad ikkagi läbi VPN-i, kuid ainult väljapoole: teised partnerid ei jõua nendeni suunatud pordi kaudu.',
+  'settings.vpn.portForwardingHint': '{name} saab pordi KnightLoaderile edasi suunata.',
   'settings.vpn.noPortForwardingHint': 'Teised partnerid ei saa {name} kaudu sinuga ühenduda. Torrentid laadivad ikka alla, kuid leiavad vähem partnereid ja levitavad vähem.',
   'settings.vpn.custom': 'Oma WireGuardi seadistus',
   'settings.vpn.note.kaspersky': 'Kaspersky seadistus lakkab töötamast, kui seda 24 tundi ei kasutata, ja see kehtib ühele seadmele. Siis loo My Kasperskys uus.',
