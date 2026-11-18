@@ -51,7 +51,7 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    version: '3.0.0',
+    version: '2.9.1',
     changes: [
       {
         id: 'qbittorrent',

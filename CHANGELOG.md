@@ -36,7 +36,7 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.9.1] - 2026-11-18
 
 ### Added
 
@@ -67,6 +67,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   for it and seeds every twin it saves back, so it never has to reach
   KnightLoader's qBittorrent.
   What the twins send counts in the overview's torrent totals.
+
+### Design
+
+- **KnightLoader follows GlimStone 4.5.5.** In every window that offers tiles
+  to pick from, the arrow keys move across the tiles, Enter takes the one tile
+  a search leaves, and the search finds a name without minding accents or
+  hyphens.
 
 ### Changed
 

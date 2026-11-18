@@ -1,0 +1,1 @@
+The app is unchanged. This release is for the server and the desktop app: every torrent now runs in qBittorrent, which KnightLoader brings along, and finished torrents get seeded on your other trackers too.
