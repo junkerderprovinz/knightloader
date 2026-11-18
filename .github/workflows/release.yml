@@ -278,6 +278,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      packages: read
     outputs:
       # Decided by publish-release.sh, so image-latest does not decide it again.
       latest: ${{ steps.publish.outputs.latest }}
@@ -378,6 +379,7 @@ jobs:
       # version they are, so each release carries every build of it this
       # project makes, with its sources and its own SHA256SUMS. A dispatched
       # run gathers them as well, so a missing build shows before a tag.
+      - run: bash .github/scripts/install-oras.sh
       - name: qBittorrent builds
         env:
           GH_TOKEN: ${{ github.token }}

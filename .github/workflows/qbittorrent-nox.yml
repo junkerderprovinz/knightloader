@@ -5,9 +5,9 @@ name: qbittorrent-nox
 # and libtorrent versions. Linux and the container take
 # userdocs/qbittorrent-nox-static instead.
 #
-# Publishing puts the builds and their sources into the draft release
-# qbittorrent-nox, which only the maintainers see and which does not expire
-# as a workflow artifact does. release.yml takes them from there into every
+# Publishing puts the builds and their sources into the knightloader-nox
+# package on GHCR, which shows in no release list and does not expire as a
+# workflow artifact does. release.yml takes them from there into every
 # KnightLoader release, which the apps fetch them from, once the digests this
 # run prints are in internal/qbittorrent/nox/versions.json.
 
@@ -23,7 +23,7 @@ on:
         default: "2.0.11"
         required: true
       publish:
-        description: Put the builds into the qbittorrent-nox draft
+        description: Put the builds into the knightloader-nox package
         type: boolean
         default: false
 
@@ -207,10 +207,10 @@ jobs:
       matrix:
         pin: ${{ fromJSON(needs.versions.outputs.pins) }}
     runs-on: ubuntu-24.04
-    # Two runs at once would each create the draft.
-    concurrency: qbittorrent-nox-draft
+    concurrency: qbittorrent-nox-store
     permissions:
-      contents: write
+      contents: read
+      packages: write
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -225,13 +225,19 @@ jobs:
           curl -fsSL -o "dist/libtorrent-${{ matrix.pin.libtorrent }}-source.tar.gz" \
             "https://github.com/arvidn/libtorrent/releases/download/v${{ matrix.pin.libtorrent }}/libtorrent-rasterbar-${{ matrix.pin.libtorrent }}.tar.gz"
           cd dist && sha256sum * > "qbittorrent-nox-${{ matrix.pin.qbittorrent }}-SHA256SUMS" && cat qbittorrent-nox-*-SHA256SUMS
-      - name: Into the draft
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          sparse-checkout: .github/scripts
+      - run: bash .github/scripts/install-oras.sh
+      # One tag per file in the knightloader-nox package, which no release list
+      # shows. nox-assets.sh takes them from there for every release.
+      - name: Into the store
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view qbittorrent-nox --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create qbittorrent-nox --repo "$GITHUB_REPOSITORY" --draft \
-              --title "qbittorrent-nox builds" \
-              --notes "qbittorrent-nox built without a window, for KnightLoader on Windows and macOS, kept here for every KnightLoader release to carry. qBittorrent is free software under the GPL and libtorrent under the BSD licence. Both sources are attached."
-          fi
-          gh release upload qbittorrent-nox dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          set -euo pipefail
+          echo "$GH_TOKEN" | oras login ghcr.io -u "${{ github.actor }}" --password-stdin
+          cd dist
+          for f in *; do
+            oras push "ghcr.io/${{ github.repository_owner }}/knightloader-nox:$f" "$f"
+          done

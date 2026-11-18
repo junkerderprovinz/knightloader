@@ -8,32 +8,37 @@
 # KnightLoader that runs, so every release carries every build the table in
 # internal/qbittorrent/nox/versions.json names without a repo of its own, and
 # the source archives the GPL asks to go beside them. A file is taken from the
-# first of two places that has it with the SHA-256 the table pins: the draft
-# release qbittorrent-nox, then the latest release. The qbittorrent-nox
-# workflow fills the draft, and builds kept from elsewhere go in by hand:
+# first of two places that has it with the SHA-256 the table pins: the
+# knightloader-nox package on GHCR, one tag per file name, then the latest
+# release. The qbittorrent-nox workflow fills the package, and a build kept
+# from elsewhere goes in by hand, from the folder that holds it:
 #
-#   gh release create qbittorrent-nox --draft --title "qbittorrent-nox builds" --notes "..."
-#   gh release upload qbittorrent-nox <files> --clobber
+#   oras push ghcr.io/junkerderprovinz/knightloader-nox:<file> <file>
 #
 # A file neither has with that digest stops the run. SHA256SUMS lists them all.
+# Needs oras on the PATH (install-oras.sh) and GH_TOKEN with packages: read.
 set -euo pipefail
 
 out=$1
 repo=$GITHUB_REPOSITORY
-store=qbittorrent-nox
+store=ghcr.io/${GITHUB_REPOSITORY_OWNER:-junkerderprovinz}/knightloader-nox
 table=internal/qbittorrent/nox/versions.json
 tmp="${RUNNER_TEMP:-/tmp}/nox-asset"
 
 mkdir -p "$out"
 : > "$out/SHA256SUMS"
+echo "$GH_TOKEN" | oras login ghcr.io -u "${GITHUB_ACTOR:-junkerderprovinz}" --password-stdin >/dev/null
 
 take() {
   local name=$1 sum=$2 from
   for from in "$store" ""; do
     rm -rf "$tmp" && mkdir -p "$tmp"
-    local at=()
-    [ -n "$from" ] && at=("$from")
-    gh release download "${at[@]}" --repo "$repo" --pattern "$name" --dir "$tmp" </dev/null 2>/dev/null || continue
+    if [ -n "$from" ]; then
+      oras pull "$from:$name" -o "$tmp" </dev/null >/dev/null 2>&1 || continue
+    else
+      gh release download --repo "$repo" --pattern "$name" --dir "$tmp" </dev/null 2>/dev/null || continue
+    fi
+    [ -f "$tmp/$name" ] || continue
     if [ "$(sha256sum "$tmp/$name" | cut -d' ' -f1)" = "$sum" ]; then
       mv "$tmp/$name" "$out/$name"
       echo "$sum  $name" >> "$out/SHA256SUMS"
@@ -42,7 +47,7 @@ take() {
     fi
     echo "::warning::$name in ${from:-the latest release} is not the build versions.json pins"
   done
-  echo "::error::neither the qbittorrent-nox draft nor the latest release holds $name with the SHA-256 versions.json pins, $sum" >&2
+  echo "::error::neither $store nor the latest release holds $name with the SHA-256 versions.json pins, $sum" >&2
   return 1
 }
 
