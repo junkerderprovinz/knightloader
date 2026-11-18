@@ -45,7 +45,7 @@ const patreon: SiteLogin = {
   state: 'signedOut',
   unreadable: [],
   readsBrowsers: true,
-  added: true,
+  listed: true,
 };
 
 /** The colour class the state's words wear. */

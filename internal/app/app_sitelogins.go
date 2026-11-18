@@ -55,7 +55,7 @@ type SiteLoginState struct {
 	sitelogin.Site
 	sitelogin.Status
 	// Added says the site has a row, and not only an entry in the picker.
-	Added bool `json:"added"`
+	Added bool `json:"listed"`
 	// Waiting is true from Sign in until a session arrives or the wait ends.
 	Waiting bool `json:"waiting"`
 	// Source is where the session comes from: SourceBrowser, SourceExtension,

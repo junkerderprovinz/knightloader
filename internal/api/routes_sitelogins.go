@@ -10,7 +10,7 @@ package api
 //	{"id": "patreon", "name": "Patreon", "host": "patreon.com",
 //	 "loginUrl": "https://www.patreon.com/login", "domains": ["patreon.com"],
 //	 "use": "always",                  // or "onNeed": only after a sign-in failure
-//	 "added": true,                    // has a row; false is offered in the picker
+//	 "listed": true,                    // has a row; false is offered in the picker
 //	 "state": "signedIn",              // signedOut, expired or unchecked
 //	 "account": "Jane Doe",            // where the site names it
 //	 "expires": "2027-01-01T00:00:00Z", // where the cookies say

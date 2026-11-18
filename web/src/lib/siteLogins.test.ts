@@ -11,7 +11,7 @@ const site = (over: Partial<SiteLogin>): SiteLogin => ({
   state: 'signedOut',
   unreadable: [],
   readsBrowsers: false,
-  added: true,
+  listed: true,
   ...over,
 });
 

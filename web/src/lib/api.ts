@@ -2525,7 +2525,7 @@ export interface SiteLogin {
   /** Whether this instance reads the browsers on its computer; false in a container. */
   readsBrowsers: boolean;
   /** Whether the site has a row. One that was not added is offered in the picker, and its session is not used. */
-  added: boolean;
+  listed: boolean;
   /** Whether the extension in a browser of the group may read the site, so a sign-in there reaches this instance. */
   handsOver?: boolean;
 }

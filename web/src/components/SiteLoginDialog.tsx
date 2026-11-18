@@ -107,7 +107,7 @@ export function SiteLoginDialog({
   // download asks for may have no row yet, and signing in adds it.
   const openSite = () => {
     tab.current = openTab(site.loginUrl);
-    if (!site.added) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
+    if (!site.listed) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
   };
 
   const from = sourceNote(site);

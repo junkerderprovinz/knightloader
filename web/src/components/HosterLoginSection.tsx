@@ -26,7 +26,7 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
-import { type SignInWays, nextStep, siteForHost, sourceNote, readsBrowsers, unreadableBrowsers } from '../lib/siteLogins';
+import { type SignInWays, nextStep, siteForHost, signedIn, sourceNote, readsBrowsers, unreadableBrowsers } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
@@ -196,7 +196,7 @@ function signInPageOf(login: HosterLogin): SiteLogin {
     state: login.status === 'active' ? 'signedIn' : 'signedOut',
     unreadable: [],
     readsBrowsers: false,
-    added: true,
+    listed: true,
   };
 }
 
@@ -243,7 +243,7 @@ export function HosterLoginSection({
   const browserHere = useSignInBrowserAvailable();
 
   const rows = data.logins ?? [];
-  const added = data.sites.filter((s) => s.added);
+  const added = data.sites.filter((s) => s.listed);
   const hasRows = rows.length > 0 || added.length > 0;
   const unreadable = unreadableBrowsers(added);
 
@@ -306,7 +306,13 @@ export function HosterLoginSection({
           onSaved={data.load}
           onPickSite={(site) => {
             onAddClose();
-            void data.addSite(site).then((next) => next && setEditingSite(next));
+            // Where KnightLoader reads no browser, the sign-in window is the only
+            // way in, so it opens at once instead of a window that points to it.
+            void data.addSite(site).then((next) => {
+              if (!next) return;
+              if (!data.ways.readsBrowsers && !signedIn(next)) setBrowsingSite(next);
+              else setEditingSite(next);
+            });
           }}
         />
       )}
@@ -597,7 +603,7 @@ function HosterLoginDialog({
     ...hosts
       .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
       .map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id })),
-    ...sites.filter((s) => !s.added).map((s) => ({ id: SITE_BRAND + s.id, name: s.name, host: s.host, sub: s.host })),
+    ...sites.filter((s) => !s.listed).map((s) => ({ id: SITE_BRAND + s.id, name: s.name, host: s.host, sub: s.host })),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
   const pick = (id: string) => {

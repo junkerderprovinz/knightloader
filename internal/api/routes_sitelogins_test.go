@@ -17,7 +17,7 @@ const siteSecret = "YT-SESSION-4c1e-never-leaves-the-store"
 
 type siteRow struct {
 	ID      string   `json:"id"`
-	Added   bool     `json:"added"`
+	Added   bool     `json:"listed"`
 	State   string   `json:"state"`
 	Account string   `json:"account"`
 	Waiting bool     `json:"waiting"`
@@ -333,10 +333,10 @@ func TestRemovingTakesTheRowAwayUntilTheSiteIsAddedAgain(t *testing.T) {
 	if r := row(); r.Added {
 		t.Fatalf("patreon starts out %+v", r)
 	}
-	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/add", ""); status != http.StatusOK || !strings.Contains(string(body), `"added":true`) {
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/add", ""); status != http.StatusOK || !strings.Contains(string(body), `"listed":true`) {
 		t.Fatalf("add = %d (%s), want 200 and added", status, body)
 	}
-	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/remove", ""); status != http.StatusOK || !strings.Contains(string(body), `"added":false`) {
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/remove", ""); status != http.StatusOK || !strings.Contains(string(body), `"listed":false`) {
 		t.Fatalf("remove = %d (%s), want 200 and not added", status, body)
 	}
 	if r := row(); r.Added || r.State != "signedOut" {

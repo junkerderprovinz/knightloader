@@ -43,7 +43,7 @@ const patreon: SiteLogin = {
   browser: 'Firefox (default-release)',
   unreadable: [],
   readsBrowsers: true,
-  added: true,
+  listed: true,
 };
 const youtube: SiteLogin = {
   id: 'youtube',
@@ -56,7 +56,7 @@ const youtube: SiteLogin = {
   source: 'extension',
   unreadable: [],
   readsBrowsers: true,
-  added: true,
+  listed: true,
 };
 const instagram: SiteLogin = {
   id: 'instagram',
@@ -68,10 +68,10 @@ const instagram: SiteLogin = {
   state: 'signedOut',
   unreadable: [],
   readsBrowsers: true,
-  added: false,
+  listed: false,
 };
 const signedOut = (s: SiteLogin): SiteLogin => ({ ...s, state: 'signedOut', account: undefined, source: '', browser: '' });
-const notAdded = (s: SiteLogin): SiteLogin => ({ ...signedOut(s), added: false });
+const notAdded = (s: SiteLogin): SiteLogin => ({ ...signedOut(s), listed: false });
 let hosterRows: unknown[];
 const browserExtension: GroupApp = { id: 'm1', name: 'Firefox', deployment: 'extension', connected: false, approved: true, lastSeen: 0 };
 
@@ -123,8 +123,8 @@ beforeEach(() => {
         return reply(notAdded(site));
       }
       if (url.endsWith('/add') || url.endsWith('/begin')) {
-        sites = sites.map((s) => (s.id === site.id ? { ...s, added: true } : s));
-        return reply({ ...site, added: true });
+        sites = sites.map((s) => (s.id === site.id ? { ...s, listed: true } : s));
+        return reply({ ...site, listed: true });
       }
       if (url.endsWith('/check')) return reply(site);
       return reply([]);
@@ -245,6 +245,16 @@ it('offers the sites not added in the picker, with their domain beneath, and ope
   expect(calls.some((c) => c.url === '/api/sitelogins/instagram/add' && c.method === 'POST')).toBe(true);
   expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Sign in to Instagram');
   expect(row('Instagram')).toBeDefined();
+});
+
+it('opens the sign-in browser straight away for a site picked on an instance that reads no browser', async () => {
+  sites = [patreon, notAdded(instagram)].map((s) => ({ ...s, readsBrowsers: false }));
+  await renderCard();
+  await act(async () => button('Add')!.click());
+  await act(async () => tile('Instagram')!.querySelector('button')!.click());
+  expect(calls.some((c) => c.url === '/api/sitelogins/instagram/add' && c.method === 'POST')).toBe(true);
+  expect(calls.some((c) => c.url === '/api/signinbrowser/instagram/open')).toBe(true);
+  expect(document.querySelector('[role="dialog"]')?.textContent).not.toContain('Status');
 });
 
 it('opens the site from its window and offers no way to paste cookies', async () => {
