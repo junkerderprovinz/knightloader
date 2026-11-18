@@ -1271,6 +1271,14 @@ body {
   width: 0;
   padding: 0;
 }
+/* The buttons lie on whatever ground the row shows: the hover colour under the
+   pointer, the focus grey when the focus stays in the row after a window closes. */
+.kl-accounts .glim-row {
+  --kl-row-ground: var(--hover);
+}
+.kl-accounts .glim-row:focus-within:not(:hover) {
+  --kl-row-ground: var(--carbon-surface3);
+}
 .kl-accounts .kl-col-actions > .glim-row-actions {
   position: absolute;
   inset-block: 0;
@@ -1279,10 +1287,10 @@ body {
   align-items: center;
   gap: 0.25rem;
   padding-inline: 1.5rem 0.5rem;
-  background: linear-gradient(to left, var(--hover) calc(100% - 1rem), transparent);
+  background: linear-gradient(to left, var(--kl-row-ground) calc(100% - 1rem), transparent);
 }
 .kl-accounts .kl-col-actions > .glim-row-actions:dir(rtl) {
-  background: linear-gradient(to right, var(--hover) calc(100% - 1rem), transparent);
+  background: linear-gradient(to right, var(--kl-row-ground) calc(100% - 1rem), transparent);
 }
 @media (hover: none) {
   .kl-accounts table {

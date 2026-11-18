@@ -272,3 +272,11 @@ describe('column widths', () => {
     for (const rule of hiding) expect(rule).toMatch(/--kl-sum:/);
   });
 });
+
+it('lays the row buttons on the ground the row shows, the hover colour or the focus grey', () => {
+  const fs = (globalThis as unknown as { process: { getBuiltinModule(id: 'node:fs'): NodeFs } }).process.getBuiltinModule('node:fs');
+  const css = fs.readFileSync('src/index.css', 'utf8');
+  expect(css).toMatch(/\.kl-accounts \.glim-row:focus-within:not\(:hover\) \{\s*--kl-row-ground: var\(--carbon-surface3\);/);
+  expect(css).toMatch(/linear-gradient\(to left, var\(--kl-row-ground\)/);
+  expect(css).toMatch(/linear-gradient\(to right, var\(--kl-row-ground\)/);
+});
