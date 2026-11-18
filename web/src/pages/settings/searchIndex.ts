@@ -286,10 +286,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.jdimport.cardTitle',
       hint: 'settings.jdimport.cardHint',
       rows: [
-        { key: 'settings.jdimport.uploadLabel', hint: 'settings.jdimport.uploadText' },
-        { key: 'settings.jdimport.pathLabel', hint: 'settings.jdimport.pathHint' },
+        { key: 'settings.jdimport.uploadButton', hint: 'settings.jdimport.uploadText' },
+        { key: 'settings.jdimport.folderButton', hint: 'settings.jdimport.pathHint' },
       ],
-      also: ['settings.jdimport.uploadButton', 'settings.jdimport.readButton'],
       // The preview's strings stay out: its dialog exists only once a folder is read.
     },
   ],

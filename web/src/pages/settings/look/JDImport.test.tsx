@@ -133,12 +133,14 @@ it('shakes the upload button, not the path button, when an uploaded zip is refus
       .some((c) => c.endsWith('-shake'));
   expect(text()).toContain(en['settings.jdimport.notZip']);
   expect(shaking(en['settings.jdimport.uploadButton'])).toBe(true);
-  expect(shaking(en['settings.jdimport.readButton'])).toBe(false);
+  expect(shaking(en['settings.jdimport.folderButton'])).toBe(false);
 });
 
 function runsIn(kind: string) {
   vi.mocked(fetchDeploymentInfo).mockResolvedValue({ deployment: 'container', kind } as DeploymentInfo);
 }
+
+const button = (label: string) => [...host.querySelectorAll('button')].find((b) => b.textContent === label)!;
 
 async function mountCard() {
   await act(async () =>
@@ -171,8 +173,7 @@ async function browseToMissingFolder() {
     ),
   );
   await mountCard();
-  const browse = host.querySelector<HTMLButtonElement>(`button[aria-label="${en['folders.browse']}"]`)!;
-  await act(async () => browse.click());
+  await act(async () => button(en['settings.jdimport.folderButton']).click());
 }
 
 it('tells a container user to mount the JDownloader folder instead of promising a download will create it', async () => {
@@ -194,13 +195,24 @@ it('explains the container mount when a typed path is not there', async () => {
   vi.mocked(readJDImportPath).mockRejectedValue(
     new ApiError('missing', 'jdimport.pathMissing', { path: '/mnt/user/appdata/jd' }, 400),
   );
+  vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
   await mountCard();
-  const field = host.querySelector<HTMLInputElement>('input:not([type=file])')!;
+  await act(async () => button(en['settings.jdimport.folderButton']).click());
+  const field = host.querySelector<HTMLInputElement>(`input[aria-label="${en['folders.path']}"]`)!;
   await act(async () => {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(field, '/mnt/user/appdata/jd');
     field.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  const read = [...host.querySelectorAll('button')].find((b) => b.textContent === en['settings.jdimport.readButton'])!;
-  await act(async () => read.click());
+  await act(async () => button(en['folders.use']).click());
+  expect(readJDImportPath).toHaveBeenCalledWith('/mnt/user/appdata/jd');
   expect(text()).toContain(en['settings.jdimport.pathHiddenAt'].replace('{path}', '/mnt/user/appdata/jd'));
+});
+
+it('offers the zip and the folder as two buttons in one row, as the backup card does', async () => {
+  await mountCard();
+  const zip = button(en['settings.jdimport.uploadButton']);
+  const folder = button(en['settings.jdimport.folderButton']);
+  expect(zip.parentElement).toBe(folder.parentElement);
+  expect(text()).not.toContain(en['settings.jdimport.uploadText']);
+  expect(text()).not.toContain(en['settings.jdimport.pathLabel']);
 });

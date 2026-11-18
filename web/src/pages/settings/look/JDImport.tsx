@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Card, SectionTitle } from '../../../components/ui';
-import { PathInput } from '../../../components/FolderPicker';
-import { IconImport } from '../../../lib/icons';
+import { FolderPicker } from '../../../components/FolderPicker';
+import { IconFolderOpen, IconImport } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   ApiError,
@@ -12,7 +12,6 @@ import {
   type JDImportPreview,
   type JDImportReport,
 } from '../../../lib/api';
-import { SubCard } from '../controls';
 import { JDImportPreviewDialog, itemName, reasonText } from './JDImportPreview';
 
 type Source = 'upload' | 'path';
@@ -27,6 +26,7 @@ export function JDImportCard({ hue }: { hue: number }) {
   const { t } = useT();
   const fileInput = useRef<HTMLInputElement>(null);
   const [path, setPath] = useState('');
+  const [browsing, setBrowsing] = useState(false);
   // Which of the two ways in is reading, and how often each failed, so the
   // button that was pressed is the one that says so.
   const [busy, setBusy] = useState<Source | null>(null);
@@ -85,54 +85,54 @@ export function JDImportCard({ hue }: { hue: number }) {
 
   return (
     <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle hint={t('settings.jdimport.cardHint')}>{t('settings.jdimport.cardTitle')}</SectionTitle>
+      <SectionTitle hint={`${t('settings.jdimport.cardHint')} ${t('settings.jdimport.uploadText')} ${t('settings.jdimport.pathHint')}`}>{t('settings.jdimport.cardTitle')}</SectionTitle>
 
-      <SubCard label={t('settings.jdimport.uploadLabel')} hint={t('settings.jdimport.uploadText')} className="gap-3">
-        <input
-          ref={fileInput}
-          type="file"
-          accept="application/zip,.zip"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            // Cleared so picking the same file again fires a change event.
-            e.target.value = '';
-            if (f) void read('upload', () => readJDImportFile(f));
-          }}
-        />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            kind="secondary"
-            icon={<IconImport width={16} height={16} />}
-            onClick={() => fileInput.current?.click()}
-            disabled={busy !== null}
-            confirm={done}
-            shake={shake.upload}
-          >
-            {t('settings.jdimport.uploadButton')}
-          </Button>
-        </div>
-      </SubCard>
-
-      <SubCard label={t('settings.jdimport.pathLabel')} hint={t('settings.jdimport.pathHint')} className="gap-3">
-        <PathInput
+      <input
+        ref={fileInput}
+        type="file"
+        accept="application/zip,.zip"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          // Cleared so picking the same file again fires a change event.
+          e.target.value = '';
+          if (f) void read('upload', () => readJDImportFile(f));
+        }}
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          kind="secondary"
+          icon={<IconImport width={16} height={16} />}
+          onClick={() => fileInput.current?.click()}
+          disabled={busy !== null}
+          confirm={done}
+          shake={shake.upload}
+        >
+          {t('settings.jdimport.uploadButton')}
+        </Button>
+        <Button
+          kind="secondary"
+          icon={<IconFolderOpen width={16} height={16} />}
+          onClick={() => setBrowsing(true)}
+          disabled={busy !== null}
+          shake={shake.path}
+        >
+          {busy === 'path' ? t('settings.jdimport.reading') : t('settings.jdimport.folderButton')}
+        </Button>
+      </div>
+      {browsing && (
+        <FolderPicker
           value={path}
-          onValue={setPath}
           title={t('settings.jdimport.pathLabel')}
           missingHint={inContainer ? t('settings.jdimport.pathHidden') : t('settings.jdimport.pathAbsent')}
+          onClose={() => setBrowsing(false)}
+          onPick={(picked) => {
+            setBrowsing(false);
+            setPath(picked);
+            void read('path', () => readJDImportPath(picked.trim()));
+          }}
         />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            icon={<IconImport />}
-            kind="secondary"
-            onClick={() => void read('path', () => readJDImportPath(path.trim()))}
-            disabled={busy !== null || path.trim() === ''}
-            shake={shake.path}
-          >
-            {busy === 'path' ? t('settings.jdimport.reading') : t('settings.jdimport.readButton')}
-          </Button>
-        </div>
-      </SubCard>
+      )}
 
       {failure && <span className="text-sm text-statusFail">{failure}</span>}
       {report && <Report {...report} />}
