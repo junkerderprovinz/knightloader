@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -24,6 +25,16 @@ const releaseNotes = Object.fromEntries(
   }),
 );
 
+// A digest of the bundled hoster logos. Their addresses carry it, because a
+// browser keeps a decoded image under its address and shows a replaced logo
+// from that store until the address changes.
+const hostersDir = new URL('./public/hosters/', import.meta.url);
+const hostersVersion = (() => {
+  const hash = createHash('sha256');
+  for (const name of readdirSync(hostersDir).sort()) hash.update(name).update(readFileSync(new URL(name, hostersDir)));
+  return hash.digest('hex').slice(0, 12);
+})();
+
 // Builds the SPA into web/dist, which the Go binary embeds. Stable asset names
 // keep the committed dist clean. Asset paths are relative, resolved against the
 // <base> element the server puts into index.html, so one build serves at the
@@ -35,6 +46,7 @@ export default defineConfig({
   define: {
     __MOBILE_VERSION__: JSON.stringify(mobileVersion),
     __RELEASE_NOTES__: JSON.stringify(releaseNotes),
+    __HOSTERS_VERSION__: JSON.stringify(hostersVersion),
   },
   build: {
     outDir: 'dist',

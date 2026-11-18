@@ -24,8 +24,8 @@ export function serviceMark(host: string): ServiceMark | undefined {
     const info = HOSTER_LOGOS.get(h);
     if (info) {
       return {
-        src: withBase(`/hosters/${h}.png`),
-        mask: withBase(`/hosters/${h}${info.lit ? '.lit' : ''}.png`),
+        src: withBase(`/hosters/${h}.png?v=${__HOSTERS_VERSION__}`),
+        mask: withBase(`/hosters/${h}${info.lit ? '.lit' : ''}.png?v=${__HOSTERS_VERSION__}`),
         info,
       };
     }
