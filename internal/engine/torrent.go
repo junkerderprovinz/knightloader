@@ -590,8 +590,9 @@ func (e *Engine) report(bt torrents.Client, taskID string, readings map[string]t
 		run.done = true
 		u.Status, u.File = core.StatusDone, run.root
 	case !run.done:
+		paused := run.paused
 		e.mu.Unlock()
-		if !run.paused {
+		if !paused {
 			e.emit(taskID, core.Update{Status: core.StatusRunning, Loaded: x.Done, Speed: x.Speed, File: run.root, Torrent: &st})
 		}
 		return

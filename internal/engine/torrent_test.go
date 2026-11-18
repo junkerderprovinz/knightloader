@@ -628,7 +628,9 @@ func TestTheSecondFileOfAPaddedTorrentIsReadFromItsOwnPiece(t *testing.T) {
 }
 
 func TestTheTorrentsTheEngineRunsAreTheOnesNotPaused(t *testing.T) {
-	e, _, _ := torrentEngine(t)
+	e, c, _ := torrentEngine(t)
+	// Ten bytes finish at once, and a finished task leaves the engine.
+	c.Stall()
 	hashA, magnetA := testenv.SeedTorrent(t, "A", map[string]int{"a.bin": 10})
 	hashB, magnetB := testenv.SeedTorrent(t, "B", map[string]int{"b.bin": 10})
 	e.Start(Job{TaskID: "a", URL: magnetA, Dir: t.TempDir()})
