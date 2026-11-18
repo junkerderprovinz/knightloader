@@ -136,11 +136,6 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.rules.action.linkEnabled', switch: 'settings.subfolderByPackage' },
       },
       { id: 'package-name-guess', text: 'whatsnew.change.packageNameGuess' },
-    ],
-  },
-  {
-    version: '2.8.2',
-    changes: [
       { id: 'video-any-site', text: 'whatsnew.change.videoAnySite' },
       { id: 'video-add-sites', text: 'whatsnew.change.videoAddSites' },
       { id: 'video-ytdlp', text: 'whatsnew.change.videoYtdlp' },

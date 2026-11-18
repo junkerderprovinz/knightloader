@@ -81,27 +81,9 @@
   <releases>
     <release version="2.9.0" date="2026-11-17">
       <description>
-        <p>Patreon and YouTube sign in with your browser's own session or right inside KnightLoader, Rapidgator and several other hosters take a two-factor code, and one switch keeps every component current.</p>
+        <p>Patreon and YouTube sign in with your browser's own session or right inside KnightLoader, Rapidgator and several other hosters take a two-factor code, one switch keeps every component current, and the browser extension's video button works on other sites too.</p>
       </description>
       <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.9.0</url>
-    </release>
-    <release version="2.8.3" date="2026-11-13">
-      <description>
-        <p>The desktop app fetches ffmpeg again, and the browser extension says when it is not connected to an instance yet.</p>
-      </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.3</url>
-    </release>
-    <release version="2.8.2" date="2026-11-12">
-      <description>
-        <p>The browser extension's video button works on other sites too and always downloads with yt-dlp, video sites can be added in its settings, and a pinned KnightLoader on Windows shows the new icon after an update.</p>
-      </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.2</url>
-    </release>
-    <release version="2.8.1" date="2026-11-12">
-      <description>
-        <p>A security update: KnightLoader is built with Go 1.27.4 and a newer brotli library.</p>
-      </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.1</url>
     </release>
     <release version="2.8.0" date="2026-11-12">
       <description>

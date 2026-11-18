@@ -88,6 +88,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The Host filter in the link collector selects all links of a host in one
   click,** so you can delete the mirror hosts you do not need in one go
   ([#288](https://github.com/junkerderprovinz/knightloader/issues/288)).
+- **The browser extension's video button shows on other sites too,** on a
+  video you are watching, once your instance says yt-dlp can download the
+  page. Its switch is "All other sites" in the video button's settings, with
+  its own defaults for what a click downloads.
+- **Video sites can be added in the extension's settings,** each with its
+  own switch and its own defaults for what a click downloads. The sites have
+  a card of their own, where each row opens a window with that site's
+  settings.
+- **The video button always downloads with yt-dlp,** also on a site whose
+  links your instance hands to JDownloader, such as archive.org. Links you
+  paste keep their routing. Other clients can pin a link the same way, with
+  `resolver` on `POST /api/links` and `pinned=true` on
+  `GET /api/ytdlp/link`.
 
 ### Changed
 
@@ -182,6 +195,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The sign-in window tells you when you are signed in.** A message in the
   middle of the window asks you to click Done, and Done only works from then
   on. Back sits on the other side of the footer and says what it does.
+- **The desktop installer downloads ffmpeg, Java and JDownloader while it
+  installs,** each with its own progress, so the app has everything at its
+  first start. Without a connection the app fetches them itself when it
+  starts, and the last page of the installer says why.
+- **The browser extension says when it is not connected yet.** Until you
+  enter your instance's connection phrase, the video button's menu, the
+  toolbar popup and the settings page say so at the top, with a button that
+  takes you to the phrase. A click on the video button leads there too,
+  instead of a menu with no qualities in it.
 
 ### Removed
 
@@ -189,6 +211,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   together with the switch that let yt-dlp use pasted files. Sessions come
   from your browser or the extension. Files pasted before are deleted at the
   next start.
+
+### Security
+
+- **A rare race in Go's HTTP server could crash KnightLoader's web server.**
+  KnightLoader is built with Go 1.27.4, which fixes it (GO-2026-6859), in the
+  container, the relay and the desktop app.
+- **Reading a brotli-compressed answer, such as JDownloader's status, could
+  take far more memory than it should.** The brotli library is at 1.2.8
+  (GO-2026-6888).
 
 ### Fixed
 
@@ -285,73 +316,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   would give the package.** Every pasted link's package and a rule's download
   folder were called "package" instead
   ([#288](https://github.com/junkerderprovinz/knightloader/issues/288)).
-
-## [2.8.3] - 2026-11-13
-
-### Improved
-
-- **The browser extension says when it is not connected yet.** Until you
-  enter your instance's connection phrase, the video button's menu, the
-  toolbar popup and the settings page say so at the top, with a button that
-  takes you to the phrase. A click on the video button leads there too,
-  instead of a menu with no qualities in it.
-
-### Fixed
-
-- **The desktop app fetches ffmpeg again.** The project that publishes the
-  ffmpeg builds moved to a new address on GitHub, and KnightLoader refused
-  GitHub's redirect to it, so a new install had no ffmpeg and said it would
-  come at the first start. It fetches from the new address and follows such
-  a redirect within GitHub's API.
-
-## [2.8.2] - 2026-11-12
-
-### Added
-
-- **The browser extension's video button shows on other sites too,** on a
-  video you are watching, once your instance says yt-dlp can download the
-  page. Its switch is "All other sites" in the video button's settings, with
-  its own defaults for what a click downloads.
-- **Video sites can be added in the extension's settings,** each with its
-  own switch and its own defaults for what a click downloads. The sites have
-  a card of their own, where each row opens a window with that site's
-  settings.
-- **The video button always downloads with yt-dlp,** also on a site whose
-  links your instance hands to JDownloader, such as archive.org. Links you
-  paste keep their routing. Other clients can pin a link the same way, with
-  `resolver` on `POST /api/links` and `pinned=true` on
-  `GET /api/ytdlp/link`.
-
-### Fixed
-
-- **A pinned or Start menu KnightLoader shows the new icon after an update on
-  Windows.** The updater tells Explorer that the program changed, so Windows
-  no longer keeps the old program's icon in its cache.
-
-## [2.8.1] - 2026-11-12
-
-### Changed
-
-- **The desktop installer downloads ffmpeg, Java and JDownloader while it
-  installs,** each with its own progress, so the app has everything at its
-  first start. Without a connection the app fetches them itself, as before,
-  and the last page of the installer says why.
-
-### Security
-
-- **A rare race in Go's HTTP server could crash KnightLoader's web server.**
-  KnightLoader is built with Go 1.27.4, which fixes it (GO-2026-6859), in the
-  container, the relay and the desktop app.
-- **Reading a brotli-compressed answer, such as JDownloader's status, could
-  take far more memory than it should.** The brotli library is at 1.2.8
-  (GO-2026-6888).
-
-### Fixed
-
 - **A YouTube video sent right after installing the desktop app no longer
   fails with "No ffmpeg".** The app fetches ffmpeg when it first starts, and a
   video that needs it now shows "Waiting for ffmpeg" and starts once ffmpeg is
   in place ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
+- **A pinned or Start menu KnightLoader shows the new icon after an update on
+  Windows.** The updater tells Explorer that the program changed, so Windows
+  no longer keeps the old program's icon in its cache.
+- **The desktop app fetches ffmpeg from its new address.** The project that
+  publishes the ffmpeg builds moved to a new address on GitHub, and KnightLoader refused
+  GitHub's redirect to it, so a new install had no ffmpeg and said it would
+  come at the first start. It fetches from the new address and follows such
+  a redirect within GitHub's API.
 
 ## [2.8.0] - 2026-11-12
 
