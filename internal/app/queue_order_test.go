@@ -315,3 +315,30 @@ func TestRestartRoutesFromScratch(t *testing.T) {
 		t.Errorf("error = %q, want the previous failure cleared", errText)
 	}
 }
+
+// A site can hand over a package's links last one first. The download list
+// shows a package's links by name, so the queue takes them in that order too.
+func TestAPackageDownloadsInTheOrderTheListShowsItsLinks(t *testing.T) {
+	a := newQueueApp(t)
+	stage(a, "w", "t10", "t9", "b2", "b1")
+	a.mu.Lock()
+	for id, name := range map[string]string{
+		"w": "Der Weber", "t10": "Teil 10", "t9": "Teil 9",
+		"b2": "Der Holzrücker - Teil 2", "b1": "der holzrücker - Teil 1",
+	} {
+		a.tasks[id].Name = name
+		a.tasks[id].Package = "Der Letzte seines Standes"
+	}
+	a.mu.Unlock()
+	wantOrder(t, a, "b1 b2 w t9 t10")
+}
+
+func TestPackagesWithoutAPositionDownloadInTheOrderOfTheirNames(t *testing.T) {
+	a := newQueueApp(t)
+	stage(a, "z", "a")
+	a.mu.Lock()
+	a.tasks["z"].Package, a.tasks["z"].Name = "Zeitreise", "Teil 1"
+	a.tasks["a"].Package, a.tasks["a"].Name = "Almauftrieb", "Teil 1"
+	a.mu.Unlock()
+	wantOrder(t, a, "a z")
+}

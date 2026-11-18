@@ -13,6 +13,9 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
+
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -568,8 +571,13 @@ func movable(t *core.Task) bool {
 }
 
 // sortQueueLocked puts the wait queue in the order the user asked for: higher
-// priority first, then the manual position, then oldest first. Caller holds a.mu.
+// priority first, then the manual position, then the order the download list
+// shows by default, package names and then link names, and last oldest first.
+// Without the names a site that hands over a package's links last one first
+// would have its list downloaded from the bottom up. Caller holds a.mu.
 func (a *App) sortQueueLocked() {
+	// The list's Intl.Collator: numbers by their value, case and accents alike.
+	names := collate.New(language.Und, collate.Loose, collate.Numeric)
 	sort.SliceStable(a.queue, func(i, j int) bool {
 		x, y := a.tasks[a.queue[i]], a.tasks[a.queue[j]]
 		if x == nil || y == nil {
@@ -587,8 +595,23 @@ func (a *App) sortQueueLocked() {
 		if x.Position != y.Position {
 			return x.Position < y.Position
 		}
+		if d := names.CompareString(listGroup(x), listGroup(y)); d != 0 {
+			return d < 0
+		}
+		if d := names.CompareString(x.Name, y.Name); d != 0 {
+			return d < 0
+		}
 		return x.CreatedAt.Before(y.CreatedAt)
 	})
+}
+
+// listGroup is what the download list sorts a link's group by: its package,
+// or the link's own name for a link outside any.
+func listGroup(t *core.Task) string {
+	if t.Package != "" {
+		return t.Package
+	}
+	return t.Name
 }
 
 // The seven priorities, JDownloader's set. Priority only orders the wait queue:
