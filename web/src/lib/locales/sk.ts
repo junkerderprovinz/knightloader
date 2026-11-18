@@ -3620,7 +3620,7 @@ export const sk: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Kde démon odpovedá, napríklad http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'API kľúč démona, ktorý vypíše cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Zdieľaný priečinok',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Priečinok, na ktorý dosiahne aj démon. Nasmeruj jeho torrentDir na torrents tu vnútri a outputDir na found, nastav action na save a KnightLoader bude seedovať každého dvojníka, ktorého nájde.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Priečinok, na ktorý dosiahne aj démon. Nasmeruj jeho torrentDir na torrents tu vnútri a outputDir na found, nastav action na save (useClientTorrents: false, seasonFromEpisodes: null) a KnightLoader bude seedovať každého dvojníka, ktorého nájde.',
   'settings.torrents.crossSeedTestDaemon': 'Otestovať démona',
   'settings.torrents.crossSeedTestDaemonHint': 'Overí, či démon na tejto adrese odpovedá. Kľúč sa prvýkrát použije pri prvom torrente.',
   'settings.torrents.crossSeedLog': 'Nedávne cross-seedy',

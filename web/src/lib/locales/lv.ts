@@ -3601,7 +3601,7 @@ export const lv: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Kur dēmons atbild, piemēram, http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Dēmona API atslēga, ko izdrukā cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Koplietota mape',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Mape, kurai piekļūst arī dēmons. Norādi tā torrentDir uz šeit esošo torrents un outputDir uz found, iestati action uz save, un KnightLoader sēs katru dvīni, ko tas atrod.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Mape, kurai piekļūst arī dēmons. Norādi tā torrentDir uz šeit esošo torrents un outputDir uz found, iestati action uz save (useClientTorrents: false, seasonFromEpisodes: null), un KnightLoader sēs katru dvīni, ko tas atrod.',
   'settings.torrents.crossSeedTestDaemon': 'Pārbaudīt dēmonu',
   'settings.torrents.crossSeedTestDaemonHint': 'Pārbauda, vai dēmons atbild šajā adresē. Atslēgu pirmo reizi izmanto ar pirmo torrentu.',
   'settings.torrents.crossSeedLog': 'Nesenās krustsēšanas',

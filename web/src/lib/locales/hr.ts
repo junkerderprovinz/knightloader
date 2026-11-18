@@ -3624,7 +3624,7 @@ export const hr: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Gdje daemon odgovara, na primjer http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'API ključ daemona, koji ispisuje cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Dijeljena mapa',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Mapa do koje dolazi i daemon. Usmjeri njegov torrentDir na torrents ovdje unutra, a outputDir na found, postavi action na save i KnightLoader će seedati svakog blizanca kojeg pronađe.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Mapa do koje dolazi i daemon. Usmjeri njegov torrentDir na torrents ovdje unutra, a outputDir na found, postavi action na save (useClientTorrents: false, seasonFromEpisodes: null) i KnightLoader će seedati svakog blizanca kojeg pronađe.',
   'settings.torrents.crossSeedTestDaemon': 'Testiraj daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Provjerava odgovara li daemon na ovoj adresi. Ključ se prvi put koristi s prvim torrentom.',
   'settings.torrents.crossSeedLog': 'Nedavni cross-seedovi',

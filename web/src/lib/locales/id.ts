@@ -3610,7 +3610,7 @@ export const id: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Tempat daemon menjawab, misalnya http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Kunci API daemon, yang ditampilkan oleh perintah cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Folder bersama',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Folder yang juga bisa dijangkau daemon. Arahkan torrentDir-nya ke torrents di sini dan outputDir-nya ke found, atur action-nya ke save, lalu KnightLoader akan melakukan seed untuk setiap kembaran yang ditemukannya.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Folder yang juga bisa dijangkau daemon. Arahkan torrentDir-nya ke torrents di sini dan outputDir-nya ke found, atur action-nya ke save (useClientTorrents: false, seasonFromEpisodes: null), lalu KnightLoader akan melakukan seed untuk setiap kembaran yang ditemukannya.',
   'settings.torrents.crossSeedTestDaemon': 'Uji daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Memeriksa apakah daemon menjawab di alamat ini. Kuncinya baru dipakai pada torrent pertama.',
   'settings.torrents.crossSeedLog': 'Cross-seed terbaru',

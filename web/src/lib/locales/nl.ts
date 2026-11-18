@@ -3593,7 +3593,7 @@ export const nl: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Waar de daemon antwoordt, bijvoorbeeld http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'De API-sleutel van de daemon, die cross-seed api-key laat zien.',
   'settings.torrents.crossSeedDaemonFolder': 'Gedeelde map',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Een map waar de daemon ook bij kan. Laat zijn torrentDir naar torrents hierin wijzen en zijn outputDir naar found, zet zijn action op save, en KnightLoader seedt elke tegenhanger die hij vindt.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Een map waar de daemon ook bij kan. Laat zijn torrentDir naar torrents hierin wijzen en zijn outputDir naar found, zet zijn action op save (useClientTorrents: false, seasonFromEpisodes: null), en KnightLoader seedt elke tegenhanger die hij vindt.',
   'settings.torrents.crossSeedTestDaemon': 'Daemon testen',
   'settings.torrents.crossSeedTestDaemonHint': 'Controleert of de daemon op dit adres antwoordt. De sleutel wordt pas bij de eerste torrent gebruikt.',
   'settings.torrents.crossSeedLog': 'Recente cross-seeds',

@@ -3610,7 +3610,7 @@ export const el: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Πού απαντά ο daemon, για παράδειγμα http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Το κλειδί API του daemon, που το τυπώνει η εντολή cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Κοινόχρηστος φάκελος',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Ένας φάκελος που φτάνει και ο daemon. Στρέψε το torrentDir του στο torrents εδώ μέσα και το outputDir στο found, βάλε το action σε save, και το KnightLoader κάνει seeding σε κάθε δίδυμο που βρίσκει.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Ένας φάκελος που φτάνει και ο daemon. Στρέψε το torrentDir του στο torrents εδώ μέσα και το outputDir στο found, βάλε το action σε save (useClientTorrents: false, seasonFromEpisodes: null), και το KnightLoader κάνει seeding σε κάθε δίδυμο που βρίσκει.',
   'settings.torrents.crossSeedTestDaemon': 'Δοκιμή daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Ελέγχει ότι ο daemon απαντά σε αυτή τη διεύθυνση. Το κλειδί χρησιμοποιείται για πρώτη φορά με το πρώτο torrent.',
   'settings.torrents.crossSeedLog': 'Πρόσφατα cross-seeds',

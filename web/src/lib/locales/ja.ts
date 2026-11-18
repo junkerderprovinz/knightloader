@@ -3608,7 +3608,7 @@ export const ja: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'デーモンが応答するアドレスです。たとえば http://cross-seed:2468 です。',
   'settings.torrents.crossSeedDaemonKeyHint': 'デーモンの API キーです。cross-seed api-key で表示できます。',
   'settings.torrents.crossSeedDaemonFolder': '共有フォルダー',
-  'settings.torrents.crossSeedDaemonFolderHint': 'デーモンからもアクセスできるフォルダーです。デーモンの torrentDir をこの中の torrents に、outputDir を found に向け、action を save にすると、見つかった対応トレントを KnightLoader がすべてシードします。',
+  'settings.torrents.crossSeedDaemonFolderHint': 'デーモンからもアクセスできるフォルダーです。デーモンの torrentDir をこの中の torrents に、outputDir を found に向け、action を save (useClientTorrents: false, seasonFromEpisodes: null) にすると、見つかった対応トレントを KnightLoader がすべてシードします。',
   'settings.torrents.crossSeedTestDaemon': 'デーモンをテスト',
   'settings.torrents.crossSeedTestDaemonHint': 'このアドレスでデーモンが応答するかを確認します。キーが初めて使われるのは最初のトレントのときです。',
   'settings.torrents.crossSeedLog': '最近のクロスシード',

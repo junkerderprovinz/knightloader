@@ -3611,7 +3611,7 @@ export const hi: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'जहाँ डेमन जवाब देता है, जैसे http://cross-seed:2468।',
   'settings.torrents.crossSeedDaemonKeyHint': 'डेमन की API कुंजी, जिसे cross-seed api-key दिखाता है।',
   'settings.torrents.crossSeedDaemonFolder': 'साझा फ़ोल्डर',
-  'settings.torrents.crossSeedDaemonFolderHint': 'ऐसा फ़ोल्डर जिस तक डेमन भी पहुँच सके। उसका torrentDir यहाँ के torrents पर और outputDir found पर रखें, action को save करें, फिर KnightLoader उसका मिला हर जुड़वाँ सीड करेगा।',
+  'settings.torrents.crossSeedDaemonFolderHint': 'ऐसा फ़ोल्डर जिस तक डेमन भी पहुँच सके। उसका torrentDir यहाँ के torrents पर और outputDir found पर रखें, action को save (useClientTorrents: false, seasonFromEpisodes: null) करें, फिर KnightLoader उसका मिला हर जुड़वाँ सीड करेगा।',
   'settings.torrents.crossSeedTestDaemon': 'डेमन जाँचें',
   'settings.torrents.crossSeedTestDaemonHint': 'जाँचता है कि डेमन इस पते पर जवाब देता है। कुंजी पहली बार पहले टॉरेंट के साथ इस्तेमाल होती है।',
   'settings.torrents.crossSeedLog': 'हाल के क्रॉस-सीड',

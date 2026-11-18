@@ -3609,7 +3609,7 @@ export const ar: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'العنوان الذي تجيب عليه الخدمة، مثل http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'مفتاح API الخاص بالخدمة، الذي يطبعه الأمر cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'مجلد مشترك',
-  'settings.torrents.crossSeedDaemonFolderHint': 'مجلد تصل إليه الخدمة أيضًا. وجّه torrentDir فيها إلى torrents هنا وoutputDir إلى found، واضبط action على save، فيبذر KnightLoader كل توأم تجده.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'مجلد تصل إليه الخدمة أيضًا. وجّه torrentDir فيها إلى torrents هنا وoutputDir إلى found، واضبط action على save (useClientTorrents: false, seasonFromEpisodes: null)، فيبذر KnightLoader كل توأم تجده.',
   'settings.torrents.crossSeedTestDaemon': 'اختبار الخدمة',
   'settings.torrents.crossSeedTestDaemonHint': 'يتحقق من أن الخدمة تجيب على هذا العنوان. ويُستخدم المفتاح أول مرة مع أول تورنت.',
   'settings.torrents.crossSeedLog': 'آخر عمليات البذر المتقاطع',

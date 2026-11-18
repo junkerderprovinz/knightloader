@@ -3601,7 +3601,7 @@ export const et: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Kus deemon vastab, näiteks http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Deemoni API-võti, mille cross-seed api-key välja trükib.',
   'settings.torrents.crossSeedDaemonFolder': 'Jagatud kaust',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Kaust, kuhu ka deemon ulatub. Suuna selle torrentDir siinsele kaustale torrents ja outputDir kaustale found, pane action väärtuseks save, ja KnightLoader levitab iga kaksikut, mille see leiab.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Kaust, kuhu ka deemon ulatub. Suuna selle torrentDir siinsele kaustale torrents ja outputDir kaustale found, pane action väärtuseks save (useClientTorrents: false, seasonFromEpisodes: null), ja KnightLoader levitab iga kaksikut, mille see leiab.',
   'settings.torrents.crossSeedTestDaemon': 'Testi deemonit',
   'settings.torrents.crossSeedTestDaemonHint': 'Kontrollib, et deemon sellel aadressil vastab. Võtit kasutatakse esimest korda alles esimese torrentiga.',
   'settings.torrents.crossSeedLog': 'Viimased ristlevitamised',

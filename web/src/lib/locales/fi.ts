@@ -3611,7 +3611,7 @@ export const fi: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Missä daemon vastaa, esimerkiksi http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Daemonin API-avain, jonka komento cross-seed api-key tulostaa.',
   'settings.torrents.crossSeedDaemonFolder': 'Jaettu kansio',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Kansio, johon myös daemon ylettyy. Osoita sen torrentDir tämän kansion torrents-kansioon ja outputDir found-kansioon, aseta action arvoon save, niin KnightLoader jakaa jokaisen sen löytämän vastineen.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Kansio, johon myös daemon ylettyy. Osoita sen torrentDir tämän kansion torrents-kansioon ja outputDir found-kansioon, aseta action arvoon save (useClientTorrents: false, seasonFromEpisodes: null), niin KnightLoader jakaa jokaisen sen löytämän vastineen.',
   'settings.torrents.crossSeedTestDaemon': 'Testaa daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Tarkistaa, että daemon vastaa tässä osoitteessa. Avainta käytetään vasta ensimmäisen torrentin kohdalla.',
   'settings.torrents.crossSeedLog': 'Viimeisimmät ristiinjaot',

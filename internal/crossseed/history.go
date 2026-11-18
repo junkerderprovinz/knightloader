@@ -148,9 +148,11 @@ func (h *History) Save() error {
 	return err
 }
 
-func writeAtomic(path string, b []byte) error {
+func writeAtomic(path string, b []byte) error { return writeFileAtomic(path, b, 0o600) }
+
+func writeFileAtomic(path string, b []byte, perm os.FileMode) error {
 	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, b, 0o600); err != nil {
+	if err := os.WriteFile(tmp, b, perm); err != nil {
 		return err
 	}
 	if err := fsretry.Rename(tmp, path); err != nil {

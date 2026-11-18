@@ -3611,7 +3611,7 @@ export const lt: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Kur demonas atsako, pavyzdžiui, http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Demono API raktas, kurį išveda cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Bendras aplankas',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Aplankas, kurį pasiekia ir demonas. Nukreipk jo torrentDir į čia esantį torrents, o outputDir į found, nustatyk action į save, ir KnightLoader sės kiekvieną jo rastą atitikmenį.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Aplankas, kurį pasiekia ir demonas. Nukreipk jo torrentDir į čia esantį torrents, o outputDir į found, nustatyk action į save (useClientTorrents: false, seasonFromEpisodes: null), ir KnightLoader sės kiekvieną jo rastą atitikmenį.',
   'settings.torrents.crossSeedTestDaemon': 'Tikrinti demoną',
   'settings.torrents.crossSeedTestDaemonHint': 'Patikrina, ar demonas atsako šiuo adresu. Raktas pirmą kartą panaudojamas su pirmu torrentu.',
   'settings.torrents.crossSeedLog': 'Naujausi kryžminiai sėjimai',

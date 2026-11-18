@@ -177,10 +177,15 @@ If you run [cross-seed](https://www.cross-seed.org/) yourself, give its address
 and API key instead. KnightLoader then hands it each finished torrent through
 its webhook and searches nothing itself. The daemon cannot reach
 KnightLoader's qBittorrent, so give both a shared folder, one the daemon can
-reach as well, and set three of the daemon's options: `torrentDir` to
-`torrents` in that folder, `outputDir` to `found` in it, and `action` to
-`save`. KnightLoader puts each finished torrent's `.torrent` into `torrents`
-and hands the daemon its info hash. Every 30 seconds it looks into `found`:
+reach as well, and set five of the daemon's options: `torrentDir` to
+`torrents` in that folder, `outputDir` to `found` in it, `action` to
+`save`, `useClientTorrents` to `false` and `seasonFromEpisodes` to `null`.
+cross-seed 6 refuses to start with a torrent folder and no torrent client
+otherwise. KnightLoader makes both folders when you save the daemon or test
+it, so the daemon finds its torrent folder at its first start. "Test daemon"
+checks the API key as well. KnightLoader puts each finished torrent's
+`.torrent` into `torrents`, readable by the daemon's user too, and hands the
+daemon its info hash. Every 30 seconds it looks into `found`:
 a twin with exactly the files of one of your finished torrents goes into
 qBittorrent like the twins KnightLoader finds itself, and one that matches
 none, such as a partial match, is refused and logged. Either way the file

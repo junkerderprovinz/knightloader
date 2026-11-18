@@ -3599,7 +3599,7 @@ export const ko: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': '데몬이 응답하는 주소입니다. 예: http://cross-seed:2468',
   'settings.torrents.crossSeedDaemonKeyHint': '데몬의 API 키로, cross-seed api-key를 실행하면 출력됩니다.',
   'settings.torrents.crossSeedDaemonFolder': '공유 폴더',
-  'settings.torrents.crossSeedDaemonFolderHint': '데몬도 접근할 수 있는 폴더입니다. 데몬의 torrentDir을 이 안의 torrents로, outputDir을 found로 지정하고 action을 save로 두면 데몬이 찾은 짝 토렌트를 KnightLoader가 모두 시드합니다.',
+  'settings.torrents.crossSeedDaemonFolderHint': '데몬도 접근할 수 있는 폴더입니다. 데몬의 torrentDir을 이 안의 torrents로, outputDir을 found로 지정하고 action을 save (useClientTorrents: false, seasonFromEpisodes: null)로 두면 데몬이 찾은 짝 토렌트를 KnightLoader가 모두 시드합니다.',
   'settings.torrents.crossSeedTestDaemon': '데몬 테스트',
   'settings.torrents.crossSeedTestDaemonHint': '이 주소에서 데몬이 응답하는지 확인합니다. 키는 첫 토렌트를 넘길 때 처음 쓰입니다.',
   'settings.torrents.crossSeedLog': '최근 크로스 시드',

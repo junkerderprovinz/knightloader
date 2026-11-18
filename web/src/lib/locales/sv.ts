@@ -3610,7 +3610,7 @@ export const sv: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Där daemonen svarar, till exempel http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Daemonens API-nyckel, som cross-seed api-key skriver ut.',
   'settings.torrents.crossSeedDaemonFolder': 'Delad mapp',
-  'settings.torrents.crossSeedDaemonFolderHint': 'En mapp som daemonen också når. Peka dess torrentDir på torrents här inne och dess outputDir på found, sätt dess action till save, så delar KnightLoader varje tvilling den hittar.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'En mapp som daemonen också når. Peka dess torrentDir på torrents här inne och dess outputDir på found, sätt dess action till save (useClientTorrents: false, seasonFromEpisodes: null), så delar KnightLoader varje tvilling den hittar.',
   'settings.torrents.crossSeedTestDaemon': 'Testa daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Kontrollerar att daemonen svarar på den här adressen. Nyckeln används först vid den första torrenten.',
   'settings.torrents.crossSeedLog': 'Senaste cross-seeds',

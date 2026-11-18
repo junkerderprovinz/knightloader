@@ -3610,7 +3610,7 @@ export const hu: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Ahol a démon válaszol, például http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'A démon API-kulcsa, amelyet a cross-seed api-key parancs kiír.',
   'settings.torrents.crossSeedDaemonFolder': 'Megosztott mappa',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Egy mappa, amelyet a démon is elér. Állítsd a torrentDir értékét az itteni torrents mappára, az outputDir értékét a found mappára, az action értékét save-re, és a KnightLoader minden ikret seedel, amit talál.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Egy mappa, amelyet a démon is elér. Állítsd a torrentDir értékét az itteni torrents mappára, az outputDir értékét a found mappára, az action értékét save (useClientTorrents: false, seasonFromEpisodes: null)-re, és a KnightLoader minden ikret seedel, amit talál.',
   'settings.torrents.crossSeedTestDaemon': 'Démon tesztelése',
   'settings.torrents.crossSeedTestDaemonHint': 'Ellenőrzi, hogy a démon válaszol-e ezen a címen. A kulcsot először az első torrentnél használja.',
   'settings.torrents.crossSeedLog': 'Legutóbbi cross-seedek',

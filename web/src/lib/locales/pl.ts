@@ -3595,7 +3595,7 @@ export const pl: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Gdzie odpowiada demon, na przykład http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Klucz API demona, który wypisuje cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Wspólny folder',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Folder, do którego dociera też demon. Ustaw jego torrentDir na torrents w tym folderze, a outputDir na found, ustaw action na save, a KnightLoader będzie seedować każdego bliźniaka, którego znajdzie.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Folder, do którego dociera też demon. Ustaw jego torrentDir na torrents w tym folderze, a outputDir na found, ustaw action na save (useClientTorrents: false, seasonFromEpisodes: null), a KnightLoader będzie seedować każdego bliźniaka, którego znajdzie.',
   'settings.torrents.crossSeedTestDaemon': 'Testuj demona',
   'settings.torrents.crossSeedTestDaemonHint': 'Sprawdza, czy demon odpowiada pod tym adresem. Klucz zostanie użyty dopiero przy pierwszym torrencie.',
   'settings.torrents.crossSeedLog': 'Ostatnie cross-seedy',

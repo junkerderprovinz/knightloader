@@ -3624,7 +3624,7 @@ export const sr: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Где демон одговара, на пример http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'API кључ демона, који исписује cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Заједничка фасцикла',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Фасцикла до које стиже и демон. Усмери његов torrentDir на torrents овде унутра, а outputDir на found, постави action на save и KnightLoader ће сидовати сваког двојника ког пронађе.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Фасцикла до које стиже и демон. Усмери његов torrentDir на torrents овде унутра, а outputDir на found, постави action на save (useClientTorrents: false, seasonFromEpisodes: null) и KnightLoader ће сидовати сваког двојника ког пронађе.',
   'settings.torrents.crossSeedTestDaemon': 'Тестирај демон',
   'settings.torrents.crossSeedTestDaemonHint': 'Проверава да ли демон одговара на овој адреси. Кључ се први пут користи уз први торент.',
   'settings.torrents.crossSeedLog': 'Недавна крос-сидовања',

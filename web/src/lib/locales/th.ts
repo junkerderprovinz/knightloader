@@ -3609,7 +3609,7 @@ export const th: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'ที่อยู่ที่เดมอนตอบรับ เช่น http://cross-seed:2468',
   'settings.torrents.crossSeedDaemonKeyHint': 'คีย์ API ของเดมอน ซึ่งคำสั่ง cross-seed api-key จะแสดงออกมา',
   'settings.torrents.crossSeedDaemonFolder': 'โฟลเดอร์ที่ใช้ร่วมกัน',
-  'settings.torrents.crossSeedDaemonFolderHint': 'โฟลเดอร์ที่เดมอนเข้าถึงได้ด้วย ชี้ torrentDir ของเดมอนไปที่ torrents ในนี้ และ outputDir ไปที่ found ตั้ง action เป็น save แล้ว KnightLoader จะซีดคู่แฝดทุกตัวที่เดมอนหาเจอ',
+  'settings.torrents.crossSeedDaemonFolderHint': 'โฟลเดอร์ที่เดมอนเข้าถึงได้ด้วย ชี้ torrentDir ของเดมอนไปที่ torrents ในนี้ และ outputDir ไปที่ found ตั้ง action เป็น save (useClientTorrents: false, seasonFromEpisodes: null) แล้ว KnightLoader จะซีดคู่แฝดทุกตัวที่เดมอนหาเจอ',
   'settings.torrents.crossSeedTestDaemon': 'ทดสอบเดมอน',
   'settings.torrents.crossSeedTestDaemonHint': 'ตรวจว่าเดมอนตอบรับที่ที่อยู่นี้ คีย์จะถูกใช้ครั้งแรกกับทอร์เรนต์ตัวแรก',
   'settings.torrents.crossSeedLog': 'การครอสซีดล่าสุด',

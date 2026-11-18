@@ -3610,7 +3610,7 @@ export const vi: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Nơi daemon phản hồi, ví dụ http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Khóa API của daemon, do lệnh cross-seed api-key in ra.',
   'settings.torrents.crossSeedDaemonFolder': 'Thư mục chung',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Một thư mục mà daemon cũng truy cập được. Trỏ torrentDir của nó tới torrents trong này và outputDir tới found, đặt action là save, rồi KnightLoader sẽ seed mọi bản tương ứng mà nó tìm thấy.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Một thư mục mà daemon cũng truy cập được. Trỏ torrentDir của nó tới torrents trong này và outputDir tới found, đặt action là save (useClientTorrents: false, seasonFromEpisodes: null), rồi KnightLoader sẽ seed mọi bản tương ứng mà nó tìm thấy.',
   'settings.torrents.crossSeedTestDaemon': 'Kiểm tra daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Kiểm tra xem daemon có phản hồi ở địa chỉ này không. Khóa chỉ được dùng lần đầu với torrent đầu tiên.',
   'settings.torrents.crossSeedLog': 'Cross-seed gần đây',

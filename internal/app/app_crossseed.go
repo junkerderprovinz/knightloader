@@ -105,6 +105,9 @@ func (a *App) applyCrossSeed(c settings.CrossSeed, boot bool) {
 	if c.Enabled {
 		if c.Daemon.URL != "" {
 			conf.Daemon = crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey, c.Daemon.Folder)
+			if err := conf.Daemon.Prepare(); err != nil {
+				log.Printf("cross-seed: the shared folder %s: %v", c.Daemon.Folder, err)
+			}
 		}
 		for _, name := range []string{crossseed.RED.Name, crossseed.OPS.Name} {
 			if acc := accountOn(c, name); acc.Ready() {
@@ -350,7 +353,11 @@ func (a *App) TestCrossSeed(ctx context.Context, c settings.CrossSeed, what stri
 		x := c.Indexers[index]
 		return "", crossseed.NewTorznab(x.Name, x.URL, x.APIKey).Caps(ctx)
 	case "daemon":
-		return "", crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey, c.Daemon.Folder).Ping(ctx)
+		d := crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey, c.Daemon.Folder)
+		if err := d.Prepare(); err != nil {
+			return "", err
+		}
+		return "", d.Check(ctx)
 	}
 	return "", fmt.Errorf("%q is not a part of cross-seeding to test", what)
 }

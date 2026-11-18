@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -118,13 +119,57 @@ func TestADaemonThatRefusesTheKeySaysSo(t *testing.T) {
 	}
 }
 
-func TestTheDaemonAnswersAPing(t *testing.T) {
+func TestACheckTakesTheKeyTheDaemonAccepts(t *testing.T) {
 	srv := httptest.NewServer(&fakeDaemon{})
 	defer srv.Close()
-	if err := NewDaemon(srv.URL, "daemon-key", "").Ping(context.Background()); err != nil {
+	if err := NewDaemon(srv.URL, "daemon-key", "").Check(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if err := NewDaemon(srv.URL+"/nothing", "daemon-key", "").Ping(context.Background()); err == nil {
-		t.Fatal("an address without a daemon answered the ping")
+}
+
+func TestACheckSaysWhenTheDaemonRefusesTheKey(t *testing.T) {
+	srv := httptest.NewServer(&fakeDaemon{})
+	defer srv.Close()
+	err := NewDaemon(srv.URL, "wrong", "").Check(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "API key") {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestACheckFailsWhereNoDaemonAnswers(t *testing.T) {
+	srv := httptest.NewServer(&fakeDaemon{})
+	defer srv.Close()
+	if err := NewDaemon(srv.URL+"/nothing", "daemon-key", "").Check(context.Background()); err == nil {
+		t.Fatal("an address without a daemon passed the check")
+	}
+}
+
+func TestASharedFolderGetsTheTwoFoldersTheDaemonNeeds(t *testing.T) {
+	dir := t.TempDir()
+	if err := NewDaemon("http://daemon", "k", dir).Prepare(); err != nil {
+		t.Fatal(err)
+	}
+	for _, sub := range []string{"torrents", "found"} {
+		if fi, err := os.Stat(filepath.Join(dir, sub)); err != nil || !fi.IsDir() {
+			t.Fatalf("%s: %v", sub, err)
+		}
+	}
+}
+
+func TestTheTorrentLeftForTheDaemonIsReadableByAnotherUser(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows has no permission bits for other users")
+	}
+	dir := t.TempDir()
+	_, d := daemonAt(t, dir)
+	if err := d.Hand(context.Background(), Source{Hash: "ABCD", Name: "Album", Dir: "/data", Torrent: []byte("d4:infod4:name5:Albumee")}); err != nil {
+		t.Fatal(err)
+	}
+	fi, err := os.Stat(filepath.Join(dir, "torrents", "abcd.torrent"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fi.Mode().Perm()&0o004 == 0 {
+		t.Fatalf("mode %v", fi.Mode().Perm())
 	}
 }

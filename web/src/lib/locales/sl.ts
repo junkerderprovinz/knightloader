@@ -3609,7 +3609,7 @@ export const sl: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Kje demon odgovarja, na primer http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'API ključ demona, ki ga izpiše cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Skupna mapa',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Mapa, do katere seže tudi demon. Njegov torrentDir usmeri na torrents tukaj notri, outputDir pa na found, action nastavi na save in KnightLoader bo sejal vsakega dvojnika, ki ga najde.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Mapa, do katere seže tudi demon. Njegov torrentDir usmeri na torrents tukaj notri, outputDir pa na found, action nastavi na save (useClientTorrents: false, seasonFromEpisodes: null) in KnightLoader bo sejal vsakega dvojnika, ki ga najde.',
   'settings.torrents.crossSeedTestDaemon': 'Preizkusi demona',
   'settings.torrents.crossSeedTestDaemonHint': 'Preveri, ali demon odgovarja na tem naslovu. Ključ se prvič uporabi ob prvem torrentu.',
   'settings.torrents.crossSeedLog': 'Nedavna navzkrižna sejanja',

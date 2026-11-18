@@ -3618,7 +3618,7 @@ export const ro: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Unde răspunde daemonul, de exemplu http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Cheia API a daemonului, pe care o afișează cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Dosar comun',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Un dosar la care ajunge și daemonul. Îndreaptă torrentDir-ul lui spre torrents de aici și outputDir-ul spre found, pune action pe save, iar KnightLoader face seed fiecărui geamăn pe care îl găsește.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Un dosar la care ajunge și daemonul. Îndreaptă torrentDir-ul lui spre torrents de aici și outputDir-ul spre found, pune action pe save (useClientTorrents: false, seasonFromEpisodes: null), iar KnightLoader face seed fiecărui geamăn pe care îl găsește.',
   'settings.torrents.crossSeedTestDaemon': 'Testează daemonul',
   'settings.torrents.crossSeedTestDaemonHint': 'Verifică dacă daemonul răspunde la această adresă. Cheia e folosită prima dată la primul torrent.',
   'settings.torrents.crossSeedLog': 'Cross-seeduri recente',

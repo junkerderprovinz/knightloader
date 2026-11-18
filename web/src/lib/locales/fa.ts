@@ -3599,7 +3599,7 @@ export const fa: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'جایی که دیمن پاسخ می‌دهد، مثلاً http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'کلید API دیمن، که فرمان cross-seed api-key چاپش می‌کند.',
   'settings.torrents.crossSeedDaemonFolder': 'پوشهٔ مشترک',
-  'settings.torrents.crossSeedDaemonFolderHint': 'پوشه‌ای که دیمن هم به آن دسترسی دارد. torrentDir دیمن را روی torrents در همین‌جا و outputDir را روی found بگذار، action را save کن، و KnightLoader هر دوقلویی را که پیدا کند سید می‌کند.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'پوشه‌ای که دیمن هم به آن دسترسی دارد. torrentDir دیمن را روی torrents در همین‌جا و outputDir را روی found بگذار، action را save (useClientTorrents: false, seasonFromEpisodes: null) کن، و KnightLoader هر دوقلویی را که پیدا کند سید می‌کند.',
   'settings.torrents.crossSeedTestDaemon': 'آزمایش دیمن',
   'settings.torrents.crossSeedTestDaemonHint': 'بررسی می‌کند که دیمن در این نشانی پاسخ می‌دهد. کلید اولین بار با اولین تورنت به کار می‌رود.',
   'settings.torrents.crossSeedLog': 'کراس‌سیدهای اخیر',

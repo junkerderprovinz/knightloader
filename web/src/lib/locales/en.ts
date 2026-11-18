@@ -2584,7 +2584,7 @@ export const en = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Where the daemon answers, for example http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'The daemon\'s API key, which cross-seed api-key prints.',
   'settings.torrents.crossSeedDaemonFolder': 'Shared folder',
-  'settings.torrents.crossSeedDaemonFolderHint': 'A folder the daemon can reach as well. Point its torrentDir at torrents in here and its outputDir at found, set its action to save, and KnightLoader seeds every twin it finds.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'A folder the daemon can reach as well. Point its torrentDir at torrents in here and its outputDir at found, set its action to save, useClientTorrents to false and seasonFromEpisodes to null, and KnightLoader seeds every twin it finds.',
   'settings.torrents.crossSeedTestDaemon': 'Test daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Checks that the daemon answers at this address. The key is first used with the first torrent.',
   'settings.torrents.crossSeedLog': 'Recent cross-seeds',

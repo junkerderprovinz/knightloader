@@ -3595,7 +3595,7 @@ export const zh: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': '守护进程响应的地址，例如 http://cross-seed:2468。',
   'settings.torrents.crossSeedDaemonKeyHint': '守护进程的 API 密钥，可用 cross-seed api-key 命令输出。',
   'settings.torrents.crossSeedDaemonFolder': '共享文件夹',
-  'settings.torrents.crossSeedDaemonFolderHint': '守护进程也能访问的文件夹。把它的 torrentDir 指向这里的 torrents，把 outputDir 指向 found，并把 action 设为 save，KnightLoader 就会为它找到的每个孪生种子做种。',
+  'settings.torrents.crossSeedDaemonFolderHint': '守护进程也能访问的文件夹。把它的 torrentDir 指向这里的 torrents，把 outputDir 指向 found，并把 action 设为 save (useClientTorrents: false, seasonFromEpisodes: null)，KnightLoader 就会为它找到的每个孪生种子做种。',
   'settings.torrents.crossSeedTestDaemon': '测试守护进程',
   'settings.torrents.crossSeedTestDaemonHint': '检查守护进程是否在这个地址响应。密钥在处理第一个种子时才首次使用。',
   'settings.torrents.crossSeedLog': '最近的交叉做种',

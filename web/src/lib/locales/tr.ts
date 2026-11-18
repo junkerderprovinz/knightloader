@@ -3609,7 +3609,7 @@ export const tr: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Daemon\'un yanıt verdiği yer, örneğin http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Daemon\'un API anahtarı. cross-seed api-key komutu bunu yazdırır.',
   'settings.torrents.crossSeedDaemonFolder': 'Paylaşılan klasör',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Daemon\'un da erişebildiği bir klasör. Onun torrentDir ayarını buradaki torrents klasörüne, outputDir ayarını found klasörüne yönelt, action ayarını save yap, KnightLoader da bulduğu her ikizi seed eder.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Daemon\'un da erişebildiği bir klasör. Onun torrentDir ayarını buradaki torrents klasörüne, outputDir ayarını found klasörüne yönelt, action ayarını save (useClientTorrents: false, seasonFromEpisodes: null) yap, KnightLoader da bulduğu her ikizi seed eder.',
   'settings.torrents.crossSeedTestDaemon': 'Daemon\'u sına',
   'settings.torrents.crossSeedTestDaemonHint': 'Daemon\'un bu adreste yanıt verip vermediğini denetler. Anahtar ilk kez ilk torrentte kullanılır.',
   'settings.torrents.crossSeedLog': 'Son cross-seed\'ler',

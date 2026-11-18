@@ -55,7 +55,7 @@ func (d *Daemon) Hand(ctx context.Context, src Source) error {
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return err
 		}
-		if err := writeAtomic(path, src.Torrent); err != nil {
+		if err := writeFileAtomic(path, src.Torrent, 0o644); err != nil {
 			return err
 		}
 		form.Set("infoHash", strings.ToLower(src.Hash))
@@ -128,14 +128,44 @@ func trackerOfFind(file string, torrent []byte) string {
 	return DaemonKey
 }
 
-// Ping asks whether the daemon is there, without its key.
-func (d *Daemon) Ping(ctx context.Context) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, d.base+"/api/ping", nil)
+// Check asks whether the daemon is there and takes the API key. The webhook
+// is sent with nothing to search for: cross-seed answers that with 400 once
+// the key passed, and with 401 when it did not.
+func (d *Daemon) Check(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, d.base+"/api/webhook", strings.NewReader(""))
 	if err != nil {
 		return err
 	}
-	return d.do(req)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-Api-Key", d.key)
+	err = d.do(req)
+	var status *statusError
+	if errors.As(err, &status) && status.code == http.StatusBadRequest {
+		return nil
+	}
+	return err
 }
+
+// Prepare makes the two folders of the shared folder, since cross-seed will
+// not start while its torrentDir is missing.
+func (d *Daemon) Prepare() error {
+	if d.folder == "" {
+		return nil
+	}
+	for _, sub := range []string{"torrents", "found"} {
+		if err := os.MkdirAll(filepath.Join(d.folder, sub), 0o755); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type statusError struct {
+	code   int
+	status string
+}
+
+func (e *statusError) Error() string { return "the cross-seed daemon answered " + e.status }
 
 func (d *Daemon) do(req *http.Request) error {
 	resp, err := d.http.Do(req)
@@ -154,7 +184,7 @@ func (d *Daemon) do(req *http.Request) error {
 	case resp.StatusCode == http.StatusUnauthorized:
 		return errors.New("the cross-seed daemon refused the API key")
 	case resp.StatusCode < 200 || resp.StatusCode > 299:
-		return fmt.Errorf("the cross-seed daemon answered %s", resp.Status)
+		return &statusError{code: resp.StatusCode, status: resp.Status}
 	}
 	return nil
 }

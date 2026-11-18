@@ -3606,7 +3606,7 @@ export const is: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Þar sem þjónninn svarar, til dæmis http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'API-lykill þjónsins, sem cross-seed api-key prentar út.',
   'settings.torrents.crossSeedDaemonFolder': 'Sameiginleg mappa',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Mappa sem þjónninn nær líka til. Beindu torrentDir hans á torrents hér inni og outputDir á found, stilltu action á save, og KnightLoader sáir hverjum tvíbura sem hann finnur.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Mappa sem þjónninn nær líka til. Beindu torrentDir hans á torrents hér inni og outputDir á found, stilltu action á save (useClientTorrents: false, seasonFromEpisodes: null), og KnightLoader sáir hverjum tvíbura sem hann finnur.',
   'settings.torrents.crossSeedTestDaemon': 'Prófa þjón',
   'settings.torrents.crossSeedTestDaemonHint': 'Athugar hvort þjónninn svarar á þessu vistfangi. Lykillinn er fyrst notaður með fyrsta torrentinu.',
   'settings.torrents.crossSeedLog': 'Nýlegar krosssáningar',

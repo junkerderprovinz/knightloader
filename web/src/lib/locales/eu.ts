@@ -3605,7 +3605,7 @@ export const eu: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Daemonak non erantzuten duen, adibidez http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'Daemonaren API gakoa, cross-seed api-key komandoak inprimatzen duena.',
   'settings.torrents.crossSeedDaemonFolder': 'Karpeta partekatua',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Daemonak ere iristen duen karpeta bat. Zuzendu bere torrentDir hemengo torrents karpetara eta outputDir found karpetara, jarri action save balioan, eta KnightLoaderrek aurkitzen duen biki bakoitzaren seed egingo du.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Daemonak ere iristen duen karpeta bat. Zuzendu bere torrentDir hemengo torrents karpetara eta outputDir found karpetara, jarri action save (useClientTorrents: false, seasonFromEpisodes: null) balioan, eta KnightLoaderrek aurkitzen duen biki bakoitzaren seed egingo du.',
   'settings.torrents.crossSeedTestDaemon': 'Probatu daemona',
   'settings.torrents.crossSeedTestDaemonHint': 'Daemonak helbide honetan erantzuten duela egiaztatzen du. Gakoa lehen torrentarekin erabiltzen da lehen aldiz.',
   'settings.torrents.crossSeedLog': 'Azken cross-seedak',

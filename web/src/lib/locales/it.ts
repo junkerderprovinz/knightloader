@@ -3594,7 +3594,7 @@ export const it: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Dove risponde il daemon, per esempio http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'La chiave API del daemon, quella che stampa cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Cartella condivisa',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Una cartella che raggiunge anche il daemon. Punta il suo torrentDir su torrents qui dentro e il suo outputDir su found, imposta action su save, e KnightLoader fa il seed di ogni gemello che trova.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Una cartella che raggiunge anche il daemon. Punta il suo torrentDir su torrents qui dentro e il suo outputDir su found, imposta action su save (useClientTorrents: false, seasonFromEpisodes: null), e KnightLoader fa il seed di ogni gemello che trova.',
   'settings.torrents.crossSeedTestDaemon': 'Prova il daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Controlla che il daemon risponda a questo indirizzo. La chiave viene usata per la prima volta con il primo torrent.',
   'settings.torrents.crossSeedLog': 'Cross-seed recenti',

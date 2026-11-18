@@ -3628,7 +3628,7 @@ export const he: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'איפה הדמון עונה, למשל http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'מפתח ה-API של הדמון, שהפקודה cross-seed api-key מדפיסה.',
   'settings.torrents.crossSeedDaemonFolder': 'תיקייה משותפת',
-  'settings.torrents.crossSeedDaemonFolderHint': 'תיקייה שגם הדמון מגיע אליה. כוון את ה-torrentDir שלו ל-torrents כאן ואת ה-outputDir ל-found, הגדר את action ל-save, ו-KnightLoader יזריע כל תאום שהוא מוצא.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'תיקייה שגם הדמון מגיע אליה. כוון את ה-torrentDir שלו ל-torrents כאן ואת ה-outputDir ל-found, הגדר את action ל-save (useClientTorrents: false, seasonFromEpisodes: null), ו-KnightLoader יזריע כל תאום שהוא מוצא.',
   'settings.torrents.crossSeedTestDaemon': 'בדוק דמון',
   'settings.torrents.crossSeedTestDaemonHint': 'בודק שהדמון עונה בכתובת הזו. המפתח משמש לראשונה עם הטורנט הראשון.',
   'settings.torrents.crossSeedLog': 'הזרעות צולבות אחרונות',

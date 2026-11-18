@@ -3620,7 +3620,7 @@ export const cs: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Kde daemon odpovídá, například http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'API klíč daemonu, který vypíše cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Sdílená složka',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Složka, na kterou dosáhne i daemon. Nasměruj jeho torrentDir na torrents tady uvnitř a outputDir na found, nastav action na save a KnightLoader bude seedovat každé dvojče, které najde.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Složka, na kterou dosáhne i daemon. Nasměruj jeho torrentDir na torrents tady uvnitř a outputDir na found, nastav action na save (useClientTorrents: false, seasonFromEpisodes: null) a KnightLoader bude seedovat každé dvojče, které najde.',
   'settings.torrents.crossSeedTestDaemon': 'Otestovat daemon',
   'settings.torrents.crossSeedTestDaemonHint': 'Ověří, že daemon na této adrese odpovídá. Klíč se poprvé použije až s prvním torrentem.',
   'settings.torrents.crossSeedLog': 'Poslední cross-seedy',

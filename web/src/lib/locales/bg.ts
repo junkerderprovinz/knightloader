@@ -3611,7 +3611,7 @@ export const bg: Dict = {
   'settings.torrents.crossSeedDaemonUrlHint': 'Къде отговаря демонът, например http://cross-seed:2468.',
   'settings.torrents.crossSeedDaemonKeyHint': 'API ключът на демона, който извежда cross-seed api-key.',
   'settings.torrents.crossSeedDaemonFolder': 'Обща папка',
-  'settings.torrents.crossSeedDaemonFolderHint': 'Папка, до която стига и демонът. Насочи неговия torrentDir към torrents тук, а outputDir към found, задай action на save и KnightLoader ще сийдва всеки двойник, който той намери.',
+  'settings.torrents.crossSeedDaemonFolderHint': 'Папка, до която стига и демонът. Насочи неговия torrentDir към torrents тук, а outputDir към found, задай action на save (useClientTorrents: false, seasonFromEpisodes: null) и KnightLoader ще сийдва всеки двойник, който той намери.',
   'settings.torrents.crossSeedTestDaemon': 'Тествай демона',
   'settings.torrents.crossSeedTestDaemonHint': 'Проверява дали демонът отговаря на този адрес. Ключът се използва за пръв път с първия торент.',
   'settings.torrents.crossSeedLog': 'Последни кръстосани сийдвания',
