@@ -108,7 +108,9 @@ describe('every hover in the stylesheet', () => {
     const band = rules.find((r) => r.selector === ':where([data-shade]) > [data-band]:is(:hover, :has(:focus-visible))');
     expect(band?.body).toMatch(/background-color:\s*var\(--hover\);/);
     const strip = rules.find((r) => r.selector === '.kl-accounts .kl-col-actions > .glim-row-actions');
-    expect(strip?.body).toMatch(/linear-gradient\(to left, var\(--hover\) /);
+    expect(strip?.body).toMatch(/linear-gradient\(to left, var\(--kl-row-ground\) /);
+    const row = rules.find((r) => r.selector === '.kl-accounts .glim-row');
+    expect(row?.body).toMatch(/--kl-row-ground:\s*var\(--hover\);/);
   });
 
   it('gives a button and a row the same colour', () => {
