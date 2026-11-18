@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"os"
@@ -365,7 +366,10 @@ func TestAFreeFilerLinkGoesToTheFreeClientBelowTheDebridServicesAndAboveJD(t *te
 		t.Error("the free client's tasks do not reach its backend")
 	}
 
-	if err := a.SetHosterLogin("filer.net", "john@example.com", "hunter2"); err != nil {
+	// Saved as the sign-in window saves it, with the check done before it
+	// returns: a check still running would take the login back from JD after
+	// the failure below.
+	if _, err := a.SaveHosterLogin(context.Background(), "filer.net", "john@example.com", "hunter2", ""); err != nil {
 		t.Fatal(err)
 	}
 	if got := chainIDs(a, link); len(got) < 3 || got[0] != filer.ResolverID || got[1] != "alldebrid" || got[2] != filer.FreeResolverID {
