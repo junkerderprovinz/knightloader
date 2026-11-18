@@ -3998,7 +3998,7 @@ export const id: Dict = {
   'settings.vpn.state.connecting': 'Menyambung',
   'settings.vpn.state.failed': 'Gagal',
   'settings.vpn.state.saved': 'Sudah disiapkan',
-  'settings.vpn.portForwardingHint': '{name} bisa meneruskan port ke KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} bisa meneruskan port ke KnightLoader. Torrent tidak memakai port ini. Torrent lewat VPN, tetapi hanya bisa membuka koneksi sendiri. Peer lain tidak bisa terhubung ke kamu, dan itu mengurangi sedikit rasio di tracker privat.',
   'settings.vpn.noPortForwardingHint': 'Peer lain tidak bisa terhubung ke kamu lewat {name}. Torrent tetap diunduh, tetapi menemukan lebih sedikit peer dan lebih sedikit melakukan seed.',
   'settings.vpn.custom': 'Konfigurasi WireGuard sendiri',
   'settings.vpn.note.kaspersky': 'Konfigurasi Kaspersky berhenti bekerja jika tidak dipakai 24 jam, dan berlaku untuk satu perangkat. Buat yang baru di My Kaspersky bila itu terjadi.',

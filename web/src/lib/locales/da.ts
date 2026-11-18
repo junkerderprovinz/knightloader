@@ -3984,7 +3984,7 @@ export const da: Dict = {
   'settings.vpn.state.connecting': 'Forbinder',
   'settings.vpn.state.failed': 'Mislykkedes',
   'settings.vpn.state.saved': 'Sat op',
-  'settings.vpn.portForwardingHint': '{name} kan videresende en port til KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} kan videresende en port til KnightLoader. Torrents bruger ikke denne port. De går gennem VPN\'en, men kan kun selv åbne forbindelser. Andre peers kan ikke forbinde sig til dig, og det koster lidt ratio på private trackere.',
   'settings.vpn.noPortForwardingHint': 'Andre peers kan ikke forbinde til dig gennem {name}. Torrents downloader stadig, men de finder færre peers og seeder mindre.',
   'settings.vpn.custom': 'Egen WireGuard-konfiguration',
   'settings.vpn.note.kaspersky': 'Kasperskys konfiguration holder op med at virke, hvis den ikke bruges i 24 timer, og den gælder én enhed. Lav så en ny i My Kaspersky.',

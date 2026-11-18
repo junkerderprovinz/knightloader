@@ -3988,7 +3988,7 @@ export const pt: Dict = {
   'settings.vpn.state.connecting': 'A ligar',
   'settings.vpn.state.failed': 'Falhou',
   'settings.vpn.state.saved': 'Configurado',
-  'settings.vpn.portForwardingHint': 'O {name} pode reencaminhar uma porta para o KnightLoader.',
+  'settings.vpn.portForwardingHint': 'O {name} pode reencaminhar uma porta para o KnightLoader. Os torrents não usam esta porta. Passam pela VPN, mas só conseguem abrir ligações eles próprios. Os outros pares não se conseguem ligar a ti, e isso custa algum rácio nos trackers privados.',
   'settings.vpn.noPortForwardingHint': 'Outros peers não se conseguem ligar a si através de {name}. Os torrents continuam a ser descarregados, mas encontram menos peers e fazem menos seed.',
   'settings.vpn.custom': 'Configuração WireGuard própria',
   'settings.vpn.note.kaspersky': 'A configuração da Kaspersky deixa de funcionar se ficar 24 horas sem uso, e serve para um dispositivo. Nesse caso cria uma nova no My Kaspersky.',

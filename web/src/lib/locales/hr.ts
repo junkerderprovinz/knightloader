@@ -4012,7 +4012,7 @@ export const hr: Dict = {
   'settings.vpn.state.connecting': 'Povezivanje',
   'settings.vpn.state.failed': 'Neuspjelo',
   'settings.vpn.state.saved': 'Postavljeno',
-  'settings.vpn.portForwardingHint': '{name} može proslijediti port u KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} može proslijediti port u KnightLoader. Torrenti ne koriste ovaj port. Idu kroz VPN, ali veze mogu samo sami otvarati. Drugi peerovi ne mogu se spojiti s tobom, a to na privatnim trackerima košta malo omjera.',
   'settings.vpn.noPortForwardingHint': 'Drugi peerovi ne mogu se povezati s tobom preko {name}. Torrenti se i dalje preuzimaju, ali nalaze manje peerova i manje seedaju.',
   'settings.vpn.custom': 'Vlastita WireGuard konfiguracija',
   'settings.vpn.note.kaspersky': 'Kasperskyjeva konfiguracija prestaje raditi ako se 24 sata ne koristi, a vrijedi za jedan uređaj. Tada izradi novu u My Kaspersky.',

@@ -3989,7 +3989,7 @@ export const lv: Dict = {
   'settings.vpn.state.connecting': 'Savienojas',
   'settings.vpn.state.failed': 'Neizdevās',
   'settings.vpn.state.saved': 'Iestatīts',
-  'settings.vpn.portForwardingHint': '{name} var pāradresēt portu uz KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} var pāradresēt portu uz KnightLoader. Torrenti šo portu neizmanto. Tie iet caur VPN, bet savienojumus var atvērt tikai paši. Citi vienādranga dalībnieki nevar ar tevi savienoties, un privātajos trekeros tas maksā nedaudz attiecības.',
   'settings.vpn.noPortForwardingHint': 'Citi dalībnieki nevar savienoties ar jums caur {name}. Torrenti joprojām lejupielādējas, bet atrod mazāk dalībnieku un sēj mazāk.',
   'settings.vpn.custom': 'Sava WireGuard konfigurācija',
   'settings.vpn.note.kaspersky': 'Kaspersky konfigurācija pārstāj darboties, ja 24 stundas netiek lietota, un der vienai ierīcei. Tad izveido jaunu My Kaspersky.',

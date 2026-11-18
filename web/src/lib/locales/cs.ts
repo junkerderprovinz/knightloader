@@ -4008,7 +4008,7 @@ export const cs: Dict = {
   'settings.vpn.state.connecting': 'Připojování',
   'settings.vpn.state.failed': 'Selhalo',
   'settings.vpn.state.saved': 'Nastaveno',
-  'settings.vpn.portForwardingHint': '{name} umí přesměrovat port do KnightLoaderu.',
+  'settings.vpn.portForwardingHint': '{name} umí přesměrovat port do KnightLoaderu. Torrenty tento port nepoužívají. Jdou sice přes VPN, ale spojení umí jen samy navazovat. Ostatní peery se k tobě připojit nemohou, a to na soukromých trackerech stojí trochu ratia.',
   'settings.vpn.noPortForwardingHint': 'Ostatní peery se k tobě přes {name} nepřipojí. Torrenty se pořád stahují, ale najdou méně peerů a seedují méně.',
   'settings.vpn.custom': 'Vlastní konfigurace WireGuard',
   'settings.vpn.note.kaspersky': 'Konfigurace Kaspersky přestane fungovat, pokud se 24 hodin nepoužije, a platí pro jedno zařízení. Pak si v My Kaspersky vytvoř novou.',

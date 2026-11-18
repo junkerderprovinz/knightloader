@@ -3998,7 +3998,7 @@ export const vi: Dict = {
   'settings.vpn.state.connecting': 'Đang kết nối',
   'settings.vpn.state.failed': 'Thất bại',
   'settings.vpn.state.saved': 'Đã thiết lập',
-  'settings.vpn.portForwardingHint': '{name} có thể chuyển tiếp một cổng tới KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} có thể chuyển tiếp một cổng tới KnightLoader. Torrent không dùng cổng này. Torrent đi qua VPN, nhưng chỉ có thể tự mở kết nối. Các peer khác không thể kết nối tới bạn, và điều đó làm giảm một chút tỉ lệ trên các tracker riêng.',
   'settings.vpn.noPortForwardingHint': 'Các peer khác không kết nối được với bạn qua {name}. Torrent vẫn tải xuống, nhưng tìm được ít peer hơn và seed ít hơn.',
   'settings.vpn.custom': 'Cấu hình WireGuard riêng',
   'settings.vpn.note.kaspersky': 'Cấu hình của Kaspersky ngừng hoạt động nếu không dùng trong 24 giờ, và chỉ cho một thiết bị. Khi đó hãy tạo cấu hình mới trong My Kaspersky.',

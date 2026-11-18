@@ -3997,7 +3997,7 @@ export const th: Dict = {
   'settings.vpn.state.connecting': 'กำลังเชื่อมต่อ',
   'settings.vpn.state.failed': 'ล้มเหลว',
   'settings.vpn.state.saved': 'ตั้งค่าแล้ว',
-  'settings.vpn.portForwardingHint': '{name} ส่งต่อพอร์ตมายัง KnightLoader ได้',
+  'settings.vpn.portForwardingHint': '{name} ส่งต่อพอร์ตมายัง KnightLoader ได้ ทอร์เรนต์ไม่ได้ใช้พอร์ตนี้ ทอร์เรนต์ผ่าน VPN แต่เปิดการเชื่อมต่อได้เองเท่านั้น เพียร์อื่นจึงเชื่อมต่อมาหาคุณไม่ได้ ซึ่งทำให้อัตราส่วนบนแทร็กเกอร์ส่วนตัวลดลงเล็กน้อย',
   'settings.vpn.noPortForwardingHint': 'เพียร์อื่นเชื่อมต่อหาคุณผ่าน {name} ไม่ได้ ทอร์เรนต์ยังดาวน์โหลดได้ แต่จะพบเพียร์น้อยลงและซีดได้น้อยลง',
   'settings.vpn.custom': 'ไฟล์ตั้งค่า WireGuard ของตัวเอง',
   'settings.vpn.note.kaspersky': 'การตั้งค่าของ Kaspersky จะใช้ไม่ได้หากไม่ถูกใช้งาน 24 ชั่วโมง และใช้ได้กับอุปกรณ์เดียว เมื่อเป็นเช่นนั้นให้สร้างใหม่ใน My Kaspersky',

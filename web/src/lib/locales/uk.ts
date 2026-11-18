@@ -3999,7 +3999,7 @@ export const uk: Dict = {
   'settings.vpn.state.connecting': 'Підключення',
   'settings.vpn.state.failed': 'Збій',
   'settings.vpn.state.saved': 'Налаштовано',
-  'settings.vpn.portForwardingHint': '{name} може переадресувати порт у KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} може переадресувати порт у KnightLoader. Торенти цей порт не використовують. Вони йдуть через VPN, але можуть лише самі відкривати з\'єднання. Інші піри не можуть під\'єднатися до вас, а на приватних трекерах це коштує трохи рейтингу.',
   'settings.vpn.noPortForwardingHint': 'Інші піри не можуть підключитися до вас через {name}. Торренти все одно завантажуються, але знаходять менше пірів і менше роздають.',
   'settings.vpn.custom': 'Власна конфігурація WireGuard',
   'settings.vpn.note.kaspersky': 'Конфігурація Kaspersky перестає працювати, якщо нею не користуватися 24 години, і вона для одного пристрою. Тоді створіть нову в My Kaspersky.',

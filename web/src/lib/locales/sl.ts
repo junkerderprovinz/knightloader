@@ -3997,7 +3997,7 @@ export const sl: Dict = {
   'settings.vpn.state.connecting': 'Povezovanje',
   'settings.vpn.state.failed': 'Neuspešno',
   'settings.vpn.state.saved': 'Nastavljeno',
-  'settings.vpn.portForwardingHint': '{name} lahko posreduje vrata v KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} lahko posreduje vrata v KnightLoader. Torrenti teh vrat ne uporabljajo. Gredo skozi VPN, a povezave lahko odpirajo le sami. Drugi soležniki se ne morejo povezati s tabo, kar na zasebnih sledilnikih stane nekaj razmerja.',
   'settings.vpn.noPortForwardingHint': 'Drugi peerji se prek {name} ne morejo povezati s tabo. Torrenti se še vedno prenašajo, vendar najdejo manj peerjev in manj sejejo.',
   'settings.vpn.custom': 'Lastna konfiguracija WireGuard',
   'settings.vpn.note.kaspersky': 'Konfiguracija Kaspersky preneha delovati, če je 24 ur ne uporabljaš, in velja za eno napravo. Takrat ustvari novo v My Kaspersky.',

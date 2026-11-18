@@ -3987,7 +3987,7 @@ export const fa: Dict = {
   'settings.vpn.state.connecting': 'در حال اتصال',
   'settings.vpn.state.failed': 'ناموفق',
   'settings.vpn.state.saved': 'راه‌اندازی شده',
-  'settings.vpn.portForwardingHint': '{name} می‌تواند یک درگاه را به KnightLoader هدایت کند.',
+  'settings.vpn.portForwardingHint': '{name} می‌تواند یک درگاه را به KnightLoader هدایت کند. تورنت‌ها از این درگاه استفاده نمی‌کنند. از VPN می‌گذرند، اما فقط خودشان می‌توانند اتصال باز کنند. همتایان دیگر نمی‌توانند به تو وصل شوند و این در ترکرهای خصوصی کمی از نسبتت کم می‌کند.',
   'settings.vpn.noPortForwardingHint': 'پیرهای دیگر از طریق {name} نمی‌توانند به تو وصل شوند. تورنت‌ها همچنان دانلود می‌شوند، اما پیر کمتری پیدا می‌کنند و کمتر سید می‌کنند.',
   'settings.vpn.custom': 'پیکربندی WireGuard شخصی',
   'settings.vpn.note.kaspersky': 'پیکربندی Kaspersky اگر ۲۴ ساعت استفاده نشود از کار می‌افتد و برای یک دستگاه است. در آن صورت در My Kaspersky یک پیکربندی تازه بسازید.',

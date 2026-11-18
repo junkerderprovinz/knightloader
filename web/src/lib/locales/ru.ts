@@ -3978,7 +3978,7 @@ export const ru: Dict = {
   'settings.vpn.state.connecting': 'Подключение',
   'settings.vpn.state.failed': 'Сбой',
   'settings.vpn.state.saved': 'Настроено',
-  'settings.vpn.portForwardingHint': '{name} может пробросить порт в KnightLoader.',
+  'settings.vpn.portForwardingHint': '{name} может пробросить порт в KnightLoader. Торренты этот порт не используют. Они идут через VPN, но могут только сами открывать соединения. Другие пиры не могут подключиться к вам, а на приватных трекерах это стоит немного рейтинга.',
   'settings.vpn.noPortForwardingHint': 'Другие пиры не могут подключиться к вам через {name}. Торренты по-прежнему загружаются, но находят меньше пиров и меньше раздают.',
   'settings.vpn.custom': 'Своя конфигурация WireGuard',
   'settings.vpn.note.kaspersky': 'Конфигурация Kaspersky перестаёт работать, если ею не пользоваться 24 часа, и она рассчитана на одно устройство. Тогда создайте новую в My Kaspersky.',

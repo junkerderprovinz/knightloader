@@ -3995,7 +3995,7 @@ export const ja: Dict = {
   'settings.vpn.state.connecting': '接続中',
   'settings.vpn.state.failed': '失敗',
   'settings.vpn.state.saved': '設定済み',
-  'settings.vpn.portForwardingHint': '{name} は KnightLoader にポートを転送できます。',
+  'settings.vpn.portForwardingHint': '{name} は KnightLoader にポートを転送できます。トレントはこのポートを使いません。VPN を通りますが、自分から接続を開くことしかできません。ほかのピアからあなたにはつながれず、プライベートトラッカーでは比率が少し下がります。',
   'settings.vpn.noPortForwardingHint': '{name} 経由では他のピアがあなたに接続できません。トレントはダウンロードできますが、見つかるピアが減り、シードも少なくなります。',
   'settings.vpn.custom': '独自の WireGuard 設定',
   'settings.vpn.note.kaspersky': 'Kaspersky の設定は 24 時間使われないと無効になり、1 台の端末用です。その場合は My Kaspersky で新しく作成してください。',

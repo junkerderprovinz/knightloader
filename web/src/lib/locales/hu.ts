@@ -3999,7 +3999,7 @@ export const hu: Dict = {
   'settings.vpn.state.connecting': 'Csatlakozás',
   'settings.vpn.state.failed': 'Sikertelen',
   'settings.vpn.state.saved': 'Beállítva',
-  'settings.vpn.portForwardingHint': 'A(z) {name} továbbíthat egy portot a KnightLoadernek.',
+  'settings.vpn.portForwardingHint': 'A(z) {name} továbbíthat egy portot a KnightLoadernek. A torrentek nem használják ezt a portot. A VPN-en mennek át, de csak maguk tudnak kapcsolatot nyitni. A többi peer nem tud hozzád kapcsolódni, és ez a privát trackereken egy kis arányba kerül.',
   'settings.vpn.noPortForwardingHint': 'A többi peer nem tud csatlakozni hozzád a(z) {name} szolgáltatáson keresztül. A torrentek továbbra is letöltődnek, de kevesebb peert találnak, és kevesebbet seedelnek.',
   'settings.vpn.custom': 'Saját WireGuard-konfiguráció',
   'settings.vpn.note.kaspersky': 'A Kaspersky konfigurációja leáll, ha 24 órán át nem használják, és egy eszközre szól. Ilyenkor készíts újat a My Kasperskyben.',
