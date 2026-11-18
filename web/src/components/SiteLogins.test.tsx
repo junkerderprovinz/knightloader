@@ -257,6 +257,13 @@ it('opens the sign-in browser straight away for a site picked on an instance tha
   expect(document.querySelector('[role="dialog"]')?.textContent).not.toContain('Status');
 });
 
+it('opens the sign-in browser from the row of a site nobody signed in to where no browser is read', async () => {
+  sites = [{ ...signedOut(patreon), readsBrowsers: false }];
+  await renderCard();
+  await act(async () => (row('Patreon') as HTMLElement).click());
+  expect(calls.some((c) => c.url === '/api/signinbrowser/patreon/open')).toBe(true);
+});
+
 it('opens the site from its window and offers no way to paste cookies', async () => {
   sites = [signedOut(patreon)];
   await renderCard();

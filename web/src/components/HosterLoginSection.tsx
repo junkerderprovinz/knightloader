@@ -241,6 +241,12 @@ export function HosterLoginSection({
   const [browsingSite, setBrowsingSite] = useState<SiteLogin | null>(null);
   const [browsingLogin, setBrowsingLogin] = useState<HosterLogin | null>(null);
   const browserHere = useSignInBrowserAvailable();
+  // Where KnightLoader reads no browser, the sign-in window is the only way in,
+  // so a site nobody signed in to opens it at once instead of a window that points to it.
+  const openSite = (site: SiteLogin) => {
+    if (!data.ways.readsBrowsers && !signedIn(site)) setBrowsingSite(site);
+    else setEditingSite(site);
+  };
 
   const rows = data.logins ?? [];
   const added = data.sites.filter((s) => s.listed);
@@ -271,7 +277,7 @@ export function HosterLoginSection({
               siteLoginRow(
                 site,
                 data.ways,
-                { onEdit: () => setEditingSite(site), onRemove: () => setConfirmingSite(site) },
+                { onEdit: () => openSite(site), onRemove: () => setConfirmingSite(site) },
                 browserHere ? { label: t('signInBrowser.signInHere'), onSelect: () => setBrowsingSite(site) } : undefined,
               ),
             ),
@@ -306,13 +312,7 @@ export function HosterLoginSection({
           onSaved={data.load}
           onPickSite={(site) => {
             onAddClose();
-            // Where KnightLoader reads no browser, the sign-in window is the only
-            // way in, so it opens at once instead of a window that points to it.
-            void data.addSite(site).then((next) => {
-              if (!next) return;
-              if (!data.ways.readsBrowsers && !signedIn(next)) setBrowsingSite(next);
-              else setEditingSite(next);
-            });
+            void data.addSite(site).then((next) => next && openSite(next));
           }}
         />
       )}
