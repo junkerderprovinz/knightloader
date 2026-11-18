@@ -679,29 +679,6 @@ export const IconRowComfortable = (p: GlyphProps) => (
   </svg>
 );
 
-/** Lists without shading: a bare frame. */
-export const IconShadeOff = (p: GlyphProps) => (
-  <svg {...glyph([0, 1.5, 14, 11], p)}>
-    <path fillRule="evenodd" clipRule="evenodd" d="M0 1.5H14V12.5H0ZM1.2 2.7V11.3H12.8V2.7Z" />
-  </svg>
-);
-
-/** Lists shaded moderately: a frame with a faint band. */
-export const IconShadeModerate = (p: GlyphProps) => (
-  <svg {...glyph([0, 1.5, 14, 11], p)}>
-    <path fillRule="evenodd" clipRule="evenodd" d="M0 1.5H14V12.5H0ZM1.2 2.7V11.3H12.8V2.7Z" />
-    <path opacity=".45" d="M1.2 5.6H12.8V8.4H1.2Z" />
-  </svg>
-);
-
-/** Lists shaded in high contrast: a frame with two solid bands. */
-export const IconShadeStrong = (p: GlyphProps) => (
-  <svg {...glyph([0, 1.5, 14, 11], p)}>
-    <path fillRule="evenodd" clipRule="evenodd" d="M0 1.5H14V12.5H0ZM1.2 2.7V11.3H12.8V2.7Z" />
-    <path d="M1.2 2.7H12.8V5.5H1.2ZM1.2 8.5H12.8V11.3H1.2Z" />
-  </svg>
-);
-
 /** The accent takes the system's colour: Drawn for GlimStone. */
 export const IconAccentSystem = (p: GlyphProps) => (
   <svg {...glyph([0.5, 0.5, 13, 13], p)}>
