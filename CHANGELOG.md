@@ -96,10 +96,25 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   ratio on private trackers, a VPN container of your own or your own
   qBittorrent works better. On Windows the interface you pick under
   Settings, Torrents reaches qBittorrent by the name qBittorrent knows it by.
+- **The list shading has three levels.** Off, Moderate as before, or High
+  contrast under Settings, Appearance, and every second package header takes a
+  second shade, so folded packages stand apart. Suggested by @MueChris82
+  ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
 
 ### Removed
 
 - **The built-in torrent engine is gone.** qBittorrent does its work.
+
+### Fixed
+
+- **A package downloads from the top of the list down.** The queue took links
+  of the same position by age, so a site that handed over a package's links
+  last one first had it downloaded from the bottom up. It now takes them in
+  the order the download list shows them.
+- **A silent install into a folder with spaces lands there.** The Windows
+  installer took the folder after `/D=` only up to its first space, so
+  `/D=C:\Program Files\KnightLoader` installed into `C:\Program`. It follows
+  PommelPorter 1.2.3, which reads the whole folder.
 
 ## [2.9.0] - 2026-11-17
 

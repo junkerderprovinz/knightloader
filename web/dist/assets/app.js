@@ -1099,6 +1099,12 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **Every torrent runs in qBittorrent, KnightLoader's new torrent engine, in place of the built-in client of earlier versions.** KnightLoader still picks the folder and the files, keeps banned trackers out and stops seeding at your targets. Torrents you already have move over on the first start with the bytes they have, and when qBittorrent starts, none of its torrents reaches anybody before KnightLoader has taken them over.
 - **Torrents through the built-in VPN only connect outwards.** They go through a proxy inside KnightLoader and wait while the tunnel is down, so other peers cannot connect to you and a forwarded VPN port no longer reaches them ([#112](https://github.com/junkerderprovinz/knightloader/issues/112)). For ratio on private trackers, a VPN container of your own or your own qBittorrent works better.
 - **What cross-seeded twins send counts in the overview's torrent totals.**
+- **The list shading has three levels.** Off, Moderate as before, or High contrast under Settings, Appearance, and every second package header takes a second shade, so folded packages stand apart. Suggested by @MueChris82 ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
+
+## 🐛 Fixed
+
+- **A package downloads from the top of the list down.** The queue took links of the same position by age, so a site that handed over a package's links last one first had it downloaded from the bottom up. It now takes them in the order the download list shows them.
+- **A silent install into a folder with spaces lands there.** The Windows installer took the folder after \`/D=\` only up to its first space, so \`/D=C:\\Program Files\\KnightLoader\` installed into \`C:\\Program\`. It follows PommelPorter 1.2.3, which reads the whole folder.
 
 ## 🌐 Translations
 
@@ -2035,6 +2041,12 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **Every torrent runs in qBittorrent, KnightLoader's new torrent engine, in place of the built-in client of earlier versions.** KnightLoader still picks the folder and the files, keeps banned trackers out and stops seeding at your targets. Torrents you already have move over on the first start with the bytes they have, and when qBittorrent starts, none of its torrents reaches anybody before KnightLoader has taken them over.
 - **Torrents through the built-in VPN only connect outwards.** They go through a proxy inside KnightLoader and wait while the tunnel is down, so other peers cannot connect to you and a forwarded VPN port no longer reaches them ([#112](https://github.com/junkerderprovinz/knightloader/issues/112)). For ratio on private trackers, a VPN container of your own or your own qBittorrent works better.
 - **What cross-seeded twins send counts in the overview's torrent totals.**
+- **The list shading has three levels.** Off, Moderate as before, or High contrast under Settings, Appearance, and every second package header takes a second shade, so folded packages stand apart. Suggested by @MueChris82 ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
+
+## 🐛 Fixed
+
+- **A package downloads from the top of the list down.** The queue took links of the same position by age, so a site that handed over a package's links last one first had it downloaded from the bottom up. It now takes them in the order the download list shows them.
+- **A silent install into a folder with spaces lands there.** The Windows installer took the folder after \`/D=\` only up to its first space, so \`/D=C:\\Program Files\\KnightLoader\` installed into \`C:\\Program\`. It follows PommelPorter 1.2.3, which reads the whole folder.
 
 ## 🌐 Translations
 
