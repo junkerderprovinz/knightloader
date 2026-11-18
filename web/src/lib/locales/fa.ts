@@ -1706,6 +1706,7 @@ export const fa: Dict = {
   'settings.info.qbitVersionHint': 'ترکرهای خصوصی فقط نسخه‌های qBittorrent موجود در فهرست خود را می‌پذیرند، پس این نسخه همان‌جا که تنظیمش کرده‌اید می‌ماند. به‌روزرسانی خودکار به آن دست نمی‌زند. انتخاب نسخهٔ دیگر آن را دانلود می‌کند و qBittorrent را دوباره راه‌اندازی می‌کند.',
   'settings.info.qbitOnList': 'در فهرست عمومی کلاینت‌های {trackers} هست.',
   'settings.info.qbitOffList': 'در هیچ فهرست عمومی کلاینتی که KnightLoader می‌شناسد نیست. پیش از سید کردن در آنجا قوانین ترکر خود را بررسی کنید.',
+  'settings.info.qbitOlderClients': 'بعضی ردیاب‌های خصوصی فقط کلاینت‌های قدیمی‌تر را می‌پذیرند. اگر ردیاب تو هم این‌طور است، اینجا نسخهٔ قدیمی‌تری انتخاب کن.',
   'settings.info.qbitRecommended': '{version}، پیشنهادی',
   'settings.info.statusDone': 'انجام شد',
   'settings.info.helpTitle': 'راهنما',

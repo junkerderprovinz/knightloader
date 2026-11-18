@@ -1698,6 +1698,7 @@ export const es: Dict = {
   'settings.info.qbitVersionHint': 'Los trackers privados solo admiten las versiones de qBittorrent de su lista, así que esta se queda donde la pongas. La actualización automática no la toca. Al elegir otra versión, se descarga y qBittorrent se reinicia.',
   'settings.info.qbitOnList': 'Está en la lista pública de clientes de {trackers}.',
   'settings.info.qbitOffList': 'No está en ninguna lista pública de clientes que KnightLoader conozca. Revisa las normas de tu tracker antes de compartir allí.',
+  'settings.info.qbitOlderClients': 'Algunos trackers privados solo admiten clientes más antiguos. Si el tuyo es uno de ellos, elige aquí una versión más antigua.',
   'settings.info.qbitRecommended': '{version}, recomendada',
   'settings.info.statusDone': 'Hecho',
   'settings.info.helpTitle': 'Ayuda',

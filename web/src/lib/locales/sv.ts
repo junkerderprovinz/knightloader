@@ -1706,6 +1706,7 @@ export const sv: Dict = {
   'settings.info.qbitVersionHint': 'Privata trackers släpper bara in de qBittorrent-versioner som står på deras lista, så den här stannar där du ställer den. Den automatiska uppdateringen rör den inte. Väljer du en annan version hämtas den och qBittorrent startas om.',
   'settings.info.qbitOnList': 'Står på den offentliga klientlistan hos {trackers}.',
   'settings.info.qbitOffList': 'Står inte på någon offentlig klientlista som KnightLoader känner till. Kolla din trackers regler innan du seedar där.',
+  'settings.info.qbitOlderClients': 'Vissa privata trackers släpper bara in äldre klienter. Gör din det, välj en äldre version här.',
   'settings.info.qbitRecommended': '{version}, rekommenderas',
   'settings.info.statusDone': 'Klart',
   'settings.info.helpTitle': 'Hjälp',

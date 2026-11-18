@@ -1705,6 +1705,7 @@ export const zh: Dict = {
   'settings.info.qbitVersionHint': '私有 tracker 只接受其列表中的 qBittorrent 版本，所以这个版本会保持你设定的样子，自动更新也不会动它。选择其他版本会下载该版本并重启 qBittorrent。',
   'settings.info.qbitOnList': '在 {trackers} 的公开客户端列表中。',
   'settings.info.qbitOffList': '不在 KnightLoader 所知的任何公开客户端列表中。在那里做种前，请先查看你的 tracker 的规则。',
+  'settings.info.qbitOlderClients': '有些私有 tracker 只允许较旧的客户端。如果你的 tracker 也是这样，请在这里选择一个较旧的版本。',
   'settings.info.qbitRecommended': '{version}（推荐）',
   'settings.info.statusDone': '完成',
   'settings.info.helpTitle': '帮助',

@@ -45,11 +45,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   background on `127.0.0.1` behind a login only KnightLoader knows. If it
   stops, it is started again. The Components card shows it with its version,
   and private trackers let in only the versions on their list, so it stays at
-  the version you pick there, 4.5.5 to begin with, and the automatic update
-  leaves it alone. Every KnightLoader release carries the Windows and macOS
-  builds of qBittorrent with their sources. Linux and the container take the
-  static build from userdocs/qbittorrent-nox-static. `KL_QBITTORRENT=0` leaves
-  it off.
+  the version you pick there, 5.0.5 to begin with, or 4.6.7 and 4.5.5 for
+  trackers that let in only older clients, and the automatic update leaves it
+  alone. Every KnightLoader release carries the Windows and macOS builds of
+  qBittorrent with their sources. Linux and the container take the static
+  build from userdocs/qbittorrent-nox-static. `KL_QBITTORRENT=0` leaves it
+  off.
 - **A torrent's details show its piece map,** with the pieces that are here
   and a marker on each one on its way, as an HTTP download's do.
 - **Cross-seeding.** A finished torrent is looked for on your other trackers

@@ -1,5 +1,5 @@
 {
-  "default": "4.5.5",
+  "default": "5.0.5",
   "versions": [
     {
       "version": "4.5.5",
@@ -105,7 +105,7 @@
       "version": "5.0.5",
       "libtorrent": "2.0.11",
       "whitelists": [],
-      "note": "Not on OPS's public whitelist. Fixes the missing TLS certificate check of earlier versions (CVE-2024-51774); for public torrents and trackers that allow 5.0.",
+      "note": "The newest build, and the one KnightLoader runs unless another is picked. It checks the TLS certificates of its own downloads, which earlier versions do not (CVE-2024-51774). Not on OPS's public whitelist, so OPS takes 4.5.5.",
       "assets": {
         "linux-amd64": {
           "repo": "userdocs/qbittorrent-nox-static",

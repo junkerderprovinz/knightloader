@@ -1706,6 +1706,7 @@ export const sr: Dict = {
   'settings.info.qbitVersionHint': 'Приватни трекери пуштају само верзије qBittorrent-а са своје листе, па ова остаје тамо где је поставиш. Аутоматско ажурирање је не дира. Ако изабереш другу верзију, она се преузима и qBittorrent се поново покреће.',
   'settings.info.qbitOnList': 'Налази се на јавној листи клијената за {trackers}.',
   'settings.info.qbitOffList': 'Није ни на једној јавној листи клијената коју KnightLoader познаје. Пре дељења тамо провери правила свог трекера.',
+  'settings.info.qbitOlderClients': 'Неки приватни трекери пуштају само старије клијенте. Ако је твој један од њих, овде изабери старију верзију.',
   'settings.info.qbitRecommended': '{version}, препоручена',
   'settings.info.statusDone': 'Готово',
   'settings.info.helpTitle': 'Помоћ',

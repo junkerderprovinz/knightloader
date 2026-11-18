@@ -1707,6 +1707,7 @@ export const uk: Dict = {
   'settings.info.qbitVersionHint': 'Приватні трекери пускають лише версії qBittorrent зі свого списку, тож ця лишається там, де ви її встановили. Автооновлення її не чіпає. Якщо вибрати іншу версію, її буде завантажено, а qBittorrent перезапуститься.',
   'settings.info.qbitOnList': 'Є в публічному списку клієнтів {trackers}.',
   'settings.info.qbitOffList': 'Немає в жодному публічному списку клієнтів, який знає KnightLoader. Перш ніж роздавати там, перевірте правила свого трекера.',
+  'settings.info.qbitOlderClients': 'Деякі закриті трекери пускають лише старіші клієнти. Якщо ваш із таких, виберіть тут старішу версію.',
   'settings.info.qbitRecommended': '{version}, рекомендовано',
   'settings.info.statusDone': 'Готово',
   'settings.info.helpTitle': 'Довідка',

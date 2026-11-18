@@ -1707,6 +1707,7 @@ export const lv: Dict = {
   'settings.info.qbitVersionHint': 'Privātie trakeri ielaiž tikai savā sarakstā esošās qBittorrent versijas, tāpēc šī paliek tur, kur to iestatīji. Automātiskā atjaunināšana to neaiztiek. Ja izvēlies citu versiju, tā tiek lejupielādēta un qBittorrent tiek restartēts.',
   'settings.info.qbitOnList': 'Ir {trackers} publiskajā klientu sarakstā.',
   'settings.info.qbitOffList': 'Nav nevienā KnightLoader zināmā publiskajā klientu sarakstā. Pirms tur dalies, pārbaudi sava trakera noteikumus.',
+  'settings.info.qbitOlderClients': 'Daži privātie izsekotāji ielaiž tikai vecākus klientus. Ja tavējais ir tāds, izvēlies šeit vecāku versiju.',
   'settings.info.qbitRecommended': '{version}, ieteicama',
   'settings.info.statusDone': 'Paveikts',
   'settings.info.helpTitle': 'Palīdzība',

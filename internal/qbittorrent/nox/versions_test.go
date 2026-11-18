@@ -1,6 +1,7 @@
 package nox
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -129,6 +130,19 @@ func TestEveryVersionPinsTheSourcesOfItsOwnBuilds(t *testing.T) {
 	}
 }
 
+func TestTheDefaultIsTheNewestVersion(t *testing.T) {
+	table := Versions()
+	newest := table.Versions[0].Version
+	for _, v := range table.Versions {
+		if laterVersion(v.Version, newest) {
+			newest = v.Version
+		}
+	}
+	if table.Default != newest {
+		t.Errorf("the default is %s, want the newest, %s", table.Default, newest)
+	}
+}
+
 func TestAReleaseBuildFetchesFromItsOwnReleaseAndAnyOtherFromTheLatest(t *testing.T) {
 	t.Setenv(releasesEnv, "")
 	own := Asset{Name: "qbittorrent-nox-5.0.5-windows-amd64.zip"}
@@ -150,3 +164,14 @@ func TestAReleaseBuildFetchesFromItsOwnReleaseAndAnyOtherFromTheLatest(t *testin
 	}
 }
 
+func laterVersion(a, b string) bool {
+	pa, pb := strings.Split(a, "."), strings.Split(b, ".")
+	for i := range min(len(pa), len(pb)) {
+		x, _ := strconv.Atoi(pa[i])
+		y, _ := strconv.Atoi(pb[i])
+		if x != y {
+			return x > y
+		}
+	}
+	return len(pa) > len(pb)
+}

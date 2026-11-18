@@ -1706,6 +1706,7 @@ export const da: Dict = {
   'settings.info.qbitVersionHint': 'Private trackere lukker kun de qBittorrent-versioner ind, der står på deres liste, så denne bliver, hvor du har sat den. Den automatiske opdatering rører den ikke. Vælger du en anden version, hentes den, og qBittorrent genstartes.',
   'settings.info.qbitOnList': 'Står på den offentlige klientliste hos {trackers}.',
   'settings.info.qbitOffList': 'Står ikke på nogen offentlig klientliste, som KnightLoader kender. Tjek din trackers regler, før du seeder der.',
+  'settings.info.qbitOlderClients': 'Nogle private trackere lukker kun ældre klienter ind. Gør din det, så vælg en ældre version her.',
   'settings.info.qbitRecommended': '{version}, anbefalet',
   'settings.info.statusDone': 'Færdig',
   'settings.info.helpTitle': 'Hjælp',

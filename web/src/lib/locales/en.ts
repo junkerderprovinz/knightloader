@@ -2098,6 +2098,7 @@ export const en = {
   'settings.info.qbitVersionHint': 'Private trackers let in only the qBittorrent versions on their list, so this one stays where you set it. The automatic update leaves it alone. Choosing another version downloads it and restarts qBittorrent.',
   'settings.info.qbitOnList': 'On the public client list of {trackers}.',
   'settings.info.qbitOffList': 'Not on any public client list KnightLoader knows of. Check your tracker\'s rules before you seed there.',
+  'settings.info.qbitOlderClients': 'Some private trackers let in only older clients. If yours does, pick an older version here.',
   'settings.info.qbitRecommended': '{version}, recommended',
   'settings.info.statusDone': 'Done',
   'settings.info.helpTitle': 'Help',

@@ -1708,6 +1708,7 @@ export const ro: Dict = {
   'settings.info.qbitVersionHint': 'Trackerele private acceptă doar versiunile de qBittorrent din lista lor, așa că aceasta rămâne unde o setezi. Actualizarea automată nu o atinge. Dacă alegi altă versiune, ea se descarcă și qBittorrent repornește.',
   'settings.info.qbitOnList': 'Se află pe lista publică de clienți a {trackers}.',
   'settings.info.qbitOffList': 'Nu se află pe nicio listă publică de clienți cunoscută de KnightLoader. Verifică regulile trackerului tău înainte să faci seed acolo.',
+  'settings.info.qbitOlderClients': 'Unele trackere private acceptă doar clienți mai vechi. Dacă al tău e unul dintre ele, alege aici o versiune mai veche.',
   'settings.info.qbitRecommended': '{version}, recomandată',
   'settings.info.statusDone': 'Gata',
   'settings.info.helpTitle': 'Ajutor',

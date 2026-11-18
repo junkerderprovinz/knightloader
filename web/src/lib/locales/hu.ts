@@ -1707,6 +1707,7 @@ export const hu: Dict = {
   'settings.info.qbitVersionHint': 'A privát trackerek csak a listájukon szereplő qBittorrent-verziókat engedik be, ezért ez ott marad, ahová beállítod. Az automatikus frissítés nem nyúl hozzá. Ha másik verziót választasz, az letöltődik, és a qBittorrent újraindul.',
   'settings.info.qbitOnList': 'Szerepel a(z) {trackers} nyilvános klienslistáján.',
   'settings.info.qbitOffList': 'Egyetlen, a KnightLoader által ismert nyilvános klienslistán sem szerepel. Mielőtt ott seedelsz, nézd meg a trackered szabályait.',
+  'settings.info.qbitOlderClients': 'Néhány zárt tracker csak régebbi klienseket enged be. Ha a tiéd is ilyen, itt válassz régebbi verziót.',
   'settings.info.qbitRecommended': '{version}, ajánlott',
   'settings.info.statusDone': 'Kész',
   'settings.info.helpTitle': 'Súgó',

@@ -1706,6 +1706,7 @@ export const ja: Dict = {
   'settings.info.qbitVersionHint': 'プライベートトラッカーはリストに載っている qBittorrent のバージョンしか受け付けないため、このバージョンは設定したまま変わりません。自動更新もこれには手を付けません。別のバージョンを選ぶとダウンロードされ、qBittorrent が再起動します。',
   'settings.info.qbitOnList': '{trackers} の公開クライアントリストに載っています。',
   'settings.info.qbitOffList': 'KnightLoader が知る公開クライアントリストのどれにも載っていません。そのトラッカーでシードする前にルールを確認してください。',
+  'settings.info.qbitOlderClients': 'プライベートトラッカーの中には、古いクライアントしか受け付けないものがあります。使っているトラッカーがそうなら、ここで古いバージョンを選んでください。',
   'settings.info.qbitRecommended': '{version}（推奨）',
   'settings.info.statusDone': '完了',
   'settings.info.helpTitle': 'ヘルプ',

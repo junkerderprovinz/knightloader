@@ -1707,6 +1707,7 @@ export const eu: Dict = {
   'settings.info.qbitVersionHint': 'Tracker pribatuek beren zerrendako qBittorrent bertsioak baino ez dituzte onartzen, beraz hau ezartzen duzun lekuan geratzen da. Eguneratze automatikoak ez du ukitzen. Beste bertsio bat aukeratzen baduzu, deskargatu egiten da eta qBittorrent berrabiarazten da.',
   'settings.info.qbitOnList': '{trackers}(r)en bezero-zerrenda publikoan dago.',
   'settings.info.qbitOffList': 'Ez dago KnightLoaderrek ezagutzen duen inongo bezero-zerrenda publikotan. Begiratu zure trackerraren arauak han partekatu aurretik.',
+  'settings.info.qbitOlderClients': 'Tracker pribatu batzuek bezero zaharragoak bakarrik onartzen dituzte. Zurea horietakoa bada, aukeratu hemen bertsio zaharrago bat.',
   'settings.info.qbitRecommended': '{version}, gomendatua',
   'settings.info.statusDone': 'Eginda',
   'settings.info.helpTitle': 'Laguntza',

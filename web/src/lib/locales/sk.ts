@@ -1706,6 +1706,7 @@ export const sk: Dict = {
   'settings.info.qbitVersionHint': 'Súkromné trackery pustia len verzie qBittorrentu zo svojho zoznamu, preto táto zostane tam, kde ju nastavíš. Automatická aktualizácia na ňu nesiaha. Keď vyberieš inú verziu, stiahne sa a qBittorrent sa reštartuje.',
   'settings.info.qbitOnList': 'Je na verejnom zozname klientov {trackers}.',
   'settings.info.qbitOffList': 'Nie je na žiadnom verejnom zozname klientov, ktorý KnightLoader pozná. Skôr než tam začneš seedovať, pozri si pravidlá svojho trackera.',
+  'settings.info.qbitOlderClients': 'Niektoré súkromné trackery púšťajú len staršie klienty. Ak je to aj tvoj prípad, vyber tu staršiu verziu.',
   'settings.info.qbitRecommended': '{version}, odporúčaná',
   'settings.info.statusDone': 'Hotovo',
   'settings.info.helpTitle': 'Pomocník',

@@ -870,7 +870,7 @@ function QBittorrentRow() {
             <p className="text-sm text-carbon-textSub">
               {chosen && chosen.whitelists.length > 0
                 ? t('settings.info.qbitOnList', { trackers: chosen.whitelists.join(', ') })
-                : t('settings.info.qbitOffList')}
+                : `${t('settings.info.qbitOffList')} ${t('settings.info.qbitOlderClients')}`}
             </p>
           </>
         )

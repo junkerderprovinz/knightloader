@@ -1706,6 +1706,7 @@ export const et: Dict = {
   'settings.info.qbitVersionHint': 'Privaatsed trackerid lubavad ainult oma nimekirjas olevaid qBittorrenti versioone, seega jääb see sinna, kuhu sa selle sead. Automaatne uuendus seda ei puutu. Kui valid teise versiooni, laaditakse see alla ja qBittorrent käivitatakse uuesti.',
   'settings.info.qbitOnList': 'On {trackers} avalikus klientide nimekirjas.',
   'settings.info.qbitOffList': 'Ei ole üheski KnightLoaderile teadaolevas avalikus klientide nimekirjas. Vaata enne sealt jagamist oma trackeri reegleid.',
+  'settings.info.qbitOlderClients': 'Mõni privaatne tracker laseb sisse ainult vanemaid kliente. Kui sinu oma on selline, vali siin vanem versioon.',
   'settings.info.qbitRecommended': '{version}, soovitatav',
   'settings.info.statusDone': 'Tehtud',
   'settings.info.helpTitle': 'Abi',

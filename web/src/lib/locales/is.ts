@@ -1706,6 +1706,7 @@ export const is: Dict = {
   'settings.info.qbitVersionHint': 'Lokaðir trackerar hleypa aðeins inn þeim útgáfum af qBittorrent sem eru á lista þeirra, svo þessi helst þar sem þú stillir hana. Sjálfvirka uppfærslan snertir hana ekki. Ef þú velur aðra útgáfu er hún sótt og qBittorrent endurræst.',
   'settings.info.qbitOnList': 'Er á opinberum biðlaralista {trackers}.',
   'settings.info.qbitOffList': 'Er ekki á neinum opinberum biðlaralista sem KnightLoader þekkir. Skoðaðu reglur trackersins áður en þú deilir þar.',
+  'settings.info.qbitOlderClients': 'Sumir lokaðir rekjarar hleypa aðeins eldri biðlurum inn. Ef þinn gerir það, veldu eldri útgáfu hér.',
   'settings.info.qbitRecommended': '{version}, mælt með',
   'settings.info.statusDone': 'Lokið',
   'settings.info.helpTitle': 'Hjálp',

@@ -1708,6 +1708,7 @@ export const he: Dict = {
   'settings.info.qbitVersionHint': 'טראקרים פרטיים מכניסים רק את גרסאות qBittorrent שברשימה שלהם, ולכן הגרסה הזו נשארת היכן שקבעת אותה. העדכון האוטומטי לא נוגע בה. בחירה בגרסה אחרת מורידה אותה ומפעילה מחדש את qBittorrent.',
   'settings.info.qbitOnList': 'מופיעה ברשימת הלקוחות הציבורית של {trackers}.',
   'settings.info.qbitOffList': 'לא מופיעה באף רשימת לקוחות ציבורית ש-KnightLoader מכיר. כדאי לבדוק את כללי הטראקר לפני שזורעים בו.',
+  'settings.info.qbitOlderClients': 'חלק מהטרקרים הפרטיים מכניסים רק לקוחות ישנים יותר. אם הטרקר שלך הוא אחד מהם, בחר כאן גרסה ישנה יותר.',
   'settings.info.qbitRecommended': '{version}, מומלצת',
   'settings.info.statusDone': 'בוצע',
   'settings.info.helpTitle': 'עזרה',

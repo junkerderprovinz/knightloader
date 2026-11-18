@@ -131,19 +131,19 @@ func TestChoosingAnotherVersionSwapsTheRunningQBittorrent(t *testing.T) {
 	a.StartQBittorrent()
 	awaitOwnQBit(t, a, nox.StateRunning)
 	s := a.Settings.Get()
-	s.Torrent.EngineVersion = "5.0.5"
+	s.Torrent.EngineVersion = "4.5.5"
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
 	}
 	deadline := time.Now().Add(10 * time.Second)
-	for a.QBittorrentStatus().Version != "5.0.5" {
+	for a.QBittorrentStatus().Version != "4.5.5" {
 		if time.Now().After(deadline) {
 			t.Fatalf("still %+v", a.QBittorrentStatus())
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
 	def := nox.Versions().Default
-	if _, started, stopped := f.seen(); !slices.Equal(started, []string{def, "5.0.5"}) || !slices.Equal(stopped, []string{def}) {
+	if _, started, stopped := f.seen(); !slices.Equal(started, []string{def, "4.5.5"}) || !slices.Equal(stopped, []string{def}) {
 		t.Fatalf("started %v, stopped %v", started, stopped)
 	}
 }
@@ -279,5 +279,20 @@ func TestAQBittorrentThatStartsGetsTheTorrentSettings(t *testing.T) {
 	p := q.Preferences()
 	if p["listen_port"] != 6881.0 || p["up_limit"] != 4096.0 || p["dht"] != true || p["queueing_enabled"] != false {
 		t.Fatalf("preferences %v", p)
+	}
+}
+
+// An install that never picked a version runs the default, whatever it was
+// when the install began, and one that picked a version keeps it.
+func TestOnlyAVersionNobodyPickedFollowsTheDefault(t *testing.T) {
+	for _, tc := range []struct{ held, want string }{
+		{"", "5.0.5"},
+		{"4.5.5", "4.5.5"},
+		{"4.6.7", "4.6.7"},
+		{"5.0.5", "5.0.5"},
+	} {
+		if v, note := pickQBitVersion(tc.held); v.Version != tc.want || note != "" {
+			t.Errorf("held %q runs %s (%q), want %s", tc.held, v.Version, note, tc.want)
+		}
 	}
 }

@@ -548,6 +548,27 @@ describe('the qBittorrent KnightLoader runs', () => {
     expect(group('qBittorrent').textContent).toContain('Not on any public client list KnightLoader knows of.');
   });
 
+  it('points trackers that let in only older clients to the older versions', async () => {
+    const three = {
+      chosen: '5.0.5',
+      default: '5.0.5',
+      versions: [
+        { version: '4.5.5', libtorrent: '1.2.19', whitelists: ['OPS'], note: '' },
+        { version: '4.6.7', libtorrent: '1.2.19', whitelists: [], note: '' },
+        { version: '5.0.5', libtorrent: '2.0.11', whitelists: [], note: '' },
+      ],
+    };
+    answers[QBIT] = qbit({ ...three, state: 'running', version: '5.0.5' });
+    await draw();
+    expect(group('qBittorrent').textContent).toContain('5.0.5, recommended');
+    expect(group('qBittorrent').textContent).toContain('Some private trackers let in only older clients.');
+
+    act(() => root.unmount());
+    root = createRoot(host);
+    await draw({ torrent: { engineVersion: '4.5.5' } } as unknown as Partial<Settings>);
+    expect(group('qBittorrent').textContent).not.toContain('Some private trackers let in only older clients.');
+  });
+
   it('says why it is not running and starts it again on request', async () => {
     answers[QBIT] = qbit({ state: 'failed', detail: 'github answered 503' });
     answers[`POST ${QBIT}/start`] = qbit({ state: 'running', version: '4.5.5' });

@@ -1706,6 +1706,7 @@ export const tr: Dict = {
   'settings.info.qbitVersionHint': 'Özel izleyiciler yalnızca listelerindeki qBittorrent sürümlerini kabul eder, bu yüzden bu sürüm ayarladığın yerde kalır. Otomatik güncelleme ona dokunmaz. Başka bir sürüm seçersen indirilir ve qBittorrent yeniden başlatılır.',
   'settings.info.qbitOnList': '{trackers} herkese açık istemci listesinde yer alıyor.',
   'settings.info.qbitOffList': 'KnightLoader’ın bildiği hiçbir herkese açık istemci listesinde yer almıyor. Orada paylaşmadan önce izleyicinin kurallarına bak.',
+  'settings.info.qbitOlderClients': 'Bazı özel izleyiciler yalnızca daha eski istemcileri kabul eder. Seninki de öyleyse buradan daha eski bir sürüm seç.',
   'settings.info.qbitRecommended': '{version}, önerilen',
   'settings.info.statusDone': 'Tamam',
   'settings.info.helpTitle': 'Yardım',

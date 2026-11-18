@@ -1707,6 +1707,7 @@ export const lt: Dict = {
   'settings.info.qbitVersionHint': 'Privatūs sekikliai įsileidžia tik savo sąraše esančias qBittorrent versijas, todėl ši lieka ten, kur ją nustatei. Automatinis atnaujinimas jos neliečia. Pasirinkus kitą versiją, ji atsisiunčiama, o qBittorrent paleidžiamas iš naujo.',
   'settings.info.qbitOnList': 'Yra {trackers} viešame klientų sąraše.',
   'settings.info.qbitOffList': 'Nėra jokiame KnightLoader žinomame viešame klientų sąraše. Prieš dalindamasis ten, patikrink savo sekiklio taisykles.',
+  'settings.info.qbitOlderClients': 'Kai kurie privatūs sekikliai įsileidžia tik senesnius klientus. Jei tavasis toks, čia pasirink senesnę versiją.',
   'settings.info.qbitRecommended': '{version}, rekomenduojama',
   'settings.info.statusDone': 'Atlikta',
   'settings.info.helpTitle': 'Pagalba',

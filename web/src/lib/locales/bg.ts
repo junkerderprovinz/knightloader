@@ -1707,6 +1707,7 @@ export const bg: Dict = {
   'settings.info.qbitVersionHint': 'Частните тракери пускат само версиите на qBittorrent от своя списък, затова тази остава там, където я зададеш. Автоматичното обновяване не я пипа. Ако избереш друга версия, тя се изтегля и qBittorrent се рестартира.',
   'settings.info.qbitOnList': 'Фигурира в публичния списък с клиенти на {trackers}.',
   'settings.info.qbitOffList': 'Не фигурира в нито един публичен списък с клиенти, който KnightLoader познава. Провери правилата на тракера си, преди да споделяш там.',
+  'settings.info.qbitOlderClients': 'Някои частни тракери пускат само по-стари клиенти. Ако твоят е такъв, избери тук по-стара версия.',
   'settings.info.qbitRecommended': '{version}, препоръчана',
   'settings.info.statusDone': 'Готово',
   'settings.info.helpTitle': 'Помощ',

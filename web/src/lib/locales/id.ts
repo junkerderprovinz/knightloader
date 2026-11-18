@@ -1706,6 +1706,7 @@ export const id: Dict = {
   'settings.info.qbitVersionHint': 'Tracker privat hanya menerima versi qBittorrent yang ada di daftarnya, jadi versi ini tetap seperti yang kamu atur. Pembaruan otomatis tidak menyentuhnya. Memilih versi lain akan mengunduhnya dan memulai ulang qBittorrent.',
   'settings.info.qbitOnList': 'Ada di daftar klien publik {trackers}.',
   'settings.info.qbitOffList': 'Tidak ada di daftar klien publik mana pun yang dikenal KnightLoader. Periksa aturan tracker-mu sebelum melakukan seed di sana.',
+  'settings.info.qbitOlderClients': 'Beberapa tracker privat hanya menerima klien yang lebih lama. Kalau tracker-mu begitu, pilih versi yang lebih lama di sini.',
   'settings.info.qbitRecommended': '{version}, disarankan',
   'settings.info.statusDone': 'Selesai',
   'settings.info.helpTitle': 'Bantuan',

@@ -1707,6 +1707,7 @@ export const el: Dict = {
   'settings.info.qbitVersionHint': 'Οι ιδιωτικοί trackers δέχονται μόνο τις εκδόσεις του qBittorrent που είναι στη λίστα τους, οπότε αυτή μένει εκεί που την ορίζεις. Η αυτόματη ενημέρωση δεν την αγγίζει. Αν επιλέξεις άλλη έκδοση, κατεβαίνει και το qBittorrent επανεκκινείται.',
   'settings.info.qbitOnList': 'Βρίσκεται στη δημόσια λίστα πελατών του {trackers}.',
   'settings.info.qbitOffList': 'Δεν βρίσκεται σε καμία δημόσια λίστα πελατών που γνωρίζει το KnightLoader. Έλεγξε τους κανόνες του tracker σου πριν κάνεις seed εκεί.',
+  'settings.info.qbitOlderClients': 'Κάποιοι ιδιωτικοί trackers δέχονται μόνο παλαιότερους clients. Αν ο δικός σου είναι ένας από αυτούς, διάλεξε εδώ μια παλαιότερη έκδοση.',
   'settings.info.qbitRecommended': '{version}, προτεινόμενη',
   'settings.info.statusDone': 'Ολοκληρώθηκε',
   'settings.info.helpTitle': 'Βοήθεια',

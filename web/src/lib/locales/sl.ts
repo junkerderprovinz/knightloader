@@ -1706,6 +1706,7 @@ export const sl: Dict = {
   'settings.info.qbitVersionHint': 'Zasebni sledilniki spustijo noter le različice qBittorrenta s svojega seznama, zato ta ostane tam, kamor jo nastaviš. Samodejna posodobitev se je ne dotakne. Če izbereš drugo različico, se prenese in qBittorrent se znova zažene.',
   'settings.info.qbitOnList': 'Je na javnem seznamu odjemalcev {trackers}.',
   'settings.info.qbitOffList': 'Ni na nobenem javnem seznamu odjemalcev, ki ga KnightLoader pozna. Preden tam deliš, preveri pravila svojega sledilnika.',
+  'settings.info.qbitOlderClients': 'Nekateri zasebni sledilniki spustijo noter le starejše odjemalce. Če je tvoj tak, tukaj izberi starejšo različico.',
   'settings.info.qbitRecommended': '{version}, priporočena',
   'settings.info.statusDone': 'Končano',
   'settings.info.helpTitle': 'Pomoč',

@@ -1706,6 +1706,7 @@ export const vi: Dict = {
   'settings.info.qbitVersionHint': 'Tracker riêng tư chỉ chấp nhận các phiên bản qBittorrent có trong danh sách của họ, nên phiên bản này giữ nguyên như bạn đặt. Bản cập nhật tự động không động đến nó. Chọn phiên bản khác sẽ tải nó xuống và khởi động lại qBittorrent.',
   'settings.info.qbitOnList': 'Có trong danh sách client công khai của {trackers}.',
   'settings.info.qbitOffList': 'Không có trong danh sách client công khai nào mà KnightLoader biết. Hãy xem quy định của tracker trước khi seed ở đó.',
+  'settings.info.qbitOlderClients': 'Một số tracker riêng tư chỉ cho phép các client cũ hơn. Nếu tracker của bạn như vậy, hãy chọn một phiên bản cũ hơn ở đây.',
   'settings.info.qbitRecommended': '{version}, khuyên dùng',
   'settings.info.statusDone': 'Xong',
   'settings.info.helpTitle': 'Trợ giúp',

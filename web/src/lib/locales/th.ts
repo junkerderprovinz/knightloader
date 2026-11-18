@@ -1706,6 +1706,7 @@ export const th: Dict = {
   'settings.info.qbitVersionHint': 'แทรกเกอร์ส่วนตัวยอมรับเฉพาะเวอร์ชันของ qBittorrent ที่อยู่ในรายการของตน เวอร์ชันนี้จึงคงอยู่ตามที่คุณตั้งไว้ การอัปเดตอัตโนมัติจะไม่แตะต้องมัน หากเลือกเวอร์ชันอื่น ระบบจะดาวน์โหลดและเริ่ม qBittorrent ใหม่',
   'settings.info.qbitOnList': 'อยู่ในรายการไคลเอนต์สาธารณะของ {trackers}',
   'settings.info.qbitOffList': 'ไม่อยู่ในรายการไคลเอนต์สาธารณะใดที่ KnightLoader รู้จัก ตรวจสอบกฎของแทรกเกอร์ก่อนซีดที่นั่น',
+  'settings.info.qbitOlderClients': 'แทร็กเกอร์ส่วนตัวบางแห่งรับเฉพาะไคลเอนต์รุ่นเก่า ถ้าแทร็กเกอร์ของคุณเป็นแบบนั้น ให้เลือกรุ่นที่เก่ากว่าตรงนี้',
   'settings.info.qbitRecommended': '{version} (แนะนำ)',
   'settings.info.statusDone': 'เสร็จแล้ว',
   'settings.info.helpTitle': 'วิธีใช้',

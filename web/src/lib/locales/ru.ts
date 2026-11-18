@@ -1699,6 +1699,7 @@ export const ru: Dict = {
   'settings.info.qbitVersionHint': 'Приватные трекеры пускают только версии qBittorrent из своего списка, поэтому эта остаётся там, где вы её выбрали. Автообновление её не трогает. Если выбрать другую версию, она загрузится, а qBittorrent перезапустится.',
   'settings.info.qbitOnList': 'Есть в публичном списке клиентов {trackers}.',
   'settings.info.qbitOffList': 'Нет ни в одном публичном списке клиентов, который знает KnightLoader. Прежде чем раздавать там, проверьте правила своего трекера.',
+  'settings.info.qbitOlderClients': 'Некоторые закрытые трекеры пускают только более старые клиенты. Если ваш из таких, выберите здесь более старую версию.',
   'settings.info.qbitRecommended': '{version}, рекомендуется',
   'settings.info.statusDone': 'Готово',
   'settings.info.helpTitle': 'Справка',

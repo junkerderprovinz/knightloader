@@ -422,7 +422,8 @@ What keeping it out of the source prevents is publishing it next to the code.
 with a WebUI login it generates, watches and stops with itself, the way it
 runs its JDownloader. The version is pinned in
 `internal/qbittorrent/nox/versions.json`, with the SHA-256 of every build, and
-moves only when somebody picks another one. Linux and the container fetch the
+moves only when somebody picks another one. An install where nobody picked one
+runs the table's default, the newest build. Linux and the container fetch the
 static build from userdocs/qbittorrent-nox-static at run time. Windows and
 macOS fetch a build without a window that `qbittorrent-nox.yml` makes. Every
 KnightLoader release carries those builds with their sources, and an app
@@ -443,7 +444,8 @@ peer id and user agent, and KnightLoader's engine is on none of them.
 qBittorrent is on all of them, but only at the versions each list names: OPS
 lists 2.x to 4.5.x. Following the newest release, as the other components do,
 would take a member off their tracker the day a new version came out, so the
-version is data that a person changes. Alpine ships one qBittorrent, the
+version is data that a person changes, and 4.6.7 and 4.5.5 stay to pick
+beside the default. Alpine ships one qBittorrent, the
 newest, which misses the pin, and a GPL program in the image would oblige us
 to offer its source with every image. Fetched at run time and driven over
 HTTP, it is a separate program next to KnightLoader. 4.5.x does not check TLS

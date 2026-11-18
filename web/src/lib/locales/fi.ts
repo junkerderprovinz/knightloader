@@ -1706,6 +1706,7 @@ export const fi: Dict = {
   'settings.info.qbitVersionHint': 'Yksityiset trackerit päästävät sisään vain listallaan olevat qBittorrent-versiot, joten tämä pysyy siinä, mihin sen asetat. Automaattinen päivitys ei koske siihen. Jos valitset toisen version, se ladataan ja qBittorrent käynnistetään uudelleen.',
   'settings.info.qbitOnList': 'On palvelun {trackers} julkisella asiakaslistalla.',
   'settings.info.qbitOffList': 'Ei ole millään KnightLoaderin tuntemalla julkisella asiakaslistalla. Tarkista trackerisi säännöt ennen kuin jaat siellä.',
+  'settings.info.qbitOlderClients': 'Jotkin yksityiset trackerit päästävät sisään vain vanhempia asiakasohjelmia. Jos omasi on sellainen, valitse tästä vanhempi versio.',
   'settings.info.qbitRecommended': '{version}, suositeltu',
   'settings.info.statusDone': 'Valmis',
   'settings.info.helpTitle': 'Ohje',

@@ -1708,6 +1708,7 @@ export const ar: Dict = {
   'settings.info.qbitVersionHint': 'لا تقبل المتتبعات الخاصة إلا إصدارات qBittorrent المدرجة في قائمتها، لذا يبقى هذا الإصدار كما ضبطته. ولا يمسّه التحديث التلقائي. واختيار إصدار آخر ينزّله ويعيد تشغيل qBittorrent.',
   'settings.info.qbitOnList': 'مدرج في قائمة العملاء العامة لدى {trackers}.',
   'settings.info.qbitOffList': 'غير مدرج في أي قائمة عملاء عامة يعرفها KnightLoader. راجع قواعد المتتبع قبل أن تزرع فيه.',
+  'settings.info.qbitOlderClients': 'بعض المتتبعات الخاصة لا تقبل إلا العملاء الأقدم. إن كان متتبعك منها، فاختر إصدارًا أقدم هنا.',
   'settings.info.qbitRecommended': '{version}، موصى به',
   'settings.info.statusDone': 'تم',
   'settings.info.helpTitle': 'المساعدة',

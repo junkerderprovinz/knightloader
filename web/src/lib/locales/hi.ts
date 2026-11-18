@@ -1707,6 +1707,7 @@ export const hi: Dict = {
   'settings.info.qbitVersionHint': 'निजी ट्रैकर सिर्फ़ अपनी सूची वाले qBittorrent संस्करणों को ही अंदर आने देते हैं, इसलिए यह संस्करण वहीं रहता है जहाँ आप उसे रखते हैं। अपने आप होने वाला अपडेट इसे नहीं छूता। दूसरा संस्करण चुनने पर वह डाउनलोड होता है और qBittorrent फिर से शुरू होता है।',
   'settings.info.qbitOnList': '{trackers} की सार्वजनिक क्लाइंट सूची में है।',
   'settings.info.qbitOffList': 'KnightLoader की जानी हुई किसी भी सार्वजनिक क्लाइंट सूची में नहीं है। वहाँ सीड करने से पहले अपने ट्रैकर के नियम देख लें।',
+  'settings.info.qbitOlderClients': 'कुछ निजी ट्रैकर सिर्फ़ पुराने क्लाइंट को ही अंदर आने देते हैं। अगर आपका ट्रैकर भी ऐसा है, तो यहाँ पुराना संस्करण चुनें।',
   'settings.info.qbitRecommended': '{version}, सुझाया गया',
   'settings.info.statusDone': 'हो गया',
   'settings.info.helpTitle': 'सहायता',

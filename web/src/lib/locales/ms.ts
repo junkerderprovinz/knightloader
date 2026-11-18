@@ -1706,6 +1706,7 @@ export const ms: Dict = {
   'settings.info.qbitVersionHint': 'Penjejak persendirian hanya menerima versi qBittorrent dalam senarai mereka, jadi versi ini kekal seperti yang anda tetapkan. Kemas kini automatik tidak menyentuhnya. Memilih versi lain akan memuat turunnya dan memulakan semula qBittorrent.',
   'settings.info.qbitOnList': 'Ada dalam senarai klien awam {trackers}.',
   'settings.info.qbitOffList': 'Tiada dalam mana-mana senarai klien awam yang diketahui KnightLoader. Semak peraturan penjejak anda sebelum menyemai di sana.',
+  'settings.info.qbitOlderClients': 'Sesetengah penjejak peribadi hanya menerima klien yang lebih lama. Jika penjejak anda begitu, pilih versi yang lebih lama di sini.',
   'settings.info.qbitRecommended': '{version}, disyorkan',
   'settings.info.statusDone': 'Selesai',
   'settings.info.helpTitle': 'Bantuan',

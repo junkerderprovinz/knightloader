@@ -1706,6 +1706,7 @@ export const ko: Dict = {
   'settings.info.qbitVersionHint': '비공개 트래커는 목록에 있는 qBittorrent 버전만 받아들이므로 이 버전은 설정한 그대로 유지됩니다. 자동 업데이트도 건드리지 않습니다. 다른 버전을 고르면 내려받은 뒤 qBittorrent를 다시 시작합니다.',
   'settings.info.qbitOnList': '{trackers}의 공개 클라이언트 목록에 있습니다.',
   'settings.info.qbitOffList': 'KnightLoader가 아는 어떤 공개 클라이언트 목록에도 없습니다. 그 트래커에서 시드하기 전에 규칙을 확인하세요.',
+  'settings.info.qbitOlderClients': '일부 비공개 트래커는 오래된 클라이언트만 받습니다. 사용하는 트래커가 그렇다면 여기서 이전 버전을 고르세요.',
   'settings.info.qbitRecommended': '{version}, 권장',
   'settings.info.statusDone': '완료',
   'settings.info.helpTitle': '도움말',
