@@ -51,15 +51,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the site and the pages it signs you in with, never your own network, and
   closes after five minutes without input. The extension still works the
   same way beside it.
-- **Patreon and YouTube sign in with your browser's own session.** The
-  desktop app, and a server outside a container, read it straight from
-  Firefox, LibreWolf, Waterfox, Zen, Edge, Brave, Opera, Vivaldi or Chromium
-  on the same computer, also when you signed in there long before. You do not
-  have to do anything, and the accounts page names the browser the session
-  came from. Sign out in the browser and KnightLoader is signed out too, or
-  remove the site in KnightLoader to stop using it while the browser stays
-  signed in. **Use the browser's sign-in again** brings it back.
-  Chrome on Windows locks its cookies away from every other program, and the
+- **Patreon, YouTube, Instagram, X, Facebook, Vimeo, TikTok, Twitch and
+  Reddit sign in with your browser's own session.** Add a site under Hoster
+  accounts with "Add an account", and the desktop app, and a server outside a
+  container, read its sign-in straight from Firefox, LibreWolf, Waterfox,
+  Zen, Edge, Brave, Opera, Vivaldi or Chromium on the same computer, also
+  when you signed in there long before. The accounts page names the browser
+  the session came from, and Remove drops a site like any other account while
+  the browser stays signed in. Patreon goes along with every link, the others
+  only with a link that asks for a sign-in. A sign-in kept from before keeps
+  its row. Chrome on Windows locks its cookies away from every other program, and the
   page tells you when that is the case. Your sessions only go along with
   links you added yourself, signed in, with an admin token or with the
   extension. Links from a token that may only add, the phone app, a feed or
@@ -68,9 +69,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   session.** When a yt-dlp download fails because the site asks for a
   sign-in, such as a private or age-restricted video, the desktop app tries it
   once more right away with that site's cookies from your browser.
-- **The browser extension passes your Patreon and YouTube sign-in on by
+- **The browser extension passes the sign-in of the sites you added on by
   itself,** for KnightLoader in a container, which has no browser to read.
-  It asks once to read those two sites' cookies (or nothing at all while
+  It asks once to read those sites' cookies (or nothing at all while
   taking over downloads or finding media is on), then hands the sign-in over
   whenever you sign in or it changes, also one from before, and tells your
   instance when you sign out. Private windows are never read, Firefox
