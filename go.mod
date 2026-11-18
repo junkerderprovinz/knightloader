@@ -9,7 +9,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
-	github.com/dop251/goja v0.0.0-20261110204830-f493a2b600d6
+	github.com/dop251/goja v0.0.0-20261117132507-c18a77e471d9
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/jlaffaye/ftp v0.2.4
@@ -21,7 +21,7 @@ require (
 	golang.org/x/crypto v0.59.0
 	golang.org/x/image v0.48.0
 	golang.org/x/mod v0.43.0
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
 	golang.org/x/sys v0.50.0
 	golang.org/x/text v0.44.0
 	golang.org/x/time v0.16.0
