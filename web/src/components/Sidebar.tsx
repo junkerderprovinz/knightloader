@@ -21,6 +21,7 @@ import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { countTasks, openDownloads } from '../lib/needs';
 import { useNeeds } from '../lib/useNeeds';
+import { useSettled } from '../lib/useSettled';
 import { EventBell } from './EventBell';
 import {
   IconDashboard,
@@ -151,6 +152,10 @@ export function NavLabel({ label, mode }: { label: string; mode: LabelMode }) {
   );
 }
 
+// Starting a whole list moves both counts in many small steps; each would
+// replay the badge's entrance, so a badge waits for its count to hold still.
+const COUNT_SETTLE_MS = 300;
+
 function Item({
   to,
   label,
@@ -169,6 +174,7 @@ function Item({
   mode: LabelMode;
 }) {
   const centred = mode === 'glyph' || mode === 'hover';
+  const count = useSettled(badge ?? 0, COUNT_SETTLE_MS);
   // Only glyph mode gets a tooltip; hover mode reveals the label itself.
   const tip = useTooltip<HTMLAnchorElement>(mode === 'glyph' ? label : undefined);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
@@ -189,14 +195,14 @@ function Item({
         <NavLabel label={label} mode={mode} />
         {/* In the centred modes the badge pins to the glyph's corner, so the
             glyph stays centred. */}
-        {badge ? (
+        {count ? (
           <span
             // A new key per value replays .kl-count's entrance, so the number
             // visibly rolls when it changes.
-            key={badge}
+            key={count}
             className={`kl-count ${navCount} ${centred ? 'absolute end-1 top-1' : ''}`}
           >
-            {badge}
+            {count}
           </span>
         ) : null}
       </NavLink>
@@ -421,14 +427,15 @@ export function BarBody({
   // On the glyph's corner, or on the segment's when there is no glyph. The
   // bar's count is grey and takes the accent on the current segment, as ink on
   // the accent's own contrast, since the segment is filled with the accent.
-  const count = badge > 0 && (
+  const settled = useSettled(badge, COUNT_SETTLE_MS);
+  const count = settled > 0 && (
     <span
-      key={badge}
+      key={settled}
       className={`kl-count glim-num absolute rounded-[var(--radius-pill)] bg-carbon-textSub px-1 py-px text-meta font-semibold
         leading-none text-carbon-background [.glim-active_&]:bg-accentContrast [.glim-active_&]:text-accent
         ${glyph ? '-top-1.5 start-3.5' : 'end-0.5 top-0.5'}`}
     >
-      {badge > 99 ? '99+' : badge}
+      {settled > 99 ? '99+' : settled}
     </span>
   );
   return (

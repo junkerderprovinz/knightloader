@@ -189,8 +189,8 @@ describe('what needs the person', () => {
     expect(heading()).toBe('2 things need you');
     expect(needRows()).toHaveLength(2);
     expect(main().querySelector('.kl-ring')!.textContent).toBe('2');
-    const rail = host.querySelector('nav a[href="/"]')!;
-    expect(rail.querySelector('.kl-count')!.textContent).toBe('2');
+    // The rail's badge waits for its count to hold still.
+    await vi.waitFor(() => expect(host.querySelector('nav a[href="/"] .kl-count')?.textContent).toBe('2'));
   });
 
   it('retries a failed download from its row and says why it failed', async () => {
@@ -209,7 +209,7 @@ describe('what needs the person', () => {
     await act(async () => button('Done', needRows()[0])!.click());
     expect(needRows()).toHaveLength(0);
     expect(heading()).toBe('Everything is downloaded');
-    expect(host.querySelector('nav a[href="/"] .kl-count')).toBeNull();
+    await vi.waitFor(() => expect(host.querySelector('nav a[href="/"] .kl-count')).toBeNull());
   });
 
   it('brings a waiting captcha to the front from its row', async () => {
