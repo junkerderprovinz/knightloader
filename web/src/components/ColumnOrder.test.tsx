@@ -16,13 +16,17 @@ globalThis.ResizeObserver ??= class {
 let root: Root;
 let host: HTMLDivElement;
 
+// The loose links arrive folded like any package; the cells under the heads
+// need them open.
+const OPEN = JSON.stringify({ 'list.expanded.collector': [''], 'list.expanded.downloads': [''] });
+
 beforeEach(() => {
   vi.resetModules();
   vi.stubGlobal(
     'fetch',
     vi.fn(
       async (url: string) =>
-        new Response(url.includes('/api/uistate') ? '{}' : '[]', {
+        new Response(url.includes('/api/uistate') ? OPEN : '[]', {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         }),

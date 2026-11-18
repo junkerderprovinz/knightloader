@@ -43,9 +43,10 @@ it('folds a package that arrives on Downloads and keeps one somebody opened open
   expect(folds.collapsed.has('Interview im Burghof')).toBe(true);
 });
 
-it('opens a package in the collector until somebody folds it', async () => {
+it('folds a package that lands in the collector and keeps one somebody opened open', async () => {
   await act(async () => root.render(<Probe profile="collector" />));
-  expect(folds.collapsed.has('Interview im Burghof')).toBe(false);
-  await act(async () => folds.collapse(['Interview im Burghof']));
   expect(folds.collapsed.has('Interview im Burghof')).toBe(true);
+  await act(async () => folds.expand(['Interview im Burghof']));
+  expect(folds.collapsed.has('Interview im Burghof')).toBe(false);
+  expect(folds.collapsed.has('Burgchronik')).toBe(true);
 });

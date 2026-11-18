@@ -275,29 +275,24 @@ function parksCell(id: ColumnId, profile: ListProfile): boolean {
  * that needs a stable package id on the task.
  */
 export function useCollapsedPackages(profile: ListProfile = 'downloads') {
-  // On Downloads a package arrives from the collector folded, so there the
-  // store keeps the packages somebody opened instead of the ones they folded.
-  const foldedByDefault = profile === 'downloads';
-  const [stored, setStored] = useUIState<string[]>(
-    `list.${foldedByDefault ? 'expanded' : 'collapsed'}.${profile}`,
-    NO_COLLAPSED,
-  );
+  // A package arrives folded in both lists, so the store keeps the packages
+  // somebody opened instead of the ones they folded.
+  const [opened, setOpened] = useUIState<string[]>(`list.expanded.${profile}`, NO_COLLAPSED);
   const collapsed = useMemo<Folded>(() => {
-    const named = new Set(stored);
-    return foldedByDefault ? { has: (name) => !named.has(name) } : named;
-  }, [stored, foldedByDefault]);
+    const named = new Set(opened);
+    return { has: (name) => !named.has(name) };
+  }, [opened]);
 
   const mark = useCallback(
     (names: string[], fold: boolean) => {
-      const next = new Set(stored);
-      const keep = fold !== foldedByDefault;
+      const next = new Set(opened);
       for (const n of names) {
-        if (keep) next.add(n);
-        else next.delete(n);
+        if (fold) next.delete(n);
+        else next.add(n);
       }
-      setStored([...next]);
+      setOpened([...next]);
     },
-    [stored, setStored, foldedByDefault],
+    [opened, setOpened],
   );
   const collapse = useCallback((names: string[]) => mark(names, true), [mark]);
   // Named, never "clear the lot": expanding what is on screen must not unfold
