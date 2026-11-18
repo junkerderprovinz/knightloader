@@ -94,7 +94,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 - **The built-in torrent engine is gone.** qBittorrent does its work.
 
-## [2.8.4] - 2026-11-14
 ## [2.9.0] - 2026-11-17
 
 ### Added
