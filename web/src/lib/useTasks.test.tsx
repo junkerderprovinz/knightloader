@@ -6,10 +6,12 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { Task } from './api';
 
 let send: (type: string, data: unknown) => void = () => {};
+let connections = 0;
 vi.mock('./api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./api')>()),
   connectWS: (onMessage: (type: string, data: unknown) => void) => {
     send = onMessage;
+    connections++;
     return () => {};
   },
 }));
@@ -32,6 +34,7 @@ const task = (id: string, status = 'collected') => ({ id, status }) as Task;
 beforeEach(() => {
   vi.useFakeTimers();
   renders = [];
+  connections = 0;
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -74,4 +77,19 @@ it('lets a snapshot replace changes still waiting', () => {
   act(() => send('snapshot', [task('fresh')]));
   act(() => vi.runAllTimers());
   expect(Object.keys(latest())).toEqual(['fresh']);
+});
+
+it('shows a list that opens later what is already known, over the same connection', () => {
+  act(() => send('snapshot', [task('a'), task('b')]));
+  const later: Record<string, Task>[] = [];
+  function Later() {
+    later.push(useTasks(''));
+    return null;
+  }
+  const other = document.createElement('div');
+  const otherRoot = createRoot(other);
+  act(() => otherRoot.render(<Later />));
+  expect(Object.keys(later[0]).sort()).toEqual(['a', 'b']);
+  expect(connections).toBe(1);
+  act(() => otherRoot.unmount());
 });
