@@ -370,6 +370,7 @@ function ServerDialog({
       wide={!initial.id}
       height={picking ? 'capped' : 'content'}
       holdHeight={picking && query !== ''}
+      closeOnBackdrop={picking}
       right={picking && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
       onClose={onClose}
       footer={

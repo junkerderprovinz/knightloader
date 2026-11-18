@@ -672,6 +672,7 @@ function HosterLoginDialog({
       wide
       height={picked ? 'content' : 'capped'}
       holdHeight={!picked && query !== ''}
+      closeOnBackdrop={!picked}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />}
       onClose={onClose}
       footer={

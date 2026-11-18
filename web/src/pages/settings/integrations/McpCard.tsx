@@ -460,6 +460,7 @@ function AddClientWindow({
       wide
       height={picked ? 'content' : 'capped'}
       holdHeight={!picked && query !== ''}
+      closeOnBackdrop={!picked}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('settings.access.mcp.search')} />}
       onClose={() => (creating ? undefined : onClose())}
       footer={footer}

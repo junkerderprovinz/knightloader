@@ -2069,6 +2069,7 @@ export function Modal({
   title,
   hint,
   onClose,
+  closeOnBackdrop = true,
   children,
   footer,
   mute,
@@ -2091,6 +2092,8 @@ export function Modal({
    * cards needs it said.
    */
   hue?: number;
+  /** False while the window holds a form, so a press beside it does not throw away what was typed. */
+  closeOnBackdrop?: boolean;
   /**
    * The answers, built by the caller: this window has no confirm/cancel pair of
    * its own. One of them is always the way out (GlimStone rule 15): a
@@ -2185,7 +2188,7 @@ export function Modal({
       // unselectable text stop here.
       className="glim-modal-backdrop glim-sheet fixed inset-0 z-50 grid place-items-center p-6 whitespace-normal select-text"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (closeOnBackdrop && e.target === e.currentTarget) onClose();
       }}
     >
       {/* glim-modal-card carries the window's arrival: index.css's motion engine

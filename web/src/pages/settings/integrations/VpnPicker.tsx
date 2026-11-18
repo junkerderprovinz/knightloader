@@ -132,6 +132,7 @@ export function VpnPicker({
       wide
       height={p ? 'content' : 'capped'}
       holdHeight={!p && query !== ''}
+      closeOnBackdrop={!p}
       right={!p && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
       onClose={onClose}
       footer={

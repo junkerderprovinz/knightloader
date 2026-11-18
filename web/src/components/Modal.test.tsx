@@ -42,3 +42,28 @@ it('wraps and lets its text be selected when opened inside a truncated row', asy
   expect(backdrop.classList).toContain('whitespace-normal');
   expect(backdrop.classList).toContain('select-text');
 });
+
+it('closes on a press beside it, unless it holds a form that would lose what was typed', async () => {
+  let closed = 0;
+  const draw = (closeOnBackdrop?: boolean) =>
+    act(async () => {
+      root.render(
+        <I18nProvider>
+          <Modal title="Add an account" closeOnBackdrop={closeOnBackdrop} onClose={() => closed++}>
+            <input />
+          </Modal>
+        </I18nProvider>,
+      );
+    });
+  const press = () =>
+    act(() => {
+      const backdrop = document.querySelector('[role=dialog]')!.parentElement!;
+      backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    });
+  await draw();
+  press();
+  expect(closed).toBe(1);
+  await draw(false);
+  press();
+  expect(closed).toBe(1);
+});

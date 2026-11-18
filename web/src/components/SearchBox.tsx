@@ -74,7 +74,7 @@ export function SearchBox({
         aria-label={input['aria-label'] ?? label}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={keyDown}
-        className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text caret-accentGlyph
+        className="glim-focus-drawn h-full min-w-0 flex-1 text-ellipsis bg-transparent text-sm text-carbon-text caret-accentGlyph
           outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
