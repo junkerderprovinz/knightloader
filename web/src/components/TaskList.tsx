@@ -3514,7 +3514,7 @@ export function TaskListCard({
   const rowHeight = useRowHeight();
   const metrics = ROW_METRICS[rowHeight];
   const win = useRowWindow(rows, stripRef, ROW_ESTIMATES[rowHeight]);
-  const shaded = useListShade();
+  const shade = useListShade();
   const bands = useMemo(() => rowBands(rows), [rows]);
 
   // The list from the keyboard; see listKeyboard.ts for why a windowed list
@@ -3780,7 +3780,7 @@ export function TaskListCard({
                 data-new="row-pick"
                 aria-multiselectable="true"
                 aria-label={title}
-                data-shade={shaded ? '' : undefined}
+                data-shade={shade === 'off' ? undefined : shade}
                 tabIndex={keys.stripTabIndex}
                 onFocus={keys.onStripFocus}
                 // The whole gesture hangs here and not on the rows: a press
