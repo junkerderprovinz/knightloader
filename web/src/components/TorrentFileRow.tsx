@@ -6,12 +6,14 @@ import { useToast } from '../lib/toast';
 import {
   AT_ROW_END,
   IN_NAME_COL,
+  PARKED,
   ProgressCell,
   ROW_EDGES,
   RowSwitch,
   Tip,
   TREE_INDENT,
   TWISTY_STEP,
+  isParked,
   type CellContext,
   type ColumnDef,
 } from './columns';
@@ -140,6 +142,7 @@ export function TorrentFileRow({
   const [busy, setBusy] = useState(false);
   const [shake, setShake] = useState(0);
   const finished = torrentFinished(task);
+  const parked = isParked([task]);
 
   async function flip() {
     if (busy) return;
@@ -209,6 +212,7 @@ export function TorrentFileRow({
       data-row-key={row.key}
       data-row-kind="file"
       data-band={band}
+      data-parked={parked || undefined}
       data-file-of={task.id}
       data-file-under={row.under}
       role="treeitem"
@@ -242,7 +246,7 @@ export function TorrentFileRow({
             }
             className={`min-w-0 truncate text-xs text-carbon-textSub ${col.id === 'name' ? IN_NAME_COL : 'px-2'} ${
               col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
-            } ${col.numeric ? 'glim-num' : ''}`}
+            } ${col.numeric ? 'glim-num' : ''} ${parked ? PARKED : ''}`}
           >
             {typeof node === 'string' ? (
               <Tip tip={node} className="block truncate">
