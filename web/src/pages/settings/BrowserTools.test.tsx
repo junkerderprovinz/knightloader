@@ -120,6 +120,11 @@ describe('BrowserTools', () => {
       expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('1.8.4');
     });
 
+    it('says the macOS app runs on Apple silicon and Intel', async () => {
+      await macOS('v1.8.4');
+      expect(host.querySelector('a[aria-label^="macOS"]')?.getAttribute('aria-label')).toBe('macOS Apple and Intel');
+    });
+
     it('offers the installers of the release it runs for Windows and Linux', async () => {
       await macOS('v1.8.4');
       const href = (label: string) => host.querySelector<HTMLAnchorElement>(`a[aria-label="${label}"]`)!.href;

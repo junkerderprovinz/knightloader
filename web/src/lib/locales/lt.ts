@@ -3369,6 +3369,7 @@ export const lt: Dict = {
   'columns.variant.probing': 'Tikrinamos kokybės…',
   'columns.variant.probeFailed': 'Tik geriausia kokybė. Nepavyko nuskaityti galimų kokybių: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows ir Linux turi po dvi versijas: x64 daugumai kompiuterių ir ARM64 kompiuteriams su ARM procesoriumi, pavyzdžiui, nešiojamiesiems su Snapdragon lustu. Jei naršyklė nurodo, kokį procesorių turi šis kompiuteris, mygtukas pasiūlo tinkamą versiją, kitaip x64. Siaura dalis šalia jo duoda kitą. macOS programa veikia su Intel ir Apple silicon.',
+  'settings.browsertools.macosSub': 'Apple ir Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader dar nežino, kokius formatus siūlo {host}, todėl meniu siūlo visus. Kai tik patikrinama nuoroda iš {host}, jie siūlo formatus, rastus iki šiol patikrintose nuorodose, o garso meniu po jais išvardija kitus, į kuriuos galima konvertuoti.',
   'rename.linkHint': 'Pavadinimas, kuriuo išsaugomas failas. Jau baigtas atsisiuntimas pervadinamas ir diske, kad sąrašas ir aplankas sutaptų. Pavadinimas nėra kelias, todėl / ir \\ neleidžiami.',
   'quick.speedWindowHint': 'Kaip toli atgal siekia juostos greičio kreivė, nuo 10 sekundžių iki valandos. Iki dviejų minučių ji brėžia vieną matavimą per sekundę, toliau vieną kas dešimt sekundžių.',

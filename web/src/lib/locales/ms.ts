@@ -3367,6 +3367,7 @@ export const ms: Dict = {
   'columns.variant.probing': 'Menyemak kualiti…',
   'columns.variant.probeFailed': 'Kualiti terbaik sahaja. Kualiti yang tersedia tidak dapat dibaca: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows dan Linux masing-masing ada dua versi: x64 untuk kebanyakan PC dan ARM64 untuk komputer dengan pemproses ARM, seperti komputer riba dengan cip Snapdragon. Jika pelayar memberitahu pemproses komputer ini, butang memberikan versi yang sepadan, jika tidak x64. Bahagian sempit di sebelahnya memberikan yang satu lagi. Aplikasi macOS berjalan pada Intel dan Apple silicon.',
+  'settings.browsertools.macosSub': 'Apple dan Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader belum tahu format apa yang disediakan {host}, jadi menu menawarkan semuanya. Sebaik sahaja pautan dari {host} diperiksa, menu menawarkan format yang ditemui dalam pautan yang diperiksa setakat ini, dan menu audio menyenaraikan di bawahnya format lain yang boleh ditukar kepadanya.',
   'rename.linkHint': 'Nama yang digunakan untuk menyimpan fail. Muat turun yang sudah selesai juga dinamakan semula pada cakera, supaya senarai dan folder sepadan. Nama bukan laluan, jadi / dan \\ tidak dibenarkan.',
   'quick.speedWindowHint': 'Sejauh mana ke belakang lengkung kelajuan pada bar menjangkau, dari 10 saat hingga sejam. Sehingga dua minit ia melukis satu ukuran sesaat, selepas itu satu setiap sepuluh saat.',

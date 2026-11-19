@@ -3363,6 +3363,7 @@ export const eu: Dict = {
   'columns.variant.probing': 'Kalitateak egiaztatzen…',
   'columns.variant.probeFailed': 'Kalitate onena soilik. Ezin izan dira kalitate erabilgarriak irakurri: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows eta Linux bi bertsiotan daude: x64 ordenagailu gehienentzat eta ARM64 ARM prozesadoreko ordenagailuentzat, Snapdragon txipa duten eramangarriak adibidez. Nabigatzaileak ordenagailu honen prozesadorea esaten badu, botoiak bertsio egokia ematen du; bestela, x64. Ondoko zati estuak bestea ematen du. macOSerako aplikazioak Intel eta Apple silicon-en funtzionatzen du.',
+  'settings.browsertools.macosSub': 'Apple eta Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoaderrek oraindik ez daki zer formatu eskaintzen dituen {host} guneak, beraz menuek denak eskaintzen dituzte. {host} guneko esteka bat egiaztatu bezain laster, orain arte egiaztatutako esteketan aurkitutako formatuak eskaintzen dituzte, eta audio-menuak beheran zerrendatzen ditu bihurtzeko beste formatuak.',
   'rename.linkHint': 'Fitxategia gordetzeko izena. Amaitutako deskarga bat diskoan ere berrizendatzen da, zerrenda eta karpeta bat etor daitezen. Izen bat ez da bide bat, beraz / eta \\ ez dira onartzen.',
   'quick.speedWindowHint': 'Barrako abiadura-kurba noraino iristen den atzera, 10 segundotik ordubetera. Bi minutura arte neurketa bat marrazten du segundoko; hortik aurrera, bat hamar segundoan behin.',

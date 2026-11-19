@@ -3368,6 +3368,7 @@ export const hu: Dict = {
   'columns.variant.probing': 'Minőségek ellenőrzése…',
   'columns.variant.probeFailed': 'Csak a legjobb minőség. Az elérhető minőségeket nem sikerült beolvasni: {reason}',
   'settings.browsertools.desktopArchHint': 'A Windows és a Linux két változatban is elérhető: x64 a legtöbb PC-hez és ARM64 az ARM-processzoros gépekhez, például a Snapdragon lapkás laptopokhoz. Ha a böngésző megmondja, milyen processzor van ebben a gépben, a gomb a megfelelő változatot adja, különben az x64-et. A mellette lévő keskeny rész a másikat adja. A macOS-alkalmazás Intelen és Apple siliconon is fut.',
+  'settings.browsertools.macosSub': 'Apple és Intel',
   'settings.resolvers.presetFormatsUnknown': 'A KnightLoader még nem tudja, milyen formátumokat kínál a(z) {host}, ezért a menük mindet felkínálják. Amint egy {host} link ellenőrzésre kerül, az eddig ellenőrzött linkekben talált formátumokat kínálják, és a hangmenü alattuk sorolja fel a többit, amelyekre át lehet alakítani.',
   'rename.linkHint': 'A név, amelyen a fájl mentésre kerül. A már befejezett letöltés a lemezen is átnevezésre kerül, hogy a lista és a mappa egyezzen. A név nem elérési út, ezért a / és a \\ nem megengedett.',
   'quick.speedWindowHint': 'Milyen messzire nyúlik vissza a sávban lévő sebességgörbe, 10 másodperctől egy óráig. Két percig másodpercenként egy mérést rajzol, azon túl tízmásodpercenként egyet.',

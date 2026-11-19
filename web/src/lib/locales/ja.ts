@@ -3368,6 +3368,7 @@ export const ja: Dict = {
   'columns.variant.probing': '品質を確認中…',
   'columns.variant.probeFailed': '最高品質のみ。利用できる品質を読み取れませんでした: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows と Linux にはそれぞれ 2 つのビルドがあります。多くの PC 向けの x64 と、Snapdragon チップ搭載のノート PC など ARM プロセッサー搭載機向けの ARM64 です。ブラウザーがこのコンピューターのプロセッサーを教えてくれる場合、ボタンは合うビルドを、そうでなければ x64 を出します。隣の細い部分はもう一方を出します。macOS アプリは Intel と Apple シリコンの両方で動きます。',
+  'settings.browsertools.macosSub': 'Apple と Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader は {host} がどの形式を提供しているかをまだ知らないので、メニューにはすべての形式が並びます。{host} のリンクを一度確認すると、これまでに確認したリンクで見つかった形式が並び、音声メニューにはその下に変換先のほかの形式が並びます。',
   'rename.linkHint': 'ファイルを保存するときの名前です。すでに完了したダウンロードはディスク上でも名前が変わるので、一覧とフォルダーが一致します。名前はパスではないので、/ と \\ は使えません。',
   'quick.speedWindowHint': 'バーの速度曲線がどこまで遡るかです。10 秒から 1 時間まで。2 分までは 1 秒ごとに 1 点、それより長いと 10 秒ごとに 1 点を描きます。',

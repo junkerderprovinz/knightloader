@@ -3359,6 +3359,7 @@ export const lv: Dict = {
   'columns.variant.probing': 'Pārbauda kvalitātes…',
   'columns.variant.probeFailed': 'Tikai labākā kvalitāte. Pieejamās kvalitātes neizdevās nolasīt: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows un Linux katram ir divas versijas: x64 lielākajai daļai datoru un ARM64 datoriem ar ARM procesoru, piemēram, klēpjdatoriem ar Snapdragon mikroshēmu. Ja pārlūks norāda, kāds procesors ir šim datoram, poga piedāvā atbilstošo versiju, citādi x64. Šaurā daļa blakus tai dod otru. macOS lietotne darbojas uz Intel un Apple silicon.',
+  'settings.browsertools.macosSub': 'Apple un Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader vēl nezina, kādus formātus piedāvā {host}, tāpēc izvēlnes piedāvā visus. Tiklīdz saite no {host} ir pārbaudīta, tās piedāvā formātus, kas atrasti līdz šim pārbaudītajās saitēs, un audio izvēlne zem tiem uzskaita pārējos, uz kuriem var pārveidot.',
   'rename.linkHint': 'Nosaukums, ar kādu fails tiek saglabāts. Jau pabeigta lejupielāde tiek pārdēvēta arī diskā, lai saraksts un mape sakristu. Nosaukums nav ceļš, tāpēc / un \\ nav atļauti.',
   'quick.speedWindowHint': 'Cik tālu atpakaļ sniedzas ātruma līkne joslā, no 10 sekundēm līdz stundai. Līdz divām minūtēm tā zīmē vienu mērījumu sekundē, tālāk vienu ik pēc desmit sekundēm.',

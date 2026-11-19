@@ -460,7 +460,7 @@ function DesktopCard() {
         />
         <ReadmeButton
           brand="apple"
-          parts={[{ name: 'macOS', sub: 'Universal', href: desktopDownload('macos-universal', release) }]}
+          parts={[{ name: 'macOS', sub: t('settings.browsertools.macosSub'), href: desktopDownload('macos-universal', release) }]}
           mark={<BrandMark svg={APPLE_SVG} />}
         />
         <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />

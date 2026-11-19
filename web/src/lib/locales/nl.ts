@@ -3351,6 +3351,7 @@ export const nl: Dict = {
   'columns.variant.probing': 'Kwaliteiten controleren…',
   'columns.variant.probeFailed': 'Alleen de beste kwaliteit. De beschikbare kwaliteiten konden niet worden gelezen: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows en Linux zijn er elk in twee versies: x64 voor de meeste pc’s en ARM64 voor computers met een ARM-processor, zoals laptops met een Snapdragon-chip. Als je browser zegt welke processor deze computer heeft, geeft de knop de passende versie, anders x64. Het smalle deel ernaast geeft de andere. De macOS-app draait op Intel en op Apple silicon.',
+  'settings.browsertools.macosSub': 'Apple en Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader weet nog niet welke formaten {host} aanbiedt, dus de menu’s bieden ze allemaal. Zodra een link van {host} is gecontroleerd, bieden ze de formaten uit de tot nu toe gecontroleerde links, en het audiomenu zet de andere waarnaar kan worden omgezet eronder.',
   'rename.linkHint': 'De naam waaronder het bestand wordt opgeslagen. Een download die al klaar is, wordt ook op de schijf hernoemd, zodat lijst en map overeenkomen. Een naam is geen pad, dus / en \\ zijn niet toegestaan.',
   'quick.speedWindowHint': 'Hoe ver de snelheidscurve in de balk teruggaat, van 10 seconden tot een uur. Tot twee minuten tekent hij één meting per seconde, daarboven één per tien seconden.',

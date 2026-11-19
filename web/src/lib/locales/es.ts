@@ -3359,6 +3359,7 @@ export const es: Dict = {
   'columns.variant.probing': 'Comprobando calidades…',
   'columns.variant.probeFailed': 'Solo la mejor calidad. No se pudieron leer las calidades disponibles: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows y Linux tienen cada uno dos versiones: x64 para la mayoría de los PC y ARM64 para los equipos con procesador ARM, como los portátiles con chip Snapdragon. Si tu navegador indica qué procesador tiene este equipo, el botón ofrece la versión adecuada; si no, x64. La parte estrecha de al lado da la otra. La app de macOS funciona en Intel y en Apple silicon.',
+  'settings.browsertools.macosSub': 'Apple e Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader aún no sabe qué formatos ofrece {host}, así que los menús los ofrecen todos. En cuanto se haya comprobado un enlace de {host}, ofrecen los formatos encontrados en los enlaces comprobados hasta ahora, y el menú de audio lista debajo los demás a los que convertir.',
   'rename.linkHint': 'El nombre con el que se guarda el archivo. Una descarga ya terminada también se renombra en el disco, para que la lista y la carpeta coincidan. Un nombre no es una ruta, así que / y \\ no se permiten.',
   'quick.speedWindowHint': 'Hasta dónde llega hacia atrás la curva de velocidad de la barra, de 10 segundos a una hora. Hasta dos minutos dibuja una medida por segundo; más allá, una cada diez segundos.',

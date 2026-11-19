@@ -2074,6 +2074,7 @@ export const de: Dict = {
   'settings.browsertools.desktopTitle': 'Desktop-App',
   'settings.browsertools.desktopHint': 'KnightLoader als Programm auf deinem Rechner, mit dieser Oberfläche in einem eigenen Fenster. Jeder Download ist die neueste Version.',
   'settings.browsertools.desktopArchHint': 'Windows und Linux gibt es jeweils in zwei Builds: x64 für die meisten PCs und ARM64 für Rechner mit ARM-Prozessor, etwa Laptops mit Snapdragon-Chip. Meldet dein Browser, welcher Prozessor in diesem Rechner steckt, gibt dir der Knopf den passenden Build, sonst x64. Der schmale Teil daneben gibt dir den anderen. Die macOS-App läuft auf Intel und auf Apple Silicon.',
+  'settings.browsertools.macosSub': 'Apple und Intel',
   'settings.browsertools.serverTitle': 'Auf einem Server',
   'settings.browsertools.serverHint': 'Auf einem Server lädt KnightLoader weiter, auch wenn dieser Rechner aus ist. Installiere es aus den Community Applications von Unraid, starte es als Docker-Container oder bau es aus dem Quellcode.',
   'settings.browsertools.dockerHint': 'Ein Klick kopiert den Befehl, der den Container startet:',

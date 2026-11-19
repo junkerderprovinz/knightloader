@@ -3378,6 +3378,7 @@ export const sk: Dict = {
   'columns.variant.probing': 'Zisťujú sa kvality…',
   'columns.variant.probeFailed': 'Iba najlepšia kvalita. Dostupné kvality sa nepodarilo načítať: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows aj Linux majú po dve verzie: x64 pre väčšinu počítačov a ARM64 pre počítače s procesorom ARM, napríklad notebooky s čipom Snapdragon. Ak prehliadač povie, aký procesor má tento počítač, tlačidlo ponúkne zodpovedajúcu verziu, inak x64. Úzka časť vedľa neho ponúka tú druhú. Aplikácia pre macOS beží na Inteli aj na Apple silicon.',
+  'settings.browsertools.macosSub': 'Apple a Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader zatiaľ nevie, aké formáty {host} ponúka, takže ponuky obsahujú všetky. Hneď ako sa skontroluje odkaz z {host}, ponúkajú formáty nájdené v doteraz skontrolovaných odkazoch a zvuková ponuka pod nimi uvádza ostatné, na ktoré možno previesť.',
   'rename.linkHint': 'Názov, pod ktorým sa súbor uloží. Sťahovanie, ktoré už skončilo, sa premenuje aj na disku, aby zoznam a priečinok súhlasili. Názov nie je cesta, takže / a \\ nie sú povolené.',
   'quick.speedWindowHint': 'Ako ďaleko do minulosti siaha krivka rýchlosti v lište, od 10 sekúnd po hodinu. Do dvoch minút kreslí jedno meranie za sekundu, nad to jedno každých desať sekúnd.',

@@ -3382,6 +3382,7 @@ export const hr: Dict = {
   'columns.variant.probing': 'Provjera kvaliteta…',
   'columns.variant.probeFailed': 'Samo najbolja kvaliteta. Dostupne kvalitete nije bilo moguće pročitati: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows i Linux imaju po dvije verzije: x64 za većinu računala i ARM64 za računala s ARM procesorom, poput prijenosnika sa Snapdragon čipom. Ako preglednik kaže koji procesor ovo računalo ima, gumb nudi odgovarajuću verziju, inače x64. Uski dio pokraj njega nudi drugu. Aplikacija za macOS radi na Intelu i na Apple siliconu.',
+  'settings.browsertools.macosSub': 'Apple i Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader još ne zna koje formate {host} nudi, pa izbornici nude sve. Čim se provjeri poveznica s {host}, nude formate pronađene u dosad provjerenim poveznicama, a audioizbornik ispod njih navodi ostale u koje se može pretvoriti.',
   'rename.linkHint': 'Naziv pod kojim se datoteka sprema. Preuzimanje koje je već završeno preimenuje se i na disku, kako bi se popis i mapa slagali. Naziv nije putanja, pa / i \\ nisu dopušteni.',
   'quick.speedWindowHint': 'Koliko daleko unatrag seže krivulja brzine na traci, od 10 sekundi do sat vremena. Do dvije minute crta jedno mjerenje u sekundi, iznad toga jedno svakih deset sekundi.',

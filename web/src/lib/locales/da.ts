@@ -3354,6 +3354,7 @@ export const da: Dict = {
   'columns.variant.probing': 'Tjekker kvaliteter…',
   'columns.variant.probeFailed': 'Kun bedste kvalitet. De tilgængelige kvaliteter kunne ikke læses: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows og Linux findes hver i to versioner: x64 til de fleste pc’er og ARM64 til computere med ARM-processor, som bærbare med Snapdragon-chip. Hvis din browser oplyser, hvilken processor computeren har, giver knappen den passende version, ellers x64. Den smalle del ved siden af giver den anden. macOS-appen kører på Intel og på Apple silicon.',
+  'settings.browsertools.macosSub': 'Apple og Intel',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader ved endnu ikke, hvilke formater {host} tilbyder, så menuerne tilbyder dem alle. Så snart et link fra {host} er tjekket, tilbyder de de formater, der er fundet i de hidtil tjekkede links, og lydmenuen viser nedenunder de andre, der kan konverteres til.',
   'rename.linkHint': 'Navnet filen gemmes under. En download, der allerede er færdig, omdøbes også på disken, så listen og mappen passer sammen. Et navn er ikke en sti, så / og \\ er ikke tilladt.',
   'quick.speedWindowHint': 'Hvor langt tilbage hastighedskurven i bjælken rækker, fra 10 sekunder til en time. Op til to minutter tegner den én måling i sekundet, derover én hvert tiende sekund.',
