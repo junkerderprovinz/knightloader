@@ -7,9 +7,9 @@
 // opens the picker through `adding`.
 //
 // The sites signed into through the browser (internal/sitelogin) are added
-// from the same picker and get rows here too, in one order with the hosters:
-// each says who it signs in as and where from, or how to sign in, and opens
-// SiteLoginDialog rather than a password form.
+// from the same picker and stand under the table as connection rows: each says
+// who it signs in as and where from, or how to sign in, tests its session, and
+// opens SiteLoginDialog rather than a password form.
 import { pageLang } from '../lib/picker';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -17,6 +17,7 @@ import {
   type HosterLogin,
   type SiteLogin,
   addSiteLogin,
+  checkSiteLogin,
   fetchHosterHosts,
   fetchHosterLogins,
   fetchSiteLogins,
@@ -27,9 +28,10 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
-import { type SignInWays, nextStep, siteForHost, signedIn, sourceNote, readsBrowsers, unreadableBrowsers } from '../lib/siteLogins';
+import { fmtDate } from '../lib/format';
+import { type SignInWays, nextStep, siteForHost, signedIn, sourceNote, stateNote, readsBrowsers, unreadableBrowsers } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
-import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
+import { Button, EmptyState, InfoBubble, LabelBadge, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconCheck, IconClose, IconSave, IconSignIn, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
@@ -37,7 +39,9 @@ import { catalogBrands } from './CatalogTiles';
 import { ownTile } from './OwnLogos';
 import { DOWNLOAD_PROVIDERS, type DownloadProviderId } from '../lib/catalogs/downloadProviders';
 import { IconCloud } from '../lib/glyphs';
-import { SiteLoginDialog, SiteState } from './SiteLoginDialog';
+import { SiteLoginDialog } from './SiteLoginDialog';
+import { ConnectionRow, type ConnectionTest } from './ConnectionRow';
+import { HosterIcon, hostPaint, type Paint } from './HosterIcon';
 import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
@@ -164,30 +168,6 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
 }
 
 /**
- * siteLoginRow is one site signed into through the browser as an AccountTable
- * row. Removing it takes the row away whatever the session came from, and
- * leaves the browser signed in. here opens the sign-in browser on the site.
- */
-function siteLoginRow(
-  site: SiteLogin,
-  ways: SignInWays,
-  handlers: { onEdit: () => void; onRemove: () => void },
-  here?: { label: string; onSelect: () => void },
-): AccountRow {
-  return {
-    key: `site:${site.id}`,
-    iconHost: site.host,
-    label: site.name,
-    enabled: true,
-    status: <SiteLoginStatus site={site} ways={ways} />,
-    expiry: site.expires,
-    onEdit: handlers.onEdit,
-    onRemove: handlers.onRemove,
-    actions: here ? [{ id: 'signin-here', icon: <IconSignIn width={16} height={16} />, ...here }] : undefined,
-  };
-}
-
-/**
  * signInPageOf is a hoster login's own sign-in page as the sign-in browser
  * opens it. Only the window's title and logo read more than the id.
  */
@@ -260,12 +240,12 @@ export function HosterLoginSection({
 
   return (
     <div className="flex flex-col gap-3">
-      {hasRows && (
+      {rows.length > 0 && (
         <AccountTable
           tableId="hoster"
           label={t('accounts.hoster.title')}
-          rows={[
-            ...rows.map((row) =>
+          rows={rows
+            .map((row) =>
               hosterLoginRow(
                 row,
                 {
@@ -277,17 +257,24 @@ export function HosterLoginSection({
                   ? { label: t('signInBrowser.signInHere'), onSelect: () => setBrowsingLogin(row) }
                   : undefined,
               ),
-            ),
-            ...added.map((site) =>
-              siteLoginRow(
-                site,
-                data.ways,
-                { onEdit: () => openSite(site), onRemove: () => setConfirmingSite(site) },
-                browserHere ? { label: t('signInBrowser.signInHere'), onSelect: () => setBrowsingSite(site) } : undefined,
-              ),
-            ),
-          ].sort(byLabel)}
+            )
+            .sort(byLabel)}
         />
+      )}
+
+      {added.length > 0 && (
+        <div data-new="site-logins" className="flex flex-col gap-2">
+          {[...added].sort(byName).map((site) => (
+            <SiteConnection
+              key={site.id}
+              site={site}
+              ways={data.ways}
+              onChanged={data.putSite}
+              onEdit={() => openSite(site)}
+              onRemove={() => setConfirmingSite(site)}
+            />
+          ))}
+        </div>
       )}
 
       {unreadable.length > 0 && (
@@ -370,9 +357,13 @@ export function HosterLoginSection({
   );
 }
 
-/** byLabel puts the hosters and the sites in one order, by the name each row shows. */
+/** byLabel puts the hosters in order by the name each row shows. */
 function byLabel(a: AccountRow, b: AccountRow): number {
   return a.label.localeCompare(b.label, pageLang(), { sensitivity: 'base' });
+}
+
+function byName(a: SiteLogin, b: SiteLogin): number {
+  return a.name.localeCompare(b.name, pageLang(), { sensitivity: 'base' });
 }
 
 /** ConfirmRemoveLogin asks first, since a stored password or session cannot be read back. */
@@ -417,29 +408,62 @@ function loginDetail(t: (key: TranslationKey) => string, login: HosterLogin): st
 }
 
 /**
- * SiteLoginStatus says who a site's session signs in as, and its (i) where the
- * session came from or, without a working one, the one step that signs it in,
- * so the row keeps to one line.
+ * SiteConnection is a site signed into through the browser as a connection
+ * row: who its session signs in as and where the session came from, or, without
+ * a working one, the one step that signs it in. Test asks the site whether the
+ * session still holds.
  */
-function SiteLoginStatus({ site, ways }: { site: SiteLogin; ways: SignInWays }) {
+function SiteConnection({
+  site,
+  ways,
+  onChanged,
+  onEdit,
+  onRemove,
+}: {
+  site: SiteLogin;
+  ways: SignInWays;
+  onChanged: (site: SiteLogin) => void;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
   const { t } = useT();
-  const details = [sourceNote(site), nextStep(site, ways)]
-    .filter((n) => n !== undefined)
-    .map((n) => t(n.key, n.vars));
+  const [read, setRead] = useState<Paint>();
+  const [test, setTest] = useState<ConnectionTest>();
+  const note = stateNote(site);
+  const from = sourceNote(site);
+  const step = nextStep(site, ways);
+  const working = signedIn(site);
+
+  async function runTest() {
+    setTest({ busy: true });
+    try {
+      const next = await checkSiteLogin(site.id);
+      onChanged(next);
+      const found = stateNote(next);
+      // A site that did not answer leaves the session in use, which is neither verdict.
+      const tone = next.state === 'signedIn' ? 'ok' : next.state === 'unchecked' ? undefined : 'danger';
+      setTest({ tone, title: t(found.key, found.vars) });
+    } catch {
+      setTest({ tone: 'danger', title: t('common.loadFailed') });
+    }
+  }
+
   return (
-    <span data-new="site-logins" className="inline-flex items-center whitespace-nowrap">
-      <SiteState site={site} />
-      {details.length > 0 && (
-        <InfoBubble
-          label={details.join('\n')}
-          tip={details.map((line) => (
-            <span key={line} className="block">
-              {line}
-            </span>
-          ))}
-        />
-      )}
-    </span>
+    <ConnectionRow
+      name={site.name}
+      mark={<HosterIcon host={site.host} size={40} lit onPaint={setRead} />}
+      paint={read ?? hostPaint(site.host)}
+      status={working ? t(note.key, note.vars) : step && t(step.key, step.vars)}
+      badges={!working && <LabelBadge tone="fail" label={t(note.key, note.vars)} />}
+      test={test}
+      text={{ test: t('siteLogins.test'), edit: t('siteLogins.edit'), remove: t('accounts.remove') }}
+      onTest={site.state === 'signedOut' ? undefined : () => void runTest()}
+      onEdit={onEdit}
+      onRemove={onRemove}
+    >
+      {from && <span>{t(from.key, from.vars)}</span>}
+      {working && site.expires && <span className="glim-num">{t('siteLogins.runsUntil', { date: fmtDate(site.expires) })}</span>}
+    </ConnectionRow>
   );
 }
 

@@ -4382,6 +4382,9 @@ export const en = {
   // and the sign-in again a members-only failure of one offers.
   'siteLogins.hint': 'Some sites only show yt-dlp their posts when you are signed in. Sign in to the site in your browser as usual and KnightLoader picks the sign-in up by itself. After that, links from the site load as you.',
   'siteLogins.signedInAs': 'Signed in as {account}',
+  'siteLogins.test': 'Test',
+  'siteLogins.edit': 'Edit',
+  'siteLogins.runsUntil': 'Session runs until {date}',
   'siteLogins.signedIn': 'Signed in',
   'siteLogins.signedOut': 'Not signed in',
   'siteLogins.expired': 'Sign-in ran out',
