@@ -3391,11 +3391,16 @@ body {
   inset-inline-end: 1.75rem;
 }
 
+/* The clip that ends a long name also cuts the descenders below a tight line
+   box, so the box reaches a little past the line on both sides and gives that
+   room back outside. */
 .glim-readme-btn-name,
 .glim-readme-btn-sub {
   max-width: 100%;
   overflow: hidden;
   white-space: nowrap;
+  padding-block: 0.15em;
+  margin-block: -0.15em;
 }
 
 /* The two lines glide at half the page's duration, which is no glide under
