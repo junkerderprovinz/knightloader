@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	cryptorand "crypto/rand"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -21,20 +22,23 @@ import (
 
 // mirrorSource serves data with ranges. From the request numbered failFrom
 // on, counting ranged requests from 1, it answers 410 and calls onFail; zero
-// never fails.
+// never fails. A hold that is not nil holds data back (see heldBack).
 type mirrorSource struct {
 	srv      *httptest.Server
 	data     []byte
 	failFrom int32
 	onFail   func()
 	etag     string
+	hold     <-chan struct{}
 
 	ranged atomic.Int32
+	// joined is closed by the first ranged request after the two of the check.
+	joined chan struct{}
 }
 
 func newMirrorSource(t *testing.T, data []byte) *mirrorSource {
 	t.Helper()
-	m := &mirrorSource{data: data}
+	m := &mirrorSource{data: data, joined: make(chan struct{})}
 	m.srv = httptest.NewServer(http.HandlerFunc(m.serve))
 	t.Cleanup(m.srv.Close)
 	return m
@@ -42,7 +46,11 @@ func newMirrorSource(t *testing.T, data []byte) *mirrorSource {
 
 func (m *mirrorSource) serve(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Range") != "" {
-		if n := m.ranged.Add(1); m.failFrom > 0 && n >= m.failFrom {
+		n := m.ranged.Add(1)
+		if n == 3 {
+			close(m.joined)
+		}
+		if m.failFrom > 0 && n >= m.failFrom {
 			if m.onFail != nil {
 				m.onFail()
 			}
@@ -53,10 +61,59 @@ func (m *mirrorSource) serve(w http.ResponseWriter, r *http.Request) {
 	if m.etag != "" {
 		w.Header().Set("ETag", m.etag)
 	}
-	http.ServeContent(w, r, "f.bin", time.Time{}, bytes.NewReader(m.data))
+	serveFile(w, r, m.data, m.hold)
 }
 
 func (m *mirrorSource) url() string { return m.srv.URL + "/f.bin" }
+
+// serveFile serves data as f.bin, held back until hold is closed unless hold
+// is nil.
+func serveFile(w http.ResponseWriter, r *http.Request, data []byte, hold <-chan struct{}) {
+	var content io.ReadSeeker = bytes.NewReader(data)
+	if hold != nil {
+		content = &heldBack{ReadSeeker: content, ctx: r.Context(), hold: hold, ranged: r.Header.Get("Range") != "", left: heldBackPart}
+	}
+	http.ServeContent(w, r, "f.bin", time.Time{}, content)
+}
+
+const heldBackPart = 1 << 20
+
+// heldBack is a file whose server sends the first heldBackPart bytes of an
+// answer at once and the rest only after hold is closed. A link on the same
+// machine otherwise sends the whole file before the transfer is spread over
+// the further sources. An answer to a request without a range breaks off
+// instead of waiting: the library reads that one ahead while it checks the
+// sources and stops only between two reads, so holding it would hold up the
+// start.
+type heldBack struct {
+	io.ReadSeeker
+	ctx    context.Context
+	hold   <-chan struct{}
+	ranged bool
+	left   int64
+}
+
+func (h *heldBack) Read(p []byte) (int, error) {
+	if h.left > 0 {
+		n, err := h.ReadSeeker.Read(p[:min(int64(len(p)), h.left)])
+		h.left -= int64(n)
+		return n, err
+	}
+	select {
+	case <-h.hold:
+		return h.ReadSeeker.Read(p)
+	default:
+	}
+	if !h.ranged {
+		return 0, io.ErrUnexpectedEOF
+	}
+	select {
+	case <-h.hold:
+		return h.ReadSeeker.Read(p)
+	case <-h.ctx.Done():
+		return 0, h.ctx.Err()
+	}
+}
 
 func randomBytes(t *testing.T, n int) []byte {
 	t.Helper()
@@ -242,6 +299,7 @@ func TestAFileComesFromBothSources(t *testing.T) {
 	smallMultiSource(t)
 	data := randomBytes(t, 16<<20)
 	own, other := newMirrorSource(t, data), newMirrorSource(t, data)
+	own.hold = other.joined
 
 	last, got := runToEnd(t, Job{URL: own.url(), Sources: offering(other.url())})
 
@@ -262,6 +320,7 @@ func TestAFileFromALinkThatAnswersOnlyKnightLoaderComesFromBothSources(t *testin
 	smallMultiSource(t)
 	data := randomBytes(t, 16<<20)
 	own, other := newPickyOrigin(t, data), newMirrorSource(t, data)
+	own.hold = other.joined
 
 	last, got := runToEnd(t, Job{URL: own.srv.URL + "/f.bin", Sources: offering(other.url())})
 

@@ -18,10 +18,12 @@ import (
 
 // pickyOrigin serves body only to a client that names itself KnightLoader and
 // hangs up on everyone else before answering, the way some speed-test mirrors
-// treat a browser agent coming from a program.
+// treat a browser agent coming from a program. A hold that is not nil holds
+// body back (see heldBack).
 type pickyOrigin struct {
 	srv  *httptest.Server
 	body []byte
+	hold <-chan struct{}
 
 	mu     sync.Mutex
 	agents []string
@@ -37,7 +39,7 @@ func newPickyOrigin(t *testing.T, body []byte) *pickyOrigin {
 		if !strings.HasPrefix(r.UserAgent(), "KnightLoader/") {
 			panic(http.ErrAbortHandler)
 		}
-		http.ServeContent(w, r, "f.bin", time.Time{}, bytes.NewReader(o.body))
+		serveFile(w, r, o.body, o.hold)
 	}))
 	t.Cleanup(o.srv.Close)
 	return o
