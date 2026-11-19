@@ -294,11 +294,15 @@ func TestACheckARestartCutShortRunsAgain(t *testing.T) {
 	}
 	a := restartWith(t, downloads, files)
 	sameFile(t, filepath.Join(downloads, r.part1.name), r.part1.data)
-	for _, task := range a.Tasks() {
-		if task.Repair != nil {
-			t.Errorf("%s still shows %+v", task.Name, task.Repair)
+	// The job reads passed just before its files let go of the check.
+	waitUntil(t, "the files to stop showing the check", func() bool {
+		for _, task := range a.Tasks() {
+			if task.Repair != nil {
+				return false
+			}
 		}
-	}
+		return true
+	})
 }
 
 func TestADownloadThatFailedButWasRebuiltCountsAsDone(t *testing.T) {
