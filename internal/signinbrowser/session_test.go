@@ -158,6 +158,9 @@ func TestTheViewersInputReachesThePageInFront(t *testing.T) {
 	f := h.open(t, "patreon")
 	h.m.Input(Input{Type: "mousedown", X: 5, Y: 6, Button: 0, Buttons: 1, Clicks: 1})
 	f.waitFor(t, "the click on the page", method("S-T1", "Input.dispatchMouseEvent"))
+	// The stream starts once the login page commits, and a popup that comes
+	// sooner takes it over before the page ever streamed.
+	f.waitFor(t, "the page's screencast", method("S-T1", "Page.startScreencast"))
 
 	// A sign-in popup on the list comes to the front.
 	f.attach("T2", "T1", "")
