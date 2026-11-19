@@ -141,6 +141,8 @@ KINDS = {
     # Flatpak's own blue, where white holds 3.3:1, about as much as on Unraid's orange.
     "flatpak":          (1, "flatpak", "#4a90d9", "#ffffff", "Flatpak", "x64", "Download the Flatpak"),
     "flatpak-arm":      (1, None, "#4a90d9", "#ffffff", "Flatpak", "ARM", "Download the Flatpak for ARM"),
+    "appimage":         (1, "linux", "#fcc624", "#1b1b1b", "AppImage", "x64", "Download the AppImage"),
+    "appimage-arm":     (1, None, "#fcc624", "#1b1b1b", "AppImage", "ARM", "Download the AppImage for ARM"),
     "linux-script":     (1, "linux", "#fcc624", "#1b1b1b", "Linux", "start script", "Download the Linux start script"),
     "google-play":      (2, "google-play", "#01875f", "#ffffff", "Google Play", "Google Play", "Get it on Google Play"),
     "f-droid":          (2, "f-droid", "#1976d2", "#ffffff", "F-Droid", "F-Droid", "Get it on F-Droid"),
@@ -169,6 +171,7 @@ KINDS = {
 SEGMENTS = {
     "windows": ("windows-arm",), "windows-portable": ("windows-portable-arm",), "macos": ("macos-zip",),
     "linux": ("linux-arm",), "linux-portable": ("linux-portable-arm",), "flatpak": ("flatpak-arm",),
+    "appimage": ("appimage-arm",),
 }
 # A store listing that does not exist yet is drawn without a link, with "Soon"
 # under its name, or nobody could tell why the button leads nowhere.

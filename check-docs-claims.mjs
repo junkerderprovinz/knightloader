@@ -143,7 +143,8 @@ if (!built) {
 // elsewhere in the README is not where a reader looks for a download.
 const DESKTOP_YML = read('.github', 'workflows', 'desktop.yml');
 // A bundle built with --installer has an installer, and its button points
-// there; only the Windows one is an .exe.
+// there; only the Windows one is an .exe. An AppImage's button points at the
+// AppImage.
 const bundles = [...DESKTOP_YML.matchAll(/^\s+platform: (\S+)\n\s+slug: (\S+)$/gm)].map((m) => ({
   platform: m[1],
   slug: m[2],
@@ -159,20 +160,21 @@ if (bundles.length === 0) {
   fail('README.md: the download-buttons block is gone, so nothing here can check the desktop downloads');
 } else {
   const listed = [...listedPlatforms.matchAll(/`([^`]+)`/g)].map((m) => m[1]).sort();
-  const built = bundles.map((b) => b.platform).sort();
+  const built = [...new Set(bundles.map((b) => b.platform))].sort();
   if (listed.join(',') !== built.join(',')) {
     fail(`docs/installing.md says every release builds ${listed.join(', ')}, desktop.yml builds ${built.join(', ')}`);
   }
   // <a href=".../releases/latest/download/knightloader-windows-arm64-installer.exe"><img ...
   const links = [
     ...buttonBlock.matchAll(
-      /<a href="[^"]*\/releases\/latest\/download\/knightloader-([a-z0-9-]+?)(-installer(?:\.exe)?|\.zip)"><img /g,
+      /<a href="[^"]*\/releases\/latest\/download\/knightloader-([a-z0-9-]+?)(-installer(?:\.exe)?|\.zip|\.AppImage)"><img /g,
     ),
   ];
   const buttons = new Set(links.map((m) => m[1]));
   for (const { slug, installer } of bundles) {
+    const image = slug.match(/^(.+)-appimage$/)?.[1];
     const suffix = !installer ? '.zip' : slug.startsWith('windows') ? '-installer.exe' : '-installer';
-    const file = `knightloader-${slug}${suffix}`;
+    const file = image ? `knightloader-${image}.AppImage` : `knightloader-${slug}${suffix}`;
     if (!links.some((m) => `knightloader-${m[1]}${m[2]}` === file)) {
       fail(`README.md has no download button for ${file}, which desktop.yml builds`);
     }

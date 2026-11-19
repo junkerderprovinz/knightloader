@@ -150,9 +150,17 @@ describe('BrowserTools', () => {
       );
     });
 
+    it('offers the AppImage of the release it runs for x64 and for ARM', async () => {
+      await macOS('v1.8.4');
+      const href = (label: string) => host.querySelector<HTMLAnchorElement>(`a[aria-label="${label}"]`)!.href;
+      const from = 'https://github.com/junkerderprovinz/knightloader/releases/download/v1.8.4/';
+      expect(href('AppImage x64')).toBe(`${from}knightloader-linux-amd64.AppImage`);
+      expect(href('AppImage ARM64')).toBe(`${from}knightloader-linux-arm64.AppImage`);
+    });
+
     it('names only the other architecture on a segment and gives it the whole name', async () => {
       await macOS('v1.8.4');
-      for (const name of ['Windows', 'Linux', 'Flatpak']) {
+      for (const name of ['Windows', 'Linux', 'Flatpak', 'AppImage']) {
         const [first, segment] = [...host.querySelectorAll<HTMLAnchorElement>(`a[aria-label^="${name}"]`)];
         expect(first!.getAttribute('aria-label')).toBe(`${name} x64`);
         expect(first!.textContent).toBe(`${name}x64`);

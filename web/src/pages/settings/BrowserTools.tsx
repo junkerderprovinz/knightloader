@@ -467,9 +467,14 @@ function DesktopCard() {
         <ReadmeButton
           brand="flatpak"
           data-new="flatpak"
-          parts={pair('Flatpak', (a) => flatpak(a, release))}
+          parts={pair('Flatpak', (a) => linuxPackage(a, release, 'flatpak'))}
           mark={<BrandMark svg={FLATPAK_SVG} />}
           markClass="glim-flatpak-mark"
+        />
+        <ReadmeButton
+          brand="linux"
+          parts={pair('AppImage', (a) => linuxPackage(a, release, 'AppImage'))}
+          mark={<BrandMark svg={LINUX_SVG} />}
         />
       </div>
     </Card>
@@ -624,9 +629,10 @@ function desktopDownload(slug: DesktopSlug, release: string): string {
   return `${REPO_URL}/releases/${from}/knightloader-${file}`;
 }
 
-function flatpak(arch: Arch, release: string): string {
+/** The Flatpak or the AppImage of the release tagged `release`, or of the newest one. */
+function linuxPackage(arch: Arch, release: string, ext: 'flatpak' | 'AppImage'): string {
   const from = release ? `download/${release}` : 'latest/download';
-  return `${REPO_URL}/releases/${from}/knightloader-${desktopSlug('linux', arch)}.flatpak`;
+  return `${REPO_URL}/releases/${from}/knightloader-${desktopSlug('linux', arch)}.${ext}`;
 }
 
 /** The README's docker run on one line, in the reader's own time zone. */
