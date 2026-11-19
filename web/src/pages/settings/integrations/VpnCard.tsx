@@ -26,7 +26,7 @@ import { copyToClipboard } from '../../../lib/clipboard';
 import { IconAdd, IconClose, IconCopy, IconGear, IconShieldOn, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { refusalText } from '../tx';
-import { VpnMark, VpnStateBadge, failureOf, nameOf } from './VpnMark';
+import { VpnMark, VpnStateBadge, failureOf } from './VpnMark';
 import { VpnPicker } from './VpnPicker';
 
 // A connect settles within seconds, and a tunnel that drops shows within the
@@ -158,7 +158,7 @@ export function VpnCard({ hue, routesHue }: { hue: number; routesHue: number }) 
               </>
             }
           >
-            <p className="text-sm text-carbon-text">{t('settings.vpn.removeConfirm', { name: nameOf(removing) })}</p>
+            <p className="text-sm text-carbon-text">{t('settings.vpn.removeConfirm', { name: removing.name })}</p>
           </Modal>
         )}
       </Card>
@@ -227,7 +227,7 @@ function VpnTable({
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
           {rows.map((p, i) => {
-            const name = nameOf(p);
+            const name = p.name;
             const up = p.state === 'connected';
             return (
               <tr
