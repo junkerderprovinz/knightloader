@@ -313,6 +313,7 @@ export function FolderPicker({
   return (
     <Modal
       title={title ?? t('folders.title')}
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

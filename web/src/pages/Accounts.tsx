@@ -653,6 +653,7 @@ function ServerDialog({
       title={host ? t('accounts.editCredentialTitle', { service: host }) : t('accounts.server.add')}
       hint={host ? undefined : t('accounts.server.hint')}
       hue={3}
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

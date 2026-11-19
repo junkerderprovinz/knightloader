@@ -549,6 +549,7 @@ function ServerWindow({
       title={draft.id ? draft.name || KIND_NAMES[kind] : KIND_NAMES[kind]}
       wide
       height="capped"
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

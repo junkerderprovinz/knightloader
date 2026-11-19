@@ -68,6 +68,7 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
     <Modal
       title="PayPal"
       height="capped"
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <Button

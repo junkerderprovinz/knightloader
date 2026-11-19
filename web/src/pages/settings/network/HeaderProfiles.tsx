@@ -184,6 +184,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
           title={draft.original || t('settings.headerProfiles.add')}
           height="capped"
           wide
+          closeOnBackdrop={false}
           onClose={() => (busy ? undefined : setDraft(null))}
           footer={
             <>

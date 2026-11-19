@@ -588,6 +588,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
   return (
     <Modal
       title={t('settings.connections.importTitle')}
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

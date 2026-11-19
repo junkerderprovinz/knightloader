@@ -303,6 +303,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
           title={draft.original || t('settings.mediahook.add')}
           height="capped"
           wide
+          closeOnBackdrop={false}
           onClose={() => (busy ? undefined : setDraft(null))}
           footer={
             <>
