@@ -60,7 +60,7 @@ export interface BrandGroup {
  * picker's groups of brands, the tile that takes anything last in its group.
  * `more` adds what only the app knows about a provider, such as that it is
  * connected already, and `own` gives a tile the app's own logo where the
- * catalog has no mark, or corrects a mark (OwnLogos.tsx).
+ * catalog has no mark (OwnLogos.tsx).
  */
 export function catalogBrands<G extends string, I extends string>(
   catalog: Catalog<G, I>,

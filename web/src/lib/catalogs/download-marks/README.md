@@ -35,6 +35,14 @@ unmodified.
 describes. It is 1Fichier's, used under the trademark position below rather
 than under a licence.
 
+**The providers' own websites**, used under the same trademark position. Each
+file is the vector the provider's own page serves:
+
+- `torbox.svg`: <https://torbox.app/logo.svg>, the logo of <https://torbox.app/>.
+- `workupload.svg`: the rocket of
+  <https://workupload.com/bundles/app/img/workupload_logo_medium.svg>, the
+  header logo of <https://workupload.com/>, without the word beside it.
+
 Apache-2.0 may be carried into this project's AGPL-3.0, and the AGPL-3.0 file
 is under this project's own licence, so the combined work stays AGPL-3.0.
 
@@ -43,10 +51,13 @@ is under this project's own licence, so the combined work stays AGPL-3.0.
 A provider whose own mark has no clean source wears the glyph of its kind. No
 icon set carries AllDebrid, BestDebrid, CocoLeech, CoolDebrid, DebridItalia,
 Deepbrid, FakirDebrid, LinkSnappy, Mega-Debrid, MultiUp, MyDebrid, NeoDebrid,
-Offcloud, ProLeech, RPNet, TorBox or Zevera, nor Clicknupload, ddownload,
-FileBoom, filer.net, FileSpace, Gofile, KatFile, Keep2Share, KrakenFiles,
-NitroFlare, Rapidgator, Send.now, TezFiles, Uploadrar or Workupload, and their
-sites hand out their logos as pictures and favicons under no stated terms.
+Offcloud, ProLeech, RPNet or Zevera, nor Clicknupload, ddownload, FileBoom,
+filer.net, FileSpace, Gofile, KatFile, Keep2Share, KrakenFiles, NitroFlare,
+Rapidgator, Send.now, TezFiles or Uploadrar, selfh.st icons included, and
+their sites show their logos as pictures. BestDebrid's header logo is a stock
+icon from Ionicons rather than a mark of its own, RPNet's SVG holds only
+pictures, Send.now and Uploadrar serve the default logo of the file-sharing
+script they run, and FakirDebrid's site turns away a plain download.
 
 ## Trademarks
 

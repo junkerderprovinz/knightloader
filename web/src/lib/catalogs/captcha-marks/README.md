@@ -19,13 +19,29 @@ documentation of CapMonster Cloud, **MIT**, copyright CapMonster Cloud (text in
 `LICENSE-capmonster-docs.txt`), unmodified. MIT may be carried into this
 project's AGPL-3.0, so the combined work stays AGPL-3.0.
 
+**The providers' own websites**, used under the trademark position below
+rather than under a licence. Each file is the vector the provider's own page
+serves:
+
+- `capsolver.svg`: <https://www.capsolver.com/favicon.svg>, the icon of
+  <https://www.capsolver.com/>. `capsolver-hover.svg` is the same drawing in
+  its green alone and without the clip path, which cuts nothing, so the pin
+  keeps its shape on the lit tile instead of falling into the tile colour.
+- `solvecha.svg`: <https://solvecha.com/site/static/favicon.svg>, the icon of
+  <https://solvecha.com/>. The generator lifts the teal square it stands on,
+  and the tile lights in that teal, `#0e7c66`.
+- `twocaptcha.svg`: the lock of
+  <https://2captcha.com/dist/web/assets/twocaptcha-logo-CYCKxIN9.svg>, the
+  header logo of <https://2captcha.com/>, without the word beside it. Its id
+  is not `2captcha`, which a script cannot name a constant.
+
 ## Left out
 
-A solver whose own mark has no clean source wears the captcha glyph. Neither
-Simple Icons nor Dashboard Icons carries 2Captcha, 9kw.eu, Anti-Captcha,
-CapSolver, DeathByCaptcha or Solvecha. Their client libraries on GitHub hold
-no logo, DeathByCaptcha's browser extensions hold it only as a picture, and
-their sites hand it out under no stated terms.
+A solver whose own mark has no clean source wears the captcha glyph. No icon
+set carries 9kw.eu, Anti-Captcha or DeathByCaptcha, selfh.st icons included.
+Anti-Captcha's header SVG holds only part of its name, DeathByCaptcha's site
+and browser extensions show it only as a picture, and 9kw.eu's site did not
+answer.
 
 ## Trademarks
 
@@ -38,9 +54,10 @@ colour, and nothing here claims endorsement by or affiliation with any of them.
 
 Drop the SVG in here as its source has it, leaving out at most the word beside
 the mark, add a line to `LOCAL` in the generator naming its source and licence,
-add both to the section above and the licence's text beside this file when it
-asks for one, then give the solver its `mark` in `src/captchaProviders.ts` and
-run the generator:
+and its id to `HOVER` with an `<id>-hover.svg` where its colours do not survive
+one ink, add both to the section above and the licence's text beside this file
+when it asks for one, then give the solver its `mark` in
+`src/captchaProviders.ts` and run the generator:
 
     python scripts/gen_captcha_marks.py
 

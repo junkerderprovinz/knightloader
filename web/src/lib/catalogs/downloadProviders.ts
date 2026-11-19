@@ -40,7 +40,7 @@ const ENTRIES = [
   { id: "proleech", name: "ProLeech", group: "debrid", glyph: DEBRID },
   { id: "realdebrid", name: "Real-Debrid", group: "debrid", mark: M.realdebrid },
   { id: "rpnet", name: "RPNet", group: "debrid", glyph: DEBRID },
-  { id: "torbox", name: "TorBox", group: "debrid", glyph: DEBRID },
+  { id: "torbox", name: "TorBox", group: "debrid", mark: M.torbox },
   { id: "zevera", name: "Zevera", group: "debrid", glyph: DEBRID },
 
   { id: "1fichier.com", name: "1Fichier", group: "hoster", terms: ["desfichiers.com", "megadl.fr"], mark: M.fichier },
@@ -61,7 +61,7 @@ const ENTRIES = [
   { id: "send.now", name: "Send.now", group: "hoster", glyph: HOSTER },
   { id: "tezfiles.com", name: "TezFiles", group: "hoster", terms: ["publish2.me"], glyph: HOSTER },
   { id: "uploadrar.com", name: "Uploadrar", group: "hoster", glyph: HOSTER },
-  { id: "workupload.com", name: "Workupload", group: "hoster", glyph: HOSTER },
+  { id: "workupload.com", name: "Workupload", group: "hoster", mark: M.workupload },
 ] as const satisfies readonly CatalogEntry<DownloadGroup>[];
 
 export type DownloadProviderId = (typeof ENTRIES)[number]["id"];
