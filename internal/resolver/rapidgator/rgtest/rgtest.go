@@ -69,12 +69,23 @@ type Server struct {
 	secs     int
 	pauses   int
 	sessions map[string]*freeRun
+	// loginKey is the key of the Turnstile in the file page's sign-in form,
+	// and barred the end of the hour an answer that came too late cost the
+	// address.
+	loginKey string
+	barred   time.Time
+	now      func() time.Time
 }
 
 // freeRun is one free download on its way through the website.
 type freeRun struct {
 	id      string
 	sid     string
+	secs    int
+	started time.Time
+	// ready is when the countdown was reported over, from which the
+	// captcha's answer is timed.
+	ready   time.Time
 	counted bool
 }
 
@@ -84,6 +95,11 @@ const (
 	SiteKey = "0x4AAAAAACGwIXkmZ2lsGdCV"
 	Token   = "0.turnstile-answer"
 )
+
+// answerWindow is how long after the countdown the captcha's answer is taken,
+// as JDownloader's plugin puts it. A later answer bars the address for an
+// hour.
+const answerWindow = 105 * time.Second
 
 type failure struct {
 	status  int
@@ -99,10 +115,28 @@ func New(t *testing.T) *Server {
 		fail:     map[string][]failure{},
 		secs:     180,
 		sessions: map[string]*freeRun{},
+		loginKey: SiteKey,
+		now:      time.Now,
 	}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
 	return s
+}
+
+// Clock has the server read the time from now, which a test moves on by
+// itself.
+func (s *Server) Clock(now func() time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.now = now
+}
+
+// LoginKey sets the key of the Turnstile in the file page's sign-in form,
+// which is the captcha page's unless set.
+func (s *Server) LoginKey(key string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.loginKey = key
 }
 
 // Countdown sets the seconds the free page counts down.
@@ -139,13 +173,19 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 			return true
 		}
 		run.sid = "s" + run.id[:12]
+		run.started = s.now()
 		ajax(map[string]any{"state": "started", "sid": run.sid})
 	case "AjaxGetDownloadLink":
 		if run == nil || r.URL.Query().Get("sid") != run.sid {
 			ajax(map[string]any{"state": "error", "code": 1})
 			return true
 		}
+		if s.now().Before(run.started.Add(time.Duration(run.secs) * time.Second)) {
+			ajax(map[string]any{"state": "error", "code": 2})
+			return true
+		}
 		run.counted = true
+		run.ready = s.now()
 		ajax(map[string]any{"state": "done", "code": 200})
 	case "captcha":
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
@@ -155,6 +195,11 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 		}
 		_ = r.ParseForm()
 		if r.Method == http.MethodPost {
+			if s.now().Sub(run.ready) > answerWindow {
+				s.barred = s.now().Add(time.Hour)
+				fmt.Fprint(w, hourlyLimit)
+				return true
+			}
 			if r.PostForm.Get("DownloadCaptchaForm[verifyCode]") == Token && r.PostForm.Get("DownloadCaptchaForm[captcha]") == "" {
 				link := "http://" + r.Host + "//?r=download/index&session_id=" + run.sid
 				fmt.Fprintf(w, "<html><body><script>var download_link = '%s'; location.href = '%s';</script></body></html>", link, link)
@@ -296,21 +341,28 @@ func (s *Server) page(w http.ResponseWriter, r *http.Request, rest string) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	if s.now().Before(s.barred) {
+		fmt.Fprint(w, hourlyLimit)
+		return
+	}
 	if s.pauses > 0 {
 		s.pauses--
 		fmt.Fprint(w, "<html><body><div class=\"error\">Delay between downloads must be not less than 15 min.</div></body></html>")
 		return
 	}
 	session := fmt.Sprintf("sess%d", len(s.sessions)+1)
-	s.sessions[session] = &freeRun{id: id}
+	s.sessions[session] = &freeRun{id: id, secs: s.secs}
 	http.SetCookie(w, &http.Cookie{Name: "PHPSESSID", Value: session, Path: "/"})
 	_ = pages.ExecuteTemplate(w, "file.html", map[string]any{
-		"Name": f.Name,
-		"Size": fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
-		"Secs": s.secs,
-		"Fid":  894317393,
+		"Name":     f.Name,
+		"Size":     fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
+		"Secs":     s.secs,
+		"Fid":      894317393,
+		"LoginKey": s.loginKey,
 	})
 }
+
+const hourlyLimit = "<html><body><div class=\"error\">You have reached your hourly downloads limit.</div></body></html>"
 
 func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 	_ = r.ParseForm()

@@ -9,6 +9,12 @@
     <link rel="stylesheet" type="text/css" href="/css/ie.css" media="screen" />    <![endif]-->
 </head>
 <body>
+    <ul class="login">
+        <li style="display: none" id="show_captcha">
+            <div class="capcha" id="l_captcha">
+                <input id="LoginForm_verifyCode" type="hidden" name="LoginForm[verifyCode]" /><div class="cf-turnstile" data-sitekey="{{.LoginKey}}" data-callback="captchaCallback" data-theme="light" data-language="en"></div>                </div>
+        </li>
+    </ul>
     <div class="in">
         <div class="text-block file-descr" style="height: 95px;">
             <div class="btm" style="height: 95px;">

@@ -17,26 +17,75 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator/rgtest"
 )
 
+// clock is the time the stand-in and the backend go by, moved on by the
+// backend's waits and by the user answering a captcha.
+type clock struct {
+	mu sync.Mutex
+	t  time.Time
+}
+
+func (c *clock) now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.t
+}
+
+func (c *clock) pass(d time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.t = c.t.Add(d)
+}
+
 type answers struct {
 	mu       sync.Mutex
 	token    string
 	captchas []hoster.Captcha
+	// took is how long the user takes over each captcha.
+	took  time.Duration
+	clock *clock
 }
 
 func (a *answers) solve(_ context.Context, _ string, c hoster.Captcha) (string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.captchas = append(a.captchas, c)
+	a.clock.pass(a.took)
 	return a.token, nil
 }
 
 func newFreeBackend(srv *rgtest.Server) (*FreeBackend, *fakeEngine, *updates, *answers) {
 	eng := &fakeEngine{got: make(chan handoff, 4)}
 	ups := &updates{waiting: make(chan struct{}, 1)}
-	a := &answers{token: rgtest.Token}
+	clk := &clock{t: time.Date(2026, 11, 19, 20, 0, 0, 0, time.UTC)}
+	srv.Clock(clk.now)
+	a := &answers{token: rgtest.Token, clock: clk}
 	b := NewFreeBackend(NewClient(srv.URL, srv.Client()), eng, ups.add)
-	b.Sleep, b.Solve = ups.sleep, a.solve
+	b.Sleep = func(ctx context.Context, d time.Duration) error {
+		clk.pass(d)
+		return ups.sleep(ctx, d)
+	}
+	b.Solve, b.now = a.solve, clk.now
 	return b, eng, ups, a
+}
+
+// awaitOutcome waits for the link to reach the engine, or for the task to end
+// without it.
+func awaitOutcome(t *testing.T, eng *fakeEngine, ups *updates) (handoff, bool) {
+	t.Helper()
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		select {
+		case h := <-eng.got:
+			return h, true
+		default:
+		}
+		if u := ups.last(); u.Status == core.StatusError {
+			return handoff{}, false
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	t.Fatalf("the task never settled: %+v", ups.list())
+	return handoff{}, false
 }
 
 func TestAFreeDownloadSitsOutTheCountdownAnswersTheTurnstileAndGoesOutOnOneConnection(t *testing.T) {
@@ -73,6 +122,42 @@ func TestAFreeDownloadSitsOutTheCountdownAnswersTheTurnstileAndGoesOutOnOneConne
 	}
 	if slices.ContainsFunc(srv.Requests(), func(r string) bool { return strings.Contains(r, "/api/") }) {
 		t.Error("a free download used the API")
+	}
+}
+
+// Rapidgator bars the address for an hour when the answer comes in more than
+// a couple of minutes after the countdown.
+func TestACaptchaTheUserTakesMinutesOverStillLeadsToTheDownload(t *testing.T) {
+	srv := rgtest.New(t)
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, eng, ups, a := newFreeBackend(srv)
+	a.took = 2*time.Minute + 30*time.Second
+
+	b.Download("t1", link, nil, 1)
+	if _, ok := awaitOutcome(t, eng, ups); !ok {
+		t.Fatalf("the download ended as %+v after %d captchas, want it handed on", ups.last(), len(a.captchas))
+	}
+	if len(a.captchas) != 1 {
+		t.Errorf("asked %d captchas, want one", len(a.captchas))
+	}
+	if ups.waited() >= time.Hour {
+		t.Errorf("waited %v, want no pause between free downloads", ups.waited())
+	}
+}
+
+func TestACaptchaPageWithAnotherKeyThanTheSignInFormIsAnsweredThere(t *testing.T) {
+	srv := rgtest.New(t)
+	srv.Countdown(30)
+	srv.LoginKey("0x4AAAAAAAsignInOnly")
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, eng, ups, a := newFreeBackend(srv)
+
+	b.Download("t1", link, nil, 1)
+	if _, ok := awaitOutcome(t, eng, ups); !ok {
+		t.Fatalf("the download ended as %+v, want it handed on", ups.last())
+	}
+	if len(a.captchas) != 2 || a.captchas[1].SiteKey != rgtest.SiteKey {
+		t.Errorf("captchas = %+v, want the captcha page's asked after the sign-in form's", a.captchas)
 	}
 }
 
