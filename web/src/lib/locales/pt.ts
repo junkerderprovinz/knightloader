@@ -3945,6 +3945,8 @@ export const pt: Dict = {
   'whatsnew.change.crossSeed': 'Um torrent terminado é procurado nos teus outros trackers e partilhado também lá, a partir dos mesmos ficheiros. «{name}» configura isto com RED, OPS, Prowlarr, Jackett ou o teu próprio daemon cross-seed.',
   'whatsnew.change.torrentPieces': 'Os detalhes de um torrent mostram que peças já cá estão, como os de uma transferência HTTP.',
   'whatsnew.change.torrentVpn': 'Os torrents através da VPN integrada passam por um proxy dentro do KnightLoader e esperam enquanto o túnel está em baixo. Só se ligam para fora, por isso uma porta reencaminhada já não os alcança. Para o rácio em trackers privados, funciona melhor um contentor VPN teu ou o teu próprio qBittorrent.',
+  'whatsnew.change.pickerLook': 'Os seletores de VPN, clientes MCP, serviços debrid e de captcha, inícios de sessão de hosters e destinos de eventos têm o mesmo aspeto, e ao voltar de um formulário fica marcado o último mosaico que escolheste.',
+  'whatsnew.change.exclusiveShares': 'O seletor de pastas mostra as partilhas do Unraid com acesso exclusivo e diz que caminho falta ao contentor para lá chegar.',
   'whatsnew.change.listShade': 'Transferências e o coletor de links sombreiam as suas linhas: cada pacote destaca-se do seguinte e os seus ficheiros alternam com suavidade. «{name}» desativa-o.',
   'whatsnew.change.accountSwitches': 'As contas ativam-se e desativam-se no menu da engrenagem do seu cartão, uma a uma em «{name}» ou todas de uma vez. Uma conta desativada indica-o na sua linha.',
   'whatsnew.change.hostSelect': 'O filtro “{name}” do coletor de links tem, ao lado de cada host, um botão que seleciona todos os seus links na lista. Selecione os hosts espelho de que você não precisa e apague-os de uma vez.',

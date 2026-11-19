@@ -3946,6 +3946,8 @@ export const lv: Dict = {
   'whatsnew.change.crossSeed': 'Pabeigtu torentu meklē tavos citos trakeros un izplata arī tur, no tiem pašiem failiem. „{name}“ to iestata ar RED, OPS, Prowlarr, Jackett vai tavu cross-seed dēmonu.',
   'whatsnew.change.torrentPieces': 'Torenta informācija rāda, kuras tā daļas jau ir šeit, tāpat kā HTTP lejupielādei.',
   'whatsnew.change.torrentVpn': 'Torenti caur iebūvēto VPN iet caur starpniekserveri KnightLoader iekšienē un gaida, kamēr tunelis nedarbojas. Tie savienojas tikai uz āru, tāpēc pāradresēts ports tos vairs nesasniedz. Attiecībai privātos trakeros labāk der savs VPN konteiners vai tavs paša qBittorrent.',
+  'whatsnew.change.pickerLook': 'VPN, MCP klientu, debrid un captcha pakalpojumu, hosteru pieteikšanās un notikumu mērķu izvēles logi izskatās vienādi, un, atgriežoties no veidlapas, ir atzīmēta flīze, ko izvēlējies pēdējo.',
+  'whatsnew.change.exclusiveShares': 'Mapes izvēle rāda Unraid koplietojumus ar ekskluzīvu piekļuvi un pasaka, kāda ceļa konteineram trūkst, lai tos sasniegtu.',
   'whatsnew.change.listShade': 'Lejupielādes un Saišu savācējs ēno savas rindas: katra paka atdalās no nākamās, un tās faili smalki mijas. „{name}“ to izslēdz.',
   'whatsnew.change.accountSwitches': 'Kontus iespējo un atspējo to kartītes zobrata izvēlnē, pa vienam sadaļā „{name}“ vai visus uzreiz. Atspējots konts to norāda savā rindā.',
   'whatsnew.change.hostSelect': 'Saišu savācēja filtrā “{name}” pie katra glabātāja ir poga, kas sarakstā atlasa visas tā saites. Atlasi nevajadzīgos spoguļglabātājus un izdzēs tos vienā reizē.',

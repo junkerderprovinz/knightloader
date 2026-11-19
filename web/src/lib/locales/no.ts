@@ -3958,6 +3958,8 @@ export const no: Dict = {
   'whatsnew.change.crossSeed': 'En ferdig torrent letes etter på de andre trackerne dine og seedes der også, fra de samme filene. «{name}» setter det opp med RED, OPS, Prowlarr, Jackett eller din egen cross-seed-daemon.',
   'whatsnew.change.torrentPieces': 'Detaljene for en torrent viser hvilke biter som allerede er her, som for en HTTP-nedlasting.',
   'whatsnew.change.torrentVpn': 'Torrenter gjennom den innebygde VPN-en går via en proxy i KnightLoader og venter mens tunnelen er nede. De kobler seg bare utover, så en videresendt port når dem ikke lenger. For ratio på private trackere fungerer en egen VPN-container eller din egen qBittorrent bedre.',
+  'whatsnew.change.pickerLook': 'Velgerne for VPN-tjenester, MCP-klienter, debrid- og captchatjenester, hosterinnlogginger og hendelsesmål ser like ut, og når du går tilbake fra et skjema, er flisen du valgte sist, merket.',
+  'whatsnew.change.exclusiveShares': 'Mappevelgeren viser delte mapper i Unraid med eksklusiv tilgang og sier hvilken sti beholderen mangler for å nå dem.',
   'whatsnew.change.listShade': 'Nedlastinger og Linksamleren skyggelegger radene sine: hver pakke skiller seg fra den neste, og filene veksler svakt. «{name}» slår det av.',
   'whatsnew.change.accountSwitches': 'Kontoer slås på og av i tannhjulmenyen på kortet deres, én om gangen under «{name}» eller alle på én gang. En konto som er slått av, sier det i raden sin.',
   'whatsnew.change.hostSelect': 'Filteret «{name}» i linksamleren har en knapp ved hver vert som velger alle lenkene dens i listen. Velg speilvertene du ikke trenger, og slett dem på én gang.',

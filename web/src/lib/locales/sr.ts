@@ -3969,6 +3969,8 @@ export const sr: Dict = {
   'whatsnew.change.crossSeed': 'Завршени торент се тражи на вашим другим трекерима и сидује и тамо, из истих датотека. „{name}“ то подешава са RED, OPS, Prowlarr, Jackett или вашим сопственим cross-seed демоном.',
   'whatsnew.change.torrentPieces': 'Детаљи торента показују који су његови делови већ ту, као код HTTP преузимања.',
   'whatsnew.change.torrentVpn': 'Торенти кроз уграђени VPN иду преко проксија унутар KnightLoader-а и чекају док је тунел у прекиду. Повезују се само ка споља, па их прослеђени порт више не достиже. За однос на приватним трекерима боље одговара сопствени VPN контејнер или ваш сопствени qBittorrent.',
+  'whatsnew.change.pickerLook': 'Прозори за избор VPN-ова, MCP клијената, debrid и captcha услуга, пријава на хостере и одредишта догађаја изгледају исто, а кад се вратиш из обрасца, означена је плочица коју си последњу изабрао.',
+  'whatsnew.change.exclusiveShares': 'Бирач фасцикле приказује дељене фасцикле Unraid-а са искључивим приступом и каже која путања недостаје контејнеру да до њих стигне.',
   'whatsnew.change.listShade': 'Преузимања и Сакупљач линкова сенче своје редове: сваки пакет се одваја од следећег, а његове датотеке се нежно смењују. „{name}” то искључује.',
   'whatsnew.change.accountSwitches': 'Nalozi se uključuju i isključuju u meniju sa zupčanikom na njihovoj kartici, jedan po jedan pod „{name}” ili svi odjednom. Isključen nalog to kaže u svom redu.',
   'whatsnew.change.hostSelect': 'Филтер „{name}“ у сакупљачу линкова има поред сваког хостера дугме које на листи бира све његове линкове. Изабери огледалне хостере који ти не требају и обриши их одједном.',

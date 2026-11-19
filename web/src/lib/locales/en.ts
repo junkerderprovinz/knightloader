@@ -4259,6 +4259,8 @@ export const en = {
   'whatsnew.change.crossSeed': 'A finished torrent is looked for on your other trackers and seeded there too, from the same files. "{name}" sets it up with RED, OPS, Prowlarr, Jackett or your own cross-seed daemon.',
   'whatsnew.change.torrentPieces': 'A torrent’s details show which of its pieces are here, like an HTTP download’s.',
   'whatsnew.change.torrentVpn': 'Torrents through the built-in VPN go through a proxy inside KnightLoader and wait while the tunnel is down. They only connect outwards, so a forwarded port no longer reaches them. For ratio on private trackers, a VPN container of your own or your own qBittorrent works better.',
+  'whatsnew.change.pickerLook': 'The pickers for VPNs, MCP clients, debrid and captcha services, hoster logins and event targets share one look, and going back from a form marks the tile you picked last.',
+  'whatsnew.change.exclusiveShares': 'The folder picker shows Unraid shares on exclusive access and says which path the container is missing to reach them.',
   'whatsnew.change.listShade': 'Downloads and the link collector shade their rows: each package stands apart from the next, and its files alternate faintly. "{name}" turns it off.',
   'whatsnew.change.accountSwitches': 'You enable and disable accounts in the gear menu on their card, one by one under "{name}" or all at once. A disabled account says so in its row.',
   'whatsnew.change.hostSelect': 'The "{name}" filter in the link collector has a button beside each host that selects all of its links in the list. Select the mirror hosts you do not need and delete them in one go.',

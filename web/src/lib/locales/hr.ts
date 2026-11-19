@@ -3969,6 +3969,8 @@ export const hr: Dict = {
   'whatsnew.change.crossSeed': 'Dovršeni torrent traži se na tvojim drugim trackerima i seeda se i ondje, iz istih datoteka. „{name}” to postavlja s RED-om, OPS-om, Prowlarrom, Jackettom ili tvojim vlastitim cross-seed demonom.',
   'whatsnew.change.torrentPieces': 'Pojedinosti torrenta pokazuju koji su njegovi dijelovi već ovdje, kao kod HTTP preuzimanja.',
   'whatsnew.change.torrentVpn': 'Torrenti preko ugrađenog VPN-a idu kroz proxy unutar KnightLoadera i čekaju dok je tunel u prekidu. Povezuju se samo prema van, pa ih proslijeđeni port više ne doseže. Za omjer na privatnim trackerima bolje odgovara vlastiti VPN kontejner ili tvoj vlastiti qBittorrent.',
+  'whatsnew.change.pickerLook': 'Prozori za odabir VPN-ova, MCP klijenata, debrid i captcha usluga, prijava na hostere i ciljeva događaja izgledaju jednako, a kad se vratiš iz obrasca, označena je pločica koju si zadnju odabrao.',
+  'whatsnew.change.exclusiveShares': 'Odabir mape prikazuje dijeljene mape Unraida s isključivim pristupom i kaže koja putanja kontejneru nedostaje da do njih dođe.',
   'whatsnew.change.listShade': 'Preuzimanja i Sakupljač poveznica zasjenjuju svoje retke: svaki se paket odvaja od sljedećeg, a njegove se datoteke nježno izmjenjuju. „{name}” to isključuje.',
   'whatsnew.change.accountSwitches': 'Računi se uključuju i isključuju u izborniku sa zupčanikom na njihovoj kartici, jedan po jedan pod „{name}” ili svi odjednom. Isključen račun to kaže u svom retku.',
   'whatsnew.change.hostSelect': 'Filtar „{name}” u sakupljaču poveznica uz svaki poslužitelj ima gumb koji odabire sve njegove poveznice na popisu. Odaberi zrcalne poslužitelje koji ti ne trebaju i izbriši ih odjednom.',

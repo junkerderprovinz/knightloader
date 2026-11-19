@@ -3938,6 +3938,8 @@ export const nl: Dict = {
   'whatsnew.change.crossSeed': 'Een voltooide torrent wordt op je andere trackers gezocht en daar ook geseed, uit dezelfde bestanden. “{name}” stelt dat in met RED, OPS, Prowlarr, Jackett of je eigen cross-seed-daemon.',
   'whatsnew.change.torrentPieces': 'De details van een torrent tonen welke stukken er al zijn, net als bij een HTTP-download.',
   'whatsnew.change.torrentVpn': 'Torrents via de ingebouwde VPN lopen via een proxy in KnightLoader en wachten zolang de tunnel plat ligt. Ze maken alleen verbindingen naar buiten, dus een doorgestuurde poort bereikt ze niet meer. Voor ratio op private trackers werkt een eigen VPN-container of je eigen qBittorrent beter.',
+  'whatsnew.change.pickerLook': 'De kiezers voor VPN-diensten, MCP-clients, debrid- en captchadiensten, hosterlogins en gebeurtenisdoelen zien er hetzelfde uit, en als je teruggaat uit een formulier, is de tegel gemarkeerd die je het laatst koos.',
+  'whatsnew.change.exclusiveShares': 'De mapkiezer toont Unraid-shares met exclusieve toegang en zegt welk pad de container mist om ze te bereiken.',
   'whatsnew.change.listShade': 'Downloads en de Linkverzamelaar arceren hun rijen: elk pakket steekt af tegen het volgende en de bestanden ervan wisselen zacht af. “{name}” zet het uit.',
   'whatsnew.change.accountSwitches': 'Accounts schakel je in en uit in het tandwielmenu op hun kaart, één voor één onder “{name}” of allemaal tegelijk. Een uitgeschakeld account zegt dat in zijn rij.',
   'whatsnew.change.hostSelect': 'Het filter ‘{name}’ in de linkverzamelaar heeft naast elke host een knop die al zijn links in de lijst selecteert. Selecteer de mirrorhosts die je niet nodig hebt en verwijder ze in één keer.',

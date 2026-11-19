@@ -1,0 +1,1 @@
+The app stays as it is, the server did the homework: qBittorrent starts in the Unraid container again, and the folder picker finds shares on exclusive access instead of hiding them.

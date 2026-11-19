@@ -473,7 +473,7 @@ export function FolderPicker({
         </p>
       )}
       {shown?.link && (
-        <p className="text-xs text-statusWarn">
+        <p data-new="exclusive-shares" className="text-xs text-statusWarn">
           {t('folders.deadLink', { target: shown.link.target, missing: shown.link.missing })}
         </p>
       )}

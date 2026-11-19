@@ -3954,6 +3954,8 @@ export const sl: Dict = {
   'whatsnew.change.crossSeed': 'Dokončan torrent se poišče na tvojih drugih sledilnikih in se seja tudi tam, iz istih datotek. »{name}« to nastavi z RED, OPS, Prowlarr, Jackett ali tvojim lastnim demonom cross-seed.',
   'whatsnew.change.torrentPieces': 'Podrobnosti torrenta pokažejo, kateri njegovi kosi so že tu, kot pri prenosu HTTP.',
   'whatsnew.change.torrentVpn': 'Torrenti prek vgrajenega VPN gredo skozi posredniški strežnik v KnightLoaderju in čakajo, dokler je tunel prekinjen. Povezujejo se samo navzven, zato jih posredovana vrata ne dosežejo več. Za razmerje na zasebnih sledilnikih je bolje lastni vsebnik VPN ali tvoj lastni qBittorrent.',
+  'whatsnew.change.pickerLook': 'Okna za izbiro VPN-jev, odjemalcev MCP, storitev debrid in captcha, prijav pri hosterjih ter ciljev dogodkov so videti enako, in ko se vrneš iz obrazca, je označena ploščica, ki si jo izbral nazadnje.',
+  'whatsnew.change.exclusiveShares': 'Izbira mape pokaže skupne rabe Unraida z izključnim dostopom in pove, katera pot vsebniku manjka, da jih doseže.',
   'whatsnew.change.listShade': 'Prenosi in Zbiralnik povezav senčijo svoje vrstice: vsak paket se loči od naslednjega, njegove datoteke pa se nežno izmenjujejo. »{name}« to izklopi.',
   'whatsnew.change.accountSwitches': 'Račune omogočiš in onemogočiš v meniju z zobnikom na njihovi kartici, enega za drugim pod »{name}« ali vse hkrati. Onemogočen račun to pove v svoji vrstici.',
   'whatsnew.change.hostSelect': 'Filter »{name}« v zbiralniku povezav ima ob vsakem gostitelju gumb, ki na seznamu izbere vse njegove povezave. Izberi zrcalne gostitelje, ki jih ne potrebuješ, in jih izbriši naenkrat.',

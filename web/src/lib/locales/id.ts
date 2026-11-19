@@ -3955,6 +3955,8 @@ export const id: Dict = {
   'whatsnew.change.crossSeed': 'Torrent yang selesai dicari di tracker Anda yang lain dan di-seed di sana juga, dari file yang sama. “{name}” mengaturnya dengan RED, OPS, Prowlarr, Jackett, atau daemon cross-seed milik Anda sendiri.',
   'whatsnew.change.torrentPieces': 'Detail torrent menunjukkan bagian mana yang sudah ada, seperti pada unduhan HTTP.',
   'whatsnew.change.torrentVpn': 'Torrent melalui VPN bawaan lewat proxy di dalam KnightLoader dan menunggu selama terowongan terputus. Torrent hanya terhubung ke luar, jadi port yang diteruskan tidak lagi menjangkaunya. Untuk rasio di tracker privat, kontainer VPN milik Anda sendiri atau qBittorrent milik Anda lebih cocok.',
+  'whatsnew.change.pickerLook': 'Pemilih untuk VPN, klien MCP, layanan debrid dan captcha, login hoster, serta tujuan peristiwa tampil seragam, dan saat kembali dari formulir, ubin yang terakhir kamu pilih ditandai.',
+  'whatsnew.change.exclusiveShares': 'Pemilih folder menampilkan share Unraid dengan akses eksklusif dan memberi tahu path mana yang belum dimiliki kontainer untuk mencapainya.',
   'whatsnew.change.listShade': 'Unduhan dan Pengumpul tautan memberi bayangan pada barisnya: setiap paket terpisah dari paket berikutnya, dan file-filenya berselang-seling samar. “{name}” mematikannya.',
   'whatsnew.change.accountSwitches': 'Akun diaktifkan dan dinonaktifkan di menu roda gigi pada kartunya, satu per satu di “{name}” atau sekaligus. Akun yang nonaktif menyebutkannya di barisnya.',
   'whatsnew.change.hostSelect': 'Filter “{name}” di pengumpul tautan punya tombol di samping setiap host yang memilih semua tautannya di daftar. Pilih host cermin yang tidak kamu perlukan lalu hapus sekaligus.',

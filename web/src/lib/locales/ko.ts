@@ -3943,6 +3943,8 @@ export const ko: Dict = {
   'whatsnew.change.crossSeed': '완료된 토렌트를 다른 트래커에서도 찾아 같은 파일로 그곳에서도 시드합니다. “{name}”에서 RED, OPS, Prowlarr, Jackett 또는 직접 운영하는 cross-seed 데몬과 함께 설정합니다.',
   'whatsnew.change.torrentPieces': '토렌트 세부 정보에 HTTP 다운로드처럼 어떤 조각이 이미 받아졌는지 표시됩니다.',
   'whatsnew.change.torrentVpn': '내장 VPN을 거치는 토렌트는 KnightLoader 안의 프록시를 지나며, 터널이 끊긴 동안에는 기다립니다. 토렌트는 바깥으로만 연결하므로, 포워딩된 포트는 더 이상 닿지 않습니다. 비공개 트래커에서 비율이 필요하다면 직접 쓰는 VPN 컨테이너나 직접 쓰는 qBittorrent가 더 낫습니다.',
+  'whatsnew.change.pickerLook': 'VPN, MCP 클라이언트, Debrid·캡차 서비스, 호스터 로그인, 이벤트 대상을 고르는 창이 모두 같은 모양이며, 양식에서 뒤로 가면 마지막으로 고른 타일이 표시됩니다.',
+  'whatsnew.change.exclusiveShares': '폴더 선택 창에 독점 액세스로 설정한 Unraid 공유가 보이고, 컨테이너가 그곳에 닿으려면 어떤 경로가 빠져 있는지 알려 줍니다.',
   'whatsnew.change.listShade': '다운로드와 링크 수집기의 행에 음영이 들어갑니다. 패키지마다 다음 패키지와 구분되고, 그 파일은 옅게 번갈아 칠해집니다. “{name}”으로 끌 수 있습니다.',
   'whatsnew.change.accountSwitches': '계정은 카드의 톱니바퀴 메뉴에서 사용하거나 끌 수 있습니다. “{name}”에서 하나씩, 또는 한 번에 모두 바꿀 수 있습니다. 사용하지 않는 계정은 행에 그렇게 표시됩니다.',
   'whatsnew.change.hostSelect': '링크 수집기의 “{name}” 필터에는 호스트마다 목록에서 그 호스트의 링크를 모두 선택하는 버튼이 있습니다. 필요 없는 미러 호스트를 골라 한 번에 삭제하세요.',

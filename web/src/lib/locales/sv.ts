@@ -3955,6 +3955,8 @@ export const sv: Dict = {
   'whatsnew.change.crossSeed': 'En färdig torrent letas upp på dina andra trackers och seedas där också, från samma filer. ”{name}” ställer in det med RED, OPS, Prowlarr, Jackett eller din egen cross-seed-daemon.',
   'whatsnew.change.torrentPieces': 'En torrents detaljer visar vilka av dess delar som redan finns här, precis som för en HTTP-nedladdning.',
   'whatsnew.change.torrentVpn': 'Torrents genom den inbyggda VPN:en går via en proxy i KnightLoader och väntar medan tunneln är nere. De ansluter bara utåt, så en vidarebefordrad port når dem inte längre. För ratio på privata trackers fungerar en egen VPN-container eller din egen qBittorrent bättre.',
+  'whatsnew.change.pickerLook': 'Väljarna för VPN-tjänster, MCP-klienter, debrid- och captchatjänster, hosterinloggningar och händelsemål ser likadana ut, och när du går tillbaka från ett formulär är brickan du valde sist markerad.',
+  'whatsnew.change.exclusiveShares': 'Mappväljaren visar Unraid-utdelningar med exklusiv åtkomst och säger vilken sökväg containern saknar för att nå dem.',
   'whatsnew.change.listShade': 'Nedladdningar och Länksamlaren skuggar sina rader: varje paket skiljer sig från nästa, och dess filer växlar svagt. ”{name}” stänger av det.',
   'whatsnew.change.accountSwitches': 'Konton aktiveras och inaktiveras i kugghjulsmenyn på deras kort, ett i taget under ”{name}” eller alla på en gång. Ett inaktiverat konto säger det på sin rad.',
   'whatsnew.change.hostSelect': 'Filtret ”{name}” i länksamlaren har en knapp vid varje värd som markerar alla dess länkar i listan. Markera spegelvärdarna du inte behöver och ta bort dem i ett svep.',

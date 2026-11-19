@@ -3955,6 +3955,8 @@ export const vi: Dict = {
   'whatsnew.change.crossSeed': 'Một torrent đã xong được tìm trên các tracker khác của bạn và cũng được seed ở đó, từ cùng các tệp. “{name}” thiết lập việc này với RED, OPS, Prowlarr, Jackett hoặc daemon cross-seed của riêng bạn.',
   'whatsnew.change.torrentPieces': 'Chi tiết của torrent cho thấy những mảnh nào đã có, giống như một lượt tải HTTP.',
   'whatsnew.change.torrentVpn': 'Torrent qua VPN tích hợp đi qua một proxy bên trong KnightLoader và chờ trong lúc đường hầm bị ngắt. Chúng chỉ kết nối ra ngoài, nên cổng được chuyển tiếp không còn tới được chúng. Để có tỉ lệ trên tracker riêng tư, container VPN của riêng bạn hoặc qBittorrent của riêng bạn sẽ phù hợp hơn.',
+  'whatsnew.change.pickerLook': 'Các cửa sổ chọn VPN, client MCP, dịch vụ debrid và captcha, đăng nhập nhà lưu trữ và đích sự kiện có cùng một giao diện, và khi quay lại từ một biểu mẫu, ô bạn chọn gần nhất được đánh dấu.',
+  'whatsnew.change.exclusiveShares': 'Hộp chọn thư mục hiển thị các thư mục chia sẻ Unraid đặt truy cập độc quyền và cho biết tệp chứa còn thiếu đường dẫn nào để tới được chúng.',
   'whatsnew.change.listShade': 'Tải xuống và Bộ thu liên kết tô bóng các hàng: mỗi gói tách khỏi gói tiếp theo, và các tệp của gói xen kẽ màu nhạt. “{name}” tắt tính năng này.',
   'whatsnew.change.accountSwitches': 'Tài khoản được bật và tắt trong menu bánh răng trên thẻ của chúng, từng cái trong “{name}” hoặc tất cả cùng lúc. Tài khoản đã tắt sẽ ghi rõ trong hàng của nó.',
   'whatsnew.change.hostSelect': 'Bộ lọc “{name}” trong bộ thu liên kết có một nút cạnh mỗi máy chủ để chọn tất cả liên kết của máy chủ đó trong danh sách. Chọn các máy chủ nhân bản bạn không cần rồi xóa chúng một lượt.',

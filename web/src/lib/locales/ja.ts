@@ -3952,6 +3952,8 @@ export const ja: Dict = {
   'whatsnew.change.crossSeed': '完了したトレントをほかのトラッカーでも探し、同じファイルからそこでもシードします。「{name}」で RED、OPS、Prowlarr、Jackett、または自分の cross-seed デーモンと連携できます。',
   'whatsnew.change.torrentPieces': 'トレントの詳細に、どのピースがもう届いているかが HTTP ダウンロードと同じように表示されます。',
   'whatsnew.change.torrentVpn': '内蔵 VPN を通るトレントは KnightLoader 内のプロキシを経由し、トンネルが切れている間は待機します。トレントは外向きにしか接続しないため、転送されたポートはもう届きません。プライベートトラッカーでレシオが必要なら、自分の VPN コンテナーか自分の qBittorrent のほうが向いています。',
+  'whatsnew.change.pickerLook': 'VPN、MCP クライアント、Debrid とキャプチャのサービス、ホスターのログイン、イベント送信先を選ぶウィンドウが同じ見た目になり、フォームから戻ると最後に選んだタイルに印が付きます。',
+  'whatsnew.change.exclusiveShares': 'フォルダーの選択画面に排他アクセスにした Unraid の共有が表示され、そこへ届くためにコンテナーに足りないパスを示します。',
   'whatsnew.change.listShade': 'ダウンロードとリンクコレクターの行に陰影がつきました。パッケージごとに区切りが見え、ファイルは淡く交互に色分けされます。「{name}」でオフにできます。',
   'whatsnew.change.accountSwitches': 'アカウントの有効化と無効化は、各カードの歯車メニューから行います。「{name}」で1つずつ、またはまとめて切り替えられます。無効なアカウントは行にそう表示されます。',
   'whatsnew.change.hostSelect': 'リンクコレクターの「{name}」フィルターでは、ホストごとにそのリンクをリスト内ですべて選択するボタンが付きました。不要なミラーのホストを選んで、まとめて削除できます。',

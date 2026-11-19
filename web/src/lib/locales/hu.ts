@@ -3956,6 +3956,8 @@ export const hu: Dict = {
   'whatsnew.change.crossSeed': 'Egy kész torrentet a többi trackereden is megkeres, és ott is seedeli, ugyanazokból a fájlokból. A(z) „{name}” ezt RED, OPS, Prowlarr, Jackett vagy a saját cross-seed démonod segítségével állítja be.',
   'whatsnew.change.torrentPieces': 'Egy torrent részletei megmutatják, mely darabjai vannak már itt, ahogy egy HTTP-letöltésé is.',
   'whatsnew.change.torrentVpn': 'A beépített VPN-en át futó torrentek a KnightLoaderen belüli proxyn mennek keresztül, és várnak, amíg az alagút nem működik. Csak kifelé kapcsolódnak, így egy továbbított port már nem éri el őket. Privát trackereken az arányhoz jobb egy saját VPN-konténer vagy a saját qBittorrented.',
+  'whatsnew.change.pickerLook': 'A VPN-ek, MCP-kliensek, debrid- és captcha-szolgáltatások, tárhely-bejelentkezések és eseménycélok választóablakai egyformán néznek ki, és ha egy űrlapról visszalépsz, a legutóbb választott csempe meg van jelölve.',
+  'whatsnew.change.exclusiveShares': 'A mappaválasztó megmutatja az Unraid kizárólagos hozzáférésű megosztásait, és megmondja, melyik útvonal hiányzik a konténerből, hogy elérje őket.',
   'whatsnew.change.listShade': 'A Letöltések és a Linkgyűjtő árnyékolja a sorait: minden csomag elválik a következőtől, a fájljai pedig halványan váltakoznak. A(z) „{name}” kikapcsolja.',
   'whatsnew.change.accountSwitches': 'A fiókokat a kártyájuk fogaskerék menüjében kapcsolod be és ki, egyenként a „{name}” alatt vagy mindet egyszerre. A kikapcsolt fiók ezt a sorában jelzi.',
   'whatsnew.change.hostSelect': 'A linkgyűjtő „{name}” szűrőjében minden tárhely mellett van egy gomb, amely kijelöli a listában az összes linkjét. Jelöld ki a fölösleges tükörtárhelyeket, és töröld őket egyszerre.',

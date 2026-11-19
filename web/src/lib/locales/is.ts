@@ -3951,6 +3951,8 @@ export const is: Dict = {
   'whatsnew.change.crossSeed': 'Leitað er að fullkláruðu torrenti á hinum trackerunum þínum og því deilt þar líka, úr sömu skrám. „{name}“ setur það upp með RED, OPS, Prowlarr, Jackett eða þínum eigin cross-seed-þjóni.',
   'whatsnew.change.torrentPieces': 'Upplýsingar um torrent sýna hvaða bútar þess eru þegar komnir, eins og við HTTP-niðurhal.',
   'whatsnew.change.torrentVpn': 'Torrent um innbyggða VPN-ið fara í gegnum proxy inni í KnightLoader og bíða meðan göngin eru niðri. Þau tengjast aðeins út á við, svo framsend gátt nær ekki lengur til þeirra. Fyrir hlutfall á lokuðum trackerum hentar eigin VPN-gámur eða þinn eigin qBittorrent betur.',
+  'whatsnew.change.pickerLook': 'Valgluggarnir fyrir VPN, MCP-biðlara, debrid- og captcha-þjónustur, hýsingarinnskráningar og atburðamóttakendur líta eins út, og þegar þú ferð til baka úr eyðublaði er flísin sem þú valdir síðast merkt.',
+  'whatsnew.change.exclusiveShares': 'Möppuvalið sýnir samnýttar möppur í Unraid með einkaaðgangi og segir hvaða slóð gáminn vantar til að ná til þeirra.',
   'whatsnew.change.listShade': 'Niðurhal og Tenglasafnarinn skyggja línurnar sínar: hver pakki sker sig frá þeim næsta og skrár hans skiptast dauft á. „{name}“ slekkur á því.',
   'whatsnew.change.accountSwitches': 'Aðgangar eru virkjaðir og gerðir óvirkir í tannhjólsvalmynd spjaldsins þeirra, einn í einu undir „{name}“ eða allir í einu. Óvirkur aðgangur segir það í sinni línu.',
   'whatsnew.change.hostSelect': 'Sían „{name}“ í tenglasafnaranum er með hnapp við hvern hýsil sem velur alla tengla hans á listanum. Veldu speglahýslana sem þú þarft ekki og eyddu þeim í einu lagi.',

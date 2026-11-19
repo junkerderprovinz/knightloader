@@ -3965,6 +3965,8 @@ export const sk: Dict = {
   'whatsnew.change.crossSeed': 'Dokončený torrent sa hľadá na tvojich ďalších trackeroch a seeduje sa aj tam, z tých istých súborov. „{name}“ to nastaví s RED, OPS, Prowlarr, Jackett alebo tvojím vlastným démonom cross-seed.',
   'whatsnew.change.torrentPieces': 'Podrobnosti torrentu ukazujú, ktoré jeho časti už sú tu, rovnako ako pri sťahovaní cez HTTP.',
   'whatsnew.change.torrentVpn': 'Torrenty cez vstavanú VPN idú cez proxy vnútri KnightLoadera a čakajú, kým je tunel dole. Pripájajú sa len smerom von, takže presmerovaný port sa k nim už nedostane. Pre ratio na súkromných trackeroch sa hodí skôr vlastný VPN kontajner alebo tvoj vlastný qBittorrent.',
+  'whatsnew.change.pickerLook': 'Okná na výber VPN, MCP klientov, služieb debrid a captcha, prihlásení k hosterom a cieľov udalostí vyzerajú rovnako a po návrate z formulára je označená dlaždica, ktorú si vybral naposledy.',
+  'whatsnew.change.exclusiveShares': 'Výber priečinka ukazuje zdieľané priečinky Unraidu s exkluzívnym prístupom a povie, ktorá cesta kontajneru chýba, aby sa k nim dostal.',
   'whatsnew.change.listShade': 'Sťahovanie a Zberač odkazov tieňujú svoje riadky: každý balík sa odlíši od ďalšieho a jeho súbory sa jemne striedajú. „{name}“ to vypne.',
   'whatsnew.change.accountSwitches': 'Účty sa zapínajú a vypínajú v ponuke ozubeného kolesa na ich karte, jednotlivo v „{name}“ alebo všetky naraz. Vypnutý účet to uvádza vo svojom riadku.',
   'whatsnew.change.hostSelect': 'Filter „{name}“ v zberači odkazov má pri každom hosteri tlačidlo, ktoré vyberie všetky jeho odkazy v zozname. Vyber zrkadlové hostery, ktoré nepotrebuješ, a zmaž ich naraz.',

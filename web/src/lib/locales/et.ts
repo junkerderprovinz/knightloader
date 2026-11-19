@@ -3946,6 +3946,8 @@ export const et: Dict = {
   'whatsnew.change.crossSeed': 'Valminud torrentit otsitakse sinu teistelt trackeritelt ja seda seeditakse ka seal, samadest failidest. „{name}“ seab selle üles RED-i, OPS-i, Prowlarri, Jacketti või sinu enda cross-seed deemoniga.',
   'whatsnew.change.torrentPieces': 'Torrenti üksikasjad näitavad, millised selle tükid on juba olemas, nagu HTTP-allalaadimisel.',
   'whatsnew.change.torrentVpn': 'Sisseehitatud VPN-i kaudu käivad torrentid läbi KnightLoaderi sees oleva puhverserveri ja ootavad, kuni tunnel on maas. Need ühenduvad ainult väljapoole, nii et edastatud port neid enam ei saavuta. Privaatsete trackerite suhtarvu jaoks sobib paremini oma VPN-konteiner või sinu oma qBittorrent.',
+  'whatsnew.change.pickerLook': 'VPN-ide, MCP-klientide, debrid- ja captcha-teenuste, hosterite sisselogimiste ja sündmuste sihtkohtade valijad näevad ühesugused välja ning vormist tagasi minnes on viimati valitud paan märgitud.',
+  'whatsnew.change.exclusiveShares': 'Kaustavalija näitab Unraidi eksklusiivse juurdepääsuga jagatud kaustu ja ütleb, milline tee konteineril nendeni jõudmiseks puudub.',
   'whatsnew.change.listShade': 'Allalaadimised ja Linkide koguja varjutavad oma ridu: iga pakk eristub järgmisest ja selle failid vahelduvad õrnalt. „{name}“ lülitab selle välja.',
   'whatsnew.change.accountSwitches': 'Kontosid lubatakse ja keelatakse nende kaardi hammasratta menüüs, ükshaaval jaotises „{name}“ või kõik korraga. Keelatud konto ütleb seda oma real.',
   'whatsnew.change.hostSelect': 'Linkide koguja filtris „{name}“ on iga majutaja kõrval nupp, mis valib kõik tema lingid nimekirjas. Vali peeglimajutajad, mida sul vaja ei ole, ja kustuta need korraga.',

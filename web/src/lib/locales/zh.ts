@@ -3939,6 +3939,8 @@ export const zh: Dict = {
   'whatsnew.change.crossSeed': '下载完成的种子会在你的其他 tracker 上查找，并用同样的文件在那里做种。“{name}”可以配合 RED、OPS、Prowlarr、Jackett 或你自己的 cross-seed 守护进程进行设置。',
   'whatsnew.change.torrentPieces': '种子的详情会像 HTTP 下载一样显示哪些分块已经到了。',
   'whatsnew.change.torrentVpn': '经由内置 VPN 的种子会通过 KnightLoader 内部的代理，并在隧道断开时等待。种子只向外连接，所以转发的端口不再能到达它们。如果需要私有 tracker 上的分享率，你自己的 VPN 容器或你自己的 qBittorrent 更合适。',
+  'whatsnew.change.pickerLook': 'VPN、MCP 客户端、Debrid 和验证码服务、网盘登录以及事件目标的选择窗口外观统一，从表单返回时，上次选中的磁贴会被标出。',
+  'whatsnew.change.exclusiveShares': '文件夹选择器会显示设为独占访问的 Unraid 共享，并说明容器还缺哪个路径才能访问它们。',
   'whatsnew.change.listShade': '下载和链接收集器的行加上了底纹：每个包与下一个包分开，包里的文件以浅色交替显示。“{name}”可以关闭它。',
   'whatsnew.change.accountSwitches': '账户在其卡片的齿轮菜单中启用和停用，可在“{name}”中逐个切换，也可一次全部切换。已停用的账户会在所在行中注明。',
   'whatsnew.change.hostSelect': '链接收集器的“{name}”筛选中，每个主机旁都有一个按钮，可选中列表中该主机的全部链接。选中你不需要的镜像主机，一次删掉即可。',

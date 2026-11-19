@@ -3940,6 +3940,8 @@ export const pl: Dict = {
   'whatsnew.change.crossSeed': 'Ukończony torrent jest szukany na twoich innych trackerach i seedowany także tam, z tych samych plików. „{name}” ustawia to z RED, OPS, Prowlarr, Jackett lub twoim własnym demonem cross-seed.',
   'whatsnew.change.torrentPieces': 'Szczegóły torrenta pokazują, które jego kawałki już są, tak jak przy pobieraniu HTTP.',
   'whatsnew.change.torrentVpn': 'Torrenty przez wbudowaną sieć VPN idą przez proxy wewnątrz KnightLoadera i czekają, dopóki tunel nie działa. Łączą się tylko na zewnątrz, więc przekierowany port już do nich nie dociera. Do ratio na prywatnych trackerach lepiej sprawdzi się własny kontener VPN albo twój własny qBittorrent.',
+  'whatsnew.change.pickerLook': 'Okna wyboru VPN, klientów MCP, usług debrid i captcha, logowań do hosterów oraz celów zdarzeń wyglądają tak samo, a po powrocie z formularza zaznaczony jest kafelek wybrany ostatnio.',
+  'whatsnew.change.exclusiveShares': 'Wybór folderu pokazuje udziały Unraid z wyłącznym dostępem i mówi, której ścieżki brakuje kontenerowi, by do nich dotrzeć.',
   'whatsnew.change.listShade': 'Pobierania i Kolektor linków cieniują swoje wiersze: każdy pakiet odcina się od następnego, a jego pliki subtelnie się przeplatają. „{name}” to wyłącza.',
   'whatsnew.change.accountSwitches': 'Konta włącza się i wyłącza w menu z kołem zębatym na ich karcie, pojedynczo w „{name}” albo wszystkie naraz. Wyłączone konto mówi o tym w swoim wierszu.',
   'whatsnew.change.hostSelect': 'Filtr „{name}” w kolektorze linków ma przy każdym hosterze przycisk, który zaznacza wszystkie jego linki na liście. Zaznacz niepotrzebnych hosterów lustrzanych i usuń ich linki za jednym razem.',

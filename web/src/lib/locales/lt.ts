@@ -3957,6 +3957,8 @@ export const lt: Dict = {
   'whatsnew.change.crossSeed': 'Baigtas torentas ieškomas kituose tavo sekikliuose ir ten taip pat platinamas iš tų pačių failų. „{name}“ tai nustato su RED, OPS, Prowlarr, Jackett ar tavo paties cross-seed tarnyba.',
   'whatsnew.change.torrentPieces': 'Torento išsamioje informacijoje matyti, kurios jo dalys jau čia, kaip ir HTTP atsisiuntimo.',
   'whatsnew.change.torrentVpn': 'Torentai per integruotą VPN eina per tarpinį serverį KnightLoader viduje ir laukia, kol tunelis neveikia. Jie jungiasi tik į išorę, todėl peradresuotas prievadas jų nebepasiekia. Santykiui privačiuose sekikliuose geriau tinka nuosavas VPN konteineris arba tavo paties qBittorrent.',
+  'whatsnew.change.pickerLook': 'VPN, MCP klientų, debrid ir captcha paslaugų, hosterių prisijungimų ir įvykių gavėjų pasirinkimo langai atrodo vienodai, o grįžus iš formos pažymėta paskutinė tavo pasirinkta plytelė.',
+  'whatsnew.change.exclusiveShares': 'Aplanko pasirinkimas rodo Unraid bendrinamus aplankus su išskirtine prieiga ir pasako, kokio kelio konteineriui trūksta, kad juos pasiektų.',
   'whatsnew.change.listShade': 'Atsisiuntimai ir Nuorodų rinkiklis šešėliuoja savo eilutes: kiekvienas paketas atsiskiria nuo kito, o jo failai švelniai kaitaliojasi. „{name}“ tai išjungia.',
   'whatsnew.change.accountSwitches': 'Paskyros įjungiamos ir išjungiamos jų kortelės krumpliaračio meniu, po vieną skiltyje „{name}“ arba visos iš karto. Išjungta paskyra tai nurodo savo eilutėje.',
   'whatsnew.change.hostSelect': 'Nuorodų rinkiklio filtre „{name}“ prie kiekvienos talpyklos yra mygtukas, kuris sąraše pasirenka visas jos nuorodas. Pasirink nereikalingas veidrodines talpyklas ir ištrink jas iš karto.',

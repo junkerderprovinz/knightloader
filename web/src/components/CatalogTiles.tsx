@@ -116,7 +116,7 @@ export function PickerGroups({
 }) {
   if (groups.length === 0) return <BrandPicker brands={[]} none={none} onPick={onPick} />;
   return (
-    <div className="flex flex-col gap-4">
+    <div data-new="picker-look" className="flex flex-col gap-4">
       {groups.map((g) => (
         <div key={g.id} className="flex flex-col gap-2">
           {g.title && <SubHead label={g.title} hint={g.hint} />}

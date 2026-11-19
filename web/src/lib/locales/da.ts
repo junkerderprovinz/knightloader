@@ -3941,6 +3941,8 @@ export const da: Dict = {
   'whatsnew.change.crossSeed': 'En færdig torrent søges på dine andre trackere og seedes også der, fra de samme filer. „{name}“ sætter det op med RED, OPS, Prowlarr, Jackett eller din egen cross-seed-dæmon.',
   'whatsnew.change.torrentPieces': 'En torrents detaljer viser, hvilke af dens stykker der allerede er her, ligesom en HTTP-download.',
   'whatsnew.change.torrentVpn': 'Torrents gennem den indbyggede VPN går gennem en proxy i KnightLoader og venter, mens tunnelen er nede. De forbinder kun udad, så en videresendt port når dem ikke længere. Til ratio på private trackere fungerer en egen VPN-container eller din egen qBittorrent bedre.',
+  'whatsnew.change.pickerLook': 'Vælgerne til VPN-tjenester, MCP-klienter, debrid- og captchatjenester, hosterlogins og hændelsesmål ser ens ud, og når du går tilbage fra en formular, er den flise, du valgte sidst, markeret.',
+  'whatsnew.change.exclusiveShares': 'Mappevælgeren viser delte mapper i Unraid med eksklusiv adgang og siger, hvilken sti beholderen mangler for at nå dem.',
   'whatsnew.change.listShade': 'Downloads og Linksamleren skraverer deres rækker: hver pakke skiller sig ud fra den næste, og dens filer skifter svagt. „{name}“ slår det fra.',
   'whatsnew.change.accountSwitches': 'Konti slås til og fra i tandhjulsmenuen på deres kort, én ad gangen under „{name}“ eller alle på én gang. En konto, der er slået fra, siger det i sin række.',
   'whatsnew.change.hostSelect': 'Filteret “{name}” i linksamleren har en knap ved hver vært, som vælger alle dens links på listen. Vælg de spejlværter, du ikke har brug for, og slet dem på én gang.',
