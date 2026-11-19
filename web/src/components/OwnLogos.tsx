@@ -1,12 +1,10 @@
-// The logos KnightLoader drew itself before it took GlimStone's provider
-// catalogs, for the providers a catalog has only a glyph for, and the one
-// catalog mark that needs a correction here. This file goes once GlimStone
-// carries these marks: a catalog's own mark always wins over a logo here.
+// Logos for the providers GlimStone's catalogs give only a glyph, and one
+// catalog mark that needs a correction. A catalog's own mark always wins.
 //
-// The VPN logos are the PNGs in public/vpn, the debrid services', captcha
-// solvers' and hosters' are what HosterIcon draws for their site, and the MCP
-// clients' are the marks BombVault draws (Lobe Icons, Dashboard Icons and the
-// vendors' own files; Jan's hand is the vendor's raster icon wrapped in SVG).
+// The VPN logos are the PNGs in public/vpn. Debrid services, captcha solvers
+// and hosters use what HosterIcon draws for their site. The MCP clients wear
+// BombVault's marks, from Lobe Icons, Dashboard Icons and the vendors' own
+// files, Jan's hand being the vendor's raster icon wrapped in SVG.
 import type { ReactNode } from 'react';
 import type { TileMark } from '../lib/catalogs/catalog';
 import { withBase } from '../lib/basePath';
@@ -87,8 +85,8 @@ const MCP_MARKS: Record<string, TileMark> = {
 
 /**
  * Cline's catalog mark is #18181B, lifted on the dark tile only to #81818f,
- * which all but vanishes there; it turns white like the catalog's other black
- * marks.
+ * which all but vanishes there, so it turns white like the catalog's other
+ * black marks.
  */
 const corrected = (catalog: OwnCatalog, id: string, mark: TileMark): TileMark | undefined =>
   catalog === 'mcp' && id === 'cline'
