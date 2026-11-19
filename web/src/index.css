@@ -3519,6 +3519,11 @@ body {
 .glim-provider-pick :is(.glim-readme-btn-name, .glim-readme-btn-sub) {
   text-overflow: ellipsis;
 }
+/* The tile picked before keeps a ring in the colour it lights up in. */
+.glim-provider-pick .glim-readme-btn[aria-current="true"] {
+  outline: 2px solid var(--tile);
+  outline-offset: 2px;
+}
 
 .glim-readme-btn-hint {
   position: absolute;

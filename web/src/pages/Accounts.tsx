@@ -726,6 +726,7 @@ function CredentialDialog({
   const [verifying, setVerifying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
+  const [last, setLast] = useState<string>();
 
   const fromEnv = editingRow?.fromEnv ?? false;
   const hasDefault = (id: string) => accounts.some((a) => a.service === id && a.account === '');
@@ -814,7 +815,7 @@ function CredentialDialog({
       // The picker's window, which the form of the picked brand stays in, and
       // an edit opens the same form in the same window.
       wide
-      height={picked ? 'content' : 'capped'}
+      height="capped"
       holdHeight={!picked && query !== ''}
       closeOnBackdrop={!picked}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
@@ -868,7 +869,9 @@ function CredentialDialog({
           <BrandPicker
             brands={brands.filter((b) => brandMatches(b, query))}
             none={t('accounts.noServicesFound')}
+            selected={last}
             onPick={(id) => {
+              setLast(id);
               setPicked(services.find((s) => s.id === id) ?? null);
               setAccountId('');
               setVerifyResult(null);

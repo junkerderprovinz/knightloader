@@ -71,6 +71,7 @@ export function VpnPicker({
   const { t } = useT();
   const { toast } = useToast();
   const [picked, setPicked] = useState(editing ?? '');
+  const [last, setLast] = useState<string>();
   const [query, setQuery] = useState('');
   const [values, setValues] = useState<Values>({});
   const [missing, setMissing] = useState<VpnField | ''>('');
@@ -130,7 +131,7 @@ export function VpnPicker({
       hint={p ? undefined : t('settings.vpn.pickHint')}
       hue={hue}
       wide
-      height={p ? 'content' : 'capped'}
+      height="capped"
       holdHeight={!p && query !== ''}
       closeOnBackdrop={!p}
       right={!p && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
@@ -171,7 +172,15 @@ export function VpnPicker({
     >
       {!p ? (
         <div className="flex flex-col gap-4">
-          <BrandPicker brands={shown} none={t('settings.vpn.noneFound')} onPick={setPicked} />
+          <BrandPicker
+            brands={shown}
+            none={t('settings.vpn.noneFound')}
+            selected={last}
+            onPick={(id) => {
+              setLast(id);
+              setPicked(id);
+            }}
+          />
           {shownAppOnly.length > 0 && (
             <>
               <p className="text-meta text-carbon-textSub">{t('settings.vpn.appOnlyTitle')}</p>

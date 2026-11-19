@@ -40,7 +40,15 @@ const BRANDS: Brand[] = [
   { id: 'alldebrid', name: 'AllDebrid', host: 'https://alldebrid.com/apikeys', sub: 'alldebrid.com' },
 ];
 
-function Window({ onPick, onClose = () => {} }: { onPick: (id: string) => void; onClose?: () => void }) {
+function Window({
+  onPick,
+  onClose = () => {},
+  selected,
+}: {
+  onPick: (id: string) => void;
+  onClose?: () => void;
+  selected?: string;
+}) {
   const [query, setQuery] = useState('');
   return (
     <I18nProvider>
@@ -51,7 +59,12 @@ function Window({ onPick, onClose = () => {} }: { onPick: (id: string) => void; 
         right={<PickerSearch value={query} onChange={setQuery} placeholder="Search this list" />}
         onClose={onClose}
       >
-        <BrandPicker brands={BRANDS.filter((b) => brandMatches(b, query))} onPick={onPick} none="Nothing matches" />
+        <BrandPicker
+          brands={BRANDS.filter((b) => brandMatches(b, query))}
+          onPick={onPick}
+          none="Nothing matches"
+          selected={selected}
+        />
       </Modal>
     </I18nProvider>
   );
@@ -135,6 +148,12 @@ it('opens with its search as a field that has the caret and narrows the tiles', 
   expect(tiles()).toHaveLength(1);
   type('nothing like it');
   expect(host.textContent).toContain('Nothing matches');
+});
+
+it('marks the brand picked before and hands it the focus on the way back from its form', () => {
+  act(() => root.render(<Window onPick={() => {}} selected="alldebrid" />));
+  expect(buttons().map((b) => b.getAttribute('aria-current'))).toEqual([null, 'true']);
+  expect(document.activeElement).toBe(buttons()[1]);
 });
 
 it('leaves the caret out of the field under a finger, where the keyboard would cover the tiles', () => {

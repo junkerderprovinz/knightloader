@@ -349,6 +349,7 @@ function AddClientWindow({
   const { toast } = useToast();
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<McpClient | null>(null);
+  const [last, setLast] = useState<string>();
   const [name, setName] = useState('');
   const [preset, setPreset] = useState<McpPreset>('addRead');
   const [creating, setCreating] = useState(false);
@@ -362,6 +363,7 @@ function AddClientWindow({
   function pick(id: string) {
     const c = [...LOCAL_CLIENTS, ...CLOUD_CLIENTS, OTHER_CLIENT].find((x) => x.id === id) ?? OTHER_CLIENT;
     setPicked(c);
+    setLast(id);
     setName(nameOf(c));
   }
 
@@ -458,7 +460,7 @@ function AddClientWindow({
       hint={picked ? undefined : t('settings.access.mcp.pickHint')}
       hue={HUE}
       wide
-      height={picked ? 'content' : 'capped'}
+      height="capped"
       holdHeight={!picked && query !== ''}
       closeOnBackdrop={!picked}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('settings.access.mcp.search')} />}
@@ -473,7 +475,7 @@ function AddClientWindow({
           {groups.map((g) => (
             <div key={g.id} className="flex flex-col gap-2">
               {g.title && <SubHead label={g.title} hint={g.hint} />}
-              <BrandPicker brands={g.brands} none="" onPick={pick} />
+              <BrandPicker brands={g.brands} none="" selected={last} onPick={pick} />
             </div>
           ))}
         </div>

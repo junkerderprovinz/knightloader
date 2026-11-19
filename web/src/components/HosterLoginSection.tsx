@@ -556,6 +556,7 @@ function HosterLoginDialog({
 }) {
   const { t } = useT();
   const [query, setQuery] = useState('');
+  const [last, setLast] = useState<string>();
   const [picked, setPicked] = useState<HosterHost | null>(
     editing ? { id: editing.host, label: editing.host } : null,
   );
@@ -610,7 +611,10 @@ function HosterLoginDialog({
   const pick = (id: string) => {
     const site = id.startsWith(SITE_BRAND) ? sites.find((s) => SITE_BRAND + s.id === id) : undefined;
     if (site) onPickSite(site);
-    else setPicked(hosts.find((h) => h.id === id) ?? null);
+    else {
+      setLast(id);
+      setPicked(hosts.find((h) => h.id === id) ?? null);
+    }
   };
 
   async function doSave() {
@@ -670,7 +674,7 @@ function HosterLoginDialog({
       // The picker's window, which the form of the picked hoster stays in, and
       // an edit opens the same form in the same window.
       wide
-      height={picked ? 'content' : 'capped'}
+      height="capped"
       holdHeight={!picked && query !== ''}
       closeOnBackdrop={!picked}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />}
@@ -721,6 +725,7 @@ function HosterLoginDialog({
           <BrandPicker
             brands={brands.filter((b) => brandMatches(b, query))}
             none={t('accounts.noServicesFound')}
+            selected={last}
             onPick={pick}
           />
         </div>
