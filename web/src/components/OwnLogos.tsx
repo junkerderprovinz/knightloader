@@ -22,7 +22,7 @@ const VPN_LOGOS = new Map<string, LogoTile>([
   ['astrill', { tile: '#000000', ink: '#ffffff', rest: 'ink' }],
   ['azirevpn', { tile: '#8229ef', ink: '#ffffff', rest: 'lift', lit: true }],
   ['cactusvpn', { tile: '#98c000', ink: '#ffffff' }],
-  ['cryptostorm', { tile: '#286666', ink: '#ffffff', lit: true }],
+  ['cryptostorm', { tile: '#286666', ink: '#ffffff' }],
   ['fastestvpn', { tile: '#f9c02a', ink: '#161616' }],
   ['hideme', { tile: '#0acbf8', ink: '#161616', lit: true }],
   ['ipvanish', { tile: '#6fbb44', ink: '#ffffff' }],
