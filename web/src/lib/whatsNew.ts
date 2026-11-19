@@ -51,6 +51,18 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.9.3',
+    changes: [
+      { id: 'appimage', to: ['/settings/browsertools'], text: 'whatsnew.change.appImage' },
+      {
+        id: 'connection-rows',
+        text: 'whatsnew.change.connectionRows',
+        names: { signIn: 'signInBrowser.signInHere', test: 'siteLogins.test', edit: 'siteLogins.edit', remove: 'accounts.remove' },
+      },
+      { id: 'parked-band', text: 'whatsnew.change.parkedBand' },
+    ],
+  },
+  {
     version: '2.9.2',
     changes: [
       // Drawn in the VPN and MCP client windows.

@@ -466,6 +466,7 @@ function DesktopCard() {
         <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />
         <ReadmeButton
           brand="linux"
+          data-new="appimage"
           parts={pair('AppImage', (a) => linuxPackage(a, release, 'AppImage'))}
           mark={<BrandMark svg={LINUX_SVG} />}
         />
