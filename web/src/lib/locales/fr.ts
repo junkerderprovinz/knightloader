@@ -352,7 +352,7 @@ export const fr: Dict = {
   'settings.archivePasswordsHint': 'Un par ligne. Essayés dans l’ordre si une archive est chiffrée.',
   'settings.lockOn': 'Un mot de passe est défini.',
   'settings.lockOff': 'Aucun mot de passe défini.',
-  'settings.lockHint': 'Protège cette instance de quiconque peut l\'atteindre: sur le même réseau, via un domaine ou via un relay. Une fois défini, il doit être saisi avant même que cette instance s\'ouvre, pour tout le monde, y compris pour vous-même la prochaine fois. Sans mot de passe, quiconque trouve l\'adresse peut voir chaque téléchargement, et ajouter, mettre en pause ou supprimer les siens.',
+  'settings.lockHint': "Protège cette instance de quiconque peut l'atteindre: sur le même réseau, via un domaine ou via un relais. Une fois défini, il doit être saisi avant même que cette instance s'ouvre, pour tout le monde, y compris pour vous-même la prochaine fois. Sans mot de passe, quiconque trouve l'adresse peut voir chaque téléchargement, et ajouter, mettre en pause ou supprimer les siens.",
   'settings.appKeyCopies': 'Une copie des fichiers d’avant la clé d’application se trouve encore dans le dossier de données. KnightLoader la supprime après le {date}.',
   'settings.passwordCurrent': 'Mot de passe actuel',
   'settings.passwordNew': 'Nouveau mot de passe',
@@ -1482,7 +1482,7 @@ export const fr: Dict = {
   'intake.clipboardWatchDenied': 'Surveillance du presse-papiers désactivée : {reason}',
   'intake.clipboardWatchHintDesktop': 'Chaque lien que tu copies où que ce soit va directement dans le collecteur, même quand KnightLoader est caché dans la zone de notification. Seuls les liens sont pris dans le presse-papiers. Ctrl+V dans KnightLoader marche toujours, sans tout ça.',
   'intake.clipboardWatchTarget': 'Envoyer les liens copiés à',
-  'intake.clipboardWatchTargetHint': 'Cette instance, ou une autre de la page Instances, par exemple un NAS associé avec les douze mots. Seuls les liens sont envoyés, rien d\'autre du presse-papiers.',
+  'intake.clipboardWatchTargetHint': "Cette instance, ou une autre de la page Instances, par exemple un NAS appairé avec les douze mots. Seuls les liens sont envoyés, rien d'autre du presse-papiers.",
   'intake.clipboardWatchLimited': 'Sous Wayland, KnightLoader ne voit le presse-papiers que quand sa fenêtre est au premier plan. Avec wl-clipboard installé, il peut le surveiller en arrière-plan sur les bureaux qui le permettent, comme KDE ou Sway. GNOME ne le permet pas.',
   'intake.clipboardWatchStoppedElsewhere': 'Surveillance du presse-papiers désactivée depuis un autre appareil',
   'linkPopup.caughtOne': 'Un lien attrapé',
@@ -3816,7 +3816,7 @@ export const fr: Dict = {
   'whatsnew.change.reconnectScene': 'Une image montre comment KnightLoader demande une nouvelle adresse au routeur.',
   'whatsnew.change.seedRing': 'Un anneau montre à quel point un torrent est proche de son objectif de partage.',
   'whatsnew.change.routes':
-    '« {name} » dessine les routes vers l’extérieur, et un test colore chaque ligne en vert ou en rouge.',
+    '« {name} » dessine les routes qui sortent de cette instance, et un test colore chaque ligne en vert ou en rouge.',
   'whatsnew.change.waysIn': 'Une image sur toute la carte montre chaque voie par laquelle un lien arrive dans le collecteur de liens, et un clic sur une voie ouvre son réglage. Quand le « {rainbow} » est activé, chaque voie a sa propre couleur.',
   'whatsnew.change.dayCurve':
     '« {name} » dessine la journée en cours sous forme de courbe : la limite de vitesse prévue en surface et la vitesse mesurée en ligne.',
