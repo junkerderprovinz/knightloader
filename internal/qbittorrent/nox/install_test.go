@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -46,7 +47,7 @@ func (f *fakeRelease) installer(goos, goarch string) installer {
 			}
 			return os.WriteFile(dst, b, 0o644)
 		},
-		smoke: func(ctx context.Context, bin string) (string, error) {
+		smoke: func(ctx context.Context, bin, home string) (string, error) {
 			if _, err := os.Stat(bin); err != nil {
 				return "", err
 			}
@@ -278,7 +279,7 @@ func TestAZippedBuildNamesWhereItsProgramLies(t *testing.T) {
 	f := &fakeRelease{files: map[string][]byte{"b.zip": body}, version: "4.5.5"}
 	var ran string
 	in := f.installer("darwin", "arm64")
-	in.smoke = func(ctx context.Context, bin string) (string, error) {
+	in.smoke = func(ctx context.Context, bin, home string) (string, error) {
 		ran = bin
 		return "4.5.5", nil
 	}
@@ -330,5 +331,51 @@ func TestAnOwnBuildWithoutADigestIsVouchedForByTheLatestRelease(t *testing.T) {
 	}
 	if len(f.tags) != 1 || f.tags[0] != "" {
 		t.Errorf("looked up the releases %q, want the latest alone", f.tags)
+	}
+}
+
+// fakeNox stands in for qbittorrent-nox --version, which aborts when it cannot
+// create its cache folder under HOME.
+const fakeNox = `#!/bin/sh
+mkdir -p "$HOME/.cache/qBittorrent" 2>/dev/null || {
+	echo "Could not create required directory '$HOME/.cache/qBittorrent'" >&2
+	kill -ABRT $$
+}
+echo "qBittorrent v5.0.5"
+`
+
+func writeFakeNox(t *testing.T) string {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("the stand-in is a shell script")
+	}
+	bin := filepath.Join(t.TempDir(), "qbittorrent-nox")
+	if err := os.WriteFile(bin, []byte(fakeNox), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	return bin
+}
+
+func TestTheVersionRunWorksWhenHomeCannotBeWritten(t *testing.T) {
+	bin := writeFakeNox(t)
+	t.Setenv("HOME", "/proc")
+	t.Setenv("XDG_CACHE_HOME", "/proc/.cache")
+	got, err := smokeTest(context.Background(), bin, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "5.0.5" {
+		t.Fatalf("the version read %q", got)
+	}
+}
+
+func TestABuildThatAbortsSaysWhatItPrinted(t *testing.T) {
+	bin := writeFakeNox(t)
+	_, err := smokeTest(context.Background(), bin, "/proc")
+	if err == nil {
+		t.Fatal("a build that aborted passed the smoke test")
+	}
+	if !strings.Contains(err.Error(), "Could not create required directory") {
+		t.Fatalf("the error leaves out what qbittorrent-nox printed: %v", err)
 	}
 }
