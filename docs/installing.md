@@ -199,8 +199,8 @@ from the zip. Make the downloaded file executable first
 
 The desktop app fetches yt-dlp for video sites into its data folder, checked
 against the release's `SHA2-256SUMS`: the installer does it on Windows and
-Linux, and the macOS app, a copy from the zip and the Flatpak do it at their
-first start. From then on KnightLoader keeps it current, see
+Linux, and the macOS app, a copy from the zip, the AppImage and the Flatpak do
+it at their first start. From then on KnightLoader keeps it current, see
 [Keeping the components current](#keeping-the-components-current).
 
 ffmpeg and ffprobe, which join video with its audio and convert, are not in
@@ -243,7 +243,8 @@ The container fetches it at its first start too, from
 since the image carries no qBittorrent of its own. Each build is checked
 against the SHA-256 KnightLoader carries for it before it runs.
 
-On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
+On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`. The
+[AppImage](#the-appimage) and the [Flatpak](#the-flatpak) bring their own.
 
 The desktop app makes its own [app key](#app-key) at the first start and keeps
 it in the operating system's credential store (Windows Credential Manager, the
@@ -288,10 +289,29 @@ but cannot put it to sleep once the queue is done, so the Idle card does not
 offer that there. On Wayland the clipboard watch sees a copied link once the
 window is in front, since the runtime has no `wl-paste`.
 
+### The AppImage
+
+Every release also attaches `knightloader-linux-amd64.AppImage` and
+`knightloader-linux-arm64.AppImage`. An AppImage packs the program together
+with GTK and WebKitGTK into one file, so it does not depend on the WebKitGTK
+your distribution ships. It starts on Ubuntu 22.04 and on newer distributions.
+Make it executable and start it:
+
+```sh
+chmod +x knightloader-linux-amd64.AppImage
+./knightloader-linux-amd64.AppImage
+```
+
+It runs from wherever you keep it and updates itself like a copy from the zip:
+the new version takes the AppImage's place in its folder and starts next time.
+Its data lives in `~/.config/KnightLoader`, the same as the zip's, so you can
+move between the two. Like the zip it comes without UnRAR, so RAR sets go to
+the built-in reader unless `unrar` is on `PATH`.
+
 ### Updates
 
 The desktop app updates itself from GitHub. It asks for the newest release,
-downloads the zip for your system in the background and checks it against the
+downloads the zip for your system, or the AppImage, in the background and checks it against the
 release's `checksums.txt`. The new version starts the next time you open
 KnightLoader, so nothing changes while it runs, and a note in the corner of the
 window says when it is ready. Pre-releases are never installed. **Update
@@ -319,7 +339,7 @@ removes it.
 
 **A portable copy** updates itself while it runs: a minute after it starts and
 once a day after that, in its own folder, and it stays portable. The app on
-macOS and Linux does the same. A read-only folder, or a macOS app your account
+macOS and Linux does the same, and an AppImage replaces its own file. A read-only folder, or a macOS app your account
 cannot change, stays as it is, and the log says why.
 
 #### Why the task runs as SYSTEM
