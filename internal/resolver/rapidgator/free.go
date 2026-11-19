@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -48,6 +49,8 @@ var (
 	widget            = regexp.MustCompile(`(?is)<div\b[^>]*\bclass="[^"]*\b(cf-turnstile|g-recaptcha)\b[^"]*"[^>]*>`)
 	siteKey           = regexp.MustCompile(`(?i)\bdata-sitekey="([^"]+)"`)
 	captchaWrong      = regexp.MustCompile(`>\s*Please fix the following input errors|>\s*The verification code is incorrect`)
+	pageError         = regexp.MustCompile(`(?is)<div\b[^>]*\bclass="(?:error|errorSummary)"[^>]*>(.*?)</div>|<strong style="color:red">(.*?)</strong>`)
+	markup            = regexp.MustCompile(`<[^>]*>`)
 	freeLinks         = []*regexp.Regexp{
 		regexp.MustCompile(`'(https?://[A-Za-z0-9\-_]+\.[^/]+//\?r=download/index&session_id=[A-Za-z0-9]+)'`),
 		regexp.MustCompile(`location\.href\s*=\s*'(https?://[^']+)'`),
@@ -160,6 +163,7 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 	if !strings.EqualFold(done.State, "done") {
 		return "", fmt.Errorf("rapidgator: the countdown did not end (state %q)", done.State)
 	}
+	ready := b.now()
 	body, err = s.page(ctx, "/download/captcha")
 	if err != nil {
 		return "", err
@@ -198,14 +202,55 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 	if a := formAction.FindStringSubmatch(form[0]); a != nil && a[1] != "" {
 		action = html.UnescapeString(a[1])
 	}
-	body, err = s.post(ctx, action, fields)
+	sent := b.now().Sub(ready)
+	body, status, err := s.post(ctx, action, fields)
 	if err != nil {
 		return "", err
 	}
 	if captchaWrong.MatchString(body) {
+		s.explain("Rapidgator refused the captcha answer", fileIDOf(norm), sent, body)
 		return "", errCaptchaRefused
 	}
-	return freeLink(body)
+	direct, err := freeLink(body)
+	if err == nil && status != http.StatusOK {
+		err = &APIError{Status: status, Details: action + " answered " + http.StatusText(status)}
+	}
+	if err != nil {
+		s.explain("no download link after the captcha", fileIDOf(norm), sent, body)
+	}
+	return direct, err
+}
+
+// explain logs why an answer to the captcha led to no download, so a report
+// tells an answer Rapidgator found too late from one it found wrong.
+func (s *session) explain(what, id string, sent time.Duration, body string) {
+	failed := "not set"
+	u, _ := url.Parse(s.c.site)
+	for _, c := range s.hc.Jar.Cookies(u) {
+		if c.Name == "failed_on_captcha" && c.Value == "1" {
+			failed = "set"
+		}
+	}
+	says := "the page shows no error"
+	if text := pageText(body); text != "" {
+		says = strconv.Quote(text)
+	}
+	log.Printf("rapidgator: %s for file %s, answer sent %ds after the countdown (failed_on_captcha %s): %s",
+		what, id, int(sent.Seconds()), failed, says)
+}
+
+// pageText is the first error a page shows, in plain words and cut short.
+func pageText(body string) string {
+	for _, m := range pageError.FindAllStringSubmatch(body, -1) {
+		text := strings.Join(strings.Fields(html.UnescapeString(markup.ReplaceAllString(m[1]+m[2], " "))), " ")
+		if r := []rune(text); len(r) > 200 {
+			text = string(r[:200])
+		}
+		if text != "" {
+			return text
+		}
+	}
+	return ""
 }
 
 // widgetCaptcha is the first captcha widget in body, as the captcha page
@@ -277,28 +322,26 @@ func (s *session) page(ctx context.Context, path string) (string, error) {
 	return s.read(req, path)
 }
 
-func (s *session) post(ctx context.Context, path string, form url.Values) (string, error) {
+// post sends form and returns the page with its status, whatever they say,
+// since the page after the captcha is read for why it holds no link.
+func (s *session) post(ctx context.Context, path string, form url.Values) (string, int, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.c.site+path, strings.NewReader(form.Encode()))
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	return s.read(req, path)
+	resp, body, err := s.do(req)
+	if err != nil {
+		return "", 0, err
+	}
+	return body, resp.StatusCode, nil
 }
 
 func (s *session) read(req *http.Request, path string) (string, error) {
-	req.Header.Set("Accept-Language", "en-US,en;q=0.8")
-	req.AddCookie(&http.Cookie{Name: "lang", Value: "en"})
-	resp, err := s.hc.Do(req)
+	resp, body, err := s.do(req)
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
-	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBody))
-	if err != nil {
-		return "", err
-	}
-	body := string(raw)
 	// A missing file sends the browser on to the premium page.
 	if strings.HasPrefix(path, "/file/") && (resp.StatusCode == http.StatusNotFound ||
 		!strings.HasPrefix(resp.Request.URL.Path, "/file/") || notFound.MatchString(body)) {
@@ -311,6 +354,22 @@ func (s *session) read(req *http.Request, path string) (string, error) {
 		return "", &APIError{Status: resp.StatusCode, Details: path + " answered " + http.StatusText(resp.StatusCode)}
 	}
 	return body, nil
+}
+
+// do sends req as a browser set to English would.
+func (s *session) do(req *http.Request) (*http.Response, string, error) {
+	req.Header.Set("Accept-Language", "en-US,en;q=0.8")
+	req.AddCookie(&http.Cookie{Name: "lang", Value: "en"})
+	resp, err := s.hc.Do(req)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBody))
+	if err != nil {
+		return nil, "", err
+	}
+	return resp, string(raw), nil
 }
 
 // ajax asks one of the free page's scripts' calls and decodes its answer.

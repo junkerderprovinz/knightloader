@@ -209,6 +209,7 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 			s.answers = append(s.answers, r.PostForm)
 			if s.now().Sub(run.ready) > answerWindow {
 				s.barred = s.now().Add(time.Hour)
+				http.SetCookie(w, &http.Cookie{Name: "failed_on_captcha", Value: "1", Path: "/"})
 				fmt.Fprint(w, hourlyLimit)
 				return true
 			}

@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -179,6 +181,56 @@ func TestACaptchaPageWithAnotherKeyThanTheSignInFormIsAnsweredThere(t *testing.T
 	}
 	if len(a.captchas) != 2 || a.captchas[1].SiteKey != rgtest.SiteKey {
 		t.Errorf("captchas = %+v, want the captcha page's asked after the sign-in form's", a.captchas)
+	}
+}
+
+// logLines collects the log until the test ends.
+func logLines(t *testing.T) func() []string {
+	var out bytes.Buffer
+	log.SetOutput(&out)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	return func() []string { return strings.Split(strings.TrimSpace(out.String()), "\n") }
+}
+
+func TestARefusedAnswerIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
+	lines := logLines(t)
+	srv := rgtest.New(t)
+	srv.Countdown(30)
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, _, ups, a := newFreeBackend(srv)
+	a.token = "wrong"
+
+	b.Download("t1", link, nil, 1)
+	awaitSettled(t, ups)
+	got := lines()
+	if len(got) != len(srv.Answers()) {
+		t.Errorf("logged %d lines for %d answers, want one each: %q", len(got), len(srv.Answers()), got)
+	}
+	want := "rapidgator: Rapidgator refused the captcha answer for file " + fileID +
+		`, answer sent 0s after the countdown (failed_on_captcha not set): "Please fix the following input errors: The verification code is incorrect."`
+	if !strings.HasSuffix(got[0], want) {
+		t.Errorf("logged %q, want %q", got[0], want)
+	}
+}
+
+func TestAnAnswerThatLeadsNowhereIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
+	lines := logLines(t)
+	srv := rgtest.New(t)
+	srv.LoginKey("0x4AAAAAAAsignInOnly")
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, _, ups, a := newFreeBackend(srv)
+	a.took = 2*time.Minute + 30*time.Second
+
+	b.Download("t1", link, nil, 1)
+	awaitSettled(t, ups)
+	got := lines()
+	if len(got) != len(srv.Answers()) {
+		t.Errorf("logged %d lines for %d answers, want one each: %q", len(got), len(srv.Answers()), got)
+	}
+	want := "rapidgator: no download link after the captcha for file " + fileID +
+		`, answer sent 150s after the countdown (failed_on_captcha set): "You have reached your hourly downloads limit."`
+	if !strings.HasSuffix(got[0], want) {
+		t.Errorf("logged %q, want %q", got[0], want)
 	}
 }
 
