@@ -187,9 +187,13 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 			return "", err
 		}
 	}
-	// The form takes the answer of either kind in both fields.
+	// The form takes the answer of either kind in its own field and the one
+	// the widget adds, as a browser sends them.
 	fields.Set("DownloadCaptchaForm[verifyCode]", answer)
 	fields.Set("g-recaptcha-response", answer)
+	if c.Kind == hoster.Turnstile {
+		fields.Set("cf-turnstile-response", answer)
+	}
 	action := "/download/captcha"
 	if a := formAction.FindStringSubmatch(form[0]); a != nil && a[1] != "" {
 		action = html.UnescapeString(a[1])

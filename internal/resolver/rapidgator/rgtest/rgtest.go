@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -75,6 +77,8 @@ type Server struct {
 	loginKey string
 	barred   time.Time
 	now      func() time.Time
+	// answers is every captcha form posted, oldest first.
+	answers []url.Values
 }
 
 // freeRun is one free download on its way through the website.
@@ -139,6 +143,13 @@ func (s *Server) LoginKey(key string) {
 	s.loginKey = key
 }
 
+// Answers is every captcha form posted, oldest first.
+func (s *Server) Answers() []url.Values {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.answers)
+}
+
 // Countdown sets the seconds the free page counts down.
 func (s *Server) Countdown(secs int) {
 	s.mu.Lock()
@@ -195,6 +206,7 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 		}
 		_ = r.ParseForm()
 		if r.Method == http.MethodPost {
+			s.answers = append(s.answers, r.PostForm)
 			if s.now().Sub(run.ready) > answerWindow {
 				s.barred = s.now().Add(time.Hour)
 				fmt.Fprint(w, hourlyLimit)

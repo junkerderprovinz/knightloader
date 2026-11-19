@@ -125,6 +125,27 @@ func TestAFreeDownloadSitsOutTheCountdownAnswersTheTurnstileAndGoesOutOnOneConne
 	}
 }
 
+// The Turnstile widget puts its answer into the form as cf-turnstile-response,
+// and the page's callback copies it into the form's own field.
+func TestATurnstileAnswerGoesInUnderTheFieldsABrowserSends(t *testing.T) {
+	srv := rgtest.New(t)
+	srv.Countdown(30)
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, eng, _, _ := newFreeBackend(srv)
+
+	b.Download("t1", link, nil, 1)
+	awaitHandoff(t, eng)
+	forms := srv.Answers()
+	if len(forms) != 1 {
+		t.Fatalf("posted %d captcha forms, want one", len(forms))
+	}
+	for _, field := range []string{"DownloadCaptchaForm[verifyCode]", "cf-turnstile-response"} {
+		if got := forms[0].Get(field); got != rgtest.Token {
+			t.Errorf("%s = %q, want the answer", field, got)
+		}
+	}
+}
+
 // Rapidgator bars the address for an hour when the answer comes in more than
 // a couple of minutes after the countdown.
 func TestACaptchaTheUserTakesMinutesOverStillLeadsToTheDownload(t *testing.T) {
