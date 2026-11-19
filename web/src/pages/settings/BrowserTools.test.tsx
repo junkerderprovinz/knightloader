@@ -120,6 +120,13 @@ describe('BrowserTools', () => {
       expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('1.8.4');
     });
 
+    it('lists the desktop builds in the README order, with the Flatpak last', async () => {
+      await macOS('v1.8.4');
+      const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
+      const names = [...card.querySelectorAll('.glim-readme-btn-unit')].map((u) => u.querySelector('.glim-readme-btn-name')?.textContent);
+      expect(names).toEqual(['Windows', 'macOS', 'Linux', 'AppImage', 'Flatpak']);
+    });
+
     it('says the macOS app runs on Apple silicon and Intel', async () => {
       await macOS('v1.8.4');
       expect(host.querySelector('a[aria-label^="macOS"]')?.getAttribute('aria-label')).toBe('macOS Apple and Intel');

@@ -465,16 +465,16 @@ function DesktopCard() {
         />
         <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />
         <ReadmeButton
+          brand="linux"
+          parts={pair('AppImage', (a) => linuxPackage(a, release, 'AppImage'))}
+          mark={<BrandMark svg={LINUX_SVG} />}
+        />
+        <ReadmeButton
           brand="flatpak"
           data-new="flatpak"
           parts={pair('Flatpak', (a) => linuxPackage(a, release, 'flatpak'))}
           mark={<BrandMark svg={FLATPAK_SVG} />}
           markClass="glim-flatpak-mark"
-        />
-        <ReadmeButton
-          brand="linux"
-          parts={pair('AppImage', (a) => linuxPackage(a, release, 'AppImage'))}
-          mark={<BrandMark svg={LINUX_SVG} />}
         />
       </div>
     </Card>
