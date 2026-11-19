@@ -90,7 +90,7 @@ const button = (text: string) =>
 const row = (label: string) => host.querySelector<HTMLElement>(`[data-glim="ConnectionRow"][aria-label="${label}"]`) ?? undefined;
 
 /** A button at the end of a site's row: test, edit or remove. */
-const rowButton = (label: string, which: 'test' | 'edit' | 'remove') =>
+const rowButton = (label: string, which: 'sign-in-here' | 'test' | 'edit' | 'remove') =>
   row(label)?.querySelector<HTMLButtonElement>(`[data-connection="${which}"]`) ?? undefined;
 
 /** The badge after a row's name that says its sign-in does not work. */
@@ -120,6 +120,7 @@ beforeEach(() => {
       const site = sites.find((s) => url.includes(`/${s.id}/`)) ?? patreon;
       if (url === '/api/sitelogins') return reply(sites);
       if (url === '/api/connect') return reply({ active: true, apps });
+      if (url === '/api/signinbrowser') return reply({ available: true, site: '' });
       if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
       if (url === '/api/hosterauth/logins') return reply(hosterRows);
       if (url.endsWith('/remove')) {
@@ -240,6 +241,14 @@ it('lists the sites by name under the hoster accounts', async () => {
   const names = [...host.querySelectorAll('[data-glim="ConnectionRow"]')].map((r) => r.getAttribute('aria-label'));
   expect(names).toEqual(['Patreon', 'YouTube']);
   expect(host.querySelector('table')!.compareDocumentPosition(row('Patreon')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
+it('signs a site that is signed in already in again from its row, in the sign-in browser', async () => {
+  await renderCard();
+  const again = rowButton('Patreon', 'sign-in-here')!;
+  expect(again.getAttribute('aria-label') ?? again.textContent).toBe('Sign in here');
+  await act(async () => again.click());
+  expect(calls.some((c) => c.url === '/api/signinbrowser/patreon/open')).toBe(true);
 });
 
 it('tests a session from its row and turns the button green while the site still takes it', async () => {
@@ -365,8 +374,10 @@ describe("a site's window", () => {
     expect(foot()[foot().length - 1]?.textContent).toBe('Open Patreon');
   });
 
-  it('offers nothing to press ahead once a sign-in is there, and leaves removing to the row', async () => {
+  it('offers nothing to press ahead once a sign-in is there, and leaves removing and signing in again to the row', async () => {
     await renderCard();
+    expect(rowButton('Patreon', 'sign-in-here')).toBeDefined();
+    expect(rowButton('Patreon', 'remove')).toBeDefined();
     await act(async () => rowButton('Patreon', 'edit')!.click());
     const words = foot().map((b) => b.textContent);
     expect(words).not.toContain('Sign out');

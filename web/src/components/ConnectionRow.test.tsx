@@ -59,6 +59,24 @@ describe('a connection row', () => {
     expect(button('remove')).toBeNull();
   });
 
+  it("puts the row's own buttons before Test, Edit and Remove", () => {
+    act(() =>
+      root.render(
+        <ConnectionRow
+          name="Patreon"
+          mark={<svg />}
+          text={text}
+          actions={[{ id: 'again', label: 'Sign in here', icon: <svg />, onClick: () => {} }]}
+          onTest={() => {}}
+          onEdit={() => {}}
+          onRemove={() => {}}
+        />,
+      ),
+    );
+    const order = [...host.querySelectorAll('.glim-connection-actions button')].map((b) => b.getAttribute('data-connection'));
+    expect(order).toEqual(['again', 'test', 'edit', 'remove']);
+  });
+
   it('turns the test green or red with what it found', () => {
     render({ onTest: () => {}, test: { tone: 'ok', title: 'Reached' } });
     expect(button('test')!.className).toContain('bg-statusOkSolid');

@@ -8,8 +8,9 @@
 //
 // The sites signed into through the browser (internal/sitelogin) are added
 // from the same picker and stand under the table as connection rows: each says
-// who it signs in as and where from, or how to sign in, tests its session, and
-// opens SiteLoginDialog rather than a password form.
+// who it signs in as and where from, or how to sign in, tests its session,
+// signs in again in the sign-in browser, and opens SiteLoginDialog rather than
+// a password form.
 import { pageLang } from '../lib/picker';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -272,6 +273,7 @@ export function HosterLoginSection({
               onChanged={data.putSite}
               onEdit={() => openSite(site)}
               onRemove={() => setConfirmingSite(site)}
+              onSignInHere={browserHere ? () => setBrowsingSite(site) : undefined}
             />
           ))}
         </div>
@@ -419,12 +421,15 @@ function SiteConnection({
   onChanged,
   onEdit,
   onRemove,
+  onSignInHere,
 }: {
   site: SiteLogin;
   ways: SignInWays;
   onChanged: (site: SiteLogin) => void;
   onEdit: () => void;
   onRemove: () => void;
+  /** Opens the sign-in browser on the site, to refresh a session or switch accounts. */
+  onSignInHere?: () => void;
 }) {
   const { t } = useT();
   const [read, setRead] = useState<Paint>();
@@ -457,6 +462,9 @@ function SiteConnection({
       badges={!working && <LabelBadge tone="fail" label={t(note.key, note.vars)} />}
       test={test}
       text={{ test: t('siteLogins.test'), edit: t('siteLogins.edit'), remove: t('accounts.remove') }}
+      actions={
+        onSignInHere && [{ id: 'sign-in-here', label: t('signInBrowser.signInHere'), icon: <IconSignIn />, onClick: onSignInHere }]
+      }
       onTest={site.state === 'signedOut' ? undefined : () => void runTest()}
       onEdit={onEdit}
       onRemove={onRemove}

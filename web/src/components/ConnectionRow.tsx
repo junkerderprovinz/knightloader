@@ -1,7 +1,8 @@
 // A connected service or account as a compact row (GlimStone's ConnectionRow,
 // "Connections"): its mark lit on a tile the row's whole height, its name with
 // any badges, one quiet line on how it stands, and Test, Edit and Remove at the
-// end. A button stands only where its handler is passed.
+// end. A button stands only where its handler is passed, and the row's own
+// buttons, such as signing in again, stand before them.
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { TileMark } from '../lib/catalogs/catalog';
 import { IconCheck, IconClose, IconPencil, IconTrash } from '../lib/icons';
@@ -18,6 +19,13 @@ export interface ConnectionTest {
   tone?: 'ok' | 'danger';
   /** What the last run found, in the button's bubble. */
   title?: string;
+}
+
+export interface ConnectionAction {
+  id: string;
+  label: string;
+  icon: ReactNode;
+  onClick: () => void;
 }
 
 export interface ConnectionRowText {
@@ -38,6 +46,7 @@ export function ConnectionRow({
   children,
   test,
   text,
+  actions,
   onTest,
   onEdit,
   onRemove,
@@ -56,6 +65,7 @@ export function ConnectionRow({
   children?: ReactNode;
   test?: ConnectionTest;
   text: ConnectionRowText;
+  actions?: ConnectionAction[];
   onTest?: () => void;
   onEdit?: () => void;
   onRemove?: () => void;
@@ -90,8 +100,11 @@ export function ConnectionRow({
             {status && <p className="glim-connection-status">{status}</p>}
             {children}
           </div>
-          {(onTest || onEdit || onRemove) && (
+          {(actions?.length || onTest || onEdit || onRemove) && (
             <span className="glim-connection-actions">
+              {actions?.map((a) => (
+                <Button key={a.id} kind="secondary" icon={a.icon} data-connection={a.id} onClick={a.onClick} {...words(a.label)} />
+              ))}
               {onTest && (
                 <Button
                   kind="secondary"
