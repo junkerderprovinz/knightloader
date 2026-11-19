@@ -94,6 +94,11 @@ it('offers no new folder behind such a link', async () => {
   expect(button('New folder')?.disabled).toBe(true);
 });
 
+it('does not take a folder behind such a link', async () => {
+  await open('/mnt/user/appdata');
+  expect(button('Use this folder')?.disabled).toBe(true);
+});
+
 it('lists a share behind such a link with where it leads, and opens the explanation on a click', async () => {
   await open('/mnt/user');
   const entry = button('appdata');
