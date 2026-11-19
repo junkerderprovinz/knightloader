@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { PickerSearch, brandMatches } from '../../../components/BrandPicker';
 import { PickerGroups, TileMarkView, catalogBrands, narrowGroups } from '../../../components/CatalogTiles';
+import { ownRowMark, ownTile } from '../../../components/OwnLogos';
 import {
   Button,
   Card,
@@ -95,6 +96,8 @@ const GROUP_TITLE: Record<McpGroup, TranslationKey> = {
 /** ClientMark draws the mark a client's tile wears, and the link glyph for Other client. */
 export function ClientMark({ client }: { client: McpClient }) {
   const mark = catalogEntry(MCP_PROVIDERS, client.id)?.mark;
+  const own = ownRowMark('mcp', client.id, mark, 18);
+  if (own) return own;
   return mark ? <TileMarkView mark={mark} /> : <IconLink width={18} height={18} />;
 }
 
@@ -378,19 +381,24 @@ function AddClientWindow({
   }
 
   const groups = narrowGroups(
-    catalogBrands(MCP_PROVIDERS, {
-      ids: [...LOCAL_CLIENTS, ...CLOUD_CLIENTS, OTHER_CLIENT].map((c) => c.id as McpProviderId),
-      // The web chats call from their own servers, so only they need the internet.
-      titles: Object.fromEntries(
-        MCP_PROVIDERS.groups.map((g) => [
-          g,
-          g === 'web' ? { title: t(GROUP_TITLE[g]), hint: t('settings.access.mcp.cloudHint') } : t(GROUP_TITLE[g]),
-        ]),
-      ) as Record<McpGroup, string | { title: string; hint: string }>,
-      glyph: () => <IconLink width={18} height={18} />,
-      lang: pageLang(),
-      own: (e) => (e.id === 'other' ? { label: t('settings.access.mcp.other'), last: true } : undefined),
-    }),
+    catalogBrands(
+      MCP_PROVIDERS,
+      {
+        ids: [...LOCAL_CLIENTS, ...CLOUD_CLIENTS, OTHER_CLIENT].map((c) => c.id as McpProviderId),
+        // The web chats call from their own servers, so only they need the internet.
+        titles: Object.fromEntries(
+          MCP_PROVIDERS.groups.map((g) => [
+            g,
+            g === 'web' ? { title: t(GROUP_TITLE[g]), hint: t('settings.access.mcp.cloudHint') } : t(GROUP_TITLE[g]),
+          ]),
+        ) as Record<McpGroup, string | { title: string; hint: string }>,
+        glyph: () => <IconLink width={18} height={18} />,
+        lang: pageLang(),
+        own: (e) => (e.id === 'other' ? { label: t('settings.access.mcp.other'), last: true } : undefined),
+      },
+      undefined,
+      (id, mark) => ownTile('mcp', id, mark),
+    ),
     (b) => brandMatches(b, query),
   );
 

@@ -34,6 +34,7 @@ import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconCheck, IconClose, IconSave, IconSignIn, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { catalogBrands } from './CatalogTiles';
+import { ownTile } from './OwnLogos';
 import { DOWNLOAD_PROVIDERS, type DownloadProviderId } from '../lib/catalogs/downloadProviders';
 import { IconCloud } from '../lib/glyphs';
 import { SiteLoginDialog, SiteState } from './SiteLoginDialog';
@@ -618,6 +619,7 @@ function HosterLoginDialog({
         lang: pageLang(),
       },
       (id) => ({ sub: id }),
+      (id, mark) => ownTile('download', id, mark, id),
     ).flatMap((g) => g.brands),
     ...offered.filter((h) => !known.has(h.id)).map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id })),
     ...sites.filter((s) => !s.listed).map((s) => ({ id: SITE_BRAND + s.id, name: s.name, host: s.host, sub: s.host })),

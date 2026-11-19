@@ -66,6 +66,7 @@ import {
 } from '../components/BrandPicker';
 import { PriorityCard, PriorityLadder } from '../components/PriorityLadder';
 import { catalogBrands } from '../components/CatalogTiles';
+import { ownTile } from '../components/OwnLogos';
 import type { Catalog } from '../lib/catalogs/catalog';
 import { CAPTCHA_PROVIDERS } from '../lib/catalogs/captchaProviders';
 import { DOWNLOAD_PROVIDERS } from '../lib/catalogs/downloadProviders';
@@ -811,6 +812,7 @@ function CredentialDialog({
         lang: pageLang(),
       },
       (id) => where(byService.get(id)!),
+      (id, mark) => ownTile(solver ? 'captcha' : 'download', id, mark, byService.get(id)!.whereUrl),
     ).flatMap((g) => g.brands),
     ...services.filter((s) => !known.has(s.id)).map((s) => ({ id: s.id, name: s.label, host: s.whereUrl, ...where(s) })),
   ].sort((x, y) => x.name.localeCompare(y.name, pageLang(), { sensitivity: 'base' }));

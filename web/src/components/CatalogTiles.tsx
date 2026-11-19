@@ -59,12 +59,14 @@ export interface BrandGroup {
  * catalogBrands turns the providers an app offers from a catalog into its
  * picker's groups of brands, the tile that takes anything last in its group.
  * `more` adds what only the app knows about a provider, such as that it is
- * connected already.
+ * connected already, and `own` gives a tile the app's own logo where the
+ * catalog has no mark, or corrects a mark (OwnLogos.tsx).
  */
 export function catalogBrands<G extends string, I extends string>(
   catalog: Catalog<G, I>,
   pick: CatalogPick<G, I, ReactNode>,
   more?: (id: I) => Partial<Brand> | undefined,
+  own?: (id: I, mark: TileMark | undefined) => Partial<Brand> | undefined,
 ): BrandGroup[] {
   const { items, groups } = catalogPicker(catalog, pick);
   return groups.map((g) => ({
@@ -84,6 +86,7 @@ export function catalogBrands<G extends string, I extends string>(
           paint: lit,
           tile: lit ? undefined : 'glim-tile-house',
           unavailable: item.status ? (item.hint ?? item.status) : undefined,
+          ...own?.(item.id as I, isTileMark(mark) ? mark : undefined),
           ...more?.(item.id as I),
         };
       }),
