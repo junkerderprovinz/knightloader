@@ -1,11 +1,12 @@
 // Builds the desktop app for the system it runs on, the way CI does.
 //
-//     node scripts/desktop.mjs [--arch amd64|arm64] [--installer] [--updatetest]
+//     node scripts/desktop.mjs [--arch amd64|arm64] [--installer] [--appimage] [--updatetest]
 //
 // Windows gets KnightLoader.exe, macOS KnightLoader.app holding one binary for
 // both architectures, and Linux the bare binary, all in desktop/build/bin.
 // With --installer, Windows and Linux also get their installer in
-// desktop/build/installer.
+// desktop/build/installer. With --appimage, Linux gets an AppImage in
+// desktop/build/bin in place of the bare binary.
 //
 // The version is the tag on a tag build and KL_VERSION when it is set. Any
 // other build is "dev", which never updates itself.
@@ -17,6 +18,7 @@
 // licence allows it inside other software and travels with it. The zips of
 // Windows and Linux stay the program alone, since every installed copy updates
 // itself from them (internal/update) and refuses one that holds anything else.
+// The AppImage goes without UnRAR too, as the Linux zip does.
 //
 // yt-dlp, ffmpeg, Deno, Java and JDownloader are fetched into the data folder,
 // by the installer on Windows and Linux and by the first start everywhere else,
@@ -49,6 +51,7 @@ const option = (name) => {
 const hostArch = process.arch === 'arm64' ? 'arm64' : 'amd64'
 const arch = option('--arch') ?? hostArch
 const installer = args.includes('--installer')
+const appimage = args.includes('--appimage')
 const updatetest = args.includes('--updatetest')
 const tags = (extra = '') => (updatetest ? 'production,updatetest' : 'production') + extra
 
@@ -178,6 +181,40 @@ function buildInstaller(exe, unrar, name, { goos, cgo, tags, ldflags = '' }) {
   }
 }
 
+// buildAppImage packs the program at exe with the GTK and WebKitGTK it links
+// against into desktop/build/bin, through Wails and linuxdeploy, and removes the
+// bare program so the artifact holds the AppImage alone.
+function buildAppImage(exe) {
+  const dir = join(desktop, 'build', 'appimage')
+  rmSync(dir, { recursive: true, force: true })
+  mkdirSync(dir, { recursive: true })
+  const icon = join(dir, 'KnightLoader.png')
+  cpSync(join(desktop, 'build', 'appicon.png'), icon)
+  const entry = join(dir, 'KnightLoader.desktop')
+  writeFileSync(entry, [
+    '[Desktop Entry]',
+    'Type=Application',
+    'Name=KnightLoader',
+    'GenericName=Download Manager',
+    'Comment=Download from hosters, debrid services, Usenet and torrents in one queue',
+    'Exec=KnightLoader',
+    'Icon=KnightLoader',
+    'Terminal=false',
+    'Categories=Network;FileTransfer;',
+    'Keywords=download;downloader;debrid;usenet;torrent;jdownloader;hoster;',
+    'StartupNotify=true',
+    'StartupWMClass=KnightLoader',
+    'SingleMainWindow=true',
+    '',
+  ].join('\n'))
+  run('wails3', [
+    'generate', 'appimage', '-binary', exe, '-icon', icon, '-desktopfile', entry,
+    '-outputdir', bin, '-builddir', join(dir, 'build'),
+  ])
+  rmSync(exe)
+  rmSync(dir, { recursive: true, force: true })
+}
+
 // Wails writes its version resource under language 0000, which Windows does
 // not read, and the properties dialog would show every string blank.
 function writeWindowsVersion() {
@@ -278,6 +315,9 @@ if (process.platform === 'win32') {
   goBuild(join(bin, 'KnightLoader'), { goos: 'linux', goarch: arch, cgo: '1', tags: tags(',gtk3') })
   if (installer) {
     buildInstaller(join(bin, 'KnightLoader'), unrar, `KnightLoader-${arch}-installer`, { goos: 'linux', cgo: '1', tags: 'gtk3' })
+  }
+  if (appimage) {
+    buildAppImage(join(bin, 'KnightLoader'))
   }
 }
 

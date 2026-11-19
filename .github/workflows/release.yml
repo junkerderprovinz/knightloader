@@ -320,6 +320,7 @@ jobs:
           for d in bundles/knightloader-*; do
             [ -d "$d" ] || continue
             slug="${d#bundles/knightloader-}"
+            case "$slug" in *-appimage) continue ;; esac
             cp "$d/knightloader-${slug}.zip" "dist/knightloader-${v}-${slug}.zip"
             cp "$d/knightloader-${slug}.zip" "dist/knightloader-${slug}.zip"
             for f in "$d/knightloader-${slug}-installer" "$d/knightloader-${slug}-installer.exe"; do
@@ -328,6 +329,11 @@ jobs:
               cp "$f" "dist/${name/knightloader-/knightloader-${v}-}"
               cp "$f" "dist/$name"
             done
+          done
+          for f in bundles/knightloader-*-appimage/knightloader-*.AppImage; do
+            name="${f##*/}"
+            cp "$f" "dist/${name/knightloader-/knightloader-${v}-}"
+            cp "$f" "dist/$name"
           done
           for f in flatpak/knightloader-*.flatpak; do
             name="${f##*/}"
@@ -366,13 +372,13 @@ jobs:
           cp dist/knightloader-extension-firefox.zip "dist/knightloader-${v}-extension-firefox.zip"
           ls -lh dist
 
-      # The desktop app verifies the zip it updates to against this file. Run
-      # inside dist/ so the entries are bare file names, which is what both
-      # internal/update and a manual `sha256sum -c` expect.
+      # The desktop app verifies the zip or AppImage it updates to against this
+      # file. Run inside dist/ so the entries are bare file names, which is what
+      # both internal/update and a manual `sha256sum -c` expect.
       - name: Checksums
         run: |
           set -eu
-          (cd dist && sha256sum *.zip *.exe knightloader-*linux-*-installer *.flatpak *.apk *.aab > checksums.txt)
+          (cd dist && sha256sum *.zip *.exe knightloader-*linux-*-installer *.flatpak *.AppImage *.apk *.aab > checksums.txt)
           cat dist/checksums.txt
 
       # The Windows and macOS apps fetch qBittorrent from the release of the
@@ -392,7 +398,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/knightloader-*linux-*-installer dist/*.flatpak dist/*.apk dist/*.aab dist/checksums.txt nox/*
+        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/knightloader-*linux-*-installer dist/*.flatpak dist/*.AppImage dist/*.apk dist/*.aab dist/checksums.txt nox/*
 
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed

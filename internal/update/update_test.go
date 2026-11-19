@@ -422,6 +422,14 @@ func TestAssetsMatchTheDesktopWorkflow(t *testing.T) {
 	}
 	published := map[string]bool{}
 	for _, m := range built {
+		if base, ok := strings.CutSuffix(m[2], "-appimage"); ok {
+			name := "knightloader-" + base + ".AppImage"
+			published[name] = true
+			if got := AppImages[m[1]]; got != name {
+				t.Errorf("desktop.yml builds %s into %s, but AppImages[%q] = %q", m[1], name, m[1], got)
+			}
+			continue
+		}
 		platform, name := m[1], "knightloader-"+m[2]+".zip"
 		published[name] = true
 		targets := []string{platform}
@@ -439,11 +447,17 @@ func TestAssetsMatchTheDesktopWorkflow(t *testing.T) {
 			t.Errorf("Assets maps %s to %s, which desktop.yml does not build", target, name)
 		}
 	}
+	for target, name := range AppImages {
+		if !published[name] {
+			t.Errorf("AppImages maps %s to %s, which desktop.yml does not build", target, name)
+		}
+	}
 }
 
-// The updater asks for the zip without a version in its name, so the release
-// has to publish it under that name and list it in checksums.txt.
-func TestTheReleasePublishesTheUnversionedZipsWithTheirChecksums(t *testing.T) {
+// The updater asks for the zip and the AppImage without a version in their
+// names, so the release has to publish them under those names and list them in
+// checksums.txt.
+func TestTheReleasePublishesTheUnversionedFilesWithTheirChecksums(t *testing.T) {
 	yml, err := os.ReadFile(filepath.Join("..", "..", ".github", "workflows", "release.yml"))
 	if err != nil {
 		t.Fatal(err)
@@ -451,6 +465,8 @@ func TestTheReleasePublishesTheUnversionedZipsWithTheirChecksums(t *testing.T) {
 	for _, want := range []string{
 		`"dist/knightloader-${slug}.zip"`,
 		"sha256sum *.zip",
+		" *.AppImage ",
+		"dist/*.AppImage",
 		"dist/" + ChecksumsFile,
 	} {
 		if !strings.Contains(string(yml), want) {

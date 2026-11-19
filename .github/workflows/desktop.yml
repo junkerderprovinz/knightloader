@@ -48,6 +48,17 @@ jobs:
             platform: linux/arm64
             slug: linux-arm64
             args: "--arch arm64 --installer"
+          # On the oldest Ubuntu it is meant to start on: the AppImage carries
+          # GTK and WebKitGTK but takes glibc from the system, and a program
+          # linked against a newer glibc does not start on an older one.
+          - os: ubuntu-22.04
+            platform: linux/amd64
+            slug: linux-amd64-appimage
+            args: "--arch amd64 --appimage"
+          - os: ubuntu-22.04-arm
+            platform: linux/arm64
+            slug: linux-arm64-appimage
+            args: "--arch arm64 --appimage"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -198,7 +209,7 @@ jobs:
       # holds the program alone at its root, which internal/update expects, and
       # -y keeps symlinks inside the .app.
       - name: Zip the bundle
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && !contains(matrix.args, '--appimage')
         shell: bash
         run: |
           cd desktop/build/bin
@@ -206,6 +217,15 @@ jobs:
           if [ -d ../installer ]; then
             cp ../installer/KnightLoader-*-installer "$GITHUB_WORKSPACE/knightloader-${{ matrix.slug }}-installer"
           fi
+      # Not zipped, though the artifact loses the execute bit: a downloaded
+      # AppImage needs chmod +x anyway, and an update keeps the mode of the file
+      # it replaces.
+      - name: Name the AppImage
+        if: contains(matrix.args, '--appimage')
+        shell: bash
+        run: |
+          slug="${{ matrix.slug }}"
+          cp desktop/build/bin/*.AppImage "$GITHUB_WORKSPACE/knightloader-${slug%-appimage}.AppImage"
       - name: Zip the bundle
         if: runner.os == 'Windows'
         shell: pwsh
@@ -219,4 +239,5 @@ jobs:
           path: |
             knightloader-${{ matrix.slug }}.zip
             knightloader-${{ matrix.slug }}-installer*
+            knightloader-*.AppImage
           if-no-files-found: error

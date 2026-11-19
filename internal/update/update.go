@@ -49,6 +49,13 @@ var Assets = map[string]string{
 	"linux/arm64":   "knightloader-linux-arm64.zip",
 }
 
+// AppImages names the AppImage of each Linux architecture, as release.yml
+// publishes it without the version in its name.
+var AppImages = map[string]string{
+	"linux/amd64": "knightloader-linux-amd64.AppImage",
+	"linux/arm64": "knightloader-linux-arm64.AppImage",
+}
+
 // Installers names the Windows installer of each architecture, which the copy
 // installed for all users runs to update, since it cannot replace itself.
 var Installers = map[string]string{
@@ -87,6 +94,14 @@ type Updater struct {
 	// staged is the version Swap put in place during this run, so a later
 	// Check does not fetch it again.
 	staged string
+}
+
+// ForAppImage points u at the AppImage at path, the file the AppImage runtime
+// names in APPIMAGE. The program runs from a read-only mount of that file, so
+// an update downloads the release's AppImage and puts it in place of the file.
+func (u *Updater) ForAppImage(path string) {
+	u.Path = path
+	u.Assets = AppImages
 }
 
 // Release is a newer release with a file for this platform.

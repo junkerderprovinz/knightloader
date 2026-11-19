@@ -17,11 +17,19 @@ import (
 // Swap unpacks a zip from Fetch beside the program and puts what it holds in
 // place of the program, so the next start runs the new version while this one
 // keeps running from what it started with. The zip holds the program alone at
-// its top level: the executable, or on macOS the .app bundle.
+// its top level: the executable, or on macOS the .app bundle. An AppImage is
+// the program already and takes the old one's place as it is.
 func (u *Updater) Swap(download string, rel *Release) error {
 	target, err := u.target()
 	if err != nil {
 		return err
+	}
+	if filepath.Ext(rel.asset) == ".AppImage" {
+		if err := replaceFile(target, download); err != nil {
+			return err
+		}
+		u.staged = rel.Version
+		return nil
 	}
 	tmp, err := os.MkdirTemp(filepath.Dir(target), downloadPrefix(target)+"*")
 	if err != nil {
