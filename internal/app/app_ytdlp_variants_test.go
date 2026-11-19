@@ -325,7 +325,7 @@ func TestAVideoSentToStartAgainIsAlreadyThere(t *testing.T) {
 // once the probe has turned the first row's pick into the source's own track.
 func TestAVideoSentAgainAfterItsPickWasResolvedIsAlreadyThere(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm, s.OnDupes = false, "exclude" })
-	fake, probed := newFakeYtdlp()
+	fake, _ := newFakeYtdlp()
 	fake.title = "Some Video"
 	wireYtdlp(a, fake)
 	a.SetHalted(true)
@@ -347,21 +347,15 @@ func TestAVideoSentAgainAfterItsPickWasResolvedIsAlreadyThere(t *testing.T) {
 		t.Fatalf("the first send created %d rows", len(first.Created))
 	}
 	id := first.Created[0].ID
-	asked := first.Created[0].Variant
-	<-probed
-	deadline := time.Now().Add(5 * time.Second)
-	for {
+	// A source without tracks resolves the cap to best. The send's answer is
+	// copied after the probe has started, so it can already hold this pick and
+	// is no measure of whether the probe has landed.
+	resolved := variantEncode(ytdlp.VariantVideo, string(ytdlp.QualityBest))
+	waitFor(t, "the probe resolving the row's pick", func() bool {
 		a.mu.Lock()
-		resolved := a.tasks[id].Variant != asked
-		a.mu.Unlock()
-		if resolved {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatalf("the probe never resolved the row's pick %q", asked)
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+		defer a.mu.Unlock()
+		return a.tasks[id].Variant == resolved
+	})
 	setStatus(a, id, core.StatusRunning)
 	before := len(tasksSharingURL(a, url))
 
