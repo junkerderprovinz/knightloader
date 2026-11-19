@@ -31,8 +31,18 @@ function Probe() {
 
 const task = (id: string, status = 'collected') => ({ id, status }) as Task;
 
+// What GET /api/tasks answers. A test that leaves it alone answers an empty list.
+let answer: () => Promise<Task[]>;
+let gets = 0;
+
 beforeEach(() => {
   vi.useFakeTimers();
+  answer = async () => [];
+  gets = 0;
+  vi.stubGlobal('fetch', async () => {
+    gets++;
+    return new Response(JSON.stringify(await answer()), { headers: { 'Content-Type': 'application/json' } });
+  });
   renders = [];
   connections = 0;
   host = document.createElement('div');
@@ -45,6 +55,7 @@ afterEach(() => {
   act(() => root.unmount());
   host.remove();
   vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 const latest = () => renders[renders.length - 1];
@@ -92,4 +103,28 @@ it('shows a list that opens later what is already known, over the same connectio
   expect(Object.keys(later[0]).sort()).toEqual(['a', 'b']);
   expect(connections).toBe(1);
   act(() => otherRoot.unmount());
+});
+
+it('fills the list over HTTP while the socket has sent no snapshot', async () => {
+  answer = async () => [task('a'), task('b')];
+  await act(() => vi.advanceTimersByTimeAsync(2000));
+  expect(Object.keys(latest()).sort()).toEqual(['a', 'b']);
+});
+
+it('asks over HTTP every two seconds until the snapshot arrives, then leaves it to the socket', async () => {
+  await act(() => vi.advanceTimersByTimeAsync(4000));
+  expect(gets).toBe(3);
+  act(() => send('snapshot', [task('a')]));
+  await act(() => vi.advanceTimersByTimeAsync(10000));
+  expect(gets).toBe(3);
+});
+
+it('keeps the snapshot when an older answer over HTTP comes in after it', async () => {
+  let reply: (l: Task[]) => void = () => {};
+  answer = () => new Promise((resolve) => (reply = resolve));
+  await act(() => vi.advanceTimersByTimeAsync(2000));
+  act(() => send('snapshot', [task('fresh')]));
+  await act(async () => reply([task('old')]));
+  await act(() => vi.advanceTimersByTimeAsync(100));
+  expect(Object.keys(latest())).toEqual(['fresh']);
 });

@@ -46,13 +46,32 @@ function queue(c: Change) {
   timer ??= setTimeout(flush, GATHER_MS);
 }
 
+// Until the socket's first snapshot the list comes over HTTP. Firefox holds a
+// new socket back for up to a minute after attempts at the same host failed,
+// as they do while the server restarts for an update, and the list would stand
+// empty all that time.
+const POLL_MS = 2000;
+let poll: ReturnType<typeof setInterval> | undefined;
+
+function stopPolling() {
+  clearInterval(poll);
+  poll = undefined;
+}
+
 function open() {
-  // No initial GET: the socket's snapshot is the first data, and a slower GET
-  // could overwrite newer updates. The snapshot is a direct send and arrives
-  // without being in kinds.
+  // An answer that comes after the snapshot is older than it and goes unused.
+  const load = () =>
+    fetchTasks().then(
+      (l) => poll !== undefined && publish(Object.fromEntries(l.map((t) => [t.id, t]))),
+      () => {},
+    );
+  poll = setInterval(load, POLL_MS);
+  load();
+  // The snapshot is a direct send and arrives without being in kinds.
   close = connectWS(
     (type, data) => {
       if (type === 'snapshot') {
+        stopPolling();
         // It holds every change gathered so far.
         pending = [];
         clearTimeout(timer);
@@ -73,6 +92,7 @@ function subscribeLocal(listener: () => void) {
     if (listeners.size > 0) return;
     close?.();
     close = undefined;
+    stopPolling();
     clearTimeout(timer);
     timer = undefined;
     pending = [];
