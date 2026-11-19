@@ -1569,14 +1569,15 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
-/* A parked list row (isParked in components/columns.tsx): a disabled link, or
-   a package whose links all are. Its parts take the muted ink for text, glyphs,
-   status words and the progress fill, so the row reads as switched off at a
-   glance. Colour and not opacity, because the switch and the marks beside
-   these parts stay at full strength, and GlimStone dims the parts, never the
-   row. Both names of each token are set: the utilities read the @theme copies,
-   which :root has already resolved, and ProgressBar reads the plain ones. Set
-   below the row's .glim-hue, so a rainbow position greys as well.
+/* A parked list row (isParked in components/columns.tsx): a disabled link, a
+   package whose links all are, or a file of a disabled torrent. Its parts take
+   the muted ink for text, glyphs, status words and the progress fill, so the
+   row reads as switched off at a glance. Colour and not opacity, because the
+   switch and the marks beside these parts stay at full strength, and
+   GlimStone dims the parts, never the row. Both names of each token are set:
+   the utilities read the @theme copies, which :root has already resolved, and
+   ProgressBar reads the plain ones. Set below the row's .glim-hue, so a
+   rainbow position greys as well.
 
    Ink takes --parked-ink, the muted text step kept readable on the row's
    sunk ground, and a fill the neutral dot's grey, which is the lighter of the
@@ -1586,6 +1587,7 @@ body {
 .kl-parked {
   --carbon-text: var(--parked-ink);
   --carbon-text-sub: var(--parked-ink);
+  --carbon-text-muted: var(--parked-ink);
   --accent: var(--status-neutral-solid);
   --accent-ink: var(--parked-ink);
   --accent-glyph: var(--parked-ink);
@@ -1604,6 +1606,7 @@ body {
   --status-neutral-text: var(--parked-ink);
   --color-carbon-text: var(--parked-ink);
   --color-carbon-textSub: var(--parked-ink);
+  --color-carbon-textMuted: var(--parked-ink);
   --color-accent: var(--status-neutral-solid);
   --color-accentInk: var(--parked-ink);
   --color-accentGlyph: var(--parked-ink);

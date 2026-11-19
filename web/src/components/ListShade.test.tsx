@@ -117,6 +117,38 @@ describe('the shaded list', () => {
     expect(band(link('e'))).toBe('even');
   });
 
+  it('parks the files of a switched-off torrent with it, greyed like its other rows', async () => {
+    const torrent = (id: string, enabled: boolean): Task => ({ ...task(id, 'Films'), torrentFileCount: 2, enabled });
+    const files: TorrentFileView[] = [
+      { path: 'one.mkv', size: 10, selected: true },
+      { path: 'two.mkv', size: 10, selected: false },
+    ];
+    const state = JSON.stringify({ 'list.expanded.downloads': ['Films'], 'list.openTorrents.downloads': ['t', 'u'] });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (url: string) =>
+          new Response(url.includes('/api/uistate') ? state : url.includes('/torrent-files') ? JSON.stringify(files) : '[]', {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+      ),
+    );
+    await show([['Films', [torrent('t', false), torrent('u', true)]]]);
+    await act(async () => {});
+    /** Per file row of a torrent: whether it sinks, and whether its text greys. */
+    const parked = (id: string) =>
+      [...host.querySelectorAll(`[data-file-of="${id}"]`)].map((r) => [r.hasAttribute('data-parked'), r.querySelector('.kl-parked') !== null]);
+    expect(parked('t')).toEqual([
+      [true, true],
+      [true, true],
+    ]);
+    expect(parked('u')).toEqual([
+      [false, false],
+      [false, false],
+    ]);
+  });
+
   it('shades the list moderately until another level is picked', async () => {
     await show([['Films', FILMS]]);
     expect(tree().getAttribute('data-shade')).toBe('moderate');
@@ -209,6 +241,8 @@ describe('the shades', () => {
     expect(ink, 'no --parked-ink stepping the muted text toward the text colour').toBeDefined();
     const parkedBlock = /\.kl-parked\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
     expect(parkedBlock).not.toContain('var(--carbon-text-muted)');
+    expect(parkedBlock).toMatch(/--carbon-text-muted:\s*var\(--parked-ink\);/);
+    expect(parkedBlock).toMatch(/--color-carbon-textMuted:\s*var\(--parked-ink\);/);
 
     const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
     /** `top` at `share` percent over `base`, as color-mix with transparent paints it. */
