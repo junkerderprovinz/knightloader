@@ -4004,7 +4004,6 @@ export const no: Dict = {
   'settings.vpn.state.saved': 'Satt opp',
   'settings.vpn.portForwardingHint': '{name} kan videresende en port til KnightLoader. Torrenter bruker ikke denne porten. De går gjennom VPN-en, men kan bare selv åpne tilkoblinger. Andre peers kan ikke koble seg til deg, og det koster litt ratio på private trackere.',
   'settings.vpn.noPortForwardingHint': 'Andre peers kan ikke koble til deg gjennom {name}. Torrents lastes fortsatt ned, men finner færre peers og seeder mindre.',
-  'settings.vpn.custom': 'Egen WireGuard-konfigurasjon',
   'settings.vpn.note.kaspersky': 'Kasperskys konfigurasjon slutter å virke hvis den ikke brukes på 24 timer, og den gjelder én enhet. Lag da en ny i My Kaspersky.',
   'settings.vpn.note.anonine': 'Nedlastingen fra Anonine mangler den private nøkkelen og adressen. Legg til linjen PrivateKey fra ditt eget nøkkelpar og linjen Address fra kontoen din før du limer den inn.',
   'settings.vpn.note.nordvpn': 'Tilgangstokenet lager du i Nord Account under NordVPN i de avanserte innstillingene.',

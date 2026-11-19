@@ -43,11 +43,13 @@ const all = JSON.parse(await readFile(source, 'utf8'));
 const tiled = all.some((p) => 'tile' in p);
 const providers = all.filter((p) => (!tiled || p.tile === true) && p.wireguard?.supported !== false);
 
+// The own configuration goes by WireGuard alone, as everywhere in the app.
+const nameOf = (p) => (p.id === 'custom' ? 'WireGuard' : p.name);
 const quote = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 const body = providers
   .map(
     (p) =>
-      `  {\n    id: '${p.id}',\n    name: ${quote(p.name)},\n` +
+      `  {\n    id: '${p.id}',\n    name: ${quote(nameOf(p))},\n` +
       `    fields: [${fieldsOf(p.wireguard ?? {}).map((f) => `'${f}'`).join(', ')}],\n` +
       `    portForwarding: ${p.portForwarding?.supported === true},\n  },\n`,
   )

@@ -3985,7 +3985,6 @@ export const zh: Dict = {
   'settings.vpn.state.saved': '已设置',
   'settings.vpn.portForwardingHint': '{name} 可以把一个端口转发给 KnightLoader。种子不使用这个端口。它们会走 VPN，但只能自己发起连接。其他节点无法连到你，这会让你在私有 tracker 上少一些分享率。',
   'settings.vpn.noPortForwardingHint': '其他节点无法通过 {name} 连接到你。种子仍可下载，但找到的节点更少，做种也更少。',
-  'settings.vpn.custom': '自有 WireGuard 配置',
   'settings.vpn.note.kaspersky': 'Kaspersky 的配置若 24 小时未使用就会失效，且只适用于一台设备。届时请在 My Kaspersky 中重新创建。',
   'settings.vpn.note.anonine': '从 Anonine 下载的配置缺少私钥和地址。粘贴前，请加上你自己密钥对的 PrivateKey 行和账户中的 Address 行。',
   'settings.vpn.note.nordvpn': '访问令牌在 Nord Account 中 NordVPN 的高级设置里创建。',

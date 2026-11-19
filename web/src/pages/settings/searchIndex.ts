@@ -447,7 +447,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [],
       also: [
         'settings.vpn.add',
-        'settings.vpn.custom',
         'settings.vpn.pick',
         'settings.vpn.use',
         'accounts.rowActions',

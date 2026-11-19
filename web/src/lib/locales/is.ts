@@ -3997,7 +3997,6 @@ export const is: Dict = {
   'settings.vpn.state.saved': 'Uppsett',
   'settings.vpn.portForwardingHint': '{name} getur framsent gátt til KnightLoader. Torrent nota ekki þessa gátt. Þau fara um VPN, en geta aðeins sjálf opnað tengingar. Aðrir jafningjar geta ekki tengst þér, og það kostar smá hlutfall á lokuðum rekjurum.',
   'settings.vpn.noPortForwardingHint': 'Aðrir jafningjar geta ekki tengst þér í gegnum {name}. Torrent hlaðast samt niður, en þau finna færri jafningja og sá minna.',
-  'settings.vpn.custom': 'Eigin WireGuard-stilling',
   'settings.vpn.note.kaspersky': 'Stillingar Kaspersky hætta að virka ef þær eru ónotaðar í 24 klukkustundir og gilda fyrir eitt tæki. Búðu þá til nýjar í My Kaspersky.',
   'settings.vpn.note.anonine': 'Í niðurhali Anonine vantar einkalykilinn og vistfangið. Bættu við PrivateKey-línunni úr þínu lyklapari og Address-línunni úr aðganginum áður en þú límir það inn.',
   'settings.vpn.note.nordvpn': 'Aðgangskóðann býrðu til í Nord Account undir NordVPN í ítarlegum stillingum.',

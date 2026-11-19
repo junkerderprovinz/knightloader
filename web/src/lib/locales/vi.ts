@@ -4001,7 +4001,6 @@ export const vi: Dict = {
   'settings.vpn.state.saved': 'Đã thiết lập',
   'settings.vpn.portForwardingHint': '{name} có thể chuyển tiếp một cổng tới KnightLoader. Torrent không dùng cổng này. Torrent đi qua VPN, nhưng chỉ có thể tự mở kết nối. Các peer khác không thể kết nối tới bạn, và điều đó làm giảm một chút tỉ lệ trên các tracker riêng.',
   'settings.vpn.noPortForwardingHint': 'Các peer khác không kết nối được với bạn qua {name}. Torrent vẫn tải xuống, nhưng tìm được ít peer hơn và seed ít hơn.',
-  'settings.vpn.custom': 'Cấu hình WireGuard riêng',
   'settings.vpn.note.kaspersky': 'Cấu hình của Kaspersky ngừng hoạt động nếu không dùng trong 24 giờ, và chỉ cho một thiết bị. Khi đó hãy tạo cấu hình mới trong My Kaspersky.',
   'settings.vpn.note.anonine': 'Tệp tải từ Anonine thiếu khóa riêng và địa chỉ. Hãy thêm dòng PrivateKey từ cặp khóa của bạn và dòng Address từ tài khoản trước khi dán.',
   'settings.vpn.note.nordvpn': 'Bạn tạo mã truy cập trong Nord Account, mục NordVPN trong phần cài đặt nâng cao.',

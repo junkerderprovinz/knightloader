@@ -4011,7 +4011,6 @@ export const sk: Dict = {
   'settings.vpn.state.saved': 'Nastavené',
   'settings.vpn.portForwardingHint': '{name} vie presmerovať port do KnightLoadera. Torrenty tento port nepoužívajú. Idú cez VPN, ale spojenia vedia len samy nadväzovať. Ostatní peeri sa k tebe pripojiť nemôžu, a na súkromných trackeroch to stojí trochu ratia.',
   'settings.vpn.noPortForwardingHint': 'Ostatní peeri sa k vám cez {name} nemôžu pripojiť. Torrenty sa stále sťahujú, ale nájdu menej peerov a seedujú menej.',
-  'settings.vpn.custom': 'Vlastná konfigurácia WireGuard',
   'settings.vpn.note.kaspersky': 'Konfigurácia Kaspersky prestane fungovať, ak sa 24 hodín nepoužije, a platí pre jedno zariadenie. Vtedy si v My Kaspersky vytvor novú.',
   'settings.vpn.note.anonine': 'Stiahnutý súbor od Anonine neobsahuje súkromný kľúč ani adresu. Pred vložením doplň riadok PrivateKey zo svojho páru kľúčov a riadok Address zo svojho účtu.',
   'settings.vpn.note.nordvpn': 'Prístupový token si vytvoríš v Nord Account v časti NordVPN v rozšírených nastaveniach.',

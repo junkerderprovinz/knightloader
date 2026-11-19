@@ -210,7 +210,7 @@ export const VPN_SETUPS: readonly VpnSetup[] = [
   },
   {
     id: 'custom',
-    name: 'Own WireGuard config',
+    name: 'WireGuard',
     fields: ['config'],
     portForwarding: true,
   },

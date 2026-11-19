@@ -4002,7 +4002,6 @@ export const el: Dict = {
   'settings.vpn.state.saved': 'Ρυθμισμένο',
   'settings.vpn.portForwardingHint': 'Το {name} μπορεί να προωθήσει μια θύρα στο KnightLoader. Τα torrent δεν χρησιμοποιούν αυτή τη θύρα. Περνούν από το VPN, αλλά μπορούν μόνο να ανοίγουν συνδέσεις τα ίδια. Οι άλλοι peers δεν μπορούν να συνδεθούν σε σένα, κι αυτό κοστίζει λίγο ratio στους ιδιωτικούς trackers.',
   'settings.vpn.noPortForwardingHint': 'Άλλοι peers δεν μπορούν να συνδεθούν σε σένα μέσω του {name}. Τα torrent κατεβαίνουν κανονικά, αλλά βρίσκουν λιγότερους peers και κάνουν λιγότερο seeding.',
-  'settings.vpn.custom': 'Δική σου διαμόρφωση WireGuard',
   'settings.vpn.note.kaspersky': 'Η ρύθμιση του Kaspersky σταματά να λειτουργεί αν μείνει 24 ώρες αχρησιμοποίητη, και ισχύει για μία συσκευή. Τότε φτιάξε νέα στο My Kaspersky.',
   'settings.vpn.note.anonine': 'Το αρχείο του Anonine δεν περιέχει το ιδιωτικό κλειδί και τη διεύθυνση. Πρόσθεσε τη γραμμή PrivateKey από το δικό σου ζεύγος κλειδιών και τη γραμμή Address από τον λογαριασμό σου πριν το επικολλήσεις.',
   'settings.vpn.note.nordvpn': 'Το διακριτικό πρόσβασης το δημιουργείς στο Nord Account, στο NordVPN, στις σύνθετες ρυθμίσεις.',

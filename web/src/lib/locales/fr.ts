@@ -3990,7 +3990,6 @@ export const fr: Dict = {
   'settings.vpn.state.saved': 'Configuré',
   'settings.vpn.portForwardingHint': '{name} peut rediriger un port vers KnightLoader. Les torrents n\'utilisent pas ce port. Ils passent par le VPN, mais ne peuvent qu\'ouvrir eux-mêmes des connexions. Les autres pairs ne peuvent pas se connecter à vous, ce qui coûte un peu de ratio sur les trackers privés.',
   'settings.vpn.noPortForwardingHint': 'Les autres peers ne peuvent pas se connecter à toi via {name}. Les torrents se téléchargent quand même, mais trouvent moins de peers et sont moins partagés.',
-  'settings.vpn.custom': 'Config WireGuard personnelle',
   'settings.vpn.note.kaspersky': 'La configuration de Kaspersky cesse de fonctionner si elle reste 24 heures inutilisée, et elle vaut pour un appareil. Créez-en alors une nouvelle dans My Kaspersky.',
   'settings.vpn.note.anonine': 'Le téléchargement d’Anonine ne contient ni la clé privée ni l’adresse. Ajoutez la ligne PrivateKey de votre paire de clés et la ligne Address de votre compte avant de le coller.',
   'settings.vpn.note.nordvpn': 'Vous créez le jeton d’accès dans votre Nord Account, sous NordVPN, dans les paramètres avancés.',

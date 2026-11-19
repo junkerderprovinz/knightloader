@@ -3986,7 +3986,6 @@ export const pl: Dict = {
   'settings.vpn.state.saved': 'Skonfigurowano',
   'settings.vpn.portForwardingHint': '{name} może przekierować port do KnightLoadera. Torrenty nie korzystają z tego portu. Idą przez VPN, ale połączenia mogą tylko same nawiązywać. Inni peerzy nie mogą się z tobą połączyć, a na prywatnych trackerach kosztuje to trochę ratio.',
   'settings.vpn.noPortForwardingHint': 'Inne peery nie mogą się z Tobą połączyć przez {name}. Torrenty nadal się pobierają, ale znajdują mniej peerów i seedują mniej.',
-  'settings.vpn.custom': 'Własna konfiguracja WireGuard',
   'settings.vpn.note.kaspersky': 'Konfiguracja Kaspersky przestaje działać po 24 godzinach nieużywania i obejmuje jedno urządzenie. Wtedy utwórz nową w My Kaspersky.',
   'settings.vpn.note.anonine': 'Plik pobrany z Anonine nie zawiera klucza prywatnego ani adresu. Przed wklejeniem dopisz wiersz PrivateKey z własnej pary kluczy i wiersz Address ze swojego konta.',
   'settings.vpn.note.nordvpn': 'Token dostępu tworzysz w Nord Account, w sekcji NordVPN w ustawieniach zaawansowanych.',

@@ -4018,7 +4018,6 @@ export const he: Dict = {
   'settings.vpn.state.saved': 'מוגדר',
   'settings.vpn.portForwardingHint': '{name} יכול להעביר פורט ל-KnightLoader. טורנטים לא משתמשים בפורט הזה. הם עוברים דרך ה-VPN, אבל יכולים רק לפתוח חיבורים בעצמם. עמיתים אחרים לא יכולים להתחבר אליך, וזה עולה מעט יחס בטראקרים פרטיים.',
   'settings.vpn.noPortForwardingHint': 'עמיתים אחרים לא יכולים להתחבר אליך דרך {name}. הטורנטים עדיין יורדים, אבל הם מוצאים פחות עמיתים ומזריעים פחות.',
-  'settings.vpn.custom': 'תצורת WireGuard משלך',
   'settings.vpn.note.kaspersky': 'התצורה של Kaspersky מפסיקה לעבוד אם לא משתמשים בה 24 שעות, והיא למכשיר אחד. במקרה כזה צור חדשה ב-My Kaspersky.',
   'settings.vpn.note.anonine': 'בקובץ שמורידים מ-Anonine חסרים המפתח הפרטי והכתובת. הוסף את שורת PrivateKey מזוג המפתחות שלך ואת שורת Address מהחשבון לפני ההדבקה.',
   'settings.vpn.note.nordvpn': 'את אסימון הגישה יוצרים ב-Nord Account, תחת NordVPN בהגדרות המתקדמות.',

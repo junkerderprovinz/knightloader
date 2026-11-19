@@ -4001,7 +4001,6 @@ export const id: Dict = {
   'settings.vpn.state.saved': 'Sudah disiapkan',
   'settings.vpn.portForwardingHint': '{name} bisa meneruskan port ke KnightLoader. Torrent tidak memakai port ini. Torrent lewat VPN, tetapi hanya bisa membuka koneksi sendiri. Peer lain tidak bisa terhubung ke kamu, dan itu mengurangi sedikit rasio di tracker privat.',
   'settings.vpn.noPortForwardingHint': 'Peer lain tidak bisa terhubung ke kamu lewat {name}. Torrent tetap diunduh, tetapi menemukan lebih sedikit peer dan lebih sedikit melakukan seed.',
-  'settings.vpn.custom': 'Konfigurasi WireGuard sendiri',
   'settings.vpn.note.kaspersky': 'Konfigurasi Kaspersky berhenti bekerja jika tidak dipakai 24 jam, dan berlaku untuk satu perangkat. Buat yang baru di My Kaspersky bila itu terjadi.',
   'settings.vpn.note.anonine': 'Unduhan Anonine tidak berisi kunci pribadi dan alamat. Tambahkan baris PrivateKey dari pasangan kunci Anda dan baris Address dari akun Anda sebelum menempelkannya.',
   'settings.vpn.note.nordvpn': 'Token akses Anda buat di Nord Account, di NordVPN pada pengaturan lanjutan.',

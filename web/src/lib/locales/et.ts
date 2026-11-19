@@ -3992,7 +3992,6 @@ export const et: Dict = {
   'settings.vpn.state.saved': 'Seadistatud',
   'settings.vpn.portForwardingHint': '{name} saab pordi KnightLoaderile edasi suunata. Torrentid seda porti ei kasuta. Need käivad läbi VPN-i, kuid saavad ühendusi ainult ise luua. Teised partnerid ei saa sinuga ühenduda ja see maksab privaatsetel jälgijatel veidi suhtarvu.',
   'settings.vpn.noPortForwardingHint': 'Teised partnerid ei saa {name} kaudu sinuga ühenduda. Torrentid laadivad ikka alla, kuid leiavad vähem partnereid ja levitavad vähem.',
-  'settings.vpn.custom': 'Oma WireGuardi seadistus',
   'settings.vpn.note.kaspersky': 'Kaspersky seadistus lakkab töötamast, kui seda 24 tundi ei kasutata, ja see kehtib ühele seadmele. Siis loo My Kasperskys uus.',
   'settings.vpn.note.anonine': 'Anonine’i allalaaditud failis pole privaatvõtit ega aadressi. Lisa enne kleepimist oma võtmepaari rida PrivateKey ja kontolt rida Address.',
   'settings.vpn.note.nordvpn': 'Juurdepääsuvõtme lood oma Nord Accountis NordVPN-i täpsemates seadetes.',

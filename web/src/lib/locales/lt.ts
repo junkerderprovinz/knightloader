@@ -4003,7 +4003,6 @@ export const lt: Dict = {
   'settings.vpn.state.saved': 'Nustatyta',
   'settings.vpn.portForwardingHint': '{name} gali peradresuoti prievadą į KnightLoader. Torrentai šio prievado nenaudoja. Jie eina per VPN, bet ryšius gali atidaryti tik patys. Kiti partneriai negali prie tavęs prisijungti, o privačiuose sekikliuose tai kainuoja šiek tiek santykio.',
   'settings.vpn.noPortForwardingHint': 'Kiti dalyviai negali prisijungti prie jūsų per {name}. Torrentai vis tiek atsisiunčiami, bet randa mažiau dalyvių ir mažiau sėja.',
-  'settings.vpn.custom': 'Nuosava WireGuard konfigūracija',
   'settings.vpn.note.kaspersky': 'Kaspersky konfigūracija nustoja veikti, jei 24 valandas nenaudojama, ir galioja vienam įrenginiui. Tada sukurk naują My Kaspersky.',
   'settings.vpn.note.anonine': 'Anonine atsisiųstame faile nėra privačiojo rakto ir adreso. Prieš įklijuodamas pridėk savo raktų poros eilutę PrivateKey ir paskyros eilutę Address.',
   'settings.vpn.note.nordvpn': 'Prieigos raktą sukuriate Nord Account paskyroje, NordVPN išplėstiniuose nustatymuose.',

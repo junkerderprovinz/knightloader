@@ -3997,7 +3997,6 @@ export const eu: Dict = {
   'settings.vpn.state.saved': 'Konfiguratuta',
   'settings.vpn.portForwardingHint': '{name}(e)k ataka bat birbidal dezake KnightLoaderrera. Torrentek ez dute ataka hau erabiltzen. VPNtik igarotzen dira, baina konexioak beraiek bakarrik ireki ditzakete. Beste parekoek ezin dute zurekin konektatu, eta horrek ratio pixka bat kostatzen du tracker pribatuetan.',
   'settings.vpn.noPortForwardingHint': 'Beste peerrek ezin dute zurekin konektatu {name} bidez. Torrentak deskargatzen jarraitzen dute, baina peer gutxiago aurkitzen dituzte eta seed gutxiago egiten dute.',
-  'settings.vpn.custom': 'WireGuard konfigurazio propioa',
   'settings.vpn.note.kaspersky': 'Kasperskyren konfigurazioak ez du funtzionatzen 24 orduz erabili gabe badago, eta gailu baterako da. Orduan sortu berri bat My Kaspersky-n.',
   'settings.vpn.note.anonine': 'Anonineren deskargak ez ditu gako pribatua eta helbidea. Gehitu zure gako-bikotearen PrivateKey lerroa eta zure kontuko Address lerroa itsatsi aurretik.',
   'settings.vpn.note.nordvpn': 'Sarbide-tokena zure Nord Account-ean sortzen duzu, NordVPN atalean, ezarpen aurreratuetan.',

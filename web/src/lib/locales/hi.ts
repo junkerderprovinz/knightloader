@@ -4002,7 +4002,6 @@ export const hi: Dict = {
   'settings.vpn.state.saved': 'सेट अप है',
   'settings.vpn.portForwardingHint': '{name} KnightLoader के लिए एक पोर्ट फ़ॉरवर्ड कर सकता है। टोरेंट इस पोर्ट का उपयोग नहीं करते। वे VPN से होकर जाते हैं, पर केवल ख़ुद कनेक्शन खोल सकते हैं। दूसरे पीयर आपसे नहीं जुड़ पाते, और इससे निजी ट्रैकरों पर थोड़ा अनुपात घटता है।',
   'settings.vpn.noPortForwardingHint': 'दूसरे पीयर {name} के ज़रिए आपसे नहीं जुड़ सकते। टॉरेंट फिर भी डाउनलोड होते हैं, पर उन्हें कम पीयर मिलते हैं और वे कम सीड करते हैं।',
-  'settings.vpn.custom': 'अपना WireGuard कॉन्फ़िग',
   'settings.vpn.note.kaspersky': 'Kaspersky का कॉन्फ़िगरेशन 24 घंटे इस्तेमाल न होने पर काम करना बंद कर देता है, और यह एक डिवाइस के लिए होता है। तब My Kaspersky में नया बनाएँ।',
   'settings.vpn.note.anonine': 'Anonine की डाउनलोड फ़ाइल में निजी कुंजी और पता नहीं होते। चिपकाने से पहले अपनी कुंजी जोड़ी की PrivateKey पंक्ति और अपने खाते की Address पंक्ति जोड़ें।',
   'settings.vpn.note.nordvpn': 'एक्सेस टोकन आप Nord Account में NordVPN के उन्नत सेटिंग्स में बनाते हैं।',

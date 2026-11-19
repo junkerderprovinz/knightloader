@@ -4015,7 +4015,6 @@ export const sr: Dict = {
   'settings.vpn.state.saved': 'Подешено',
   'settings.vpn.portForwardingHint': '{name} може да проследи порт у KnightLoader. Торенти не користе овај порт. Иду кроз VPN, али везе могу само сами да отварају. Други пирови не могу да се повежу са тобом, а то на приватним трекерима кошта мало рација.',
   'settings.vpn.noPortForwardingHint': 'Други пирови не могу да се повежу са тобом преко {name}. Торенти се и даље преузимају, али налазе мање пирова и мање сидују.',
-  'settings.vpn.custom': 'Сопствена WireGuard конфигурација',
   'settings.vpn.note.kaspersky': 'Kaspersky конфигурација престаје да ради ако се 24 сата не користи, и важи за један уређај. Тада направи нову у My Kaspersky.',
   'settings.vpn.note.anonine': 'У преузимању са Anonine недостају приватни кључ и адреса. Пре лепљења додај ред PrivateKey из свог пара кључева и ред Address из свог налога.',
   'settings.vpn.note.nordvpn': 'Приступни токен правиш у Nord Account налогу, под NordVPN у напредним подешавањима.',

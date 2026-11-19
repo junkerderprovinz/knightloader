@@ -82,6 +82,6 @@ func catalogue() []Provider {
 		{ID: "cactusvpn", Name: "CactusVPN", Fields: []string{"config"}, open: conf},
 		{ID: "vpnac", Name: "VPN.ac", Fields: []string{"config"}, open: conf},
 		{ID: "unlocator", Name: "Unlocator VPN", Fields: []string{"config"}, open: conf},
-		{ID: "custom", Name: "Own WireGuard config", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
+		{ID: "custom", Name: "WireGuard", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 	}
 }

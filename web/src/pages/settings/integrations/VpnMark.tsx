@@ -16,9 +16,8 @@ export function VpnMark({ id, size }: { id: string; size: number }) {
   return <ProviderMark mark={own ? undefined : mark} glyph={own ?? <IconShieldOn />} size={size} />;
 }
 
-/** The own config is no brand, so its name is the interface's words. */
-export const nameOf = (t: T, p: Pick<VpnProvider, 'id' | 'name'>): string =>
-  p.id === 'custom' ? t('settings.vpn.custom') : p.name;
+/** The own config goes by WireGuard alone, in every language, as the tunnel it brings. */
+export const nameOf = (p: Pick<VpnProvider, 'id' | 'name'>): string => (p.id === 'custom' ? 'WireGuard' : p.name);
 
 const STATE_WORD: Record<VpnConnState, TranslationKey> = {
   idle: 'settings.vpn.state.saved',
@@ -48,5 +47,5 @@ const FAILURE: Record<string, TranslationKey> = {
 /** failureOf words why a provider failed, in the reader's language where the code is known. */
 export function failureOf(t: T, p: VpnProvider): string {
   const key = p.errorCode ? FAILURE[p.errorCode] : undefined;
-  return key ? t(key, { name: nameOf(t, p) }) : (p.error ?? '');
+  return key ? t(key, { name: nameOf(p) }) : (p.error ?? '');
 }

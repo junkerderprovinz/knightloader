@@ -3988,7 +3988,6 @@ export const ca: Dict = {
   'settings.vpn.state.saved': 'Configurat',
   'settings.vpn.portForwardingHint': '{name} pot redirigir un port a KnightLoader. Els torrents no fan servir aquest port. Passen per la VPN, però només poden obrir connexions ells mateixos. Els altres parells no s\'hi poden connectar, i això costa una mica de ràtio als trackers privats.',
   'settings.vpn.noPortForwardingHint': 'Els altres peers no poden connectar-se a tu a través de {name}. Els torrents encara es baixen, però troben menys peers i fan menys seed.',
-  'settings.vpn.custom': 'Configuració WireGuard pròpia',
   'settings.vpn.note.kaspersky': 'La configuració de Kaspersky deixa de funcionar si passa 24 hores sense fer-se servir, i serveix per a un dispositiu. Llavors crea’n una de nova a My Kaspersky.',
   'settings.vpn.note.anonine': 'La baixada d’Anonine no porta la clau privada ni l’adreça. Afegeix la línia PrivateKey del teu parell de claus i la línia Address del teu compte abans d’enganxar-la.',
   'settings.vpn.note.nordvpn': 'El testimoni d’accés el crees al Nord Account, a NordVPN, dins la configuració avançada.',

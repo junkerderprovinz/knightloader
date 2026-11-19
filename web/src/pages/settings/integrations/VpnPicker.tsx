@@ -96,7 +96,7 @@ export function VpnPicker({
       glyph: () => <IconShieldOn />,
       lang: pageLang(),
       own: (e) => {
-        if (e.id === 'custom') return { label: t('settings.vpn.custom'), last: true };
+        if (e.id === 'custom') return { label: nameOf(e), last: true };
         if (!offered.has(e.id)) return { status: t('settings.vpn.appOnlyTitle'), hint: t('settings.vpn.appOnlyHint') };
         return undefined;
       },
@@ -130,7 +130,7 @@ export function VpnPicker({
     if (missing === f) setMissing('');
   };
 
-  const name = p ? nameOf(t, p) : '';
+  const name = p ? nameOf(p) : '';
   const filled = !!p && (p.configured || p.fields.every((f) => f === 'location' || values[f]?.trim()));
 
   return (
@@ -215,7 +215,7 @@ function ConnectForm({
   onValue: (f: VpnField, v: string) => void;
 }) {
   const { t } = useT();
-  const name = nameOf(t, p);
+  const name = nameOf(p);
   // An own configuration has no provider account to request a port in.
   const manual = p.portManual && p.id !== 'custom' ? 'settings.vpn.manualPortNote' : undefined;
   const note = NOTES[p.id] ?? manual;
@@ -239,7 +239,7 @@ function ConnectForm({
       )}
       {current && current.id !== p.id && (
         <p className="rounded-[var(--radius-card)] bg-statusWarnBgSoft px-3 py-2.5 text-sm text-carbon-text">
-          {t('settings.vpn.replaces', { name, current: nameOf(t, current) })}
+          {t('settings.vpn.replaces', { name, current: nameOf(current) })}
         </p>
       )}
       {p.configured && <p className="text-meta text-carbon-textSub">{t('settings.vpn.keepSaved')}</p>}

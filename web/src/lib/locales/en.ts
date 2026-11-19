@@ -4305,7 +4305,6 @@ export const en = {
   'settings.vpn.state.saved': 'Set up',
   'settings.vpn.portForwardingHint': '{name} can forward a port to KnightLoader. Torrents don\'t use this port. They go through the VPN, but can only open connections themselves. Other peers cannot connect to you, which costs some ratio on private trackers.',
   'settings.vpn.noPortForwardingHint': 'Other peers cannot connect to you through {name}. Torrents still download, but they find fewer peers and seed less.',
-  'settings.vpn.custom': 'Own WireGuard config',
   'settings.vpn.note.kaspersky': 'Kaspersky’s configuration stops working once it goes unused for 24 hours, and it covers one device. Create a new one in My Kaspersky when that happens.',
   'settings.vpn.note.anonine': 'Anonine’s download leaves out the private key and the address. Add the PrivateKey line of your own key pair and the Address line from your account before you paste it.',
   'settings.vpn.note.nordvpn': 'You create the access token in your Nord Account, under NordVPN in the advanced settings.',

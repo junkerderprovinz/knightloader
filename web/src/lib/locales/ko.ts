@@ -3989,7 +3989,6 @@ export const ko: Dict = {
   'settings.vpn.state.saved': '설정됨',
   'settings.vpn.portForwardingHint': '{name}은(는) KnightLoader로 포트를 포워딩할 수 있습니다. 토렌트는 이 포트를 쓰지 않습니다. VPN을 거치지만 직접 연결을 여는 것만 할 수 있습니다. 다른 피어는 당신에게 연결할 수 없고, 비공개 트래커에서는 비율이 조금 줄어듭니다.',
   'settings.vpn.noPortForwardingHint': '{name}을(를) 통해서는 다른 피어가 나에게 연결할 수 없습니다. 토렌트는 계속 다운로드되지만 찾는 피어가 줄고 시드도 줄어듭니다.',
-  'settings.vpn.custom': '직접 만든 WireGuard 설정',
   'settings.vpn.note.kaspersky': 'Kaspersky 설정은 24시간 동안 쓰지 않으면 작동하지 않으며 기기 한 대용입니다. 그럴 때는 My Kaspersky에서 새로 만드세요.',
   'settings.vpn.note.anonine': 'Anonine에서 받은 파일에는 개인 키와 주소가 없습니다. 붙여넣기 전에 내 키 쌍의 PrivateKey 줄과 계정의 Address 줄을 추가하세요.',
   'settings.vpn.note.nordvpn': '액세스 토큰은 Nord Account의 NordVPN 고급 설정에서 만듭니다.',

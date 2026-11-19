@@ -3992,7 +3992,6 @@ export const lv: Dict = {
   'settings.vpn.state.saved': 'Iestatīts',
   'settings.vpn.portForwardingHint': '{name} var pāradresēt portu uz KnightLoader. Torrenti šo portu neizmanto. Tie iet caur VPN, bet savienojumus var atvērt tikai paši. Citi vienādranga dalībnieki nevar ar tevi savienoties, un privātajos trekeros tas maksā nedaudz attiecības.',
   'settings.vpn.noPortForwardingHint': 'Citi dalībnieki nevar savienoties ar jums caur {name}. Torrenti joprojām lejupielādējas, bet atrod mazāk dalībnieku un sēj mazāk.',
-  'settings.vpn.custom': 'Sava WireGuard konfigurācija',
   'settings.vpn.note.kaspersky': 'Kaspersky konfigurācija pārstāj darboties, ja 24 stundas netiek lietota, un der vienai ierīcei. Tad izveido jaunu My Kaspersky.',
   'settings.vpn.note.anonine': 'Anonine lejupielādē trūkst privātās atslēgas un adreses. Pirms ielīmēšanas pievieno sava atslēgu pāra rindu PrivateKey un konta rindu Address.',
   'settings.vpn.note.nordvpn': 'Piekļuves token jūs izveidojat Nord Account sadaļā NordVPN papildu iestatījumos.',

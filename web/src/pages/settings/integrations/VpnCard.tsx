@@ -158,7 +158,7 @@ export function VpnCard({ hue, routesHue }: { hue: number; routesHue: number }) 
               </>
             }
           >
-            <p className="text-sm text-carbon-text">{t('settings.vpn.removeConfirm', { name: nameOf(t, removing) })}</p>
+            <p className="text-sm text-carbon-text">{t('settings.vpn.removeConfirm', { name: nameOf(removing) })}</p>
           </Modal>
         )}
       </Card>
@@ -227,7 +227,7 @@ function VpnTable({
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
           {rows.map((p, i) => {
-            const name = nameOf(t, p);
+            const name = nameOf(p);
             const up = p.state === 'connected';
             return (
               <tr
