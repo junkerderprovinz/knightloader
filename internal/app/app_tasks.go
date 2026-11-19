@@ -1458,7 +1458,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var landed torrentLeftover
 	var usenetPart, remotePart string
 	var work []string
-	var workFolders []string
+	var workFolders, ownFolders []string
 	var taken bool
 	var unpacked []core.UnpackOutput
 	var unrecorded bool
@@ -1471,6 +1471,8 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		usenetPart = a.usenetPartLocked(t)
 		remotePart = a.partFileLocked(t)
 		work, workFolders = t.WorkFiles, a.downloadFolders(t)
+		// The working folder first, in case it lies inside the destination.
+		ownFolders = []string{a.workDirFor(t), a.dirFor(t)}
 		// A file deleted by hand frees its path for the next download of the
 		// name, and the backend still deletes by the record it kept for t.
 		taken = a.usedByOtherLocked(id, t.File)
@@ -1529,6 +1531,9 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		ytdlp.Discard(id, workFolders, work, a.usedByOther)
 		for _, o := range unpacked {
 			dropUnpacked(o, id)
+		}
+		for _, f := range append([]string{own.path}, work...) {
+			dropEmptyFolders(f, ownFolders, workFolders)
 		}
 		if unrecorded {
 			log.Printf("left what unpacking %s wrote where it is: nothing records which files that was%s", t.Name, taskTag(id))

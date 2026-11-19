@@ -1155,3 +1155,102 @@ func TestRestartingARenamedDownloadSparesTheFileNowAtItsOldName(t *testing.T) {
 		t.Errorf("the other download's file reads %q, %v", got, err)
 	}
 }
+
+// removeAudioAt records a finished yt-dlp audio row told to download into
+// folder, whose file yt-dlp's music template put at rel below it, and removes
+// the row with its files. It returns the file's path.
+func removeAudioAt(t *testing.T, a *App, folder, rel string) string {
+	t.Helper()
+	file := fileBytes(t, filepath.Join(folder, rel), 512)
+	putTask(t, a, core.Task{ID: "audio", URL: "https://media.example/license", Name: "NA-LICENSE", Dir: folder,
+		Resolver: "ytdlp", Variant: "audio", Status: core.StatusDone, Enabled: true, Size: 512, File: file})
+	a.Remove("audio", true)
+	if fileExists(file) {
+		t.Fatal("the file survived a removal with files")
+	}
+	return file
+}
+
+func TestADeletedDownloadTakesTheEmptyFoldersItsNameMadeWithIt(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+
+	removeAudioAt(t, a, dir, filepath.Join("NA", "LICENSE", "NA-LICENSE.unknown_video"))
+
+	if fileExists(filepath.Join(dir, "NA")) {
+		t.Error("the folders the download's name made are still there, empty")
+	}
+	if !fileExists(dir) {
+		t.Error("the download folder itself was removed")
+	}
+}
+
+func TestADeletedDownloadLeavesTheFirstFolderThatStillHoldsAFile(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	hidden := fileBytes(t, filepath.Join(dir, "Artist", ".directory"), 16)
+
+	removeAudioAt(t, a, dir, filepath.Join("Artist", "Album", "Track.opus"))
+
+	if fileExists(filepath.Join(dir, "Artist", "Album")) {
+		t.Error("the emptied album folder is still there")
+	}
+	if !fileExists(hidden) {
+		t.Error("the folder that still held a hidden file was removed with it")
+	}
+}
+
+func TestADeletedDownloadKeepsTheFolderItWasToldToUseAndTheFoldersAboveIt(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	show := filepath.Join(dir, "Show")
+
+	removeAudioAt(t, a, show, filepath.Join("NA", "NA-LICENSE.unknown_video"))
+
+	if fileExists(filepath.Join(show, "NA")) {
+		t.Error("the emptied folder below the task's own folder is still there")
+	}
+	if !fileExists(show) {
+		t.Error("the task's own folder was removed because it was empty")
+	}
+	if !fileExists(dir) {
+		t.Error("the folder above the task's own folder was removed")
+	}
+}
+
+func TestADeletedDownloadLeavesAFolderItReachedThroughALink(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	real := filepath.Join(t.TempDir(), "NA")
+	if err := os.MkdirAll(filepath.Join(real, "LICENSE"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(dir, "NA")
+	if err := os.Symlink(real, link); err != nil {
+		if out, jerr := exec.Command("cmd", "/c", "mklink", "/J", link, real).CombinedOutput(); runtime.GOOS != "windows" || jerr != nil {
+			t.Skipf("this system cannot make a link: %v %s", err, out)
+		}
+	}
+
+	removeAudioAt(t, a, dir, filepath.Join("NA", "LICENSE", "NA-LICENSE.unknown_video"))
+
+	if !fileExists(filepath.Join(real, "LICENSE")) {
+		t.Error("an emptied folder behind a link was removed")
+	}
+	if !fileExists(link) {
+		t.Error("the link was removed")
+	}
+}
+
+func TestADeletedDownloadOutsideItsOwnFolderTakesNoFolderWithIt(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	elsewhere := t.TempDir()
+	file := fileBytes(t, filepath.Join(elsewhere, "NA", "NA-LICENSE.unknown_video"), 512)
+	putTask(t, a, core.Task{ID: "audio", URL: "https://media.example/license", Name: "NA-LICENSE", Dir: dir,
+		Resolver: "ytdlp", Variant: "audio", Status: core.StatusDone, Enabled: true, Size: 512, File: file})
+
+	a.Remove("audio", true)
+
+	if fileExists(file) {
+		t.Fatal("the file survived a removal with files")
+	}
+	if !fileExists(filepath.Join(elsewhere, "NA")) {
+		t.Error("a folder outside the folder the task was told to use was removed")
+	}
+}

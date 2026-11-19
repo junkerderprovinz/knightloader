@@ -181,6 +181,39 @@ func (l leftover) drop(taskID string) {
 	}
 }
 
+// dropEmptyFolders removes the folders a deleted file leaves empty between it
+// and the first of tops it lies in, innermost first, such as those yt-dlp's
+// "%(artist)s/%(album)s/" template made for it. It stops at a folder that
+// still holds anything, at any of keep and at a link, since what lies behind
+// a link is not the task's.
+func dropEmptyFolders(file string, tops, keep []string) {
+	dir := filepath.Dir(file)
+	for _, top := range tops {
+		rel, err := filepath.Rel(top, dir)
+		if err != nil || !filepath.IsLocal(rel) {
+			continue
+		}
+		if rel == "." {
+			return
+		}
+		var chain []string
+		at := top
+		for part := range strings.SplitSeq(rel, string(filepath.Separator)) {
+			at = filepath.Join(at, part)
+			if fi, err := os.Lstat(at); err != nil || fi.Mode().Type() != fs.ModeDir {
+				return
+			}
+			chain = append(chain, at)
+		}
+		for _, d := range slices.Backward(chain) {
+			if slices.ContainsFunc(keep, func(k string) bool { return samePath(k, d) }) || os.Remove(d) != nil {
+				return
+			}
+		}
+		return
+	}
+}
+
 // torrentLeftover is where a torrent of the torrent engine landed, for
 // deleting its files when the engine does not know it, as after a restart.
 // paths is a magnet's file list, which the task keeps once the swarm has sent
