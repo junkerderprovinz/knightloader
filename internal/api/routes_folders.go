@@ -381,11 +381,31 @@ func readFolders(real, display string, b boundary) ([]folderEntry, bool, error) 
 	if err != nil {
 		return nil, false, err
 	}
+	out := folderEntries(items, real, display, b)
+	if len(out) > maxFolderEntries {
+		return out[:maxFolderEntries], true, nil
+	}
+	return out, false, nil
+}
+
+// folderEntries keeps the folders among the items read from real, named
+// after display and sorted.
+func folderEntries(items []fs.DirEntry, real, display string, b boundary) []folderEntry {
 	out := make([]folderEntry, 0, len(items))
 	for _, it := range items {
 		name := it.Name()
 		switch {
 		case it.IsDir():
+			// Unraid's /mnt/user reads a share on exclusive access as a
+			// directory although it is a link into its pool, so a directory
+			// that cannot be opened may be a link that leads nowhere.
+			link := filepath.Join(real, name)
+			if _, err := os.Stat(link); err != nil {
+				if target, ok := deadLink(link, real, b); ok {
+					out = append(out, folderEntry{Name: name, Path: filepath.Join(display, name), Target: target})
+				}
+				continue
+			}
 		case it.Type()&(fs.ModeSymlink|fs.ModeIrregular) != 0:
 			// ReadDir reports a link as a link, and a Windows junction as
 			// irregular, so either is offered only once it resolves to a
@@ -418,10 +438,7 @@ func readFolders(real, display string, b boundary) ([]folderEntry, bool, error) 
 		}
 		return out[i].Name < out[j].Name
 	})
-	if len(out) > maxFolderEntries {
-		return out[:maxFolderEntries], true, nil
-	}
-	return out, false, nil
+	return out
 }
 
 // createFolder makes name inside parent, which must be a folder listFolders

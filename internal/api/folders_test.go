@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -207,6 +208,29 @@ func TestALinkToAFolderThatIsNotThereIsListedWithItsTarget(t *testing.T) {
 	}
 	if !slices.Equal(got.Entries, want) {
 		t.Errorf("entries are %+v, want %+v", got.Entries, want)
+	}
+}
+
+// shfsEntry is an entry as Unraid's /mnt/user hands it out: a share on
+// exclusive access is a link into its pool but reads as a directory.
+type shfsEntry string
+
+func (e shfsEntry) Name() string               { return string(e) }
+func (e shfsEntry) IsDir() bool                { return true }
+func (e shfsEntry) Type() fs.FileMode          { return fs.ModeDir }
+func (e shfsEntry) Info() (fs.FileInfo, error) { return nil, fs.ErrNotExist }
+
+func TestADeadLinkThatReadsAsADirectoryIsListedWithItsTarget(t *testing.T) {
+	t.Parallel()
+	user, real := unraidShares(t)
+
+	got := folderEntries([]fs.DirEntry{shfsEntry("appdata"), shfsEntry("media")}, filepath.Join(real, "user"), user, boundary{roots: []string{"/"}, open: true})
+	want := []folderEntry{
+		{Name: "appdata", Path: filepath.Join(user, "appdata"), Target: filepath.Join(real, "cache", "appdata")},
+		{Name: "media", Path: filepath.Join(user, "media")},
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("entries are %+v, want %+v", got, want)
 	}
 }
 
