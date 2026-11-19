@@ -798,13 +798,13 @@ body {
      Light text on a dark theme would lift the row, so there it sinks toward
      the page under the card instead. */
   --list-band-sunk: light-dark(
-    color-mix(in srgb, var(--carbon-text) 4%, transparent),
-    color-mix(in srgb, var(--carbon-bg) 45%, transparent)
+    color-mix(in srgb, var(--carbon-text) 10%, transparent),
+    color-mix(in srgb, var(--carbon-bg) 60%, transparent)
   );
   /* The greyed ink on that ground. On a light theme the sunk ground moves
      toward the muted grey, so the ink steps toward the text colour and reads
      no worse than on a live row. On a dark one the darker ground lifts it. */
-  --parked-ink: light-dark(color-mix(in srgb, var(--carbon-text-muted), var(--carbon-text) 15%), var(--carbon-text-muted));
+  --parked-ink: light-dark(color-mix(in srgb, var(--carbon-text-muted), var(--carbon-text) 35%), var(--carbon-text-muted));
 }
 /* High contrast: the same bands, each a clear step apart, for a screen or an
    eye on which the moderate shades run together. */
@@ -813,8 +813,8 @@ body {
   --list-band-head:  color-mix(in srgb, var(--carbon-text) 9%, transparent);
   --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 15%, transparent);
   --list-band-sunk: light-dark(
-    color-mix(in srgb, var(--carbon-text) 6%, transparent),
-    color-mix(in srgb, var(--carbon-bg) 60%, transparent)
+    color-mix(in srgb, var(--carbon-text) 15%, transparent),
+    color-mix(in srgb, var(--carbon-bg) 75%, transparent)
   );
 }
 
