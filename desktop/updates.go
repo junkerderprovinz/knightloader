@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/appimage"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/flatpak"
 	"github.com/junkerderprovinz/knightloader/internal/update"
@@ -73,6 +74,9 @@ func newUpdater(logf func(format string, args ...any), announce func(version str
 		Client:   &http.Client{Timeout: 30 * time.Minute},
 		Logf:     logf,
 		Progress: up.downloaded,
+	}
+	if image := appimage.Path(); image != "" {
+		up.u.ForAppImage(image)
 	}
 	return up
 }

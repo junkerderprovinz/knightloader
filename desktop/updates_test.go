@@ -203,3 +203,17 @@ func TestInstallWaitsForAnUpdateUnderWay(t *testing.T) {
 		t.Fatalf("install during another update = %v, want errUpdating", err)
 	}
 }
+
+// The program inside an AppImage runs from a mount that is gone once it quits,
+// so the update replaces the AppImage file with the release's AppImage.
+func TestAnAppImageUpdatesItsOwnFile(t *testing.T) {
+	const image = "/home/jane doe/Apps/KnightLoader.AppImage"
+	t.Setenv("APPIMAGE", image)
+	up := newUpdater(t.Logf, func(string) {})
+	if up.u.Path != image {
+		t.Errorf("the update replaces %q, want the AppImage", up.u.Path)
+	}
+	if got := up.u.Assets["linux/amd64"]; got != "knightloader-linux-amd64.AppImage" {
+		t.Errorf("the update downloads %q on linux/amd64, want the AppImage", got)
+	}
+}
