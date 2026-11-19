@@ -86,11 +86,15 @@ class OffScreen {
 const button = (text: string) =>
   [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text);
 
-const row = (label: string) =>
-  [...host.querySelectorAll<HTMLTableRowElement>('tbody tr')].find((tr) => tr.textContent?.includes(label));
+/** A site's connection row. */
+const row = (label: string) => host.querySelector<HTMLElement>(`[data-glim="ConnectionRow"][aria-label="${label}"]`) ?? undefined;
 
-/** What the (i) beside a row's state says. */
-const hint = (label: string) => row(label)?.querySelector('[role="note"]')?.getAttribute('aria-label') ?? '';
+/** A button at the end of a site's row: test, edit or remove. */
+const rowButton = (label: string, which: 'sign-in-here' | 'test' | 'edit' | 'remove') =>
+  row(label)?.querySelector<HTMLButtonElement>(`[data-connection="${which}"]`) ?? undefined;
+
+/** The badge after a row's name that says its sign-in does not work. */
+const failBadge = (label: string) => row(label)?.querySelector('.glim-connection-badges .bg-statusFailBg') ?? null;
 
 /** The picker's tile for a brand. */
 const tile = (name: string) =>
@@ -116,6 +120,7 @@ beforeEach(() => {
       const site = sites.find((s) => url.includes(`/${s.id}/`)) ?? patreon;
       if (url === '/api/sitelogins') return reply(sites);
       if (url === '/api/connect') return reply({ active: true, apps });
+      if (url === '/api/signinbrowser') return reply({ available: true, site: '' });
       if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
       if (url === '/api/hosterauth/logins') return reply(hosterRows);
       if (url.endsWith('/remove')) {
@@ -167,43 +172,48 @@ async function renderCard() {
   });
 }
 
-it('lists a signed-in site among the hoster accounts, saying who it signs in as and where from', async () => {
+it('shows a signed-in site as a connection row, saying who it signs in as and where from', async () => {
   await renderCard();
-  expect(row('Patreon')?.textContent).toContain('Signed in as Jane Doe');
-  expect(hint('Patreon')).toContain('from Firefox (default-release)');
-  expect(row('Patreon')?.textContent).not.toContain('from Firefox');
-  expect(row('Patreon')?.querySelector('.text-statusOk')).not.toBeNull();
+  expect(row('Patreon')?.querySelector('.glim-connection-status')?.textContent).toBe('Signed in as Jane Doe');
+  expect(row('Patreon')?.textContent).toContain('from Firefox (default-release)');
+  expect(failBadge('Patreon')).toBeNull();
+});
+
+it('says until when a session runs where the site says so', async () => {
+  sites = [{ ...patreon, expires: '2026-12-24T10:00:00Z' }];
+  await renderCard();
+  expect(row('Patreon')?.textContent).toContain('Session runs until');
 });
 
 it('says when the browser extension passed a session on', async () => {
   sites = [{ ...youtube, state: 'signedIn' }];
   await renderCard();
-  expect(hint('YouTube')).toContain('from the browser extension');
+  expect(row('YouTube')?.textContent).toContain('from the browser extension');
 });
 
-it('marks the row of a site whose sign-in ran out in red and says how to sign in again', async () => {
+it('marks the row of a site whose sign-in ran out with a red badge and says how to sign in again', async () => {
   await renderCard();
-  const expired = row('YouTube')!;
-  expect(expired.textContent).toContain('Sign-in ran out');
-  expect(hint('YouTube')).toContain('KnightLoader picks it up by itself.');
-  expect(expired.querySelector('.text-statusFail')).not.toBeNull();
+  expect(failBadge('YouTube')?.textContent).toBe('Sign-in ran out');
+  expect(row('YouTube')?.querySelector('.glim-connection-status')?.textContent).toContain('KnightLoader picks it up by itself.');
 });
 
 it('lists a site nobody signed in to with the one step that signs it in', async () => {
   sites = [signedOut(patreon)];
   await renderCard();
-  expect(row('Patreon')?.textContent).toContain('Not signed in');
-  expect(hint('Patreon')).toContain('Sign in to Patreon in your browser. KnightLoader picks it up by itself.');
-  expect(row('Patreon')?.textContent).not.toContain('Sign in to Patreon');
+  expect(failBadge('Patreon')?.textContent).toBe('Not signed in');
+  expect(row('Patreon')?.querySelector('.glim-connection-status')?.textContent).toBe(
+    'Sign in to Patreon in your browser. KnightLoader picks it up by itself.',
+  );
+  expect(rowButton('Patreon', 'test')).toBeUndefined();
 });
 
 it('points at the sign-in window on an instance that reads no browser, with or without an extension in the group', async () => {
   sites = [{ ...signedOut(patreon), readsBrowsers: false }];
   apps = [browserExtension];
   await renderCard();
-  expect(hint('Patreon')).toContain('in the window here');
-  expect(hint('Patreon')).not.toContain('extension');
-  expect(hint('Patreon')).not.toContain('picks it up by itself');
+  expect(row('Patreon')?.textContent).toContain('in the window here');
+  expect(row('Patreon')?.textContent).not.toContain('extension');
+  expect(row('Patreon')?.textContent).not.toContain('picks it up by itself');
 });
 
 it('names the browsers KnightLoader cannot read once, under the list', async () => {
@@ -223,14 +233,38 @@ it('shows a row only for a site that was added', async () => {
   expect(row('Instagram')).toBeUndefined();
 });
 
-it('lists the sites and the hosters in one order, by name', async () => {
+it('lists the sites by name under the hoster accounts', async () => {
   sites = [{ ...youtube, state: 'signedIn' }, patreon];
   hosterRows = [{ host: 'rapidgator.net', enabled: true, status: 'active' }];
   await renderCard();
-  const labels = [...host.querySelectorAll<HTMLTableRowElement>('tbody tr')].map((tr) =>
-    ['Patreon', 'rapidgator.net', 'YouTube'].find((name) => tr.textContent?.includes(name)),
-  );
-  expect(labels).toEqual(['Patreon', 'rapidgator.net', 'YouTube']);
+  expect([...host.querySelectorAll('tbody tr')].map((tr) => tr.textContent?.includes('rapidgator.net'))).toEqual([true]);
+  const names = [...host.querySelectorAll('[data-glim="ConnectionRow"]')].map((r) => r.getAttribute('aria-label'));
+  expect(names).toEqual(['Patreon', 'YouTube']);
+  expect(host.querySelector('table')!.compareDocumentPosition(row('Patreon')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
+it('signs a site that is signed in already in again from its row, in the sign-in browser', async () => {
+  await renderCard();
+  const again = rowButton('Patreon', 'sign-in-here')!;
+  expect(again.getAttribute('aria-label') ?? again.textContent).toBe('Sign in here');
+  await act(async () => again.click());
+  expect(calls.some((c) => c.url === '/api/signinbrowser/patreon/open')).toBe(true);
+});
+
+it('tests a session from its row and turns the button green while the site still takes it', async () => {
+  await renderCard();
+  await act(async () => rowButton('Patreon', 'test')!.click());
+  expect(calls.some((c) => c.url === '/api/sitelogins/patreon/check' && c.method === 'POST')).toBe(true);
+  expect(rowButton('Patreon', 'test')!.className).toContain('bg-statusOkSolid');
+  expect(row('Patreon')?.querySelector('[role="status"]')?.textContent).toBe('Signed in as Jane Doe');
+});
+
+it('turns the test red and puts the badge on the row once the site no longer takes the session', async () => {
+  await renderCard();
+  sites = [{ ...patreon, state: 'expired', account: undefined }, youtube];
+  await act(async () => rowButton('Patreon', 'test')!.click());
+  expect(rowButton('Patreon', 'test')!.className).toContain('bg-statusFailSolid');
+  expect(failBadge('Patreon')?.textContent).toBe('Sign-in ran out');
 });
 
 it('offers the sites not added in the picker, with their domain beneath, and opens the window of one picked', async () => {
@@ -260,14 +294,14 @@ it('opens the sign-in browser straight away for a site picked on an instance tha
 it('opens the sign-in browser from the row of a site nobody signed in to where no browser is read', async () => {
   sites = [{ ...signedOut(patreon), readsBrowsers: false }];
   await renderCard();
-  await act(async () => (row('Patreon') as HTMLElement).click());
+  await act(async () => rowButton('Patreon', 'edit')!.click());
   expect(calls.some((c) => c.url === '/api/signinbrowser/patreon/open')).toBe(true);
 });
 
 it('opens the site from its window and offers no way to paste cookies', async () => {
   sites = [signedOut(patreon)];
   await renderCard();
-  await act(async () => row('Patreon')!.click());
+  await act(async () => rowButton('Patreon', 'edit')!.click());
   expect(document.querySelector('textarea')).toBeNull();
   expect(document.body.textContent).not.toContain('cookies.txt');
   await act(async () => button('Open Patreon')!.click());
@@ -280,7 +314,7 @@ it('tells the tab the site opened in that it can go once the sign-in arrives', a
   try {
     sites = [signedOut(patreon)];
     await renderCard();
-    await act(async () => row('Patreon')!.click());
+    await act(async () => rowButton('Patreon', 'edit')!.click());
     await act(async () => button('Open Patreon')!.click());
     expect(opened).toEqual(['https://www.patreon.com/login']);
     sites = [patreon];
@@ -296,13 +330,13 @@ it('tells the tab the site opened in that it can go once the sign-in arrives', a
 it('offers no Open button in a container, also where the extension may read the site', async () => {
   sites = [{ ...signedOut(patreon), readsBrowsers: false, handsOver: true }];
   await renderCard();
-  await act(async () => row('Patreon')!.click());
+  await act(async () => rowButton('Patreon', 'edit')!.click());
   expect(button('Open Patreon')).toBeUndefined();
 });
 
 it('forgets a session the extension passed on from its row, after asking', async () => {
   await renderCard();
-  await act(async () => row('YouTube')!.querySelector<HTMLButtonElement>('[aria-label="Remove"]')!.click());
+  await act(async () => rowButton('YouTube', 'remove')!.click());
   expect(calls.some((c) => c.url.endsWith('/remove'))).toBe(false);
   await act(async () => button('Remove')!.click());
   expect(calls.some((c) => c.url === '/api/sitelogins/youtube/remove' && c.method === 'POST')).toBe(true);
@@ -310,7 +344,7 @@ it('forgets a session the extension passed on from its row, after asking', async
 
 it('removes a session read from the browser from its row too, after asking, and the row goes', async () => {
   await renderCard();
-  await act(async () => row('Patreon')!.querySelector<HTMLButtonElement>('[aria-label="Remove"]')!.click());
+  await act(async () => rowButton('Patreon', 'remove')!.click());
   await act(async () => button('Remove')!.click());
   expect(calls.some((c) => c.url === '/api/sitelogins/patreon/remove' && c.method === 'POST')).toBe(true);
   expect(row('Patreon')).toBeUndefined();
@@ -320,8 +354,8 @@ it('removes a session read from the browser from its row too, after asking, and 
 it('removes a site nobody is signed in to from its row as well', async () => {
   sites = [signedOut(patreon)];
   await renderCard();
-  const remove = row('Patreon')!.querySelector<HTMLButtonElement>('[aria-label="Remove"]');
-  expect(remove).not.toBeNull();
+  const remove = rowButton('Patreon', 'remove');
+  expect(remove).toBeDefined();
   await act(async () => remove!.click());
   await act(async () => button('Remove')!.click());
   expect(calls.some((c) => c.url === '/api/sitelogins/patreon/remove' && c.method === 'POST')).toBe(true);
@@ -335,14 +369,16 @@ describe("a site's window", () => {
   it('ends its footer on the one primary action while nobody is signed in', async () => {
     sites = [signedOut(patreon)];
     await renderCard();
-    await act(async () => row('Patreon')!.click());
+    await act(async () => rowButton('Patreon', 'edit')!.click());
     expect(primary().map((b) => b.textContent)).toEqual(['Open Patreon']);
     expect(foot()[foot().length - 1]?.textContent).toBe('Open Patreon');
   });
 
-  it('offers nothing to press ahead once a sign-in is there, and leaves removing to the row', async () => {
+  it('offers nothing to press ahead once a sign-in is there, and leaves removing and signing in again to the row', async () => {
     await renderCard();
-    await act(async () => row('Patreon')!.click());
+    expect(rowButton('Patreon', 'sign-in-here')).toBeDefined();
+    expect(rowButton('Patreon', 'remove')).toBeDefined();
+    await act(async () => rowButton('Patreon', 'edit')!.click());
     const words = foot().map((b) => b.textContent);
     expect(words).not.toContain('Sign out');
     expect(words).not.toContain('Remove');
@@ -354,7 +390,7 @@ describe("a site's window", () => {
   it('offers a new sign-in alone for a session that ran out, which its row menu forgets', async () => {
     sites = [youtube];
     await renderCard();
-    await act(async () => row('YouTube')!.click());
+    await act(async () => rowButton('YouTube', 'edit')!.click());
     expect(foot().map((b) => b.textContent)).not.toContain('Sign out');
     expect(primary().map((b) => b.textContent)).toEqual(['Open YouTube']);
   });
@@ -362,7 +398,7 @@ describe("a site's window", () => {
   it('says how the sign-in stands and what to do at the top, and keeps every button in the footer', async () => {
     sites = [signedOut(patreon)];
     await renderCard();
-    await act(async () => row('Patreon')!.click());
+    await act(async () => rowButton('Patreon', 'edit')!.click());
     expect(dialog().textContent).toContain('Not signed in');
     expect(dialog().textContent).toContain('Sign in to Patreon in your browser.');
     expect([...dialog().querySelectorAll('button')].filter((b) => !b.closest('.glim-modal-foot'))).toEqual([]);
@@ -372,14 +408,14 @@ describe("a site's window", () => {
 it('names the browser whose session the site turned down', async () => {
   sites = [{ ...patreon, state: 'expired', account: undefined }];
   await renderCard();
-  expect(hint('Patreon')).toContain('Patreon turned down the sign-in from Firefox (default-release)');
-  expect(hint('Patreon')).toContain('KnightLoader picks it up by itself.');
+  expect(row('Patreon')?.textContent).toContain('Patreon turned down the sign-in from Firefox (default-release)');
+  expect(row('Patreon')?.textContent).toContain('KnightLoader picks it up by itself.');
 });
 
 it("says when KnightLoader's own sign-in browser passed a session on", async () => {
   sites = [{ ...youtube, state: 'signedIn', source: 'kl-browser' }];
   await renderCard();
-  expect(hint('YouTube')).toContain("from KnightLoader's sign-in browser");
+  expect(row('YouTube')?.textContent).toContain("from KnightLoader's sign-in browser");
 });
 
 const failed: Task = {

@@ -16,13 +16,13 @@ export type CaptchaGroup = "solver";
 const SOLVER = "IconCaptcha";
 
 const ENTRIES = [
-  { id: "2captcha", name: "2Captcha", group: "solver", terms: ["ruCaptcha"], glyph: SOLVER },
+  { id: "2captcha", name: "2Captcha", group: "solver", terms: ["ruCaptcha"], mark: M.twocaptcha },
   { id: "9kw", name: "9kw.eu", group: "solver", glyph: SOLVER },
   { id: "anticaptcha", name: "Anti-Captcha", group: "solver", glyph: SOLVER },
   { id: "capmonster", name: "CapMonster Cloud", group: "solver", terms: ["ZennoLab"], mark: M.capmonster },
-  { id: "capsolver", name: "CapSolver", group: "solver", glyph: SOLVER },
+  { id: "capsolver", name: "CapSolver", group: "solver", mark: M.capsolver },
   { id: "deathbycaptcha", name: "DeathByCaptcha", group: "solver", terms: ["Death By Captcha"], glyph: SOLVER },
-  { id: "solvecha", name: "Solvecha", group: "solver", glyph: SOLVER },
+  { id: "solvecha", name: "Solvecha", group: "solver", mark: M.solvecha },
 ] as const satisfies readonly CatalogEntry<CaptchaGroup>[];
 
 export type CaptchaProviderId = (typeof ENTRIES)[number]["id"];

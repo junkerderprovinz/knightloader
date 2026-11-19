@@ -61,7 +61,21 @@ const realdebrid: TileMark = {
   ink: '#161616',
 };
 
+/** TorBox. Source: torbox.app, logo.svg (the brand's own mark). */
+const torbox: TileMark = {
+  svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="367.25 308.04 765.5 883.92"><g><polygon points="749.99,749.99 749.99,1191.96 367.25,970.97 367.25,529.01  " style="fill:var(--mark-ink, #00444D)"/><polygon points="1132.75,529.01 1132.75,970.97 749.99,1191.96 749.99,749.99 872.87,679.05 956.71,630.66  " style="fill:var(--mark-ink, #34BA90)"/><polygon points="1132.75,529.01 749.99,749.99 367.25,529.01 749.99,308.04  " style="fill:var(--mark-ink, #52A153)"/><polygon points="1043.04,739.36 958.66,1057.08 952.4,851.84 839.71,915.39 872.87,679.05 956.71,630.66    931.81,799.21  " style="fill:var(--mark-cut, #FFFFFF)"/></g></svg>',
+  tile: '#52a153',
+  ink: '#ffffff',
+};
+
+/** Workupload. Source: workupload.com, img/workupload_logo_medium.svg without the word (the brand's own mark). */
+const workupload: TileMark = {
+  svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.14 4878.64 4874.14"><defs/><g id="glim-workupload-Ebene_x0020_1"><g id="glim-workupload-_189684584"><path d="M1263 4874l-94 -1169 -1169 -93 618 -1192 580 -185c429,-743 1166,-1681 2283,-2067 700,-243 1217,-152 1239,-149l138 26 11 140c58,765 -146,1461 -607,2069 -421,555 -974,923 -1364,1133 -324,175 -714,120 -970,-137 -286,-285 -286,-750 0,-1036l968 -969c209,-209 549,-209 758,0 209,210 209,550 0,759l-606 606c-71,72 -186,72 -258,0 -71,-70 -71,-186 0,-258l607 -606c67,-67 67,-176 0,-243 -67,-67 -176,-67 -243,0l-969 969c-143,143 -143,377 0,520 142,142 359,173 540,75 693,-374 1824,-1216 1789,-2700 -182,-7 -523,7 -934,153 -816,288 -1542,966 -2100,1956l-35 64 -573 182 -296 571 931 74 75 932 571 -297 59 -185c30,-96 133,-149 229,-119 96,31 149,133 118,230l-104 328 -1192 618z" style="fill:var(--mark-ink, #0087F7);fill-rule:nonzero"/></g></g></svg>',
+  tile: '#0087f7',
+  ink: '#ffffff',
+};
+
 /** Every mark, by the id an app addresses it with. */
-export const DOWNLOAD_MARKS = { debridlink, fichier, mediafire, mega, pixeldrain, premiumize, realdebrid } as const;
+export const DOWNLOAD_MARKS = { debridlink, fichier, mediafire, mega, pixeldrain, premiumize, realdebrid, torbox, workupload } as const;
 
 export type DownloadMarkId = keyof typeof DOWNLOAD_MARKS;

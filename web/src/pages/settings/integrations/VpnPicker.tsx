@@ -12,7 +12,7 @@ import { pageLang } from '../../../lib/picker';
 import { useToast } from '../../../lib/toast';
 import { SettingRow } from '../controls';
 import { refusalText } from '../tx';
-import { VpnMark, failureOf, nameOf } from './VpnMark';
+import { VpnMark, failureOf } from './VpnMark';
 
 const FIELDS: Record<VpnField, { label: TranslationKey; hint?: TranslationKey; secret?: boolean }> = {
   config: { label: 'settings.vpn.field.config', hint: 'settings.vpn.field.configHint' },
@@ -96,7 +96,7 @@ export function VpnPicker({
       glyph: () => <IconShieldOn />,
       lang: pageLang(),
       own: (e) => {
-        if (e.id === 'custom') return { label: nameOf(e), last: true };
+        if (e.id === 'custom') return { last: true };
         if (!offered.has(e.id)) return { status: t('settings.vpn.appOnlyTitle'), hint: t('settings.vpn.appOnlyHint') };
         return undefined;
       },
@@ -130,7 +130,7 @@ export function VpnPicker({
     if (missing === f) setMissing('');
   };
 
-  const name = p ? nameOf(p) : '';
+  const name = p ? p.name : '';
   const filled = !!p && (p.configured || p.fields.every((f) => f === 'location' || values[f]?.trim()));
 
   return (
@@ -215,7 +215,7 @@ function ConnectForm({
   onValue: (f: VpnField, v: string) => void;
 }) {
   const { t } = useT();
-  const name = nameOf(p);
+  const name = p.name;
   // An own configuration has no provider account to request a port in.
   const manual = p.portManual && p.id !== 'custom' ? 'settings.vpn.manualPortNote' : undefined;
   const note = NOTES[p.id] ?? manual;
@@ -239,7 +239,7 @@ function ConnectForm({
       )}
       {current && current.id !== p.id && (
         <p className="rounded-[var(--radius-card)] bg-statusWarnBgSoft px-3 py-2.5 text-sm text-carbon-text">
-          {t('settings.vpn.replaces', { name, current: nameOf(current) })}
+          {t('settings.vpn.replaces', { name, current: current.name })}
         </p>
       )}
       {p.configured && <p className="text-meta text-carbon-textSub">{t('settings.vpn.keepSaved')}</p>}

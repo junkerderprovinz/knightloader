@@ -7,7 +7,9 @@ MCP catalog in `src/mcpProviders.ts` names the mark each client wears, and an
 app reaches them through `@glimstone/core/mcpProviders`.
 
 The generator treats these files the way it treats the storage providers'
-marks (see `../storage-marks/README.md`).
+marks (see `../storage-marks/README.md`). A logo of several colours that would
+melt into one blot on its lit tile also brings `<id>-hover.svg`, the brand's
+single-colour version, which the lit tile shows instead.
 
 ## Sources and licences
 
@@ -23,7 +25,17 @@ the files of those names in `svg/`, `anythingllm.svg` is `svg/anything-llm.svg`
 and `openwebui.svg` is `svg/open-webui.svg`. `grok.svg` is `svg/grok.svg`
 without the id its two parts share, which an SVG may give only one element.
 `copilot.svg` is `svg/github-copilot.svg`, which paints in `currentColor`, with
-GitHub Copilot's black written on its drawing.
+GitHub Copilot's black written on its drawing. `visualstudio.svg` is
+`svg/visual-studio-2026.svg`, unmodified.
+
+**Lobe Icons** (`lobehub/lobe-icons`, <https://github.com/lobehub/lobe-icons>,
+published as `@lobehub/icons-static-svg`), under **MIT**, copyright LobeHub
+(text in `LICENSE-mit-lobe-icons.txt`): `antigravity.svg` is
+`icons/antigravity-color.svg` and `antigravity-hover.svg` is
+`icons/antigravity.svg`, which paints in `currentColor`, with black written on
+its drawing. Both leave out their width and height of `1em`, which only size
+them to the text around them. The colour mark's blurred gradients would melt
+into one blot on its lit tile, so the lit tile shows the single-colour arch.
 
 **The projects' own repositories**, each under **Apache-2.0**:
 
@@ -36,8 +48,13 @@ GitHub Copilot's black written on its drawing.
   <https://github.com/RooCodeInc/Roo-Code>, which paints in `currentColor`,
   written in black.
 
-Apache-2.0 may be carried into this project's AGPL-3.0, so the combined work
-stays AGPL-3.0.
+**The client's own website**, used under the trademark position below rather
+than under a licence: `msty.svg` is <https://msty.ai/brands/studio.svg>, the
+cube that <https://msty.ai/> names as its organisation's logo. Its tile lights
+in the blue of the cube, `#198fe1`, rather than the black outline round it.
+
+Apache-2.0 and MIT may be carried into this project's AGPL-3.0, so the combined
+work stays AGPL-3.0.
 
 ## Makers' marks for a narrower product
 
@@ -48,9 +65,7 @@ Copilot mark.
 
 A client whose own mark has no clean source wears the glyph of its kind
 instead. Jan's logo exists only as a picture inside an SVG, in its own
-repository as in Dashboard Icons, and Msty, Antigravity and Visual Studio have
-none in an icon set or a repository of their own. Antigravity does not wear
-Google's mark, which would name a neighbour on a page that also shows Gemini.
+repository, on jan.ai and in Dashboard Icons, and selfh.st icons has none.
 
 ## Trademarks
 
@@ -63,7 +78,9 @@ colour, and nothing here claims endorsement by or affiliation with any of them.
 
 For a mark Simple Icons carries, add a line to `SIMPLE` in the generator. For
 any other, drop the SVG in here as its source has it, add a line to `LOCAL`
-naming its source and licence, and record both in the section above. Then give
+naming its source and licence, and record both in the section above. A logo
+whose colours do not survive one ink gets its brand's single-colour version as
+`<id>-hover.svg` and its id in `HOVER`. Then give
 the client its `mark` in `src/mcpProviders.ts` and run the generator:
 
     npm pack simple-icons@16 && tar xzf simple-icons-*.tgz
