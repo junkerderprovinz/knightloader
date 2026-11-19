@@ -1,0 +1,1 @@
+Die App bleibt, wie sie ist, dafür hat der Server nachgesessen: qBittorrent startet im Unraid-Container wieder, und der Ordnerwähler findet Freigaben mit exklusivem Zugriff, statt sie zu verstecken.

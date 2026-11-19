@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,6 +16,7 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/realpath"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -167,6 +169,129 @@ func TestAFolderThatDoesNotExistYetSaysSo(t *testing.T) {
 	}
 	if len(got.Entries) != 1 || got.Entries[0].Name != "already-here" {
 		t.Errorf("the existing folder above it was not offered: %+v", got.Entries)
+	}
+	if got.Link != nil {
+		t.Errorf("a folder that is simply not there yet came back as a dead link: %+v", got.Link)
+	}
+}
+
+// unraidShares lays out what /mnt/user looks like in a container on Unraid
+// when one share is on exclusive access: a relative link into a pool that is
+// not mounted, beside a share that is a real folder. It returns the shares
+// folder and base as the server resolves it.
+func unraidShares(t *testing.T) (user, real string) {
+	t.Helper()
+	base := t.TempDir()
+	user = filepath.Join(base, "user")
+	if err := os.MkdirAll(filepath.Join(user, "media"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join("..", "cache", "appdata"), filepath.Join(user, "appdata")); err != nil {
+		t.Skipf("symlinks are not available here: %v", err)
+	}
+	real, err := realpath.Resolve(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return user, real
+}
+
+func TestALinkToAFolderThatIsNotThereIsListedWithItsTarget(t *testing.T) {
+	t.Parallel()
+	user, real := unraidShares(t)
+	_, srv := foldersServer(t)
+
+	got := getFolders(t, srv, user)
+	want := []folderEntry{
+		{Name: "appdata", Path: filepath.Join(user, "appdata"), Target: filepath.Join(real, "cache", "appdata")},
+		{Name: "media", Path: filepath.Join(user, "media")},
+	}
+	if !slices.Equal(got.Entries, want) {
+		t.Errorf("entries are %+v, want %+v", got.Entries, want)
+	}
+}
+
+// shfsEntry is an entry as Unraid's /mnt/user hands it out: a share on
+// exclusive access is a link into its pool but reads as a directory.
+type shfsEntry string
+
+func (e shfsEntry) Name() string               { return string(e) }
+func (e shfsEntry) IsDir() bool                { return true }
+func (e shfsEntry) Type() fs.FileMode          { return fs.ModeDir }
+func (e shfsEntry) Info() (fs.FileInfo, error) { return nil, fs.ErrNotExist }
+
+func TestADeadLinkThatReadsAsADirectoryIsListedWithItsTarget(t *testing.T) {
+	t.Parallel()
+	user, real := unraidShares(t)
+
+	got := folderEntries([]fs.DirEntry{shfsEntry("appdata"), shfsEntry("media")}, filepath.Join(real, "user"), user, boundary{roots: []string{"/"}, open: true})
+	want := []folderEntry{
+		{Name: "appdata", Path: filepath.Join(user, "appdata"), Target: filepath.Join(real, "cache", "appdata")},
+		{Name: "media", Path: filepath.Join(user, "media")},
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("entries are %+v, want %+v", got, want)
+	}
+}
+
+func TestAFolderBehindADeadLinkNamesTheLinkAndWhereItLeads(t *testing.T) {
+	t.Parallel()
+	user, real := unraidShares(t)
+	_, srv := foldersServer(t)
+
+	want := folderLink{
+		Path:    filepath.Join(user, "appdata"),
+		Target:  filepath.Join(real, "cache", "appdata"),
+		Missing: filepath.Join(real, "cache"),
+	}
+	for _, asked := range []string{want.Path, filepath.Join(want.Path, "knightloader")} {
+		got := getFolders(t, srv, asked)
+		if got.Exists {
+			t.Errorf("%q came back as an existing folder", asked)
+		}
+		if got.Listed != user {
+			t.Errorf("asking for %q listed %q, want %q", asked, got.Listed, user)
+		}
+		if got.Link == nil || *got.Link != want {
+			t.Errorf("asking for %q reported the link as %+v, want %+v", asked, got.Link, want)
+		}
+	}
+}
+
+func TestADeadLinkOutOfTheBoundaryStaysHidden(t *testing.T) {
+	user, _ := unraidShares(t)
+	if err := os.Symlink("gone", filepath.Join(user, "inside")); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv(envBrowseRoots, user)
+	_, srv := foldersServer(t)
+
+	got := getFolders(t, srv, user)
+	names := make([]string, 0, len(got.Entries))
+	for _, e := range got.Entries {
+		names = append(names, e.Name)
+	}
+	// The link that leads nowhere inside the roots is still shown, so it is
+	// the boundary that hides the other one.
+	if !slices.Equal(names, []string{"inside", "media"}) {
+		t.Errorf("entries are %v, want the link into the roots and the real folder only", names)
+	}
+	if got := getFolders(t, srv, filepath.Join(user, "appdata")); got.Link != nil {
+		t.Errorf("a link out of the roots told where it leads: %+v", got.Link)
+	}
+}
+
+func TestCreatingBehindADeadLinkIsRefused(t *testing.T) {
+	t.Parallel()
+	user, real := unraidShares(t)
+	_, srv := foldersServer(t)
+
+	code, out := postFolder(t, srv, filepath.Join(user, "appdata"), "new")
+	if code != http.StatusNotFound || out["code"] != "missing" {
+		t.Errorf("creating behind a dead link answered %d %v, want 404 missing", code, out)
+	}
+	if _, err := os.Stat(filepath.Join(real, "cache")); err == nil {
+		t.Error("creating behind the link made the folder it leads to")
 	}
 }
 

@@ -43,6 +43,7 @@ export function ViewNameDialog({
   return (
     <Modal
       title={title}
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

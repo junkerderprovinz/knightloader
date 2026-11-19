@@ -28,11 +28,10 @@ import {
   type Placeholder,
   type TargetMethod,
 } from '../../../lib/eventtargets';
-import type { TargetBrand } from '../../../lib/targetBrands';
 import { RowRefusal, SettingRow, Sheet } from '../controls';
 import { TargetEvents } from './TargetEvents';
 import { TargetHealth } from './TargetHealth';
-import { TargetMark } from './TargetMark';
+import { TargetMark, type TargetBrand } from './TargetMark';
 import { TargetProbe } from './TargetProbe';
 
 /**

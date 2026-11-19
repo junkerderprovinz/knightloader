@@ -8,9 +8,9 @@ package api
 // is the image plus the operator's mounts, exactly where downloads can land.
 // KL_BROWSE_ROOTS narrows it, and links are resolved, Windows junctions and
 // mounted folders included, so a link to / cannot widen it again. Listing
-// answers with directory names only, never files, sizes or contents, and
-// creating makes one empty folder inside a folder that listing would have
-// shown.
+// answers with directory names only, never files, sizes or contents, plus
+// where a link leads when its folder is out of sight. Creating makes one empty
+// folder inside a folder that listing would have shown.
 
 import (
 	"errors"
@@ -40,6 +40,20 @@ const maxFolderEntries = 2000
 type folderEntry struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
+	// Target is set on a link whose target is not there and names that
+	// target, so the entry can be shown as one this process cannot open.
+	Target string `json:"target,omitempty"`
+}
+
+// folderLink is a link on the way to the asked folder that leads to a folder
+// this process cannot see, such as an Unraid share on exclusive access, which
+// /mnt/user shows as a link into a pool the container may not have mounted.
+type folderLink struct {
+	Path   string `json:"path"`
+	Target string `json:"target"`
+	// Missing is the first folder on the way to Target that is not there,
+	// which is the one a container has not been given, such as /mnt/cache.
+	Missing string `json:"missing"`
 }
 
 // folderListing is one place in the filesystem as the chooser needs it. Path
@@ -55,6 +69,9 @@ type folderListing struct {
 	Tail string `json:"tail"`
 	// Exists reports whether Path is a directory today.
 	Exists bool `json:"exists"`
+	// Link is set when Path does not exist because a link on the way to it
+	// leads nowhere, so the chooser can say that instead of calling it new.
+	Link *folderLink `json:"link,omitempty"`
 	// Listed is the folder Entries actually describes.
 	Listed string `json:"listed"`
 	// Parent is one level above Listed, or "" at the top of the boundary.
@@ -178,6 +195,14 @@ func listFolders(raw string) (folderListing, error) {
 		Roots:     b.roots,
 		Entries:   entries,
 		Truncated: truncated,
+	}
+	if !out.Exists {
+		// Only the step right below Listed can be a link that leads nowhere,
+		// since nothing further down can even be looked at.
+		link := firstStep(listed, fixed)
+		if target, ok := deadLink(link, real, b); ok {
+			out.Link = &folderLink{Path: link, Target: target, Missing: firstStep(deepestExisting(target), target)}
+		}
 	}
 	// A parent outside the boundary is not offered at all.
 	if parent := filepath.Dir(listed); parent != listed {
@@ -303,6 +328,40 @@ func deepestExisting(p string) string {
 	}
 }
 
+// firstStep is the folder right below from on the way down to p, which must
+// sit below from.
+func firstStep(from, p string) string {
+	rel, _ := filepath.Rel(from, p)
+	first, _, _ := strings.Cut(rel, string(filepath.Separator))
+	return filepath.Join(from, first)
+}
+
+// deadLink reports where p leads when p is a link whose target is not there.
+// dir is what p's folder really is, because a relative target is followed
+// from there and not from the spelling that was asked for. A target is only
+// told when the part of it that does exist is inside the boundary.
+func deadLink(p, dir string, b boundary) (string, bool) {
+	fi, err := os.Lstat(p)
+	if err != nil || fi.Mode()&(fs.ModeSymlink|fs.ModeIrregular) == 0 {
+		return "", false
+	}
+	if _, err := os.Stat(p); !errors.Is(err, fs.ErrNotExist) {
+		return "", false
+	}
+	target, err := os.Readlink(p)
+	if err != nil {
+		return "", false
+	}
+	if !filepath.IsAbs(target) {
+		target = filepath.Join(dir, target)
+	}
+	target = filepath.Clean(target)
+	if _, ok, _ := b.resolve(deepestExisting(target)); !ok {
+		return "", false
+	}
+	return target, true
+}
+
 // within reports whether p is root or sits below it. filepath.Rel knows the
 // platform's rules, such as case-insensitive comparison on Windows.
 func within(root, p string) bool {
@@ -322,20 +381,48 @@ func readFolders(real, display string, b boundary) ([]folderEntry, bool, error) 
 	if err != nil {
 		return nil, false, err
 	}
+	out := folderEntries(items, real, display, b)
+	if len(out) > maxFolderEntries {
+		return out[:maxFolderEntries], true, nil
+	}
+	return out, false, nil
+}
+
+// folderEntries keeps the folders among the items read from real, named
+// after display and sorted.
+func folderEntries(items []fs.DirEntry, real, display string, b boundary) []folderEntry {
 	out := make([]folderEntry, 0, len(items))
 	for _, it := range items {
 		name := it.Name()
 		switch {
 		case it.IsDir():
+			// Unraid's /mnt/user reads a share on exclusive access as a
+			// directory although it is a link into its pool, so a directory
+			// that cannot be opened may be a link that leads nowhere.
+			link := filepath.Join(real, name)
+			if _, err := os.Stat(link); err != nil {
+				if target, ok := deadLink(link, real, b); ok {
+					out = append(out, folderEntry{Name: name, Path: filepath.Join(display, name), Target: target})
+				}
+				continue
+			}
 		case it.Type()&(fs.ModeSymlink|fs.ModeIrregular) != 0:
 			// ReadDir reports a link as a link, and a Windows junction as
 			// irregular, so either is offered only once it resolves to a
-			// directory inside the boundary.
-			target := filepath.Join(real, name)
-			if fi, err := os.Stat(target); err != nil || !fi.IsDir() {
+			// directory inside the boundary. One that leads nowhere is still
+			// shown, because hiding it hides a share the user expects here.
+			link := filepath.Join(real, name)
+			fi, err := os.Stat(link)
+			if err != nil {
+				if target, ok := deadLink(link, real, b); ok {
+					out = append(out, folderEntry{Name: name, Path: filepath.Join(display, name), Target: target})
+				}
 				continue
 			}
-			if _, ok, _ := b.resolve(target); !ok {
+			if !fi.IsDir() {
+				continue
+			}
+			if _, ok, _ := b.resolve(link); !ok {
 				continue
 			}
 		default:
@@ -351,10 +438,7 @@ func readFolders(real, display string, b boundary) ([]folderEntry, bool, error) 
 		}
 		return out[i].Name < out[j].Name
 	})
-	if len(out) > maxFolderEntries {
-		return out[:maxFolderEntries], true, nil
-	}
-	return out, false, nil
+	return out
 }
 
 // createFolder makes name inside parent, which must be a folder listFolders

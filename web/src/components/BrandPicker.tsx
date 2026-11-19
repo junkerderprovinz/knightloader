@@ -6,7 +6,7 @@
 // without its fitting of long words, which several hundred hosters would each
 // pay for: a brand's name is cut with an ellipsis instead. Under the pointer a
 // tile lights up in its brand's colour, never the accent ("Brand tiles").
-import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { pickMatches, pickSearchKey, pickTileKey } from '../lib/picker';
 import { HosterIcon, hostPaint, monogramPaint, type Paint } from './HosterIcon';
 import { SearchBox } from './SearchBox';
@@ -29,11 +29,13 @@ export interface Brand {
   paint?: Paint;
   /** Why the brand cannot be picked, behind an (i) on a greyed-out tile. */
   unavailable?: string;
+  /** Further words a search finds it by, such as another domain it answers on. */
+  terms?: readonly string[];
 }
 
-/** Whether every word typed turns up in the brand's name, id, second line or host. */
+/** Whether every word typed turns up in the brand's name, id, second line, host or search words. */
 export const brandMatches = (b: Brand, query: string): boolean =>
-  pickMatches(query, [b.name, b.id, b.sub ?? '', b.host ?? '']);
+  pickMatches(query, [b.name, b.id, b.sub ?? '', b.host ?? '', ...(b.terms ?? [])]);
 
 /** The part of the window a picker's search and tiles share: every list of tiles in it. */
 const pickArea = (el: Element): HTMLElement | null => el.closest<HTMLElement>('[role="dialog"]');
@@ -56,17 +58,20 @@ export function BrandPicker({
   brands,
   onPick,
   none,
+  selected,
 }: {
   brands: Brand[];
   onPick: (id: string) => void;
   /** What to say when the search leaves no brand. */
   none: string;
+  /** The brand picked before, which stands marked and takes the focus when Back leads from its form to the tiles. */
+  selected?: string;
 }) {
   if (brands.length === 0) return <p className="px-2 py-6 text-center text-sm text-carbon-textMuted">{none}</p>;
   return (
     <ul data-new="account-picker" className="glim-provider-pick" onKeyDown={tileKey}>
       {brands.map((b) => (
-        <BrandTile key={b.id} brand={b} onPick={onPick} />
+        <BrandTile key={b.id} brand={b} current={b.id === selected} onPick={onPick} />
       ))}
     </ul>
   );
@@ -76,8 +81,13 @@ export function BrandPicker({
  * BrandTile is one brand's tile. A logo the instance fetched for its host
  * tells its colours only once it has been read, so the tile keeps them.
  */
-function BrandTile({ brand: b, onPick }: { brand: Brand; onPick: (id: string) => void }) {
+function BrandTile({ brand: b, current, onPick }: { brand: Brand; current: boolean; onPick: (id: string) => void }) {
   const [read, setRead] = useState<Paint>();
+  const button = useRef<HTMLButtonElement>(null);
+  // This runs after the search's autofocus, so the tile picked before keeps the focus.
+  useLayoutEffect(() => {
+    if (current) button.current?.focus();
+  }, [current]);
   const paint = b.tile ? undefined : (b.paint ?? read ?? (b.host ? hostPaint(b.host) : monogramPaint(b.name)));
   const colours = paint && ({ '--tile': paint.tile, '--tile-ink': paint.ink } as CSSProperties);
   const face = (
@@ -110,7 +120,14 @@ function BrandTile({ brand: b, onPick }: { brand: Brand; onPick: (id: string) =>
       style={colours}
       className={`glim-readme-btn-unit group ${b.tile ?? ''} ${b.held ? 'glim-readme-btn-unit--note' : ''}`}
     >
-      <button type="button" onClick={() => onPick(b.id)} aria-label={label} className="glim-readme-btn glim-brand-tile">
+      <button
+        ref={button}
+        type="button"
+        onClick={() => onPick(b.id)}
+        aria-label={label}
+        aria-current={current || undefined}
+        className="glim-readme-btn glim-brand-tile"
+      >
         {face}
       </button>
       <span className="glim-readme-btn-sheen" aria-hidden />

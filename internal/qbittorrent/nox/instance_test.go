@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -156,13 +157,31 @@ func waitAnswers(t *testing.T, port int) {
 func TestAProgramThatIsNotThereFailsWithItsReason(t *testing.T) {
 	in := Start(Options{Binary: filepath.Join(t.TempDir(), "qbittorrent-nox"), Profile: t.TempDir()})
 	t.Cleanup(func() { _ = in.Stop() })
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	if _, err := in.Ready(ctx); err == nil {
-		t.Fatal("ready without a program")
+	// Ready waits through the restarts, so it cannot tell when the first start
+	// has failed. Each start hashes the WebUI password first, which a loaded
+	// runner under -race stretches to seconds.
+	snapshot := func() (Status, chan struct{}) {
+		in.mu.Lock()
+		defer in.mu.Unlock()
+		return in.status, in.changed
 	}
-	if st := in.Status(); st.Detail == "" || st.State != StateFailed {
+	deadline := time.After(30 * time.Second)
+	st, changed := snapshot()
+	for st.State != StateFailed {
+		select {
+		case <-changed:
+		case <-deadline:
+			t.Fatalf("the start has not failed, status %+v", st)
+		}
+		st, changed = snapshot()
+	}
+	if st.Detail == "" {
 		t.Fatalf("status %+v", st)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := in.Ready(ctx); err == nil || !strings.Contains(err.Error(), st.Detail) {
+		t.Fatalf("Ready = %v, want the reason %q", err, st.Detail)
 	}
 }
 

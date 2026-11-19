@@ -129,6 +129,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       {pendingFile && (
         <Modal
           title={t('settings.system.restoreConfirmTitle')}
+          closeOnBackdrop={false}
           onClose={() => (restoring ? undefined : setPendingFile(null))}
           footer={
             <>

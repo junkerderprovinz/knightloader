@@ -114,7 +114,7 @@ type installer struct {
 	running      string
 	lookup       func(ctx context.Context, repo, tag string) (ghrelease.Release, error)
 	fetch        func(ctx context.Context, a ghrelease.Asset, dst string) error
-	smoke        func(ctx context.Context, bin string) (string, error)
+	smoke        func(ctx context.Context, bin, home string) (string, error)
 }
 
 func (in installer) install(ctx context.Context, dataDir string, v Version, progress func(done, total int64)) (Record, bool, error) {
@@ -167,7 +167,12 @@ func (in installer) install(ctx context.Context, dataDir string, v Version, prog
 	if err := os.Chmod(bin, 0o755); err != nil {
 		return Record{}, false, fmt.Errorf("%s holds no qbittorrent-nox: %w", pin.Name, err)
 	}
-	got, err := in.smoke(ctx, bin)
+	home, err := os.MkdirTemp(toolsDir(dataDir), ".home-")
+	if err != nil {
+		return Record{}, false, err
+	}
+	defer os.RemoveAll(home)
+	got, err := in.smoke(ctx, bin, home)
 	if err != nil {
 		return Record{}, false, err
 	}
@@ -332,13 +337,27 @@ func swapDir(stage, final string) error {
 }
 
 // smokeTest runs the staged build once, which tells a build for another libc
-// or a data folder mounted noexec from one that works.
-func smokeTest(ctx context.Context, bin string) (string, error) {
+// or a data folder mounted noexec from one that works. --version takes no
+// --profile, and qBittorrent aborts when it cannot create its folders under
+// HOME, which for a container running as nobody is often "/", so the run gets
+// a HOME of its own.
+func smokeTest(ctx context.Context, bin, home string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, smokeTimeout)
 	defer cancel()
-	out, err := nowindow.CommandContext(ctx, bin, "--version").CombinedOutput()
+	cmd := nowindow.CommandContext(ctx, bin, "--version")
+	cmd.Env = append(os.Environ(),
+		"HOME="+home,
+		"XDG_CACHE_HOME="+filepath.Join(home, ".cache"),
+		"XDG_CONFIG_HOME="+filepath.Join(home, ".config"),
+		"XDG_DATA_HOME="+filepath.Join(home, ".local", "share"),
+	)
+	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("qbittorrent-nox was fetched and verified but does not run on this machine: %v", err)
+		msg := fmt.Sprintf("qbittorrent-nox was fetched and verified but does not run on this machine: %v", err)
+		if said := strings.TrimSpace(string(out)); said != "" {
+			msg += ": " + said
+		}
+		return "", errors.New(msg)
 	}
 	v := versionLine(string(out))
 	if v == "" {

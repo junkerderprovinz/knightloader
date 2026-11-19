@@ -296,6 +296,7 @@ function ServerDialog({
   const [saving, setSaving] = useState(false);
   const [picking, setPicking] = useState(!initial.id);
   const [provider, setProvider] = useState<UsenetProvider | null>(null);
+  const [last, setLast] = useState<string>();
   const [query, setQuery] = useState('');
   const set = (patch: Partial<UsenetServerSave>) => {
     setS((cur) => ({ ...cur, ...patch }));
@@ -304,6 +305,7 @@ function ServerDialog({
 
   function pick(id: string) {
     const p = USENET_PROVIDERS.find((x) => x.id === id) ?? null;
+    setLast(id);
     setProvider(p);
     setS(p ? { ...BLANK, host: p.host, port: p.port, connections: p.connections ?? BLANK.connections } : BLANK);
     setResult(null);
@@ -368,7 +370,7 @@ function ServerDialog({
       hue={hue}
       // The picker's window, which the form of the picked provider stays in.
       wide={!initial.id}
-      height={picking ? 'capped' : 'content'}
+      height={initial.id ? 'content' : 'capped'}
       holdHeight={picking && query !== ''}
       closeOnBackdrop={picking}
       right={picking && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
@@ -414,7 +416,7 @@ function ServerDialog({
       }
     >
       {picking ? (
-        <BrandPicker brands={brands} none="" onPick={pick} />
+        <BrandPicker brands={brands} none="" selected={last} onPick={pick} />
       ) : (
         <div className="flex flex-col gap-4">
           <SettingRow control="long" label={t('accounts.usenet.host')} hint={t('accounts.usenet.hostHint')}>

@@ -126,6 +126,7 @@ function RenameWindow({
     <Modal
       title={title}
       wide
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

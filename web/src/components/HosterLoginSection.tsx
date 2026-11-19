@@ -33,6 +33,10 @@ import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconCheck, IconClose, IconSave, IconSignIn, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
+import { catalogBrands } from './CatalogTiles';
+import { ownTile } from './OwnLogos';
+import { DOWNLOAD_PROVIDERS, type DownloadProviderId } from '../lib/catalogs/downloadProviders';
+import { IconCloud } from '../lib/glyphs';
 import { SiteLoginDialog, SiteState } from './SiteLoginDialog';
 import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
@@ -556,6 +560,7 @@ function HosterLoginDialog({
 }) {
   const { t } = useT();
   const [query, setQuery] = useState('');
+  const [last, setLast] = useState<string>();
   const [picked, setPicked] = useState<HosterHost | null>(
     editing ? { id: editing.host, label: editing.host } : null,
   );
@@ -599,18 +604,34 @@ function HosterLoginDialog({
   // A site signed into through the browser is offered until it is added, and
   // stands in for JD's entry of the same host, whose password login the site
   // does not take.
+  // GlimStone's catalog names the hosters it knows and gives their marks, by
+  // the domain a login is filed under; the rest bring the logo their site has.
   const configured = new Set(existing.map((e) => e.host));
+  const offered = hosts.filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites));
+  const known = new Set<string>(DOWNLOAD_PROVIDERS.entries.filter((e) => e.group === 'hoster').map((e) => e.id));
   const brands: Brand[] = [
-    ...hosts
-      .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
-      .map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id })),
+    ...catalogBrands(
+      DOWNLOAD_PROVIDERS,
+      {
+        ids: offered.filter((h) => known.has(h.id)).map((h) => h.id as DownloadProviderId),
+        titles: { debrid: '', hoster: '' },
+        glyph: () => <IconCloud />,
+        lang: pageLang(),
+      },
+      (id) => ({ sub: id }),
+      (id, mark) => ownTile('download', id, mark, id),
+    ).flatMap((g) => g.brands),
+    ...offered.filter((h) => !known.has(h.id)).map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id })),
     ...sites.filter((s) => !s.listed).map((s) => ({ id: SITE_BRAND + s.id, name: s.name, host: s.host, sub: s.host })),
   ].sort((a, b) => a.name.localeCompare(b.name, pageLang(), { sensitivity: 'base' }));
 
   const pick = (id: string) => {
     const site = id.startsWith(SITE_BRAND) ? sites.find((s) => SITE_BRAND + s.id === id) : undefined;
     if (site) onPickSite(site);
-    else setPicked(hosts.find((h) => h.id === id) ?? null);
+    else {
+      setLast(id);
+      setPicked(hosts.find((h) => h.id === id) ?? null);
+    }
   };
 
   async function doSave() {
@@ -670,7 +691,7 @@ function HosterLoginDialog({
       // The picker's window, which the form of the picked hoster stays in, and
       // an edit opens the same form in the same window.
       wide
-      height={picked ? 'content' : 'capped'}
+      height="capped"
       holdHeight={!picked && query !== ''}
       closeOnBackdrop={!picked}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />}
@@ -721,6 +742,7 @@ function HosterLoginDialog({
           <BrandPicker
             brands={brands.filter((b) => brandMatches(b, query))}
             none={t('accounts.noServicesFound')}
+            selected={last}
             onPick={pick}
           />
         </div>

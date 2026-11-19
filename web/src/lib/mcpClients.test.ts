@@ -2,7 +2,8 @@
 // put the wrong mark on clients already set up. The rest keeps a tile from
 // opening a window with nothing to copy or a mark that is not there.
 import { describe, expect, it } from 'vitest';
-import { CLIENT_MARKS } from './mcpClientMarks';
+import { catalogEntry } from './catalogs/catalog';
+import { MCP_PROVIDERS } from './catalogs/mcpProviders';
 import { CLOUD_CLIENTS, LOCAL_CLIENTS, OTHER_CLIENT, clientById, snippetFor } from './mcpClients';
 import { SNIPPETS } from './mcpSnippets';
 
@@ -16,9 +17,8 @@ describe('the client list', () => {
     for (const id of ids) expect(id).toMatch(/^[a-z0-9][a-z0-9-]{0,31}$/);
   });
 
-  // check-tile-hover.mjs holds each tile class to index.css.
-  it('has a mark for every tile', () => {
-    for (const c of [...LOCAL_CLIENTS, ...CLOUD_CLIENTS]) expect(CLIENT_MARKS[c.mark ?? ''], c.id).toBeDefined();
+  it("is in GlimStone's MCP catalog, which gives every tile its name and mark", () => {
+    for (const c of ALL) expect(catalogEntry(MCP_PROVIDERS, c.id), c.id).toBeDefined();
   });
 
   it('has a configuration of its own for every client, naming the address under the base path', () => {

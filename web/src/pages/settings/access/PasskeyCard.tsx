@@ -281,6 +281,7 @@ export function PasskeyCard({
       {renaming && (
         <Modal
           title={t('auth.passkey.rename')}
+          closeOnBackdrop={false}
           onClose={() => (busy ? undefined : setRenaming(null))}
           footer={
             <>

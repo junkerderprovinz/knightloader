@@ -447,7 +447,7 @@ export function CaptchaModal() {
           : undefined;
 
   return (
-    <Modal title={title} hint={hint} onClose={() => handleSkip('skip-once')}
+    <Modal title={title} hint={hint} closeOnBackdrop={false} onClose={() => handleSkip('skip-once')}
       footer={
         <>
           {/* The forward button ends the row, so the clock goes first. */}

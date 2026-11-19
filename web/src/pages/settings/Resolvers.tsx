@@ -644,6 +644,7 @@ export function Resolvers() {
           <Modal
             title={t('settings.resolvers.presetAdd')}
             hue={7}
+            closeOnBackdrop={false}
             onClose={closeAddPreset}
             footer={
               <>

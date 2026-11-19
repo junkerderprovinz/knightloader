@@ -510,6 +510,7 @@ function ServerWindow({
   onClose: () => void;
 }) {
   const { t } = useT();
+  const [last, setLast] = useState<string>();
   const kind = draft.kind;
   if (kind === '') {
     const brands: Brand[] = kinds.map((k) => ({
@@ -531,7 +532,15 @@ function ServerWindow({
           </>
         }
       >
-        <BrandPicker brands={brands} none="" onPick={(id) => onDraft({ ...draft, kind: id as PlaybackKind })} />
+        <BrandPicker
+          brands={brands}
+          none=""
+          selected={last}
+          onPick={(id) => {
+            setLast(id);
+            onDraft({ ...draft, kind: id as PlaybackKind });
+          }}
+        />
       </Modal>
     );
   }
@@ -539,6 +548,8 @@ function ServerWindow({
     <Modal
       title={draft.id ? draft.name || KIND_NAMES[kind] : KIND_NAMES[kind]}
       wide
+      height="capped"
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

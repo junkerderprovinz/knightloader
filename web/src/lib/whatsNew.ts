@@ -51,6 +51,15 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.9.2',
+    changes: [
+      // Drawn in the VPN and MCP client windows.
+      { id: 'picker-look', to: INTEGRATIONS, text: 'whatsnew.change.pickerLook' },
+      // Drawn in the folder window, on a share the container cannot follow.
+      { id: 'exclusive-shares', to: ['/settings/look'], text: 'whatsnew.change.exclusiveShares' },
+    ],
+  },
+  {
     version: '2.9.1',
     changes: [
       {

@@ -1,34 +1,23 @@
+import { ProviderMark } from '../../../components/CatalogTiles';
+import { ownRowMark } from '../../../components/OwnLogos';
 import { LabelBadge } from '../../../components/ui';
-import { Logo, Monogram, monogramPaint, type Paint } from '../../../components/HosterIcon';
 import type { VpnConnState, VpnProvider } from '../../../lib/api';
-import { withBase } from '../../../lib/basePath';
+import { catalogEntry } from '../../../lib/catalogs/catalog';
+import { VPN_PROVIDERS } from '../../../lib/catalogs/vpnProviders';
+import { IconShieldOn } from '../../../lib/glyphs';
 import type { TranslationKey } from '../../../lib/i18n';
-import type { LogoTile } from '../../../lib/logoTile';
-import { VPN_APP_ONLY, VPN_PROVIDERS } from '../../../lib/vpnProviders';
 
 type T = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
-const LOGOS = new Map<string, LogoTile | null>([...VPN_PROVIDERS, ...VPN_APP_ONLY].map((p) => [p.id, p.logo]));
-
-/**
- * VpnMark is a provider's logo from public/vpn, or its letter tile where there
- * is none. `lit` adds the mask its brand tile shows under the pointer.
- */
-export function VpnMark({ id, name, size, lit }: { id: string; name: string; size: number; lit?: boolean }) {
-  const box = { width: size, height: size };
-  const logo = LOGOS.get(id);
-  if (!logo) return <Monogram name={name} box={box} />;
-  const src = withBase(`/vpn/${id}.png`);
-  const mask = logo.lit ? withBase(`/vpn/${id}.lit.png`) : src;
-  return <Logo src={src} mask={mask} info={logo} box={box} lit={lit} />;
+/** VpnMark is the mark a provider's tile wears in the picker, or the VPN glyph for one without. */
+export function VpnMark({ id, size }: { id: string; size: number }) {
+  const mark = catalogEntry(VPN_PROVIDERS, id)?.mark;
+  const own = ownRowMark('vpn', id, mark, size);
+  return <ProviderMark mark={own ? undefined : mark} glyph={own ?? <IconShieldOn />} size={size} />;
 }
 
-/** vpnPaint is the colours a provider's tile lights up in. */
-export const vpnPaint = (id: string, name: string): Paint => LOGOS.get(id) ?? monogramPaint(name);
-
-/** The own config is no brand, so its name is the interface's words. */
-export const nameOf = (t: T, p: Pick<VpnProvider, 'id' | 'name'>): string =>
-  p.id === 'custom' ? t('settings.vpn.custom') : p.name;
+/** The own config goes by WireGuard alone, in every language, as the tunnel it brings. */
+export const nameOf = (p: Pick<VpnProvider, 'id' | 'name'>): string => (p.id === 'custom' ? 'WireGuard' : p.name);
 
 const STATE_WORD: Record<VpnConnState, TranslationKey> = {
   idle: 'settings.vpn.state.saved',
@@ -58,5 +47,5 @@ const FAILURE: Record<string, TranslationKey> = {
 /** failureOf words why a provider failed, in the reader's language where the code is known. */
 export function failureOf(t: T, p: VpnProvider): string {
   const key = p.errorCode ? FAILURE[p.errorCode] : undefined;
-  return key ? t(key, { name: nameOf(t, p) }) : (p.error ?? '');
+  return key ? t(key, { name: nameOf(p) }) : (p.error ?? '');
 }

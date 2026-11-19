@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,7 +12,9 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/ghrelease"
@@ -620,8 +623,16 @@ func TestTheCacheNoticesTheFileChanging(t *testing.T) {
 	}
 
 	// Same behaviour, different bytes: the fingerprint is size and modification
-	// time, so appending is enough to move both.
-	f, err := os.OpenFile(BinaryPath(dir), os.O_APPEND|os.O_WRONLY, 0o755)
+	// time, so appending is enough to move both. Linux can refuse to open a
+	// program for writing for a moment after it has run.
+	var f *os.File
+	var err error
+	for began := time.Now(); ; time.Sleep(10 * time.Millisecond) {
+		f, err = os.OpenFile(BinaryPath(dir), os.O_APPEND|os.O_WRONLY, 0o755)
+		if !errors.Is(err, syscall.ETXTBSY) || time.Since(began) > 5*time.Second {
+			break
+		}
+	}
 	if err != nil {
 		t.Fatal(err)
 	}

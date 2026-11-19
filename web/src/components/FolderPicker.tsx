@@ -14,16 +14,21 @@ import { Tabs } from './Tabs';
 interface FolderEntry {
   name: string;
   path: string;
+  /** Where a link that leads nowhere points, set only for such a link. */
+  target?: string;
 }
 
 /**
  * Listing is GET /api/folders' answer. For a folder that does not exist yet,
- * `listed` is the deepest existing parent, the one `entries` describes.
+ * `listed` is the deepest existing parent, the one `entries` describes, and
+ * `link` is set when a link on the way leads to a folder the server cannot
+ * see, such as an Unraid share on exclusive access.
  */
 interface Listing {
   path: string;
   tail: string;
   exists: boolean;
+  link?: { path: string; target: string; missing: string };
   listed: string;
   parent: string;
   roots: string[];
@@ -303,17 +308,18 @@ export function FolderPicker({
   const activeRoot =
     data?.roots.filter((r) => under(r, text)).sort((a, b) => b.length - a.length)[0] ?? null;
 
-  const fresh = data && sameFolder(text, data.path) && !data.exists;
+  const shown = data && sameFolder(text, data.path) ? data : null;
 
   return (
     <Modal
       title={title ?? t('folders.title')}
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>
           <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <span className="flex-1" />
-          <Button icon={<IconApply />} onClick={() => onPick(joinTail(text, tail))} disabled={text.trim() === ''}>
+          <Button icon={<IconApply />} onClick={() => onPick(joinTail(text, tail))} disabled={text.trim() === '' || !!shown?.link}>
             {t('folders.use')}
           </Button>
         </>
@@ -379,11 +385,12 @@ export function FolderPicker({
             key={e.path}
             type="button"
             onClick={() => navigate(e.path)}
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm
-              text-carbon-text transition-colors hover:bg-hover"
+            className={`flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm
+              transition-colors hover:bg-hover ${e.target ? 'text-carbon-textMuted' : 'text-carbon-text'}`}
           >
             <IconFolder width={16} height={16} className="shrink-0 text-carbon-textMuted" />
             <span className="truncate">{e.name}</span>
+            {e.target && <span className="truncate text-xs">{e.target}</span>}
           </button>
         ))}
         {data && data.entries.length === 0 && (
@@ -447,7 +454,7 @@ export function FolderPicker({
             kind="secondary"
             icon={<IconFolderAdd width={16} height={16} />}
             hint={t('folders.newFolderHint')}
-            disabled={!data}
+            disabled={!data || !!data.link}
             onClick={() => setNaming(true)}
           >
             {t('folders.newFolder')}
@@ -465,7 +472,14 @@ export function FolderPicker({
           {refusalText(t, error)}
         </p>
       )}
-      {fresh && <p className="text-xs text-statusWarn">{missingHint ?? t('folders.new')}</p>}
+      {shown?.link && (
+        <p data-new="exclusive-shares" className="text-xs text-statusWarn">
+          {t('folders.deadLink', { target: shown.link.target, missing: shown.link.missing })}
+        </p>
+      )}
+      {shown && !shown.exists && !shown.link && (
+        <p className="text-xs text-statusWarn">{missingHint ?? t('folders.new')}</p>
+      )}
       {data?.truncated && (
         <p className="glim-num text-xs text-carbon-textMuted">
           {t('folders.truncated', { n: data.entries.length })}

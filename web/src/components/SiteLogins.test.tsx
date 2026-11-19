@@ -237,7 +237,7 @@ it('offers the sites not added in the picker, with their domain beneath, and ope
   sites = [patreon, notAdded(youtube), instagram];
   await renderCard();
   await act(async () => button('Add')!.click());
-  expect(tile('rapidgator.net')).toBeDefined();
+  expect(tile('Rapidgator')).toBeDefined();
   expect(tile('Patreon')).toBeUndefined();
   expect(tile('YouTube')?.querySelector('.glim-readme-btn-sub')?.textContent).toBe('youtube.com');
   expect(tile('Instagram')?.querySelector('.glim-readme-btn-sub')?.textContent).toBe('instagram.com');

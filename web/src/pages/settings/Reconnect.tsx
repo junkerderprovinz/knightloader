@@ -699,6 +699,7 @@ function ImportPanel({
       title={t('settings.reconnect.import')}
       height="capped"
       wide
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

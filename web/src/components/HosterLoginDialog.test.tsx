@@ -120,7 +120,7 @@ async function openPicker() {
 
 const rapidgatorTile = () =>
   [...document.querySelectorAll<HTMLElement>('.glim-readme-btn-unit')].find(
-    (li) => li.querySelector('.glim-readme-btn-name')?.textContent === 'rapidgator.net',
+    (li) => li.querySelector('.glim-readme-btn-name')?.textContent === 'Rapidgator',
   )!;
 
 /** Opens the window, picks Rapidgator and fills in the login. */

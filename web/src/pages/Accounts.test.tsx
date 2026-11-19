@@ -883,7 +883,7 @@ describe('a hoster login with two-factor sign-in', () => {
     await act(async () => root.render(page));
     await addIn('Hoster accounts');
     const tile = [...document.querySelectorAll<HTMLButtonElement>('[data-new="hoster-logos"] button')].find((b) =>
-      b.textContent?.startsWith('rapidgator.net'),
+      b.textContent?.startsWith('Rapidgator'),
     )!;
     await act(async () => tile.click());
     type(field('Username')!, 'john');

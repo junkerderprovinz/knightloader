@@ -463,6 +463,7 @@ export function TaskOptionsDialog({
   return (
     <Modal
       title={title}
+      closeOnBackdrop={false}
       onClose={onClose}
       footer={
         <>

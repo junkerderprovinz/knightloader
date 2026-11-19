@@ -79,6 +79,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.9.2" date="2026-11-19">
+      <description>
+        <p>The pickers for VPNs, MCP clients, debrid and captcha services, hoster logins and event targets take their tiles from GlimStone's catalogs, and deleting a download with its files takes along the empty folders its name made.</p>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.9.2</url>
+    </release>
     <release version="2.9.1" date="2026-11-18">
       <description>
         <p>Every torrent runs in qBittorrent, which KnightLoader brings along and runs in the background, and finished torrents are seeded on your other trackers as well.</p>
