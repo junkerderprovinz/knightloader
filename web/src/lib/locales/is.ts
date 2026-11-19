@@ -1240,6 +1240,7 @@ export const is: Dict = {
   'folders.use': 'Nota þessa möppu',
   'folders.empty': 'Engar undirmöppur hér.',
   'folders.new': 'Þessi mappa er ekki til enn. Hún verður búin til þegar fyrsta niðurhalið lendir í henni.',
+  'folders.deadLink': 'Þessi mappa er tengill á {target}, en KnightLoader sér ekki þá slóð. Á Unraid er samnýtt mappa með einkaaðgangi einmitt svona tengill. Bættu {missing} við sem slóð í stillingum gámsins, eða veldu samnýttu möppuna beint þar sem hún er geymd.',
   'folders.newWatch': 'Þessi mappa er ekki til enn, og ekkert býr hana til af sjálfu sér. Skrár sem settar eru í hana eru teknar um leið og hún er til. Með „Ný mappa“ býrðu hana til núna.',
   'folders.tail': 'Helst',
   'folders.tailHint': 'Flettingin skiptir aðeins út föstum hluta möppunnar. Breyturnar eru settar aftast á ný, svo nafnakerfið þitt tapast ekki.',

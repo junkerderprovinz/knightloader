@@ -1241,6 +1241,7 @@ export const lv: Dict = {
   'folders.use': 'Lietot šo mapi',
   'folders.empty': 'Šeit nav apakšmapju.',
   'folders.new': 'Šīs mapes vēl nav. Tā tiek izveidota, kad tajā nolaižas pirmā lejupielāde.',
+  'folders.deadLink': 'Šī mape ir saite uz {target}, bet šo ceļu KnightLoader neredz. Unraid sistēmā koplietojums ar ekskluzīvu piekļuvi ir tieši šāda saite. Pievieno {missing} kā ceļu konteinera iestatījumos vai izvēlies koplietojumu tieši tā pūlā.',
   'folders.newWatch': 'Šīs mapes vēl nav, un nekas to neizveido pats no sevis. Tajā ieliktie faili tiks paņemti, tiklīdz tā būs izveidota. „Jauna mape“ to izveido uzreiz.',
   'folders.tail': 'Paliek',
   'folders.tailHint': 'Pārlūkošana aizstāj tikai mapes nemainīgo daļu. Mainīgie tiek pielikti atpakaļ beigās, tāpēc tava nosaukumu shēma nepazūd.',

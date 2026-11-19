@@ -1240,6 +1240,7 @@ export const cs: Dict = {
   'folders.use': 'Použít tuto složku',
   'folders.empty': 'Tady nejsou žádné podsložky.',
   'folders.new': 'Tato složka zatím neexistuje. Vznikne, až v ní přistane první stažení.',
+  'folders.deadLink': 'Tahle složka je odkaz na {target}, a ten KnightLoader nevidí. Na Unraidu je takovým odkazem sdílená složka s exkluzivním přístupem. Přidej {missing} jako cestu v nastavení kontejneru, nebo vyber sdílenou složku přímo na jejím poolu.',
   'folders.newWatch': 'Tato složka zatím neexistuje a sama od sebe nevznikne. Soubory, které se do ní vloží, se vyzvednou, jakmile existovat bude. Tlačítko „Nová složka“ ji vytvoří hned.',
   'folders.tail': 'Zůstává',
   'folders.tailHint': 'Procházení nahradí jen pevnou část složky. Proměnné se vrátí na konec, schéma pojmenování se tedy neztratí.',

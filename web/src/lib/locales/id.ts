@@ -1240,6 +1240,7 @@ export const id: Dict = {
   'folders.use': 'Pakai folder ini',
   'folders.empty': 'Tidak ada subfolder di sini.',
   'folders.new': 'Folder ini belum ada. Folder dibuat saat unduhan pertama mendarat di dalamnya.',
+  'folders.deadLink': 'Folder ini adalah tautan ke {target}, yang tidak terlihat oleh KnightLoader. Di Unraid, share dengan akses eksklusif adalah tautan seperti ini. Tambahkan {missing} sebagai path di pengaturan kontainer, atau pilih share itu langsung di pool-nya.',
   'folders.newWatch': 'Folder ini belum ada, dan tidak ada yang membuatnya dengan sendirinya. Berkas yang ditaruh di sana diambil begitu folder itu ada. Dengan “Folder baru” kamu bisa membuatnya sekarang.',
   'folders.tail': 'Dipertahankan',
   'folders.tailHint': 'Menelusuri hanya mengganti bagian tetap dari folder. Variabelnya dipasang kembali di ujung, jadi skema penamaanmu tidak hilang.',

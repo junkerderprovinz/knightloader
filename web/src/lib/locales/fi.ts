@@ -1240,6 +1240,7 @@ export const fi: Dict = {
   'folders.use': 'Käytä tätä kansiota',
   'folders.empty': 'Täällä ei ole alikansioita.',
   'folders.new': 'Tätä kansiota ei ole vielä olemassa. Se luodaan, kun ensimmäinen lataus laskeutuu siihen.',
+  'folders.deadLink': 'Tämä kansio on linkki kohteeseen {target}, jota KnightLoader ei näe. Unraidissa yksinoikeudella käytettävä jako on tällainen linkki. Lisää {missing} polkuna kontin asetuksiin tai valitse jako suoraan sen poolista.',
   'folders.newWatch': 'Tätä kansiota ei ole vielä olemassa, eikä mikään luo sitä itsestään. Siihen pudotetut tiedostot otetaan vastaan, kun se on olemassa. ”Uusi kansio” luo sen heti.',
   'folders.tail': 'Säilyy',
   'folders.tailHint': 'Selaaminen korvaa vain kansion kiinteän osan. Muuttujat pannaan takaisin loppuun, joten nimeämistapasi ei katoa.',

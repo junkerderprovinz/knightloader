@@ -1232,6 +1232,7 @@ export const fr: Dict = {
   'folders.use': 'Utiliser ce dossier',
   'folders.empty': 'Aucun sous-dossier ici.',
   'folders.new': 'Ce dossier n’existe pas encore. Il sera créé dès que le premier téléchargement y arrivera.',
+  'folders.deadLink': 'Ce dossier est un lien vers {target}, que KnightLoader ne voit pas. Sur Unraid, un partage en accès exclusif est un lien de ce genre. Ajoutez {missing} comme chemin dans les réglages du conteneur, ou choisissez le partage directement sur son pool.',
   'folders.newWatch': 'Ce dossier n’existe pas encore, et rien ne le crée de lui-même. Les fichiers qui y sont déposés seront pris en charge dès qu’il existera. « Nouveau dossier » le crée tout de suite.',
   'folders.tail': 'Conservé',
   'folders.tailHint': 'Le parcours ne remplace que la partie fixe du dossier. Les variables sont replacées à la fin, votre schéma de nommage n’est donc pas perdu.',

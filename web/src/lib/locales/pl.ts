@@ -1233,6 +1233,7 @@ export const pl: Dict = {
   'folders.use': 'Użyj tego folderu',
   'folders.empty': 'Brak podfolderów.',
   'folders.new': 'Tego folderu jeszcze nie ma. Powstanie, gdy wyląduje w nim pierwsze pobranie.',
+  'folders.deadLink': 'Ten folder to dowiązanie do {target}, a tej ścieżki KnightLoader nie widzi. Na Unraid udział z wyłącznym dostępem jest właśnie takim dowiązaniem. Dodaj {missing} jako ścieżkę w ustawieniach kontenera albo wybierz udział bezpośrednio na jego puli.',
   'folders.newWatch': 'Tego folderu jeszcze nie ma i nic nie utworzy go samo. Pliki, które się w nim pojawią, zostaną odebrane, gdy już będzie istniał. Przycisk „Nowy folder” tworzy go od razu.',
   'folders.tail': 'Zostaje',
   'folders.tailHint': 'Przeglądanie zastępuje tylko stałą część folderu. Zmienne wracają na koniec, więc twój schemat nazw nie ginie.',

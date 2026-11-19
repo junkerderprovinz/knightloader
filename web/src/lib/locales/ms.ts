@@ -1240,6 +1240,7 @@ export const ms: Dict = {
   'folders.use': 'Guna folder ini',
   'folders.empty': 'Tiada subfolder di sini.',
   'folders.new': 'Folder ini belum wujud. Ia dicipta apabila muat turun pertama mendarat di dalamnya.',
+  'folders.deadLink': 'Folder ini ialah pautan ke {target}, yang tidak dapat dilihat oleh KnightLoader. Di Unraid, perkongsian dengan akses eksklusif ialah pautan seperti ini. Tambahkan {missing} sebagai laluan dalam tetapan bekas, atau pilih perkongsian itu terus pada pool-nya.',
   'folders.newWatch': 'Folder ini belum wujud, dan tiada apa-apa yang menciptanya dengan sendiri. Fail yang diletakkan di dalamnya diambil sebaik sahaja folder itu wujud. Dengan “Folder baharu” anda boleh menciptanya sekarang.',
   'folders.tail': 'Dikekalkan',
   'folders.tailHint': 'Melayari hanya menggantikan bahagian tetap folder itu. Pemboleh ubahnya dipasang semula di hujung, jadi skema penamaan anda tidak hilang.',

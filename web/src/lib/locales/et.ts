@@ -1240,6 +1240,7 @@ export const et: Dict = {
   'folders.use': 'Kasuta seda kausta',
   'folders.empty': 'Siin alamkaustu ei ole.',
   'folders.new': 'Seda kausta veel ei ole. See luuakse, kui esimene allalaadimine sinna maandub.',
+  'folders.deadLink': 'See kaust on link asukohta {target}, aga seda teed KnightLoader ei näe. Unraidis on eksklusiivse juurdepääsuga jagatud kaust just selline link. Lisa {missing} konteineri seadetes teena või vali jagatud kaust otse selle poolis.',
   'folders.newWatch': 'Seda kausta veel ei ole ja miski ei loo seda ise. Sinna pandud failid võetakse üles, kui see olemas on. „Uus kaust“ loob selle kohe.',
   'folders.tail': 'Jääb alles',
   'folders.tailHint': 'Sirvimine asendab kaustast ainult püsiva osa. Muutujad pannakse lõppu tagasi, nii et sinu nimeskeem ei kao.',

@@ -1232,6 +1232,7 @@ export const it: Dict = {
   'folders.use': 'Usa questa cartella',
   'folders.empty': 'Nessuna sottocartella qui.',
   'folders.new': 'Questa cartella non esiste ancora. Viene creata quando vi atterra il primo download.',
+  'folders.deadLink': 'Questa cartella è un collegamento a {target}, che KnightLoader non vede. Su Unraid una condivisione con accesso esclusivo è un collegamento di questo tipo. Aggiungi {missing} come percorso nelle impostazioni del container, oppure scegli la condivisione direttamente sul suo pool.',
   'folders.newWatch': 'Questa cartella non esiste ancora, e niente la crea da solo. I file messi lì dentro vengono raccolti non appena esiste. «Nuova cartella» la crea subito.',
   'folders.tail': 'Resta',
   'folders.tailHint': 'Sfogliando si sostituisce solo la parte fissa della cartella. Le variabili vengono rimesse in fondo, quindi lo schema dei nomi non va perso.',

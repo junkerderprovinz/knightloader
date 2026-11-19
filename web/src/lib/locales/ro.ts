@@ -1242,6 +1242,7 @@ export const ro: Dict = {
   'folders.use': 'Folosește acest dosar',
   'folders.empty': 'Aici nu sunt subdosare.',
   'folders.new': 'Acest dosar nu există încă. Se creează când aterizează în el prima descărcare.',
+  'folders.deadLink': 'Acest dosar este o legătură către {target}, iar KnightLoader nu vede calea aceea. Pe Unraid, o partajare cu acces exclusiv este o astfel de legătură. Adaugă {missing} ca o cale în setările containerului sau alege partajarea direct pe pool-ul ei.',
   'folders.newWatch': 'Acest dosar nu există încă și nimic nu îl creează de la sine. Fișierele puse în el sunt preluate după ce există. Cu „Dosar nou” îl creezi acum.',
   'folders.tail': 'Rămâne',
   'folders.tailHint': 'Răsfoirea înlocuiește doar partea fixă a dosarului. Variabilele sunt puse la loc la final, așa că schema ta de denumire nu se pierde.',

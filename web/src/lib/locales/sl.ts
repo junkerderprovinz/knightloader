@@ -1240,6 +1240,7 @@ export const sl: Dict = {
   'folders.use': 'Uporabi to mapo',
   'folders.empty': 'Tu ni podmap.',
   'folders.new': 'Ta mapa še ne obstaja. Nastane, ko vanjo pristane prvi prenos.',
+  'folders.deadLink': 'Ta mapa je povezava na {target}, te poti pa KnightLoader ne vidi. Na Unraidu je skupna raba z izključnim dostopom prav taka povezava. Dodaj {missing} kot pot v nastavitvah vsebnika ali izberi skupno rabo neposredno na njenem poolu.',
   'folders.newWatch': 'Ta mapa še ne obstaja in sama od sebe ne bo nastala. Datoteke, ki jih spustiš vanjo, bodo prevzete, ko bo obstajala. Gumb »Nova mapa« jo ustvari takoj.',
   'folders.tail': 'Ostane',
   'folders.tailHint': 'Brskanje zamenja le stalni del mape. Spremenljivke se vrnejo na konec, tako da se tvoja shema poimenovanja ne izgubi.',

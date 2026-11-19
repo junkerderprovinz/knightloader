@@ -1519,6 +1519,8 @@ export const en = {
   'folders.use': 'Use this folder',
   'folders.empty': 'No sub-folders here.',
   'folders.new': 'This folder does not exist yet. It is created when the first download lands in it.',
+  'folders.deadLink':
+    'This folder is a link to {target}, which KnightLoader cannot see. On Unraid, a share set to exclusive access is a link like this. Add {missing} as a path in the container settings, or pick the share on its pool directly.',
   'folders.newWatch':
     'This folder does not exist yet, and nothing creates it by itself. Files dropped into it are taken once it does. New folder makes it now.',
   'folders.tail': 'Kept',

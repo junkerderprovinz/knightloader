@@ -1369,6 +1369,7 @@ export const de: Dict = {
   'folders.use': 'Diesen Ordner nehmen',
   'folders.empty': 'Hier gibt es keine Unterordner.',
   'folders.new': 'Diesen Ordner gibt es noch nicht. Er wird angelegt, sobald der erste Download darin landet.',
+  'folders.deadLink': 'Dieser Ordner ist ein Link auf {target}, und den sieht KnightLoader nicht. Auf Unraid ist eine Freigabe mit exklusivem Zugriff so ein Link. Füg {missing} in den Container-Einstellungen als Pfad hinzu oder wähl die Freigabe direkt auf ihrem Pool.',
   'folders.newWatch': 'Diesen Ordner gibt es noch nicht, und von selbst legt ihn niemand an. Was dort abgelegt wird, wird übernommen, sobald es ihn gibt. Mit „Neuer Ordner“ legst du ihn gleich an.',
   'folders.tail': 'Bleibt',
   'folders.tailHint': 'Beim Durchsuchen wird nur der feste Teil des Ordners ersetzt. Die Variablen kommen hinten wieder dran, dein Namensschema geht also nicht verloren.',

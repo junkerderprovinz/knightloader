@@ -1232,6 +1232,7 @@ export const pt: Dict = {
   'folders.use': 'Usar esta pasta',
   'folders.empty': 'Não há subpastas aqui.',
   'folders.new': 'Esta pasta ainda não existe. É criada quando a primeira transferência aterrar nela.',
+  'folders.deadLink': 'Esta pasta é uma ligação para {target}, que o KnightLoader não consegue ver. No Unraid, uma partilha com acesso exclusivo é uma ligação assim. Adiciona {missing} como caminho nas definições do contentor, ou escolhe a partilha diretamente no seu pool.',
   'folders.newWatch': 'Esta pasta ainda não existe, e nada a cria sozinho. Os ficheiros largados nela são recolhidos assim que ela existir. «Nova pasta» cria-a já.',
   'folders.tail': 'Fica',
   'folders.tailHint': 'Percorrer substitui apenas a parte fixa da pasta. As variáveis voltam a ser postas no fim, por isso o seu esquema de nomes não se perde.',

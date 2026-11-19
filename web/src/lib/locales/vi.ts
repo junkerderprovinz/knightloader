@@ -1240,6 +1240,7 @@ export const vi: Dict = {
   'folders.use': 'Dùng thư mục này',
   'folders.empty': 'Không có thư mục con ở đây.',
   'folders.new': 'Thư mục này chưa tồn tại. Nó được tạo khi lượt tải đầu tiên đáp vào đó.',
+  'folders.deadLink': 'Thư mục này là một liên kết tới {target}, nơi KnightLoader không thấy được. Trên Unraid, một thư mục chia sẻ đặt truy cập độc quyền là một liên kết như vậy. Hãy thêm {missing} làm một đường dẫn trong phần cài đặt của tệp chứa, hoặc chọn thư mục chia sẻ đó trực tiếp trên pool của nó.',
   'folders.newWatch': 'Thư mục này chưa tồn tại, và không có gì tự tạo ra nó. Khi đã có, các tệp thả vào đó sẽ được nhận. Nhấn “Thư mục mới” để tạo nó ngay bây giờ.',
   'folders.tail': 'Giữ lại',
   'folders.tailHint': 'Việc duyệt chỉ thay phần cố định của thư mục. Các biến được đặt lại ở cuối, nên cách đặt tên của bạn không mất đi.',

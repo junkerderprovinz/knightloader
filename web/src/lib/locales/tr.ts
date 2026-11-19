@@ -1240,6 +1240,7 @@ export const tr: Dict = {
   'folders.use': 'Bu klasörü kullan',
   'folders.empty': 'Burada alt klasör yok.',
   'folders.new': 'Bu klasör henüz yok. İlk indirme içine düştüğünde oluşturulur.',
+  'folders.deadLink': "Bu klasör {target} konumuna giden bir bağlantı ve KnightLoader orayı göremiyor. Unraid'de özel erişime ayarlı bir paylaşım böyle bir bağlantıdır. {missing} yolunu kap ayarlarına bir yol olarak ekle ya da paylaşımı doğrudan kendi havuzunda seç.",
   'folders.newWatch': 'Bu klasör henüz yok ve hiçbir şey onu kendiliğinden oluşturmaz. İçine bırakılan dosyalar, klasör var olduğunda alınır. “Yeni klasör” onu hemen oluşturur.',
   'folders.tail': 'Korunur',
   'folders.tailHint': 'Göz atmak klasörün yalnızca sabit bölümünü değiştirir. Değişkenler sona yeniden eklenir, böylece adlandırma düzeniniz kaybolmaz.',

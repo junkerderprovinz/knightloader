@@ -1232,6 +1232,7 @@ export const es: Dict = {
   'folders.use': 'Usar esta carpeta',
   'folders.empty': 'Aquí no hay subcarpetas.',
   'folders.new': 'Esta carpeta todavía no existe. Se crea cuando aterrice en ella la primera descarga.',
+  'folders.deadLink': 'Esta carpeta es un enlace a {target}, que KnightLoader no puede ver. En Unraid, una carpeta compartida con acceso exclusivo es un enlace así. Añade {missing} como ruta en los ajustes del contenedor o elige la carpeta compartida directamente en su pool.',
   'folders.newWatch': 'Esta carpeta todavía no existe, y nada la crea por sí solo. Los archivos que se dejen en ella se recogerán en cuanto exista. «Nueva carpeta» la crea ahora mismo.',
   'folders.tail': 'Se conserva',
   'folders.tailHint': 'Al explorar solo se sustituye la parte fija de la carpeta. Las variables se vuelven a poner al final, así que su esquema de nombres no se pierde.',

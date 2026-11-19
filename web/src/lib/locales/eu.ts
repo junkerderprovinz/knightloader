@@ -1241,6 +1241,7 @@ export const eu: Dict = {
   'folders.use': 'Erabili karpeta hau',
   'folders.empty': 'Hemen ez dago azpikarpetarik.',
   'folders.new': 'Karpeta hau ez da oraindik existitzen. Lehen deskarga bertan lurreratzen denean sortuko da.',
+  'folders.deadLink': 'Karpeta hau {target} helbiderako esteka bat da, eta KnightLoaderrek ezin du hura ikusi. Unraiden, sarbide esklusiboa duen karpeta partekatu bat horrelako esteka bat da. Gehitu {missing} bide gisa edukiontziaren ezarpenetan, edo aukeratu karpeta partekatua zuzenean bere pool-ean.',
   'folders.newWatch': 'Karpeta hau ez dago oraindik, eta ezerk ez du bere kabuz sortzen. Bertan uzten diren fitxategiak hartu egingo dira karpeta sortzen denean. «Karpeta berria» botoiarekin orain bertan sor dezakezu.',
   'folders.tail': 'Mantentzen da',
   'folders.tailHint': 'Arakatzeak karpetaren zati finkoa baino ez du ordezkatzen. Aldagaiak amaieran jartzen dira berriro, beraz zure izendatze-eskema ez da galtzen.',

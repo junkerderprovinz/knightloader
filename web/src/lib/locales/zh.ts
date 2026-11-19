@@ -1240,6 +1240,7 @@ export const zh: Dict = {
   'folders.use': '使用此文件夹',
   'folders.empty': '这里没有子文件夹。',
   'folders.new': '此文件夹尚不存在。第一个下载落到这里时才会创建。',
+  'folders.deadLink': '这个文件夹是指向 {target} 的链接，而 KnightLoader 看不到那里。在 Unraid 上，设为独占访问的共享就是这样的链接。请在容器设置里把 {missing} 添加为一个路径，或者直接在共享所在的池上选择它。',
   'folders.newWatch': '这个文件夹还不存在，也不会自己出现。等它出现后，放进去的文件就会被接收。点“新建文件夹”就能现在建好它。',
   'folders.tail': '保留',
   'folders.tailHint': '浏览只替换文件夹中固定的那部分。变量会重新接回末尾，命名方案不会丢失。',

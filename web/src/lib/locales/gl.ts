@@ -1240,6 +1240,7 @@ export const gl: Dict = {
   'folders.use': 'Usar este cartafol',
   'folders.empty': 'Aquí non hai subcartafoles.',
   'folders.new': 'Este cartafol aínda non existe. Créase cando aterre nel a primeira descarga.',
+  'folders.deadLink': 'Este cartafol é unha ligazón a {target}, que KnightLoader non pode ver. En Unraid, un cartafol compartido con acceso exclusivo é unha ligazón deste tipo. Engade {missing} como ruta na configuración do contedor ou escolle o cartafol compartido directamente no seu pool.',
   'folders.newWatch': 'Este cartafol aínda non existe, e nada o crea por si só. Os ficheiros que se deixen nel recóllense en canto exista. Con «Novo cartafol» créalo agora.',
   'folders.tail': 'Mantense',
   'folders.tailHint': 'Ao explorar só se substitúe a parte fixa do cartafol. As variables vólvense poñer ao final, así que o teu esquema de nomes non se perde.',

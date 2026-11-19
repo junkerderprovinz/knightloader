@@ -1240,6 +1240,7 @@ export const da: Dict = {
   'folders.use': 'Brug denne mappe',
   'folders.empty': 'Ingen undermapper her.',
   'folders.new': 'Denne mappe findes ikke endnu. Den oprettes, når det første download lander i den.',
+  'folders.deadLink': 'Denne mappe er et link til {target}, som KnightLoader ikke kan se. På Unraid er en delt mappe med eksklusiv adgang sådan et link. Tilføj {missing} som sti i beholderens indstillinger, eller vælg den delte mappe direkte på dens pool.',
   'folders.newWatch': 'Denne mappe findes ikke endnu, og intet opretter den af sig selv. Filer, der lægges i den, bliver taget, så snart den findes. Med „Ny mappe“ opretter du den nu.',
   'folders.tail': 'Bevares',
   'folders.tailHint': 'Gennemsyn erstatter kun den faste del af mappen. Variablerne sættes på igen til sidst, så din navngivning går ikke tabt.',

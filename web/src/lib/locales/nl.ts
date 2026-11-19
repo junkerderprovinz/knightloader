@@ -1232,6 +1232,7 @@ export const nl: Dict = {
   'folders.use': 'Deze map gebruiken',
   'folders.empty': 'Hier zijn geen submappen.',
   'folders.new': 'Deze map bestaat nog niet. Hij wordt aangemaakt zodra de eerste download erin landt.',
+  'folders.deadLink': 'Deze map is een koppeling naar {target}, en die ziet KnightLoader niet. Op Unraid is een share met exclusieve toegang zo’n koppeling. Voeg {missing} als pad toe in de instellingen van de container, of kies de share direct op zijn pool.',
   'folders.newWatch': 'Deze map bestaat nog niet, en niets maakt hem vanzelf aan. Bestanden die erin worden gezet, worden opgepakt zodra hij bestaat. Met “Nieuwe map” maak je hem nu aan.',
   'folders.tail': 'Blijft',
   'folders.tailHint': 'Bladeren vervangt alleen het vaste deel van de map. De variabelen komen er achteraan weer bij, je naamschema gaat dus niet verloren.',

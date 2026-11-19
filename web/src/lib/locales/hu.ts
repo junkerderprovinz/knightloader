@@ -1241,6 +1241,7 @@ export const hu: Dict = {
   'folders.use': 'Ezt a mappát használom',
   'folders.empty': 'Itt nincsenek almappák.',
   'folders.new': 'Ez a mappa még nem létezik. Akkor jön létre, amikor az első letöltés beleérkezik.',
+  'folders.deadLink': 'Ez a mappa egy hivatkozás erre: {target}, és ezt a KnightLoader nem látja. Unraidon egy kizárólagos hozzáférésű megosztás ilyen hivatkozás. Add hozzá útvonalként a konténer beállításaiban ezt: {missing}, vagy válaszd a megosztást közvetlenül a saját poolján.',
   'folders.newWatch': 'Ez a mappa még nem létezik, és magától semmi sem hozza létre. A bele tett fájlokat felvesszük, amint létrejön. Az „Új mappa” azonnal létrehozza.',
   'folders.tail': 'Megmarad',
   'folders.tailHint': 'A tallózás csak a mappa rögzített részét cseréli le. A változók visszakerülnek a végére, így a névadási rendje nem vész el.',

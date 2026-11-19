@@ -1241,6 +1241,7 @@ export const lt: Dict = {
   'folders.use': 'Naudoti šį aplanką',
   'folders.empty': 'Čia poaplankių nėra.',
   'folders.new': 'Šio aplanko dar nėra. Jis sukuriamas, kai į jį nusileidžia pirmasis atsisiuntimas.',
+  'folders.deadLink': 'Šis aplankas yra nuoroda į {target}, o šio kelio KnightLoader nemato. Unraid sistemoje bendrinamas aplankas su išskirtine prieiga yra būtent tokia nuoroda. Pridėk {missing} kaip kelią konteinerio nustatymuose arba pasirink bendrinamą aplanką tiesiai jo telkinyje.',
   'folders.newWatch': 'Šio aplanko dar nėra, ir niekas jo savaime nesukuria. Į jį įdėti failai bus paimti, kai tik jis atsiras. Mygtukas „Naujas aplankas“ jį sukuria iš karto.',
   'folders.tail': 'Lieka',
   'folders.tailHint': 'Naršymas pakeičia tik pastoviąją aplanko dalį. Kintamieji vėl prikabinami gale, tad tavo pavadinimų schema nedingsta.',

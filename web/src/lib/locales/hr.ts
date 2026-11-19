@@ -1240,6 +1240,7 @@ export const hr: Dict = {
   'folders.use': 'Upotrijebi ovu mapu',
   'folders.empty': 'Ovdje nema podmapa.',
   'folders.new': 'Ova mapa još ne postoji. Nastaje kad u nju sleti prvo preuzimanje.',
+  'folders.deadLink': 'Ova mapa je poveznica na {target}, a KnightLoader tu putanju ne vidi. Na Unraidu je dijeljena mapa s isključivim pristupom upravo takva poveznica. Dodaj {missing} kao putanju u postavkama kontejnera ili odaberi dijeljenu mapu izravno na njezinom poolu.',
   'folders.newWatch': 'Ova mapa još ne postoji i neće nastati sama od sebe. Datoteke koje se u nju spuste preuzimaju se čim bude postojala. „Nova mapa” je stvara odmah.',
   'folders.tail': 'Ostaje',
   'folders.tailHint': 'Pregledavanje zamjenjuje samo stalni dio mape. Varijable se vraćaju na kraj, pa se tvoja shema naziva ne gubi.',

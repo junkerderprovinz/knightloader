@@ -1240,6 +1240,7 @@ export const sv: Dict = {
   'folders.use': 'Använd den här mappen',
   'folders.empty': 'Inga undermappar här.',
   'folders.new': 'Den här mappen finns inte än. Den skapas när den första nedladdningen landar i den.',
+  'folders.deadLink': 'Den här mappen är en länk till {target}, som KnightLoader inte kan se. På Unraid är en utdelning med exklusiv åtkomst en sådan länk. Lägg till {missing} som en sökväg i containerns inställningar, eller välj utdelningen direkt på dess pool.',
   'folders.newWatch': 'Den här mappen finns inte än, och ingenting skapar den av sig självt. Filer som läggs i den tas om hand så snart den finns. Med ”Ny mapp” skapar du den nu.',
   'folders.tail': 'Behålls',
   'folders.tailHint': 'Bläddrandet byter bara ut den fasta delen av mappen. Variablerna läggs tillbaka på slutet, så din namngivning går inte förlorad.',

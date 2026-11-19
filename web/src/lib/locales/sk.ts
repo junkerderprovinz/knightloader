@@ -1240,6 +1240,7 @@ export const sk: Dict = {
   'folders.use': 'Použiť tento priečinok',
   'folders.empty': 'Tu nie sú žiadne podpriečinky.',
   'folders.new': 'Tento priečinok zatiaľ neexistuje. Vznikne, keď v ňom pristane prvé stiahnutie.',
+  'folders.deadLink': 'Tento priečinok je odkaz na {target}, a ten KnightLoader nevidí. Na Unraide je takým odkazom zdieľaný priečinok s exkluzívnym prístupom. Pridaj {missing} ako cestu v nastaveniach kontajnera, alebo vyber zdieľaný priečinok priamo na jeho poole.',
   'folders.newWatch': 'Tento priečinok zatiaľ neexistuje a sám od seba nevznikne. Súbory, ktoré sa doň vložia, sa prevezmú, keď už bude existovať. Tlačidlo „Nový priečinok“ ho vytvorí hneď.',
   'folders.tail': 'Zostáva',
   'folders.tailHint': 'Prechádzanie nahradí len pevnú časť priečinka. Premenné sa vrátia na koniec, schéma pomenovania sa teda nestratí.',
