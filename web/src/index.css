@@ -799,7 +799,7 @@ body {
      the page under the card instead. */
   --list-band-sunk: light-dark(
     color-mix(in srgb, var(--carbon-text) 10%, transparent),
-    color-mix(in srgb, var(--carbon-bg) 60%, transparent)
+    color-mix(in srgb, var(--carbon-bg) 85%, transparent)
   );
   /* The greyed ink on that ground. On a light theme the sunk ground moves
      toward the muted grey, so the ink steps toward the text colour and reads
@@ -814,7 +814,7 @@ body {
   --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 15%, transparent);
   --list-band-sunk: light-dark(
     color-mix(in srgb, var(--carbon-text) 15%, transparent),
-    color-mix(in srgb, var(--carbon-bg) 75%, transparent)
+    color-mix(in srgb, var(--carbon-bg) 95%, transparent)
   );
 }
 
