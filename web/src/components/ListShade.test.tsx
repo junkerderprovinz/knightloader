@@ -175,6 +175,7 @@ describe('the shades', () => {
   );
   const css = fs.readFileSync('src/index.css', 'utf8');
   const strongBlock = /:where\(\[data-shade='strong'\]\) \{([^}]*)\}/.exec(css)?.[1] ?? '';
+  const moderateBlock = /:where\(\[data-shade='moderate'\]\) \{([^}]*)\}/.exec(css)?.[1] ?? '';
   /** How much of the text colour a band mixes in, in percent. A clear band mixes none. */
   const share = (band: string, from = css) => {
     const value = new RegExp(`--list-band-${band}:\\s*([^;]+);`).exec(from)?.[1].trim();
@@ -227,11 +228,14 @@ describe('the shades', () => {
     expect(body).not.toMatch(/background-color/);
   });
 
-  it('sinks a parked row further than the files alternate, and harder at the high-contrast level', () => {
-    expect(sunk().light).toBeGreaterThan(share('even') - share('odd'));
+  it('sinks a parked row further than the files alternate, a step deeper at each shading level', () => {
+    expect(sunk(moderateBlock).light).toBeGreaterThan(share('even') - share('odd'));
     expect(sunk(strongBlock).light).toBeGreaterThan(share('even', strongBlock));
-    expect(sunk(strongBlock).light).toBeGreaterThan(sunk().light);
-    expect(sunk(strongBlock).dark).toBeGreaterThan(sunk().dark);
+    const [off, moderate, strong] = [sunk(), sunk(moderateBlock), sunk(strongBlock)];
+    expect(moderate.light).toBeGreaterThan(off.light);
+    expect(strong.light).toBeGreaterThan(moderate.light);
+    expect(moderate.dark).toBeGreaterThan(off.dark);
+    expect(strong.dark).toBeGreaterThan(moderate.dark);
   });
 
   it('keeps the greyed text of a parked row at least as readable as before it sank', () => {
@@ -257,7 +261,7 @@ describe('the shades', () => {
     ];
     const levels = [
       { name: 'off', bands: [0], sink: sunk() },
-      { name: 'moderate', bands: ['odd', 'even', 'head', 'head-alt'].map((b) => share(b)), sink: sunk() },
+      { name: 'moderate', bands: ['odd', 'even', 'head', 'head-alt'].map((b) => share(b)), sink: sunk(moderateBlock) },
       { name: 'strong', bands: [0, ...['even', 'head', 'head-alt'].map((b) => share(b, strongBlock))], sink: sunk(strongBlock) },
     ];
     const misses: string[] = [];

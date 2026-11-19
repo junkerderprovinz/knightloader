@@ -794,17 +794,24 @@ body {
   --list-band-head:  color-mix(in srgb, var(--carbon-text) 4%, transparent);
   --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 7%, transparent);
   /* A parked row lies a step below its band, further than the links
-     alternate, so it stands apart and the alternation still shows through.
-     Light text on a dark theme would lift the row, so there it sinks toward
-     the page under the card instead. */
+     alternate, so it stands apart and the alternation still shows through,
+     and a step deeper at each shading level. Light text on a dark theme would
+     lift the row, so there it sinks toward the page under the card instead,
+     short of it so the row stays grey. */
   --list-band-sunk: light-dark(
-    color-mix(in srgb, var(--carbon-text) 10%, transparent),
-    color-mix(in srgb, var(--carbon-bg) 85%, transparent)
+    color-mix(in srgb, var(--carbon-text) 7%, transparent),
+    color-mix(in srgb, var(--carbon-bg) 40%, transparent)
   );
   /* The greyed ink on that ground. On a light theme the sunk ground moves
      toward the muted grey, so the ink steps toward the text colour and reads
      no worse than on a live row. On a dark one the darker ground lifts it. */
   --parked-ink: light-dark(color-mix(in srgb, var(--carbon-text-muted), var(--carbon-text) 35%), var(--carbon-text-muted));
+}
+:where([data-shade='moderate']) {
+  --list-band-sunk: light-dark(
+    color-mix(in srgb, var(--carbon-text) 10%, transparent),
+    color-mix(in srgb, var(--carbon-bg) 55%, transparent)
+  );
 }
 /* High contrast: the same bands, each a clear step apart, for a screen or an
    eye on which the moderate shades run together. */
@@ -814,7 +821,7 @@ body {
   --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 15%, transparent);
   --list-band-sunk: light-dark(
     color-mix(in srgb, var(--carbon-text) 15%, transparent),
-    color-mix(in srgb, var(--carbon-bg) 95%, transparent)
+    color-mix(in srgb, var(--carbon-bg) 70%, transparent)
   );
 }
 
