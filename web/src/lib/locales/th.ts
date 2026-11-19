@@ -1795,8 +1795,6 @@ export const th: Dict = {
   'settings.access.mcp.add': 'เพิ่มไคลเอนต์',
   'settings.access.mcp.pickHint': 'เลือกผู้ช่วยที่ต้องการให้เข้าถึง KnightLoader ไคลเอนต์ที่ไม่อยู่ในรายการให้เชื่อมต่อผ่านไคลเอนต์อื่น',
   'settings.access.mcp.search': 'ค้นหาไคลเอนต์',
-  'settings.access.mcp.groupLocal': 'บนคอมพิวเตอร์เครื่องนี้',
-  'settings.access.mcp.groupCloud': 'บนคลาวด์',
   'settings.access.mcp.cloudHint': 'บริการเหล่านี้เรียก KnightLoader จากเซิร์ฟเวอร์ของตัวเอง จึงต้องเข้าถึงได้จากอินเทอร์เน็ตผ่าน https พร้อมใบรับรองที่เชื่อถือได้ เช่นอยู่หลังรีเวิร์สพร็อกซี การล็อกอินที่พร็อกซีป้องกันหน้าเว็บได้ แต่ /mcp ต้องผ่านได้โดยไม่ต้องล็อกอิน เพราะบริการเหล่านี้ล็อกอินเข้าพร็อกซีไม่ได้',
   'settings.access.mcp.other': 'ไคลเอนต์อื่น',
   'settings.access.mcp.noMatch': 'ไม่มีไคลเอนต์ที่ตรงกัน ไคลเอนต์อื่นเชื่อมต่อได้กับทุกอย่างที่ใช้ Streamable HTTP',

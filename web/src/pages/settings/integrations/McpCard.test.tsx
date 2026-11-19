@@ -63,7 +63,7 @@ describe('McpCard', () => {
     await act(async () => root.render(<McpCard />));
     await act(async () => button(host, 'Add client')!.click());
 
-    const tile = button(document.body, 'Claude Code Terminal');
+    const tile = button(document.body, 'Claude Code');
     expect(tile, 'the picker offers Claude Code').toBeDefined();
     expect(button(document.body, 'Other client')).toBeDefined();
     await act(async () => tile!.click());

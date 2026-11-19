@@ -29,11 +29,13 @@ export interface Brand {
   paint?: Paint;
   /** Why the brand cannot be picked, behind an (i) on a greyed-out tile. */
   unavailable?: string;
+  /** Further words a search finds it by, such as another domain it answers on. */
+  terms?: readonly string[];
 }
 
-/** Whether every word typed turns up in the brand's name, id, second line or host. */
+/** Whether every word typed turns up in the brand's name, id, second line, host or search words. */
 export const brandMatches = (b: Brand, query: string): boolean =>
-  pickMatches(query, [b.name, b.id, b.sub ?? '', b.host ?? '']);
+  pickMatches(query, [b.name, b.id, b.sub ?? '', b.host ?? '', ...(b.terms ?? [])]);
 
 /** The part of the window a picker's search and tiles share: every list of tiles in it. */
 const pickArea = (el: Element): HTMLElement | null => el.closest<HTMLElement>('[role="dialog"]');

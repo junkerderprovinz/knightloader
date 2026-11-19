@@ -1795,8 +1795,6 @@ export const vi: Dict = {
   'settings.access.mcp.add': 'Thêm client',
   'settings.access.mcp.pickHint': 'Chọn trợ lý cần truy cập KnightLoader. Client không có trong danh sách sẽ kết nối qua Client khác.',
   'settings.access.mcp.search': 'Tìm client',
-  'settings.access.mcp.groupLocal': 'Trên máy tính này',
-  'settings.access.mcp.groupCloud': 'Trên đám mây',
   'settings.access.mcp.cloudHint': 'Các dịch vụ này gọi KnightLoader từ máy chủ của chúng, nên KnightLoader phải truy cập được từ internet qua https với chứng chỉ đáng tin cậy, chẳng hạn đặt sau một reverse proxy. Đăng nhập trên proxy có thể bảo vệ giao diện web, nhưng /mcp phải đi qua được, vì các dịch vụ này không thể đăng nhập vào proxy.',
   'settings.access.mcp.other': 'Client khác',
   'settings.access.mcp.noMatch': 'Không có client nào khớp. Client khác kết nối mọi thứ dùng được Streamable HTTP.',

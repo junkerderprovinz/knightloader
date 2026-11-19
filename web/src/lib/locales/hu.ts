@@ -1796,8 +1796,6 @@ export const hu: Dict = {
   'settings.access.mcp.add': 'Kliens hozzáadása',
   'settings.access.mcp.pickHint': 'Válaszd ki azt az asszisztenst, amelynek el kell érnie a KnightLoadert. A listán nem szereplő kliens a Másik kliens csempén át csatlakozik.',
   'settings.access.mcp.search': 'Kliensek keresése',
-  'settings.access.mcp.groupLocal': 'Ezen a számítógépen',
-  'settings.access.mcp.groupCloud': 'A felhőben',
   'settings.access.mcp.cloudHint': 'Ezek a szolgáltatások a saját szervereikről hívják a KnightLoadert, ezért elérhetőnek kell lennie az internetről https-en át, megbízható tanúsítvánnyal, például fordított proxy mögött. A proxyn lévő bejelentkezés védheti a webes felületet, de a /mcp-nek át kell mennie, mert ezek a szolgáltatások nem tudnak bejelentkezni egy proxyra.',
   'settings.access.mcp.other': 'Másik kliens',
   'settings.access.mcp.noMatch': 'Nincs egyező kliens. A Másik kliens mindent csatlakoztat, ami Streamable HTTP-t beszél.',

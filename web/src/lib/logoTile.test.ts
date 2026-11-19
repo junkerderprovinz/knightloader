@@ -16,7 +16,6 @@ import {
   tileOf,
   withoutPlate,
 } from './logoTile';
-import { VPN_APP_ONLY, VPN_PROVIDERS } from './vpnProviders';
 
 const SIZE = 64;
 type Paint = (x: number, y: number) => [number, number, number, number] | null;
@@ -166,13 +165,8 @@ describe('the tile colour', () => {
 
 describe('the generated lists', () => {
   // Only the names are read; nothing is loaded.
-  const shipped = new Set(Object.keys(import.meta.glob('../../public/{hosters,vpn}/*.png')));
-  const lists = [
-    ...[...HOSTER_LOGOS].map(([name, info]) => ({ name, info, file: `../../public/hosters/${name}` })),
-    ...[...VPN_PROVIDERS, ...VPN_APP_ONLY]
-      .filter((p) => p.logo)
-      .map((p) => ({ name: p.id, info: p.logo!, file: `../../public/vpn/${p.id}` })),
-  ];
+  const shipped = new Set(Object.keys(import.meta.glob('../../public/hosters/*.png')));
+  const lists = [...HOSTER_LOGOS].map(([name, info]) => ({ name, info, file: `../../public/hosters/${name}` }));
 
   it('give every logo a colour and the ink the rule gives it', () => {
     expect(lists.length).toBeGreaterThan(400);
@@ -189,9 +183,5 @@ describe('the generated lists', () => {
       expect(shipped.has(`${file}.png`), name).toBe(true);
       expect(shipped.has(`${file}.lit.png`), name).toBe(Boolean(info.lit));
     }
-  });
-
-  it('give every VPN provider a logo', () => {
-    expect([...VPN_PROVIDERS, ...VPN_APP_ONLY].filter((p) => !p.logo).map((p) => p.id)).toEqual([]);
   });
 });

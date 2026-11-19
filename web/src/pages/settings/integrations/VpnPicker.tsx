@@ -1,14 +1,17 @@
 import { useRef, useState } from 'react';
-import { BrandPicker, PickerSearch, brandMatches, type Brand } from '../../../components/BrandPicker';
+import { PickerSearch, brandMatches } from '../../../components/BrandPicker';
+import { PickerGroups, catalogBrands, narrowGroups } from '../../../components/CatalogTiles';
 import { Button, HintBubble, Modal, PasswordInput, TextArea, TextInput } from '../../../components/ui';
 import { ApiError, connectVpn, type VpnField, type VpnProvider, type VpnState } from '../../../lib/api';
+import { VPN_PROVIDERS, type VpnProviderId } from '../../../lib/catalogs/vpnProviders';
+import { IconShieldOn } from '../../../lib/glyphs';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { IconBack, IconClose, IconFolderOpen, IconLink } from '../../../lib/icons';
+import { pageLang } from '../../../lib/picker';
 import { useToast } from '../../../lib/toast';
-import { VPN_APP_ONLY } from '../../../lib/vpnProviders';
 import { SettingRow } from '../controls';
 import { refusalText } from '../tx';
-import { VpnMark, failureOf, nameOf, vpnPaint } from './VpnMark';
+import { VpnMark, failureOf, nameOf } from './VpnMark';
 
 const FIELDS: Record<VpnField, { label: TranslationKey; hint?: TranslationKey; secret?: boolean }> = {
   config: { label: 'settings.vpn.field.config', hint: 'settings.vpn.field.configHint' },
@@ -80,26 +83,29 @@ export function VpnPicker({
   const p = vpn.providers.find((x) => x.id === picked);
   const current = vpn.providers.find((x) => x.id === vpn.active);
 
-  const brands: Brand[] = vpn.providers.map((x) => {
-    const name = nameOf(t, x);
-    return {
-      id: x.id,
-      name,
-      mark: <VpnMark id={x.id} name={name} size={25} lit />,
-      paint: vpnPaint(x.id, name),
-      sub: x.configured ? t('settings.vpn.state.saved') : undefined,
-      held: x.configured,
-    };
-  });
-  const appOnly: Brand[] = VPN_APP_ONLY.map((x) => ({
-    id: x.id,
-    name: x.name,
-    mark: <VpnMark id={x.id} name={x.name} size={25} />,
-    sub: t('settings.vpn.appOnlyTitle'),
-    unavailable: t('settings.vpn.appOnlyHint'),
-  }));
-  const shown = brands.filter((b) => brandMatches(b, query));
-  const shownAppOnly = appOnly.filter((b) => brandMatches(b, query));
+  // The providers that keep WireGuard to their own app stay in view, greyed
+  // out, so nobody searches for them in vain.
+  const offered = new Set<string>(vpn.providers.map((x) => x.id));
+  const appOnly = VPN_PROVIDERS.entries.filter((e) => e.group === 'appOnly').map((e) => e.id);
+  const groups = catalogBrands(
+    VPN_PROVIDERS,
+    {
+      ids: [...vpn.providers.map((x) => x.id as VpnProviderId), ...appOnly],
+      titles: { provider: '', appOnly: t('settings.vpn.appOnlyTitle') },
+      glyph: () => <IconShieldOn />,
+      lang: pageLang(),
+      own: (e) => {
+        if (e.id === 'custom') return { label: t('settings.vpn.custom'), last: true };
+        if (!offered.has(e.id)) return { status: t('settings.vpn.appOnlyTitle'), hint: t('settings.vpn.appOnlyHint') };
+        return undefined;
+      },
+    },
+    (id) => {
+      const configured = vpn.providers.find((x) => x.id === id)?.configured;
+      return configured ? { sub: t('settings.vpn.state.saved'), held: true } : undefined;
+    },
+  );
+  const shown = narrowGroups(groups, (b) => brandMatches(b, query));
 
   async function connect() {
     if (!p) return;
@@ -171,23 +177,15 @@ export function VpnPicker({
       }
     >
       {!p ? (
-        <div className="flex flex-col gap-4">
-          <BrandPicker
-            brands={shown}
-            none={t('settings.vpn.noneFound')}
-            selected={last}
-            onPick={(id) => {
-              setLast(id);
-              setPicked(id);
-            }}
-          />
-          {shownAppOnly.length > 0 && (
-            <>
-              <p className="text-meta text-carbon-textSub">{t('settings.vpn.appOnlyTitle')}</p>
-              <BrandPicker brands={shownAppOnly} none="" onPick={() => {}} />
-            </>
-          )}
-        </div>
+        <PickerGroups
+          groups={shown}
+          none={t('settings.vpn.noneFound')}
+          selected={last}
+          onPick={(id) => {
+            setLast(id);
+            setPicked(id);
+          }}
+        />
       ) : (
         <ConnectForm
           provider={p}
@@ -226,7 +224,7 @@ function ConnectForm({
   return (
     <div data-new="picker-form" className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <VpnMark id={p.id} name={name} size={36} />
+        <VpnMark id={p.id} size={36} />
         <p className="text-sm text-carbon-textSub">
           {t(p.portForwarding ? 'settings.vpn.portForwardingHint' : 'settings.vpn.noPortForwardingHint', { name })}
         </p>

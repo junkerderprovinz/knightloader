@@ -1788,8 +1788,6 @@ export const fr: Dict = {
   'settings.access.mcp.add': 'Ajouter un client',
   'settings.access.mcp.pickHint': 'Choisissez l’assistant qui doit accéder à KnightLoader. Un client absent de la liste se connecte via « Autre client ».',
   'settings.access.mcp.search': 'Rechercher un client',
-  'settings.access.mcp.groupLocal': 'Sur cet ordinateur',
-  'settings.access.mcp.groupCloud': 'Dans le cloud',
   'settings.access.mcp.cloudHint': 'Ces services appellent KnightLoader depuis leurs propres serveurs : il doit donc être joignable depuis Internet en https avec un certificat de confiance, par exemple derrière un proxy inverse. Une connexion sur le proxy peut protéger l’interface web, mais /mcp doit passer librement, car ces services ne peuvent pas se connecter à un proxy.',
   'settings.access.mcp.other': 'Autre client',
   'settings.access.mcp.noMatch': 'Aucun client ne correspond. « Autre client » connecte tout ce qui parle Streamable HTTP.',

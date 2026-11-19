@@ -1795,8 +1795,6 @@ export const et: Dict = {
   'settings.access.mcp.add': 'Lisa klient',
   'settings.access.mcp.pickHint': 'Vali abiline, kes peab KnightLoaderisse pääsema. Loendis mitteolev klient ühendub valikuga “Muu klient”.',
   'settings.access.mcp.search': 'Otsi kliente',
-  'settings.access.mcp.groupLocal': 'Sellel arvutil',
-  'settings.access.mcp.groupCloud': 'Pilves',
   'settings.access.mcp.cloudHint': 'Need teenused pöörduvad KnightLoaderi poole oma serveritest, nii et see peab olema internetist kättesaadav https-i kaudu usaldusväärse sertifikaadiga, näiteks pöördproksi taga. Veebiliidest võib kaitsta proksi sisselogimine, aga /mcp peab läbi pääsema, sest need teenused ei saa proksisse sisse logida.',
   'settings.access.mcp.other': 'Muu klient',
   'settings.access.mcp.noMatch': 'Ükski klient ei sobi. “Muu klient” ühendab kõik, mis oskab Streamable HTTP-d.',

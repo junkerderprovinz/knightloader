@@ -1795,8 +1795,6 @@ export const ko: Dict = {
   'settings.access.mcp.add': '클라이언트 추가',
   'settings.access.mcp.pickHint': 'KnightLoader에 접근할 어시스턴트를 고르세요. 목록에 없는 클라이언트는 다른 클라이언트로 연결합니다.',
   'settings.access.mcp.search': '클라이언트 검색',
-  'settings.access.mcp.groupLocal': '이 컴퓨터',
-  'settings.access.mcp.groupCloud': '클라우드',
   'settings.access.mcp.cloudHint': '이 서비스들은 자체 서버에서 KnightLoader를 호출하므로, 신뢰할 수 있는 인증서를 쓰는 https로 인터넷에서 접근할 수 있어야 합니다. 예를 들어 리버스 프록시 뒤에 둡니다. 프록시의 로그인으로 웹 인터페이스를 보호해도 되지만, 이 서비스들은 프록시에 로그인할 수 없으므로 /mcp는 통과시켜야 합니다.',
   'settings.access.mcp.other': '다른 클라이언트',
   'settings.access.mcp.noMatch': '일치하는 클라이언트가 없습니다. 다른 클라이언트는 Streamable HTTP를 지원하는 모든 것을 연결합니다.',

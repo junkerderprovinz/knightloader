@@ -252,7 +252,7 @@ function VpnTable({
                 </td>
                 <td className="px-2 py-3 font-medium text-carbon-text">
                   <span className="inline-flex items-center gap-2">
-                    <VpnMark id={p.id} name={name} size={18} />
+                    <VpnMark id={p.id} size={18} />
                     {name}
                   </span>
                 </td>

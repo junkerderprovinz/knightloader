@@ -1796,8 +1796,6 @@ export const lt: Dict = {
   'settings.access.mcp.add': 'Pridėti klientą',
   'settings.access.mcp.pickHint': 'Pasirink padėjėją, kuris turi pasiekti KnightLoader. Klientas, kurio nėra sąraše, jungiasi per Kitas klientas.',
   'settings.access.mcp.search': 'Ieškoti klientų',
-  'settings.access.mcp.groupLocal': 'Šiame kompiuteryje',
-  'settings.access.mcp.groupCloud': 'Debesyje',
   'settings.access.mcp.cloudHint': 'Šios paslaugos kreipiasi į KnightLoader iš savo serverių, todėl jis turi būti pasiekiamas iš interneto per https su patikimu sertifikatu, pavyzdžiui, už atvirkštinio tarpinio serverio. Prisijungimas tarpiniame serveryje gali saugoti žiniatinklio sąsają, bet /mcp turi praeiti be jo, nes šios paslaugos negali prisijungti prie tarpinio serverio.',
   'settings.access.mcp.other': 'Kitas klientas',
   'settings.access.mcp.noMatch': 'Joks klientas neatitinka. Kitas klientas prijungia viską, kas kalba Streamable HTTP.',

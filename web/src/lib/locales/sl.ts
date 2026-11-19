@@ -1796,8 +1796,6 @@ export const sl: Dict = {
   'settings.access.mcp.add': 'Dodaj odjemalca',
   'settings.access.mcp.pickHint': 'Izberi pomočnika, ki naj dostopa do KnightLoaderja. Odjemalec, ki ga ni na seznamu, se poveže prek Drug odjemalec.',
   'settings.access.mcp.search': 'Išči odjemalce',
-  'settings.access.mcp.groupLocal': 'Na tem računalniku',
-  'settings.access.mcp.groupCloud': 'V oblaku',
   'settings.access.mcp.cloudHint': 'Te storitve kličejo KnightLoader s svojih strežnikov, zato mora biti dosegljiv z interneta prek https z zaupanja vrednim certifikatom, na primer za obratnim posrednikom. Prijava na posredniku lahko ščiti spletni vmesnik, vendar mora /mcp mimo nje, ker se te storitve ne morejo prijaviti na posrednika.',
   'settings.access.mcp.other': 'Drug odjemalec',
   'settings.access.mcp.noMatch': 'Noben odjemalec se ne ujema. Drug odjemalec poveže vse, kar govori Streamable HTTP.',

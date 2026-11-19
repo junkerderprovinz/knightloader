@@ -1795,8 +1795,6 @@ export const tr: Dict = {
   'settings.access.mcp.add': 'İstemci ekle',
   'settings.access.mcp.pickHint': "KnightLoader'a ulaşacak asistanı seç. Listede olmayan bir istemci, Diğer istemci üzerinden bağlanır.",
   'settings.access.mcp.search': 'İstemci ara',
-  'settings.access.mcp.groupLocal': 'Bu bilgisayarda',
-  'settings.access.mcp.groupCloud': 'Bulutta',
   'settings.access.mcp.cloudHint': "Bu hizmetler KnightLoader'ı kendi sunucularından çağırır; bu yüzden internetten, güvenilir bir sertifikayla https üzerinden erişilebilir olması gerekir, örneğin bir ters vekil sunucunun arkasında. Vekil sunucudaki bir giriş web arayüzünü koruyabilir, ancak /mcp'nin geçmesine izin verilmelidir, çünkü bu hizmetler bir vekil sunucuda oturum açamaz.",
   'settings.access.mcp.other': 'Diğer istemci',
   'settings.access.mcp.noMatch': 'Hiçbir istemci eşleşmiyor. Diğer istemci, Streamable HTTP konuşan her şeyi bağlar.',

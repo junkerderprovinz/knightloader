@@ -1795,8 +1795,6 @@ export const ca: Dict = {
   'settings.access.mcp.add': 'Afegeix un client',
   'settings.access.mcp.pickHint': 'Tria l’assistent que ha d’arribar a KnightLoader. Un client que no surt a la llista es connecta amb «Un altre client».',
   'settings.access.mcp.search': 'Cerca clients',
-  'settings.access.mcp.groupLocal': 'En aquest ordinador',
-  'settings.access.mcp.groupCloud': 'Al núvol',
   'settings.access.mcp.cloudHint': 'Aquests serveis criden KnightLoader des dels seus propis servidors, així que ha de ser accessible des d’Internet per https amb un certificat de confiança, per exemple darrere d’un servidor intermediari invers. Un inici de sessió al servidor intermediari pot protegir la interfície web, però /mcp ha de passar, perquè aquests serveis no poden iniciar sessió en un servidor intermediari.',
   'settings.access.mcp.other': 'Un altre client',
   'settings.access.mcp.noMatch': 'Cap client coincideix. «Un altre client» connecta qualsevol cosa que parli Streamable HTTP.',

@@ -8,7 +8,7 @@
 //   a login or token with "fail" in it                               vpn-login-refused
 //   the location "timeout"                                           vpn-timeout
 import { ApiError, type VpnField, type VpnProvider, type VpnRoutes, type VpnState } from './api';
-import { VPN_PROVIDERS } from './vpnProviders';
+import { VPN_SETUPS } from './vpnProviders';
 
 const KEY = 'kl-vpn-mock';
 export const CONNECT_MS = 2500;
@@ -61,7 +61,7 @@ function save(s: Stored) {
 }
 
 function state(s: Stored, now: number): VpnState {
-  const providers = VPN_PROVIDERS.map((p): VpnProvider => {
+  const providers = VPN_SETUPS.map((p): VpnProvider => {
     const base: VpnProvider = {
       id: p.id,
       name: p.name,
@@ -96,7 +96,7 @@ function failureOf(login: Login): string {
 }
 
 function connect(s: Stored, id: string, fields: Login, now: number): Stored {
-  const provider = VPN_PROVIDERS.find((p) => p.id === id);
+  const provider = VPN_SETUPS.find((p) => p.id === id);
   if (!provider) throw new ApiError(`no VPN provider "${id}"`, 'vpn-unknown', undefined, 404);
   const login: Login = { ...s.logins[id] };
   for (const [k, v] of Object.entries(fields) as [VpnField, string][]) {

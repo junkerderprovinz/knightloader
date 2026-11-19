@@ -1795,8 +1795,6 @@ export const is: Dict = {
   'settings.access.mcp.add': 'Bæta við biðlara',
   'settings.access.mcp.pickHint': 'Veldu aðstoðarmanninn sem á að ná til KnightLoader. Biðlari sem er ekki á listanum tengist með “Annar biðlari”.',
   'settings.access.mcp.search': 'Leita að biðlurum',
-  'settings.access.mcp.groupLocal': 'Á þessari tölvu',
-  'settings.access.mcp.groupCloud': 'Í skýinu',
   'settings.access.mcp.cloudHint': 'Þessar þjónustur kalla í KnightLoader frá eigin netþjónum og því þarf að vera hægt að ná til hans af internetinu yfir https með traustu vottorði, til dæmis á bak við öfugan milliþjón. Innskráning á milliþjóninum má verja vefviðmótið, en /mcp verður að komast í gegn, því þessar þjónustur geta ekki skráð sig inn á milliþjón.',
   'settings.access.mcp.other': 'Annar biðlari',
   'settings.access.mcp.noMatch': 'Enginn biðlari passar. “Annar biðlari” tengir allt sem talar Streamable HTTP.',

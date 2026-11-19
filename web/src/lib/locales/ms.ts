@@ -1795,8 +1795,6 @@ export const ms: Dict = {
   'settings.access.mcp.add': 'Tambah klien',
   'settings.access.mcp.pickHint': 'Pilih pembantu yang perlu mencapai KnightLoader. Klien yang tiada dalam senarai disambungkan melalui “Klien lain”.',
   'settings.access.mcp.search': 'Cari klien',
-  'settings.access.mcp.groupLocal': 'Pada komputer ini',
-  'settings.access.mcp.groupCloud': 'Dalam awan',
   'settings.access.mcp.cloudHint': 'Perkhidmatan ini memanggil KnightLoader dari pelayan mereka sendiri, jadi ia mesti boleh dicapai dari internet melalui https dengan sijil yang dipercayai, contohnya di belakang proksi songsang. Log masuk pada proksi boleh melindungi antara muka web, tetapi /mcp mesti dibenarkan lalu, kerana perkhidmatan ini tidak boleh log masuk ke proksi.',
   'settings.access.mcp.other': 'Klien lain',
   'settings.access.mcp.noMatch': 'Tiada klien yang sepadan. “Klien lain” menyambungkan apa sahaja yang berbicara Streamable HTTP.',

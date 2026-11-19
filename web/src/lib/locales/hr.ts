@@ -1796,8 +1796,6 @@ export const hr: Dict = {
   'settings.access.mcp.add': 'Dodaj klijenta',
   'settings.access.mcp.pickHint': 'Odaberi asistenta koji treba pristupiti KnightLoaderu. Klijent kojeg nema na popisu povezuje se preko Drugi klijent.',
   'settings.access.mcp.search': 'Traži klijente',
-  'settings.access.mcp.groupLocal': 'Na ovom računalu',
-  'settings.access.mcp.groupCloud': 'U oblaku',
   'settings.access.mcp.cloudHint': 'Ove usluge pozivaju KnightLoader sa svojih poslužitelja, pa on mora biti dostupan s interneta preko https-a s pouzdanim certifikatom, na primjer iza obrnutog proxyja. Prijava na proxyju može štititi web sučelje, ali /mcp mora proći bez nje, jer se te usluge ne mogu prijaviti na proxy.',
   'settings.access.mcp.other': 'Drugi klijent',
   'settings.access.mcp.noMatch': 'Nijedan klijent ne odgovara. Drugi klijent povezuje sve što govori Streamable HTTP.',

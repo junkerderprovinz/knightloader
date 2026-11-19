@@ -1796,8 +1796,6 @@ export const eu: Dict = {
   'settings.access.mcp.add': 'Gehitu bezeroa',
   'settings.access.mcp.pickHint': 'Aukeratu KnightLoader-era iritsi behar den laguntzailea. Zerrendan ez dagoen bezero bat “Beste bezero bat” bidez konektatzen da.',
   'settings.access.mcp.search': 'Bilatu bezeroak',
-  'settings.access.mcp.groupLocal': 'Ordenagailu honetan',
-  'settings.access.mcp.groupCloud': 'Hodeian',
   'settings.access.mcp.cloudHint': 'Zerbitzu hauek beren zerbitzarietatik deitzen diote KnightLoader-i, beraz interneten bidez eskuragarri egon behar du https bidez eta ziurtagiri fidagarri batekin, adibidez alderantzizko proxy baten atzean. Proxyko saio-hasierak web interfazea babes dezake, baina /mcp pasatzen utzi behar du, zerbitzu hauek ezin baitute proxy batean saioa hasi.',
   'settings.access.mcp.other': 'Beste bezero bat',
   'settings.access.mcp.noMatch': 'Ez dago bat datorren bezerorik. “Beste bezero bat” aukerak Streamable HTTP hitz egiten duen edozer konektatzen du.',

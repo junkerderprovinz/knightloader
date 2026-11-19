@@ -1795,8 +1795,6 @@ export const fa: Dict = {
   'settings.access.mcp.add': 'افزودن کلاینت',
   'settings.access.mcp.pickHint': 'دستیاری را که باید به KnightLoader برسد انتخاب کنید. کلاینتی که در فهرست نیست از طریق «کلاینت دیگر» وصل می‌شود.',
   'settings.access.mcp.search': 'جست‌وجوی کلاینت‌ها',
-  'settings.access.mcp.groupLocal': 'روی این رایانه',
-  'settings.access.mcp.groupCloud': 'در ابر',
   'settings.access.mcp.cloudHint': 'این سرویس‌ها از سرورهای خودشان KnightLoader را فرا می‌خوانند، بنابراین باید از اینترنت و روی https با گواهی معتبر در دسترس باشد، مثلاً پشت یک پروکسی معکوس. ورود به پروکسی می‌تواند از رابط وب محافظت کند، اما /mcp باید عبور کند، چون این سرویس‌ها نمی‌توانند به پروکسی وارد شوند.',
   'settings.access.mcp.other': 'کلاینت دیگر',
   'settings.access.mcp.noMatch': 'هیچ کلاینتی مطابقت ندارد. «کلاینت دیگر» هر چیزی را که Streamable HTTP بفهمد وصل می‌کند.',

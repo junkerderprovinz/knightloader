@@ -1798,8 +1798,6 @@ export const no: Dict = {
   'settings.access.mcp.add': 'Legg til klient',
   'settings.access.mcp.pickHint': 'Velg assistenten som skal nå KnightLoader. En klient som ikke står på lista, kobles til via Annen klient.',
   'settings.access.mcp.search': 'Søk etter klienter',
-  'settings.access.mcp.groupLocal': 'På denne datamaskinen',
-  'settings.access.mcp.groupCloud': 'I skyen',
   'settings.access.mcp.cloudHint': 'Disse tjenestene kaller KnightLoader fra sine egne servere, så den må være nåbar fra internett over https med et klarert sertifikat, for eksempel bak en omvendt proxy. En innlogging på proxyen kan gjerne beskytte nettgrensesnittet, men /mcp må slippe gjennom, siden disse tjenestene ikke kan logge inn på en proxy.',
   'settings.access.mcp.other': 'Annen klient',
   'settings.access.mcp.noMatch': 'Ingen klient passer. Annen klient kobler til alt som snakker Streamable HTTP.',

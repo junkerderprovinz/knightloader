@@ -496,8 +496,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // The picker's groups and the form and setup of the window that adds a client.
       also: [
         'settings.access.mcp.add',
-        'settings.access.mcp.groupLocal',
-        'settings.access.mcp.groupCloud',
+        'settings.access.mcp.kind.desktop',
+        'settings.access.mcp.kind.localModels',
+        'settings.access.mcp.kind.webChat',
+        'settings.access.mcp.kind.editor',
+        'settings.access.mcp.kind.vscode',
+        'settings.access.mcp.kind.terminal',
+        'settings.access.mcp.kind.automation',
         'settings.access.mcp.config',
         'settings.access.mcp.tokenGone',
         'settings.access.tokens.name',

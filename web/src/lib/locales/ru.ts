@@ -1789,8 +1789,6 @@ export const ru: Dict = {
   'settings.access.mcp.add': 'Добавить клиента',
   'settings.access.mcp.pickHint': 'Выберите ассистента, который должен подключаться к KnightLoader. Клиент, которого нет в списке, подключается через «Другой клиент».',
   'settings.access.mcp.search': 'Поиск клиентов',
-  'settings.access.mcp.groupLocal': 'На этом компьютере',
-  'settings.access.mcp.groupCloud': 'В облаке',
   'settings.access.mcp.cloudHint': 'Эти сервисы обращаются к KnightLoader со своих серверов, поэтому он должен быть доступен из интернета по https с доверенным сертификатом, например за обратным прокси. Вход на прокси может защищать веб-интерфейс, но /mcp должен проходить без него, потому что эти сервисы не умеют входить на прокси.',
   'settings.access.mcp.other': 'Другой клиент',
   'settings.access.mcp.noMatch': 'Подходящих клиентов нет. «Другой клиент» подключает всё, что работает по Streamable HTTP.',

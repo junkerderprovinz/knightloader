@@ -1788,8 +1788,6 @@ export const nl: Dict = {
   'settings.access.mcp.add': 'Client toevoegen',
   'settings.access.mcp.pickHint': 'Kies de assistent die KnightLoader moet bereiken. Een client die niet in de lijst staat, verbindt via Andere client.',
   'settings.access.mcp.search': 'Clients zoeken',
-  'settings.access.mcp.groupLocal': 'Op deze computer',
-  'settings.access.mcp.groupCloud': 'In de cloud',
   'settings.access.mcp.cloudHint': 'Deze diensten roepen KnightLoader aan vanaf hun eigen servers, dus het moet vanaf internet bereikbaar zijn via https met een vertrouwd certificaat, bijvoorbeeld achter een reverse proxy. Een login op de proxy mag de webinterface beschermen, maar /mcp moet er zonder doorheen kunnen, omdat deze diensten niet kunnen inloggen op een proxy.',
   'settings.access.mcp.other': 'Andere client',
   'settings.access.mcp.noMatch': 'Geen client komt overeen. Andere client verbindt alles wat Streamable HTTP spreekt.',

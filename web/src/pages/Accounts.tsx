@@ -65,6 +65,11 @@ import {
   type Brand,
 } from '../components/BrandPicker';
 import { PriorityCard, PriorityLadder } from '../components/PriorityLadder';
+import { catalogBrands } from '../components/CatalogTiles';
+import type { Catalog } from '../lib/catalogs/catalog';
+import { CAPTCHA_PROVIDERS } from '../lib/catalogs/captchaProviders';
+import { DOWNLOAD_PROVIDERS } from '../lib/catalogs/downloadProviders';
+import { IconUnlock } from '../lib/glyphs';
 
 // Reads what the background account-health refresher stored; expiry and
 // traffic change in hours.
@@ -787,19 +792,28 @@ function CredentialDialog({
       : t('accounts.addAccountTitle', { service: picked.label });
 
   // A tile's second line says where the brand lives, or that it has a key
-  // already, which stays in view.
-  const brands: Brand[] = services
-    .map((s) => {
-      const connected = hasDefault(s.id);
-      return {
-        id: s.id,
-        name: s.label,
-        host: s.whereUrl,
-        sub: connected ? t('accounts.connected') : siteOf(s.whereUrl),
-        held: connected,
-      };
-    })
-    .sort((x, y) => x.name.localeCompare(y.name, pageLang(), { sensitivity: 'base' }));
+  // already, which stays in view. GlimStone's catalog names the services and
+  // gives their marks; a service it does not know brings the logo its site has.
+  const where = (s: CatalogueService): Partial<Brand> => {
+    const connected = hasDefault(s.id);
+    return { sub: connected ? t('accounts.connected') : siteOf(s.whereUrl), held: connected };
+  };
+  const byService = new Map(services.map((s) => [s.id, s]));
+  const catalog: Catalog<string, string> = solver ? CAPTCHA_PROVIDERS : DOWNLOAD_PROVIDERS;
+  const known = new Set(catalog.entries.map((e) => e.id));
+  const brands: Brand[] = [
+    ...catalogBrands(
+      catalog,
+      {
+        ids: services.map((s) => s.id),
+        titles: { solver: '', debrid: '', hoster: '' },
+        glyph: () => (solver ? <IconCaptcha /> : <IconUnlock />),
+        lang: pageLang(),
+      },
+      (id) => where(byService.get(id)!),
+    ).flatMap((g) => g.brands),
+    ...services.filter((s) => !known.has(s.id)).map((s) => ({ id: s.id, name: s.label, host: s.whereUrl, ...where(s) })),
+  ].sort((x, y) => x.name.localeCompare(y.name, pageLang(), { sensitivity: 'base' }));
 
   return (
     <Modal

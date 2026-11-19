@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { BrandPicker, PickerSearch, brandMatches, type Brand } from '../../../components/BrandPicker';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { PickerSearch, brandMatches } from '../../../components/BrandPicker';
+import { PickerGroups, TileMarkView, catalogBrands, narrowGroups } from '../../../components/CatalogTiles';
 import {
   Button,
   Card,
@@ -21,6 +22,8 @@ import {
   removeMcpClient,
 } from '../../../lib/api';
 import { appAddress } from '../../../lib/basePath';
+import { catalogEntry } from '../../../lib/catalogs/catalog';
+import { MCP_PROVIDERS, type McpGroup, type McpProviderId } from '../../../lib/catalogs/mcpProviders';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
@@ -35,10 +38,8 @@ import {
   IconLink,
   IconTrash,
 } from '../../../lib/icons';
-import { CLIENT_MARKS } from '../../../lib/mcpClientMarks';
 import {
   CLOUD_CLIENTS,
-  KIND_LABEL,
   LOCAL_CLIENTS,
   OTHER_CLIENT,
   clientById,
@@ -47,6 +48,7 @@ import {
   type McpClient,
 } from '../../../lib/mcpClients';
 import { TOKEN_PLACEHOLDER, TOKEN_VARIABLE, type McpSnippetInput } from '../../../lib/mcpSnippets';
+import { pageLang } from '../../../lib/picker';
 import { useToast } from '../../../lib/toast';
 import { SettingRow, SubHead } from '../controls';
 import { PRESET_LABEL, scopesLabel } from '../access/tokenScopes';
@@ -79,31 +81,21 @@ const OS_PATHS: [keyof ConfigPaths, string][] = [
   ['unix', 'macOS, Linux'],
 ];
 
-/** withOwnIds gives a mark's gradients and masks ids of their own, because
- *  one mark can stand on a tile, a row and in a window at once. */
-function withOwnIds(svg: string, suffix: string): string {
-  return svg
-    .replace(/id="([^"]+)"/g, `id="$1-${suffix}"`)
-    .replace(/url\(#([^)]+)\)/g, `url(#$1-${suffix})`)
-    .replace(/href="#([^"]+)"/g, `href="#$1-${suffix}"`);
-}
+/** The eyebrow over each group of the catalog's clients. */
+const GROUP_TITLE: Record<McpGroup, TranslationKey> = {
+  chat: 'settings.access.mcp.kind.desktop',
+  models: 'settings.access.mcp.kind.localModels',
+  web: 'settings.access.mcp.kind.webChat',
+  editor: 'settings.access.mcp.kind.editor',
+  extension: 'settings.access.mcp.kind.vscode',
+  terminal: 'settings.access.mcp.kind.terminal',
+  automation: 'settings.access.mcp.kind.automation',
+};
 
-/** ClientMark draws a client's mark, and the link glyph for Other client. */
+/** ClientMark draws the mark a client's tile wears, and the link glyph for Other client. */
 export function ClientMark({ client }: { client: McpClient }) {
-  const suffix = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const mark = client.mark ? CLIENT_MARKS[client.mark] : undefined;
-  if (!mark) return <IconLink width={18} height={18} />;
-  const rest = withOwnIds(mark.rest, suffix);
-  const html = mark.hover
-    ? rest.replace('<svg ', '<svg class="glim-mark-rest" ') +
-      withOwnIds(mark.hover, `${suffix}h`).replace('<svg ', '<svg class="glim-mark-hover" ')
-    : rest;
-  return (
-    <span
-      className={`contents ${client.lift ? 'glim-mark-lift' : ''}`}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
+  const mark = catalogEntry(MCP_PROVIDERS, client.id)?.mark;
+  return mark ? <TileMarkView mark={mark} /> : <IconLink width={18} height={18} />;
 }
 
 /**
@@ -385,29 +377,22 @@ function AddClientWindow({
     }
   }
 
-  const brand = (c: McpClient): Brand => ({
-    id: c.id,
-    name: nameOf(c),
-    sub: c.kind ? t(KIND_LABEL[c.kind]) : undefined,
-    tile: c.tile,
-    mark: (
-      <span className={c === OTHER_CLIENT ? 'glim-house-mark flex h-full w-full items-center justify-center' : 'contents'}>
-        <ClientMark client={c} />
-      </span>
-    ),
-  });
-  const groups: { id: string; title: string; hint?: string; brands: Brand[] }[] = [
-    { id: 'local', title: t('settings.access.mcp.groupLocal'), brands: LOCAL_CLIENTS.map(brand) },
-    {
-      id: 'cloud',
-      title: t('settings.access.mcp.groupCloud'),
-      hint: t('settings.access.mcp.cloudHint'),
-      brands: CLOUD_CLIENTS.map(brand),
-    },
-    { id: 'other', title: '', brands: [brand(OTHER_CLIENT)] },
-  ]
-    .map((g) => ({ ...g, brands: g.brands.filter((b) => brandMatches(b, query)) }))
-    .filter((g) => g.brands.length > 0);
+  const groups = narrowGroups(
+    catalogBrands(MCP_PROVIDERS, {
+      ids: [...LOCAL_CLIENTS, ...CLOUD_CLIENTS, OTHER_CLIENT].map((c) => c.id as McpProviderId),
+      // The web chats call from their own servers, so only they need the internet.
+      titles: Object.fromEntries(
+        MCP_PROVIDERS.groups.map((g) => [
+          g,
+          g === 'web' ? { title: t(GROUP_TITLE[g]), hint: t('settings.access.mcp.cloudHint') } : t(GROUP_TITLE[g]),
+        ]),
+      ) as Record<McpGroup, string | { title: string; hint: string }>,
+      glyph: () => <IconLink width={18} height={18} />,
+      lang: pageLang(),
+      own: (e) => (e.id === 'other' ? { label: t('settings.access.mcp.other'), last: true } : undefined),
+    }),
+    (b) => brandMatches(b, query),
+  );
 
   let title = t('settings.access.mcp.add');
   if (picked) title = t('settings.access.mcp.connectTitle', { name: nameOf(picked) });
@@ -467,19 +452,7 @@ function AddClientWindow({
       onClose={() => (creating ? undefined : onClose())}
       footer={footer}
     >
-      {!picked && (
-        <div className="flex flex-col gap-4">
-          {groups.length === 0 && (
-            <p className="px-2 py-6 text-center text-sm text-carbon-textMuted">{t('settings.access.mcp.noMatch')}</p>
-          )}
-          {groups.map((g) => (
-            <div key={g.id} className="flex flex-col gap-2">
-              {g.title && <SubHead label={g.title} hint={g.hint} />}
-              <BrandPicker brands={g.brands} none="" selected={last} onPick={pick} />
-            </div>
-          ))}
-        </div>
-      )}
+      {!picked && <PickerGroups groups={groups} none={t('settings.access.mcp.noMatch')} selected={last} onPick={pick} />}
 
       {picked && !made && (
         <div className="flex flex-col gap-4">

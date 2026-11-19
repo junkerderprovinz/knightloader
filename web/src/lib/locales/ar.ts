@@ -1797,8 +1797,6 @@ export const ar: Dict = {
   'settings.access.mcp.add': 'إضافة عميل',
   'settings.access.mcp.pickHint': 'اختر المساعد الذي يجب أن يصل إلى KnightLoader. العميل غير المدرج يتصل عبر عميل آخر.',
   'settings.access.mcp.search': 'بحث عن العملاء',
-  'settings.access.mcp.groupLocal': 'على هذا الحاسوب',
-  'settings.access.mcp.groupCloud': 'في السحابة',
   'settings.access.mcp.cloudHint': 'تستدعي هذه الخدمات KnightLoader من خوادمها، لذا يجب أن يكون متاحًا من الإنترنت عبر https بشهادة موثوقة، مثلًا خلف وكيل عكسي. يجوز أن يحمي تسجيل الدخول على الوكيل واجهة الويب، لكن يجب أن يمرّ /mcp دونه، لأن هذه الخدمات لا تستطيع تسجيل الدخول إلى وكيل.',
   'settings.access.mcp.other': 'عميل آخر',
   'settings.access.mcp.noMatch': 'لا يوجد عميل مطابق. عميل آخر يربط أي شيء يدعم Streamable HTTP.',

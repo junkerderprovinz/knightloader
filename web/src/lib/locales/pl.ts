@@ -1789,8 +1789,6 @@ export const pl: Dict = {
   'settings.access.mcp.add': 'Dodaj klienta',
   'settings.access.mcp.pickHint': 'Wybierz asystenta, który ma docierać do KnightLoader. Klient, którego nie ma na liście, łączy się przez „Inny klient”.',
   'settings.access.mcp.search': 'Szukaj klientów',
-  'settings.access.mcp.groupLocal': 'Na tym komputerze',
-  'settings.access.mcp.groupCloud': 'W chmurze',
   'settings.access.mcp.cloudHint': 'Te usługi wywołują KnightLoader z własnych serwerów, więc musi on być osiągalny z internetu przez https z zaufanym certyfikatem, na przykład za zwrotnym proxy. Logowanie na proxy może chronić interfejs webowy, ale /mcp musi przechodzić bez niego, bo te usługi nie potrafią zalogować się do proxy.',
   'settings.access.mcp.other': 'Inny klient',
   'settings.access.mcp.noMatch': 'Żaden klient nie pasuje. „Inny klient” łączy wszystko, co obsługuje Streamable HTTP.',

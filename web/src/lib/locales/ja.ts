@@ -1795,8 +1795,6 @@ export const ja: Dict = {
   'settings.access.mcp.add': 'クライアントを追加',
   'settings.access.mcp.pickHint': 'KnightLoader にアクセスさせるアシスタントを選びます。一覧にないクライアントは、その他のクライアントから接続します。',
   'settings.access.mcp.search': 'クライアントを検索',
-  'settings.access.mcp.groupLocal': 'このコンピューター',
-  'settings.access.mcp.groupCloud': 'クラウド',
   'settings.access.mcp.cloudHint': 'これらのサービスは自分のサーバーから KnightLoader を呼び出すため、信頼された証明書を使った https でインターネットから到達できる必要があります。たとえばリバースプロキシの内側に置きます。プロキシのログインで Web 画面を保護してもかまいませんが、これらのサービスはプロキシにサインインできないため、/mcp は通す必要があります。',
   'settings.access.mcp.other': 'その他のクライアント',
   'settings.access.mcp.noMatch': '一致するクライアントがありません。その他のクライアントは、Streamable HTTP に対応するものなら何でも接続できます。',

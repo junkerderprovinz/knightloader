@@ -1796,8 +1796,6 @@ export const hi: Dict = {
   'settings.access.mcp.add': 'क्लाइंट जोड़ें',
   'settings.access.mcp.pickHint': 'वह सहायक चुनें जिसे KnightLoader तक पहुँचना है। सूची में न दिखने वाला क्लाइंट “अन्य क्लाइंट” के ज़रिए जुड़ता है।',
   'settings.access.mcp.search': 'क्लाइंट खोजें',
-  'settings.access.mcp.groupLocal': 'इस कंप्यूटर पर',
-  'settings.access.mcp.groupCloud': 'क्लाउड में',
   'settings.access.mcp.cloudHint': 'ये सेवाएँ अपने सर्वरों से KnightLoader को कॉल करती हैं, इसलिए इसे इंटरनेट से https पर भरोसेमंद प्रमाणपत्र के साथ पहुँच में होना चाहिए, जैसे रिवर्स प्रॉक्सी के पीछे। प्रॉक्सी पर लॉगिन वेब इंटरफ़ेस की रक्षा कर सकता है, पर /mcp को गुज़रने देना होगा, क्योंकि ये सेवाएँ प्रॉक्सी में साइन इन नहीं कर सकतीं।',
   'settings.access.mcp.other': 'अन्य क्लाइंट',
   'settings.access.mcp.noMatch': 'कोई क्लाइंट मेल नहीं खाता। “अन्य क्लाइंट” Streamable HTTP बोलने वाली किसी भी चीज़ को जोड़ता है।',

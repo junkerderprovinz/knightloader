@@ -1797,8 +1797,6 @@ export const he: Dict = {
   'settings.access.mcp.add': 'הוספת לקוח',
   'settings.access.mcp.pickHint': 'בחר את העוזר שצריך להגיע ל-KnightLoader. לקוח שאינו ברשימה מתחבר דרך לקוח אחר.',
   'settings.access.mcp.search': 'חיפוש לקוחות',
-  'settings.access.mcp.groupLocal': 'במחשב הזה',
-  'settings.access.mcp.groupCloud': 'בענן',
   'settings.access.mcp.cloudHint': 'השירותים האלה פונים ל-KnightLoader מהשרתים שלהם, ולכן הוא צריך להיות נגיש מהאינטרנט דרך https עם תעודה מהימנה, למשל מאחורי פרוקסי הפוך. התחברות בפרוקסי יכולה להגן על ממשק האינטרנט, אבל /mcp צריך לעבור בלעדיה, כי השירותים האלה לא יכולים להתחבר לפרוקסי.',
   'settings.access.mcp.other': 'לקוח אחר',
   'settings.access.mcp.noMatch': 'אין לקוח תואם. לקוח אחר מחבר כל דבר שמדבר Streamable HTTP.',

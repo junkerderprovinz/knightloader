@@ -2216,8 +2216,6 @@ export const en = {
   'settings.access.mcp.add': 'Add client',
   'settings.access.mcp.pickHint': 'Pick the assistant that should reach KnightLoader. A client that is not listed connects through Other client.',
   'settings.access.mcp.search': 'Search clients',
-  'settings.access.mcp.groupLocal': 'On this computer',
-  'settings.access.mcp.groupCloud': 'In the cloud',
   'settings.access.mcp.cloudHint': 'These services call KnightLoader from their own servers, so it has to be reachable from the internet over https with a trusted certificate, for example behind a reverse proxy. A login on the proxy may guard the web interface, but /mcp has to pass through, since these services cannot sign in to a proxy.',
   'settings.access.mcp.other': 'Other client',
   'settings.access.mcp.noMatch': 'No client matches. Other client connects anything that speaks Streamable HTTP.',

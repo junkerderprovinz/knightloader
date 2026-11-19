@@ -1796,8 +1796,6 @@ export const lv: Dict = {
   'settings.access.mcp.add': 'Pievienot klientu',
   'settings.access.mcp.pickHint': 'Izvēlies asistentu, kam jāpiekļūst KnightLoader. Klientu, kura nav sarakstā, pieslēdz ar “Cits klients”.',
   'settings.access.mcp.search': 'Meklēt klientus',
-  'settings.access.mcp.groupLocal': 'Šajā datorā',
-  'settings.access.mcp.groupCloud': 'Mākonī',
   'settings.access.mcp.cloudHint': 'Šie pakalpojumi izsauc KnightLoader no saviem serveriem, tāpēc tam jābūt sasniedzamam no interneta, izmantojot https ar uzticamu sertifikātu, piemēram, aiz reversā starpniekservera. Tīmekļa saskarni var aizsargāt pieteikšanās starpniekserverī, bet /mcp jāatstāj atvērts, jo šie pakalpojumi nevar pieteikties starpniekserverī.',
   'settings.access.mcp.other': 'Cits klients',
   'settings.access.mcp.noMatch': 'Neviens klients neatbilst. “Cits klients” pieslēdz jebko, kas runā Streamable HTTP.',

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { BrandPicker, type Brand } from '../../components/BrandPicker';
+import { BrandPicker } from '../../components/BrandPicker';
+import { catalogBrands } from '../../components/CatalogTiles';
 import { Button, Modal } from '../../components/ui';
+import { catalogEntry } from '../../lib/catalogs/catalog';
+import { NOTIFY_PROVIDERS } from '../../lib/catalogs/notifyProviders';
 import { IconAdd, IconClose, IconLink } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import {
@@ -10,10 +13,10 @@ import {
   type EventTargetStatus,
   type Placeholder,
 } from '../../lib/eventtargets';
+import { pageLang } from '../../lib/picker';
 import { FALLBACK_TRIGGERS, fetchScriptTriggers } from '../../lib/scripts';
-import { TARGET_BRANDS, type TargetBrand } from '../../lib/targetBrands';
 import { useDraft } from './context';
-import { TargetMark } from './eventtargets/TargetMark';
+import type { TargetBrand } from './eventtargets/TargetMark';
 import { TargetRow } from './eventtargets/TargetRow';
 import { ModuleCard } from './ModuleToggle';
 
@@ -128,32 +131,27 @@ export function EventTargetsCard({ hue }: { hue: number }) {
   const write = (next: EventTargetRow[]) => patch({ eventTargets: next });
 
   const add = (id: string) => {
-    const brand = TARGET_BRANDS.find((b) => b.id === id);
+    const brand = id === 'discord' ? id : undefined;
+    const name = brand ? (catalogEntry(NOTIFY_PROVIDERS, brand)?.name ?? '') : '';
     const row: PendingRow = {
       key: freshKey(),
       // Off, nothing ticked, and no opinion on attempts or the time limit.
-      row: { id: '', name: brand?.name ?? '', enabled: false, url: '', attempts: 0, timeoutSeconds: 0 },
-      brand: brand?.id,
+      row: { id: '', name, enabled: false, url: '', attempts: 0, timeoutSeconds: 0 },
+      brand,
     };
     setPicking(false);
     setPending((p) => [...p, row]);
     setOpenRow(row.key);
   };
 
-  const brands: Brand[] = [
-    ...TARGET_BRANDS.map((b) => ({ id: b.id, name: b.name, mark: <TargetMark brand={b.id} size={25} lit />, paint: b.logo })),
-    {
-      id: '',
-      name: t('settings.eventTargets.anyAddress'),
-      mark: (
-        <span className="glim-house-mark flex h-full w-full items-center justify-center">
-          <IconLink width={18} height={18} />
-        </span>
-      ),
-      // An address of no brand lights in black, as the MCP card's other client does.
-      paint: { tile: '#000000', ink: '#ffffff' },
-    },
-  ];
+  // Any other address is the webhook, the tile that takes anything.
+  const brands = catalogBrands(NOTIFY_PROVIDERS, {
+    ids: ['discord', 'webhook'],
+    titles: { service: '', standard: '' },
+    glyph: () => <IconLink width={18} height={18} />,
+    lang: pageLang(),
+    own: (e) => (e.id === 'webhook' ? { label: t('settings.eventTargets.anyAddress'), last: true } : undefined),
+  }).flatMap((g) => g.brands);
 
   /** Moves a pending row into the draft once its address is valid. */
   const commit = (key: string, next: EventTargetRow) => {

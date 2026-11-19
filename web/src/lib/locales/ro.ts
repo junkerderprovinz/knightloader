@@ -1797,8 +1797,6 @@ export const ro: Dict = {
   'settings.access.mcp.add': 'Adaugă client',
   'settings.access.mcp.pickHint': 'Alege asistentul care trebuie să ajungă la KnightLoader. Un client care nu apare în listă se conectează prin Alt client.',
   'settings.access.mcp.search': 'Caută clienți',
-  'settings.access.mcp.groupLocal': 'Pe acest computer',
-  'settings.access.mcp.groupCloud': 'În cloud',
   'settings.access.mcp.cloudHint': 'Aceste servicii apelează KnightLoader de pe serverele lor, așa că trebuie să fie accesibil de pe internet prin https, cu un certificat de încredere, de exemplu în spatele unui reverse proxy. O autentificare pe proxy poate proteja interfața web, dar /mcp trebuie să treacă, pentru că aceste servicii nu se pot autentifica pe un proxy.',
   'settings.access.mcp.other': 'Alt client',
   'settings.access.mcp.noMatch': 'Niciun client nu se potrivește. Alt client conectează orice vorbește Streamable HTTP.',

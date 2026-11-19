@@ -1795,8 +1795,6 @@ export const fi: Dict = {
   'settings.access.mcp.add': 'Lisää asiakas',
   'settings.access.mcp.pickHint': 'Valitse avustaja, jonka pitää päästä KnightLoaderiin. Asiakas, jota ei ole listalla, yhdistetään kohdan Muu asiakas kautta.',
   'settings.access.mcp.search': 'Hae asiakkaita',
-  'settings.access.mcp.groupLocal': 'Tällä tietokoneella',
-  'settings.access.mcp.groupCloud': 'Pilvessä',
   'settings.access.mcp.cloudHint': 'Nämä palvelut kutsuvat KnightLoaderia omilta palvelimiltaan, joten sen täytyy olla tavoitettavissa internetistä https:n yli luotetulla varmenteella, esimerkiksi käänteisen välityspalvelimen takana. Välityspalvelimen kirjautuminen saa suojata verkkokäyttöliittymää, mutta /mcp:n täytyy päästä läpi, koska nämä palvelut eivät voi kirjautua välityspalvelimelle.',
   'settings.access.mcp.other': 'Muu asiakas',
   'settings.access.mcp.noMatch': 'Mikään asiakas ei täsmää. Muu asiakas yhdistää kaiken, mikä puhuu Streamable HTTP:tä.',

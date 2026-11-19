@@ -1794,8 +1794,6 @@ export const zh: Dict = {
   'settings.access.mcp.add': '添加客户端',
   'settings.access.mcp.pickHint': '选择要访问 KnightLoader 的助手。列表里没有的客户端，通过其他客户端连接。',
   'settings.access.mcp.search': '搜索客户端',
-  'settings.access.mcp.groupLocal': '在这台电脑上',
-  'settings.access.mcp.groupCloud': '在云端',
   'settings.access.mcp.cloudHint': '这些服务从它们自己的服务器调用 KnightLoader，所以它必须能通过 https 从互联网访问，并使用受信任的证书，例如放在反向代理后面。代理上的登录可以保护网页界面，但 /mcp 必须放行，因为这些服务无法登录代理。',
   'settings.access.mcp.other': '其他客户端',
   'settings.access.mcp.noMatch': '没有匹配的客户端。其他客户端可以连接任何支持 Streamable HTTP 的程序。',
