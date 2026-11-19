@@ -514,6 +514,47 @@ func TestRequestsForOneHostShareOneFetch(t *testing.T) {
 	}
 }
 
+// A request that found nothing cached can reach fetchHosterIcon only after
+// the fetch another request started has finished.
+func TestAFetchThatHasJustFinishedIsNotStartedAgain(t *testing.T) {
+	var calls atomic.Int32
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		calls.Add(1)
+		return pngBytes(32, 32), "image/png", nil
+	})
+	a := &App{DataDir: t.TempDir()}
+
+	<-a.fetchHosterIcon("example.org")
+	<-a.fetchHosterIcon("example.org")
+	if n := calls.Load(); n != 1 {
+		t.Errorf("the site was asked %d times, want once", n)
+	}
+}
+
+func TestAnIconWhoseFileWasRemovedIsFetchedAgain(t *testing.T) {
+	var calls atomic.Int32
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		calls.Add(1)
+		return pngBytes(32, 32), "image/png", nil
+	})
+	a := &App{DataDir: t.TempDir()}
+
+	<-a.fetchHosterIcon("example.org")
+	if err := os.RemoveAll(a.iconDir()); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := a.HosterIcon("example.org"); !errors.Is(err, ErrIconPending) {
+		t.Fatalf("HosterIcon = %v, want a new fetch for the removed file", err)
+	}
+	<-a.fetchHosterIcon("example.org")
+	if n := calls.Load(); n != 2 {
+		t.Errorf("the site was asked %d times, want twice", n)
+	}
+	if _, ct, err := a.HosterIcon("example.org"); err != nil || ct != "image/png" {
+		t.Errorf("HosterIcon after the second fetch = %q, %v, want the PNG", ct, err)
+	}
+}
+
 func TestASiteWithoutAnIconIsNotAskedAgainAfterARestart(t *testing.T) {
 	var calls atomic.Int32
 	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {

@@ -197,23 +197,30 @@ func (a *App) cachedHosterIcon(host string) (body []byte, contentType string, kn
 	}
 	b, err := os.ReadFile(e.path)
 	if err != nil {
-		// The cached file is gone; fetch again.
+		// The cached file is gone. Forgetting it lets fetchHosterIcon fetch
+		// again, unless a fetch has stored a newer entry meanwhile.
+		a.iconMu.Lock()
+		if a.icons[host].at.Equal(e.at) {
+			delete(a.icons, host)
+		}
+		a.iconMu.Unlock()
 		return nil, "", false
 	}
 	return b, e.contentType, true
 }
 
 // fetchHosterIcon starts fetching host's icon unless that fetch is already
-// running, and returns a channel closed once the result is cached. With
-// iconMaxPending fetches queued it starts nothing and the channel is closed
-// already; the page asks again later.
+// running or has stored its result, and returns a channel closed once the
+// result is cached. With iconMaxPending fetches queued it starts nothing and
+// the channel is closed already; the page asks again later.
 func (a *App) fetchHosterIcon(host string) <-chan struct{} {
 	a.iconMu.Lock()
 	defer a.iconMu.Unlock()
 	if done, ok := a.iconFetches[host]; ok {
 		return done
 	}
-	if len(a.iconFetches) >= iconMaxPending {
+	// The caller found nothing cached, but a fetch may have finished since.
+	if e, ok := a.icons[host]; ok && time.Since(e.at) < e.ttl() || len(a.iconFetches) >= iconMaxPending {
 		done := make(chan struct{})
 		close(done)
 		return done
