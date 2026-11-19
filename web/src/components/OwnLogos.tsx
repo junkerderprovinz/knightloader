@@ -84,14 +84,20 @@ const MCP_MARKS: Record<string, TileMark> = {
 };
 
 /**
- * Cline's catalog mark is #18181B, lifted on the dark tile only to #81818f,
- * which all but vanishes there, so it turns white like the catalog's other
- * black marks.
+ * The catalog took Cline's #18181B and Windsurf's #0B100F for brand colours
+ * rather than near-black, so on the dark tile Cline is lifted only to a grey
+ * that all but vanishes and Windsurf to a teal it never wears. Both turn white
+ * like the catalog's other black marks.
  */
-const corrected = (catalog: OwnCatalog, id: string, mark: TileMark): TileMark | undefined =>
-  catalog === 'mcp' && id === 'cline'
-    ? { ...mark, svg: mark.svg.replace('light-dark(#18181B, #81818f)', 'light-dark(#18181B, #ffffff)') }
-    : undefined;
+const darkInk: Record<string, [string, string]> = {
+  cline: ['light-dark(#18181B, #81818f)', 'light-dark(#18181B, #ffffff)'],
+  windsurf: ['light-dark(#0B100F, #5f8b82)', 'light-dark(#0B100F, #ffffff)'],
+};
+
+const corrected = (catalog: OwnCatalog, id: string, mark: TileMark): TileMark | undefined => {
+  const fix = catalog === 'mcp' ? darkInk[id] : undefined;
+  return fix ? { ...mark, svg: mark.svg.replace(fix[0], fix[1]) } : undefined;
+};
 
 function vpnLogo(id: string, size: number, lit: boolean): ReactNode {
   const logo = VPN_LOGOS.get(id);

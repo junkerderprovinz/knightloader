@@ -62,6 +62,11 @@ describe('the logos KnightLoader keeps until GlimStone carries them', () => {
     expect(markup(cline.mark)).toContain('light-dark(#18181B, #ffffff)');
   });
 
+  it('turns Windsurf white on the dark tile instead of the teal its near-black was lifted to', () => {
+    const [windsurf] = brands(MCP_PROVIDERS, 'mcp', ['windsurf']);
+    expect(markup(windsurf.mark)).toContain('light-dark(#0B100F, #ffffff)');
+  });
+
   it('draws a captcha solver by the logo its site has', () => {
     expect(ownTile('captcha', 'capsolver', catalogEntry(CAPTCHA_PROVIDERS, 'capsolver')?.mark, 'https://dashboard.capsolver.com/')).toEqual({
       mark: undefined,
