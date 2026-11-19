@@ -793,6 +793,18 @@ body {
   --list-band-even:  color-mix(in srgb, var(--carbon-text) 2%, transparent);
   --list-band-head:  color-mix(in srgb, var(--carbon-text) 4%, transparent);
   --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 7%, transparent);
+  /* A parked row lies a step below its band, further than the links
+     alternate, so it stands apart and the alternation still shows through.
+     Light text on a dark theme would lift the row, so there it sinks toward
+     the page under the card instead. */
+  --list-band-sunk: light-dark(
+    color-mix(in srgb, var(--carbon-text) 4%, transparent),
+    color-mix(in srgb, var(--carbon-bg) 45%, transparent)
+  );
+  /* The greyed ink on that ground. On a light theme the sunk ground moves
+     toward the muted grey, so the ink steps toward the text colour and reads
+     no worse than on a live row. On a dark one the darker ground lifts it. */
+  --parked-ink: light-dark(color-mix(in srgb, var(--carbon-text-muted), var(--carbon-text) 15%), var(--carbon-text-muted));
 }
 /* High contrast: the same bands, each a clear step apart, for a screen or an
    eye on which the moderate shades run together. */
@@ -800,6 +812,10 @@ body {
   --list-band-even:  color-mix(in srgb, var(--carbon-text) 5%, transparent);
   --list-band-head:  color-mix(in srgb, var(--carbon-text) 9%, transparent);
   --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 15%, transparent);
+  --list-band-sunk: light-dark(
+    color-mix(in srgb, var(--carbon-text) 6%, transparent),
+    color-mix(in srgb, var(--carbon-bg) 60%, transparent)
+  );
 }
 
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
@@ -1202,6 +1218,12 @@ body {
 :where([data-shade]) > [data-band]:is(:hover, :has(:focus-visible)) {
   background-color: var(--hover);
 }
+/* A parked row wears the sunk shade over whatever ground it has: its band,
+   the card when the list is not shaded, the hover or the selection. An image
+   layer, so none of the rules that paint those grounds has to know about it. */
+[data-parked] {
+  background-image: linear-gradient(var(--list-band-sunk), var(--list-band-sunk));
+}
 
 /* The wash on a selected list row. A class rather than a `bg-accent/20`
    utility, because the rainbow wash is an inset shadow painted above the
@@ -1556,47 +1578,48 @@ body {
    which :root has already resolved, and ProgressBar reads the plain ones. Set
    below the row's .glim-hue, so a rainbow position greys as well.
 
-   Ink takes the muted text step and a fill the neutral dot's grey, which is
-   the lighter of the two on a light theme: a bar in the text grey outweighs
-   the live bars around it. A fill's hover step takes the same grey, so
-   nothing on the row lights up under the pointer. */
+   Ink takes --parked-ink, the muted text step kept readable on the row's
+   sunk ground, and a fill the neutral dot's grey, which is the lighter of the
+   two on a light theme: a bar in the text grey outweighs the live bars around
+   it. A fill's hover step takes the same grey, so nothing on the row lights
+   up under the pointer. */
 .kl-parked {
-  --carbon-text: var(--carbon-text-muted);
-  --carbon-text-sub: var(--carbon-text-muted);
+  --carbon-text: var(--parked-ink);
+  --carbon-text-sub: var(--parked-ink);
   --accent: var(--status-neutral-solid);
-  --accent-ink: var(--carbon-text-muted);
-  --accent-glyph: var(--carbon-text-muted);
+  --accent-ink: var(--parked-ink);
+  --accent-glyph: var(--parked-ink);
   --accent-hover: var(--status-neutral-solid);
-  --status-ok-text: var(--carbon-text-muted);
+  --status-ok-text: var(--parked-ink);
   --status-ok-solid: var(--status-neutral-solid);
   --status-ok-hover: var(--status-neutral-solid);
-  --status-fail-text: var(--carbon-text-muted);
+  --status-fail-text: var(--parked-ink);
   --status-fail-solid: var(--status-neutral-solid);
   --status-fail-hover: var(--status-neutral-solid);
-  --status-warn-text: var(--carbon-text-muted);
+  --status-warn-text: var(--parked-ink);
   --status-warn-solid: var(--status-neutral-solid);
   --status-warn-hover: var(--status-neutral-solid);
-  --status-info-text: var(--carbon-text-muted);
+  --status-info-text: var(--parked-ink);
   --status-info-solid: var(--status-neutral-solid);
-  --status-neutral-text: var(--carbon-text-muted);
-  --color-carbon-text: var(--carbon-text-muted);
-  --color-carbon-textSub: var(--carbon-text-muted);
+  --status-neutral-text: var(--parked-ink);
+  --color-carbon-text: var(--parked-ink);
+  --color-carbon-textSub: var(--parked-ink);
   --color-accent: var(--status-neutral-solid);
-  --color-accentInk: var(--carbon-text-muted);
-  --color-accentGlyph: var(--carbon-text-muted);
+  --color-accentInk: var(--parked-ink);
+  --color-accentGlyph: var(--parked-ink);
   --color-accentHover: var(--status-neutral-solid);
-  --color-statusOk: var(--carbon-text-muted);
+  --color-statusOk: var(--parked-ink);
   --color-statusOkSolid: var(--status-neutral-solid);
   --color-statusOkHover: var(--status-neutral-solid);
-  --color-statusFail: var(--carbon-text-muted);
+  --color-statusFail: var(--parked-ink);
   --color-statusFailSolid: var(--status-neutral-solid);
   --color-statusFailHover: var(--status-neutral-solid);
-  --color-statusWarn: var(--carbon-text-muted);
+  --color-statusWarn: var(--parked-ink);
   --color-statusWarnSolid: var(--status-neutral-solid);
   --color-statusWarnHover: var(--status-neutral-solid);
-  --color-statusInfo: var(--carbon-text-muted);
+  --color-statusInfo: var(--parked-ink);
   --color-statusInfoSolid: var(--status-neutral-solid);
-  --color-statusNeutral: var(--carbon-text-muted);
+  --color-statusNeutral: var(--parked-ink);
 }
 /* A host's logo is a picture, which no token reaches. */
 .kl-parked img {

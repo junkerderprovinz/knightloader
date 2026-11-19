@@ -503,6 +503,7 @@ function TaskRow({
       data-row-key={rowKey({ kind: 'task', id: task.id })}
       data-row-kind="task"
       data-band={band}
+      data-parked={parked || undefined}
       role="treeitem"
       // Roving tabindex: one row is the tab stop, not five thousand.
       tabIndex={current ? 0 : -1}
@@ -1098,6 +1099,7 @@ function PackageRow({
       data-row-key={rowKey({ kind: 'package', name })}
       data-row-kind="package"
       data-band={band}
+      data-parked={parked || undefined}
       role="treeitem"
       tabIndex={current ? 0 : -1}
       aria-selected={selection ? !!allSelected : undefined}
