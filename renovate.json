@@ -1,105 +1,148 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    "helpers:pinGitHubActionDigests",
-    "docker:pinDigests",
-    ":semanticCommits",
-    ":dependencyDashboard",
-    ":enableVulnerabilityAlertsWithLabel(security)"
+    "local>junkerderprovinz/junkerderprovinz//renovate/base",
+    "local>junkerderprovinz/junkerderprovinz//renovate/components"
   ],
-  "timezone": "Europe/Vienna",
-  "schedule": ["before 6am on monday"],
-  "labels": ["dependencies"],
-  "prHourlyLimit": 4,
-  "prConcurrentLimit": 6,
-  "automergeType": "pr",
   "automergeStrategy": "squash",
-  "platformAutomerge": false,
   "rebaseWhen": "conflicted",
-  "gitIgnoredAuthors": ["ci@knightloader.invalid"],
+  "gitIgnoredAuthors": [
+    "ci@knightloader.invalid"
+  ],
   "packageRules": [
     {
-      "description": "Node stays on 24 until 26 is tested. This covers the node image, node-version in setup-node (looked up as actions/node-versions), .nvmrc, engines and @types/node.",
-      "matchPackageNames": ["node", "actions/node-versions", "@types/node"],
-      "allowedVersions": "<25"
-    },
-    {
-      "description": "GitHub Actions: auto-merge all updates once every check is green; main has no required checks, so GitHub's own auto-merge would not wait for them",
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
-      "automerge": true,
-      "commitMessagePrefix": "ci:",
-      "labels": ["github-actions"]
-    },
-    {
       "description": "Go: group minor, patch and digest module updates into one weekly PR that merges once CI is green; majors stay separate for review. dependency-fixups.yml tidies desktop/go.mod on the branch",
-      "matchManagers": ["gomod"],
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "groupName": "Go modules (non-major)",
-      "commitMessagePrefix": "chore(deps):",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "!github.com/rclone/rclone",
+        "!github.com/anacrolix/torrent",
+        "!github.com/restic/restic"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ],
       "automerge": true
     },
     {
       "description": "npm: group minor and patch into one weekly PR that merges once CI is green; majors stay separate. dependency-fixups.yml rebuilds web/dist on the branch",
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "web dependencies (non-major)",
-      "commitMessagePrefix": "chore(deps):",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     },
     {
       "description": "The Expo SDK decides React, React Native and the native modules in mobile/; npx expo install --fix moves them with an SDK upgrade",
-      "matchFileNames": ["mobile/package.json"],
-      "matchPackageNames": ["expo", "expo-*", "@expo/**", "react", "react-dom", "@types/react", "react-native", "react-native-*", "@react-native/**", "@react-native-community/**"],
-      "matchUpdateTypes": ["minor", "major"],
+      "matchFileNames": [
+        "mobile/package.json"
+      ],
+      "matchPackageNames": [
+        "expo",
+        "expo-*",
+        "@expo/**",
+        "react",
+        "react-dom",
+        "@types/react",
+        "react-native",
+        "react-native-*",
+        "@react-native/**",
+        "@react-native-community/**"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "major"
+      ],
       "enabled": false
     },
     {
       "description": "A new Expo SDK gets a PR of its own, never merged automatically, so the rest of mobile/ can follow it by hand",
-      "matchFileNames": ["mobile/package.json"],
-      "matchPackageNames": ["expo"],
-      "matchUpdateTypes": ["major"],
+      "matchFileNames": [
+        "mobile/package.json"
+      ],
+      "matchPackageNames": [
+        "expo"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": true,
       "automerge": false,
       "groupName": "Expo SDK",
-      "addLabels": ["expo-sdk"],
-      "prBodyNotes": ["Run `npx expo install --fix` in `mobile/` on this branch and commit the result, so React, React Native and the `expo-*` modules move to this SDK's versions."]
+      "addLabels": [
+        "expo-sdk"
+      ],
+      "prBodyNotes": [
+        "Run `npx expo install --fix` in `mobile/` on this branch and commit the result, so React, React Native and the `expo-*` modules move to this SDK's versions."
+      ]
     },
     {
       "description": "Override for xcode, which loads uuid with require(); 12 and later are ESM only",
-      "matchFileNames": ["mobile/package.json"],
-      "matchPackageNames": ["uuid"],
+      "matchFileNames": [
+        "mobile/package.json"
+      ],
+      "matchPackageNames": [
+        "uuid"
+      ],
       "allowedVersions": "<12"
     },
     {
       "description": "The Expo module build files declare no repositories and get Google's Maven from the app at build time, so Renovate would only ask Maven Central, which has no androidx",
-      "matchManagers": ["gradle"],
-      "matchFileNames": ["mobile/modules/*/android/build.gradle"],
-      "registryUrls": ["https://dl.google.com/android/maven2/", "https://repo.maven.apache.org/maven2/"]
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchFileNames": [
+        "mobile/modules/*/android/build.gradle"
+      ],
+      "registryUrls": [
+        "https://dl.google.com/android/maven2/",
+        "https://repo.maven.apache.org/maven2/"
+      ]
     },
     {
       "description": "gVisor's master branch is laid out for Bazel and go build rejects it (two packages in one directory); only its go branch builds, so gvisor stays on the last commit that does",
-      "matchManagers": ["gomod"],
-      "matchPackageNames": ["gvisor.dev/gvisor"],
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "gvisor.dev/gvisor"
+      ],
       "enabled": false
     },
     {
       "description": "The desktop module points at the main module through a replace directive, so its version is never read",
-      "matchFileNames": ["desktop/go.mod"],
-      "matchPackageNames": ["github.com/junkerderprovinz/knightloader"],
+      "matchFileNames": [
+        "desktop/go.mod"
+      ],
+      "matchPackageNames": [
+        "github.com/junkerderprovinz/knightloader"
+      ],
       "enabled": false
     },
     {
       "description": "React Native's Android build expects JDK 17",
-      "matchFileNames": [".github/workflows/release.yml"],
-      "matchDepNames": ["java-jdk"],
+      "matchFileNames": [
+        ".github/workflows/release.yml"
+      ],
+      "matchDepNames": [
+        "java-jdk"
+      ],
       "allowedVersions": "17"
     },
     {
       "description": "The compose file is for people to copy, so it follows the app's own latest tag instead of a digest that goes stale every build",
-      "matchManagers": ["docker-compose"],
-      "matchPackageNames": ["junkerderprovinz/knightloader"],
+      "matchManagers": [
+        "docker-compose"
+      ],
+      "matchPackageNames": [
+        "junkerderprovinz/knightloader"
+      ],
       "enabled": false
     }
   ]
