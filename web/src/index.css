@@ -697,9 +697,6 @@ body {
 [data-rainbow] .glim-hue {
   --hover-chroma: 0.3;
   --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.432 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
-  /* The hover of a control that already rests on surface3, one Carbon step
-     further: surface3 to hover-raised in every theme, in the same hue. */
-  --hover-up: light-dark(oklab(from var(--hover) calc(l - 0.034) a b), oklab(from var(--hover) calc(l + 0.1) a b));
 }
 
 /* OLED moves surface3 one Carbon step down, and the hover with it. data-oled
@@ -3158,10 +3155,10 @@ body {
    the brand's colour pair from the tile's own style or the accent for one of
    the app's glyphs. The tile is about as wide as a row at rest is high, so it
    stands square there and grows taller with a row that wraps; a width that
-   followed the height would push the row taller still. The tile is part of
-   the row and fills it to its edge, so it wears none of the --tile-edge ring
-   that sets a lit tile off the card on black: inside the row that ring reads
-   as a gap the card shows through. */
+   followed the height would push the row taller still. Its other edges are
+   the row's, so the edge that lifts a near-black tile off the card stands
+   only toward the name, where a ring all round would draw a frame the card
+   shows through. */
 .glim-connection {
   display: flex;
   min-width: 0;
@@ -3180,10 +3177,20 @@ body {
   width: 5.5rem;
   background-color: var(--tile);
   color: var(--tile-ink);
+  box-shadow: inset -1px 0 0 var(--tile-edge, transparent);
+}
+[dir="rtl"] .glim-connection-tile {
+  box-shadow: inset 1px 0 0 var(--tile-edge, transparent);
 }
 .glim-connection-mark {
   display: flex;
   width: 2.5rem;
+  height: 2.5rem;
+}
+/* A wordmark is the name written out, which a square would shrink to a
+   sliver, so it takes the tile's width less a margin on each side. */
+.glim-connection-mark--wordmark {
+  width: calc(100% - 1rem);
   height: 2.5rem;
 }
 .glim-connection-mark :is(svg, .glim-logo) {
@@ -3240,7 +3247,12 @@ body {
 .glim-connection-badges .bg-statusOkBg { background: linear-gradient(var(--status-ok-bg), var(--status-ok-bg)) var(--carbon-surface); }
 .glim-connection-badges .bg-statusFailBg { background: linear-gradient(var(--status-fail-bg), var(--status-fail-bg)) var(--carbon-surface); }
 .glim-connection-badges .bg-statusWarnBg { background: linear-gradient(var(--status-warn-bg), var(--status-warn-bg)) var(--carbon-surface); }
-.glim-connection-badges .bg-carbon-surface2 { background-color: var(--carbon-surface3); }
+/* A neutral badge keeps the well's ground inside a ring of the step above,
+   with no hover, so it does not pass for one of the row's buttons. */
+.glim-connection-badges .bg-carbon-surface2 {
+  background-color: var(--carbon-surface2);
+  box-shadow: inset 0 0 0 1px var(--carbon-surface3);
+}
 /* A badge here stands as tall as the buttons and in their type, so the row's
    labels and its buttons read as one size. */
 .glim-connection-badges .glim-badge {
@@ -3249,12 +3261,13 @@ body {
   font-size: var(--text-body);
 }
 /* The row is the well's surface2, which a quiet button wears too, so its
-   buttons step one surface up and hover one step further, as on a sub-card. */
-.glim-connection-actions .glim-btn-subtle {
+   buttons step one surface up and hover to the accent's --hover, as on a
+   sub-card. */
+.glim-connection .glim-btn-subtle {
   background-color: var(--carbon-surface3);
 }
-.glim-connection-actions .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) {
-  background-color: var(--hover-up);
+.glim-connection .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) {
+  background-color: var(--hover);
 }
 .glim-connection-about {
   display: flex;
@@ -3272,6 +3285,7 @@ body {
 @container connection (max-width: 30rem) {
   .glim-connection-tile { width: 4.5rem; }
   .glim-connection-mark { width: 2rem; height: 2rem; }
+  .glim-connection-mark--wordmark { width: calc(100% - 0.75rem); }
   .glim-connection-main { padding-inline: 0.75rem; }
 }
 /* A contrast theme forces the ground and the glyphs but not a mark's inline

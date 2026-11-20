@@ -35,8 +35,6 @@ const both = (light: number, dark: number) => `light-dark(${tint(light)}, ${tint
 
 // GlimStone's lightness for the hover: light, dark and OLED.
 const STEP = [0.861, 0.432, 0.338] as const;
-// One Carbon step further, for a control that rests on surface3 already.
-const STEP_UP = [0.827, 0.532, 0.438] as const;
 
 // What the colour picker can hand in: twelve hues at low, mid and high chroma
 // on four lightness steps, and a run of greys.
@@ -58,29 +56,6 @@ describe('the hover', () => {
 
   it('moves one step down with OLED', () => {
     expect(block('[data-oled],\n[data-oled][data-rainbow] .glim-hue')).toEqual({ '--hover': both(STEP[0], STEP[2]) });
-  });
-
-  it('steps one further from the same hover for a control that rests on surface3', () => {
-    const own = block(':root,\n[data-theme],\n[data-rainbow] .glim-hue');
-    expect(own['--hover-up']).toBe('light-dark(oklab(from var(--hover) calc(l - 0.034) a b), oklab(from var(--hover) calc(l + 0.1) a b))');
-    STEP.forEach((l, side) => expect(l + (side === 0 ? -0.034 : 0.1)).toBeCloseTo(STEP_UP[side], 2));
-  });
-
-  it('keeps the text at 4.5:1 on the further step for every picked accent', () => {
-    const themes = [
-      { name: 'light', side: 0, ink: '#161616' },
-      { name: 'dark', side: 1, ink: '#f4f4f4' },
-      { name: 'OLED', side: 2, ink: '#f4f4f4' },
-    ];
-    const misses: string[] = [];
-    for (const accent of [...ACCENTS.map((a) => a.hex), ...RAINBOW, ...SWEEP]) {
-      const [, a, b] = oklabOf(accent);
-      for (const { name, side, ink } of themes) {
-        const r = contrastRatio(ink, srgbOf([STEP_UP[side], a * 0.3, b * 0.3]));
-        if (r < MIN_TEXT_CONTRAST) misses.push(`${accent} on ${name}: ${r.toFixed(2)}`);
-      }
-    }
-    expect(misses).toEqual([]);
   });
 
   it('follows a rainbow position as a Tailwind colour too', () => {
@@ -111,7 +86,7 @@ describe('the hover', () => {
 
 // The one hover ground, and the grounds that come from the accent, a rainbow
 // position, a brand tile or a state hue.
-const LIT = /var\(--(hover(?:-up)?|accent[\w-]*|item-hue[\w-]*|tile[\w-]*|brand[\w-]*|status-[\w-]+)\)/;
+const LIT = /var\(--(hover|accent[\w-]*|item-hue[\w-]*|tile[\w-]*|brand[\w-]*|status-[\w-]+)\)/;
 const SYSTEM = /^(Highlight|HighlightText|ButtonFace|ButtonText|Canvas|CanvasText|LinkText|GrayText|SelectedItem)$/;
 
 describe('every hover in the stylesheet', () => {

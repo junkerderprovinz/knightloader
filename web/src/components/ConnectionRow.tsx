@@ -2,7 +2,8 @@
 // "Connections"): its mark lit on a tile the row's whole height, its name with
 // any badges, one quiet line on how it stands, and Test, Edit and Remove at the
 // end. A button stands only where its handler is passed, and the row's own
-// buttons, such as signing in again, stand before them.
+// buttons, such as signing in again, stand before them and report on
+// themselves as the test does.
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { TileMark } from '../lib/catalogs/catalog';
 import { IconCheck, IconClose, IconPencil, IconTrash } from '../lib/icons';
@@ -21,10 +22,13 @@ export interface ConnectionTest {
   title?: string;
 }
 
-export interface ConnectionAction {
+/** A button of the row's own, which reports on itself as the test does. */
+export interface ConnectionAction extends ConnectionTest {
+  /** Tells the buttons apart and names the button's `data-connection` hook. */
   id: string;
   label: string;
   icon: ReactNode;
+  disabled?: boolean;
   onClick: () => void;
 }
 
@@ -74,21 +78,24 @@ export function ConnectionRow({
   const compact = usePhoneLayout();
   const colours = isTileMark(mark) ? (mark.tile && mark.ink ? { tile: mark.tile, ink: mark.ink } : undefined) : paint;
   const tile = colours && ({ '--tile': colours.tile, '--tile-ink': colours.ink } as CSSProperties);
-  const tone = test?.busy ? undefined : test?.tone;
-
-  // Every failure that comes back shakes the button once more.
-  const [shake, setShake] = useState(0);
-  useEffect(() => {
-    if (tone === 'danger') setShake((n) => n + 1);
-  }, [tone, test]);
-
-  // Words beside the glyph, or the glyph alone with its words as its name.
-  const words = (label: string) => (compact ? { title: label } : { children: label });
+  const buttons: ConnectionAction[] = [
+    ...(actions ?? []),
+    ...(onTest ? [{ ...test, id: 'test', label: text.test, icon: <IconCheck />, onClick: onTest }] : []),
+    ...(onEdit ? [{ id: 'edit', label: text.edit, icon: <IconPencil />, onClick: onEdit }] : []),
+    ...(onRemove ? [{ id: 'remove', label: text.remove, icon: <IconTrash />, onClick: onRemove }] : []),
+  ];
+  const reporting = onTest || actions?.some((a) => a.busy !== undefined || a.tone !== undefined);
+  const found = buttons
+    .filter((b) => !b.busy && b.tone)
+    .map((b) => b.title)
+    .join(' ');
 
   return (
     <div data-glim="ConnectionRow" role="group" aria-label={name} className="glim-well glim-connection">
       <span className="glim-connection-tile" style={tile} aria-hidden>
-        <span className="glim-connection-mark">{isTileMark(mark) ? <TileMarkView mark={mark} /> : mark}</span>
+        <span className={`glim-connection-mark ${isTileMark(mark) && mark.wordmark ? 'glim-connection-mark--wordmark' : ''}`}>
+          {isTileMark(mark) ? <TileMarkView mark={mark} /> : mark}
+        </span>
       </span>
       <div className="glim-connection-main">
         <div className="glim-connection-head">
@@ -100,37 +107,46 @@ export function ConnectionRow({
             {status && <p className="glim-connection-status">{status}</p>}
             {children}
           </div>
-          {(actions?.length || onTest || onEdit || onRemove) && (
+          {buttons.length > 0 && (
             <span className="glim-connection-actions">
-              {actions?.map((a) => (
-                <Button key={a.id} kind="secondary" icon={a.icon} data-connection={a.id} onClick={a.onClick} {...words(a.label)} />
+              {buttons.map((b) => (
+                <RowButton key={b.id} button={b} compact={compact} />
               ))}
-              {onTest && (
-                <Button
-                  kind="secondary"
-                  icon={tone === 'danger' ? <IconClose /> : <IconCheck />}
-                  verdict={tone === 'ok' ? 'ok' : tone === 'danger' ? 'fail' : undefined}
-                  disabled={test?.busy}
-                  shake={shake}
-                  data-connection="test"
-                  onClick={onTest}
-                  {...words(text.test)}
-                  title={compact ? text.test : test?.title}
-                />
-              )}
-              {onEdit && <Button kind="secondary" icon={<IconPencil />} data-connection="edit" onClick={onEdit} {...words(text.edit)} />}
-              {onRemove && (
-                <Button kind="secondary" icon={<IconTrash />} data-connection="remove" onClick={onRemove} {...words(text.remove)} />
-              )}
             </span>
           )}
-          {onTest && (
+          {reporting && (
             <span role="status" className="sr-only">
-              {tone ? test?.title : ''}
+              {found}
             </span>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * RowButton is one button at the row's end. While it runs it holds, then it
+ * turns green with a check or red with a cross, and every failure that comes
+ * back shakes it once more.
+ */
+function RowButton({ button: b, compact }: { button: ConnectionAction; compact: boolean }) {
+  const tone = b.busy ? undefined : b.tone;
+  const [shake, setShake] = useState(0);
+  useEffect(() => {
+    if (tone === 'danger') setShake((n) => n + 1);
+  }, [tone, b.title]);
+  return (
+    <Button
+      kind="secondary"
+      icon={tone === 'danger' ? <IconClose /> : tone === 'ok' ? <IconCheck /> : b.icon}
+      verdict={tone === 'ok' ? 'ok' : tone === 'danger' ? 'fail' : undefined}
+      disabled={b.busy || b.disabled}
+      shake={shake}
+      data-connection={b.id}
+      onClick={b.onClick}
+      // Words beside the glyph, or the glyph alone with its words as its name.
+      {...(compact ? { title: b.label } : { children: b.label, title: b.title })}
+    />
   );
 }

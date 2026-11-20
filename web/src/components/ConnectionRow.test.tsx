@@ -48,6 +48,13 @@ describe('a connection row', () => {
     expect(host.querySelector('.glim-connection-status')!.textContent).toBe('Signed in as maria');
   });
 
+  it('lets a wordmark take the width of its tile', () => {
+    act(() =>
+      root.render(<ConnectionRow name="AllDebrid" mark={{ svg: '<svg></svg>', tile: '#fbc624', ink: '#161616', wordmark: true }} text={text} />),
+    );
+    expect(host.querySelector('.glim-connection-mark')!.className).toContain('glim-connection-mark--wordmark');
+  });
+
   it('puts the accent behind a mark that brings no colours', () => {
     act(() => root.render(<ConnectionRow name="Backup server" mark={<svg />} text={text} />));
     expect(tile().getAttribute('style')).toBeNull();
@@ -83,6 +90,27 @@ describe('a connection row', () => {
     expect(order).toEqual(['again', 'test', 'edit', 'remove']);
   });
 
+  it("lets an action of the row's own report on itself, as the test does", () => {
+    const draw = (state: Partial<ConnectionTest>) =>
+      act(() =>
+        root.render(
+          <ConnectionRow
+            name="Seedbox"
+            mark={<svg />}
+            text={text}
+            actions={[{ id: 'mount', label: 'Mount', icon: <svg />, onClick: () => {}, ...state }]}
+          />,
+        ),
+      );
+    draw({ busy: true });
+    expect(button('mount')!.disabled).toBe(true);
+    draw({ tone: 'danger', title: 'The share refused the login' });
+    expect(button('mount')!.className).toContain('bg-statusFailSolid');
+    expect(host.querySelector('[role="status"]')!.textContent).toBe('The share refused the login');
+    draw({ tone: 'ok', title: 'Mounted' });
+    expect(button('mount')!.className).toContain('bg-statusOkSolid');
+  });
+
   it('turns the test green or red with what it found', () => {
     render({ onTest: () => {}, test: { tone: 'ok', title: 'Reached' } });
     expect(button('test')!.className).toContain('bg-statusOkSolid');
@@ -116,9 +144,9 @@ describe("a connection row's tile", () => {
   const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector, body]) => ({ selector: selector.trim(), body }));
   const rule = (selector: string) => rules.find((r) => r.selector === selector)?.body;
 
-  it('reaches the edge of the row with no ring inside it', () => {
-    expect(rule('.glim-connection-tile')).toBeDefined();
-    expect(rule('.glim-connection-tile')).not.toMatch(/box-shadow|border/);
+  it('keeps its edge only toward the name, so no frame runs along the row', () => {
+    expect(rule('.glim-connection-tile')).toMatch(/box-shadow:\s*inset -1px 0 0 var\(--tile-edge, transparent\);/);
+    expect(rule('[dir="rtl"] .glim-connection-tile')).toMatch(/box-shadow:\s*inset 1px 0 0 var\(--tile-edge, transparent\);/);
   });
 
   it('puts the badges right after the name, which grows no further than its words', () => {
@@ -132,11 +160,17 @@ describe("a connection row's tile", () => {
     expect(badge).toMatch(/font-size:\s*var\(--text-body\)/);
   });
 
-  it('steps its buttons one surface above the row, and their hover one further', () => {
-    expect(rule('.glim-connection-actions .glim-btn-subtle')).toMatch(/background-color:\s*var\(--carbon-surface3\)/);
-    expect(rule('.glim-connection-actions .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible)')).toMatch(
-      /background-color:\s*var\(--hover-up\)/,
+  it('steps its buttons one surface above the row, hovering to the accent', () => {
+    expect(rule('.glim-connection .glim-btn-subtle')).toMatch(/background-color:\s*var\(--carbon-surface3\)/);
+    expect(rule('.glim-connection .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible)')).toMatch(
+      /background-color:\s*var\(--hover\)/,
     );
+  });
+
+  it('keeps a neutral badge on the well inside a ring, so it does not pass for a button', () => {
+    const neutral = rule('.glim-connection-badges .bg-carbon-surface2');
+    expect(neutral).toMatch(/background-color:\s*var\(--carbon-surface2\)/);
+    expect(neutral).toMatch(/box-shadow:\s*inset 0 0 0 1px var\(--carbon-surface3\)/);
   });
 
   it('hides the resting drawing of a logo in one ink, as of every other, beside the lit one', () => {
