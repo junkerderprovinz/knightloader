@@ -1,0 +1,1 @@
+Every service you connect now has its proper logo and a tidy row, new passwords get asked twice so typos stay out, and all 42 languages finally call things by the same names.

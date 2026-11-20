@@ -79,6 +79,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.9.4" date="2026-11-20">
+      <description>
+        <p>Every connected service on the Accounts page stands as a connection row with its own logo, a new password is asked for twice, the app key is called the encryption key, and all 42 languages use the same words for shared things.</p>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.9.4</url>
+    </release>
     <release version="2.9.3" date="2026-11-19">
       <description>
         <p>Linux gets an AppImage, sign-ins stand as compact connection rows, a disabled download sits on a darker band, and a free Rapidgator download with a Turnstile captcha starts after its countdown.</p>

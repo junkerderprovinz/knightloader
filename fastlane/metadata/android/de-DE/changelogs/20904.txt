@@ -1,0 +1,1 @@
+Jeder verbundene Dienst hat jetzt sein richtiges Logo und eine ordentliche Zeile, neue Passwörter werden zweimal abgefragt, damit kein Tippfehler durchrutscht, und alle 42 Sprachen nennen die Dinge endlich gleich.
