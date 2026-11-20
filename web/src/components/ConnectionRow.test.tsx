@@ -98,3 +98,24 @@ describe('a connection row', () => {
     expect(button('remove')!.getAttribute('aria-label')).toBe('Remove');
   });
 });
+
+describe("a connection row's tile", () => {
+  /** The one call of node:fs used here; the web build carries no Node types. */
+  interface NodeFs {
+    readFileSync(path: string, encoding: 'utf8'): string;
+  }
+  // Vitest hands a test every stylesheet empty, so the rules are read off the disk.
+  const fs = (globalThis as unknown as { process: { getBuiltinModule(id: 'node:fs'): NodeFs } }).process.getBuiltinModule('node:fs');
+  const css = fs.readFileSync('src/index.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector, body]) => ({ selector: selector.trim(), body }));
+  const rule = (selector: string) => rules.find((r) => r.selector === selector)?.body;
+
+  it('reaches the edge of the row with no ring inside it', () => {
+    expect(rule('.glim-connection-tile')).toBeDefined();
+    expect(rule('.glim-connection-tile')).not.toMatch(/box-shadow|border/);
+  });
+
+  it('hides the resting drawing of a logo in one ink, as of every other, beside the lit one', () => {
+    expect(rule('.glim-connection-tile :is(.glim-mark-rest, .glim-logo-ink.glim-mark-rest)')).toMatch(/display:\s*none/);
+  });
+});

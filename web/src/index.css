@@ -3266,7 +3266,10 @@ body {
    the brand's colour pair from the tile's own style or the accent for one of
    the app's glyphs. The tile is about as wide as a row at rest is high, so it
    stands square there and grows taller with a row that wraps; a width that
-   followed the height would push the row taller still. */
+   followed the height would push the row taller still. The tile is part of
+   the row and fills it to its edge, so it wears none of the --tile-edge ring
+   that sets a lit tile off the card on black: inside the row that ring reads
+   as a gap the card shows through. */
 .glim-connection {
   display: flex;
   min-width: 0;
@@ -3285,7 +3288,6 @@ body {
   width: 5.5rem;
   background-color: var(--tile);
   color: var(--tile-ink);
-  box-shadow: inset 0 0 0 1px var(--tile-edge, transparent);
 }
 .glim-connection-mark {
   display: flex;
@@ -3296,7 +3298,9 @@ body {
   width: 100%;
   height: 100%;
 }
-.glim-connection-tile .glim-mark-rest { display: none; }
+/* A logo drawn in one ink stands at rest in a rule of the same weight further
+   down, which would show it beside its lit drawing. */
+.glim-connection-tile :is(.glim-mark-rest, .glim-logo-ink.glim-mark-rest) { display: none; }
 .glim-connection-tile .glim-mark-hover { display: block; }
 .glim-connection-tile .glim-monogram {
   background-color: transparent;
