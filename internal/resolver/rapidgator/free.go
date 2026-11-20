@@ -36,6 +36,10 @@ const freePrio = 42
 // answer is still fresh when the form goes in.
 const answerLife = 100 * time.Second
 
+// maxAnswers is how many answers one captcha page is given before the
+// download fails as a captcha.
+const maxAnswers = 3
+
 // The free page's script and the captcha page, as JDownloader's plugin reads
 // them.
 var (
@@ -95,10 +99,13 @@ type FreeBackend struct {
 func NewFreeBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *FreeBackend {
 	b := &FreeBackend{client: c, onUpdate: onUpdate, now: time.Now}
 	b.Free = ownlogin.NewFree(eng, onUpdate, ownlogin.FreeConfig{
-		Name: "Rapidgator", Unlock: b.unlock, Refused: errCaptchaRefused,
+		Name: "Rapidgator", Unlock: b.unlock,
 		Reason: func(err error) core.Reason {
-			if errors.Is(err, ErrPremiumOnly) {
+			switch {
+			case errors.Is(err, ErrPremiumOnly):
 				return core.ReasonAuth
+			case errors.Is(err, errCaptchaRefused):
+				return core.ReasonCaptcha
 			}
 			return reason(err)
 		},
@@ -203,34 +210,44 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 			return "", err
 		}
 	}
-	// The form takes the answer of either kind in its own field and the one
-	// the widget adds, as a browser sends them.
-	fields.Set("DownloadCaptchaForm[verifyCode]", answer)
-	fields.Set("g-recaptcha-response", answer)
-	if c.Kind == hoster.Turnstile {
-		fields.Set("cf-turnstile-response", answer)
-	}
 	action := "/download/captcha"
 	if a := formAction.FindStringSubmatch(form[0]); a != nil && a[1] != "" {
 		action = html.UnescapeString(a[1])
 	}
-	sent := b.now().Sub(ready)
-	body, resp, err := s.post(ctx, action, fields)
-	if err != nil {
-		return "", err
-	}
-	if captchaWrong.MatchString(body) {
+	// The form takes another answer after one it turned down, also when its
+	// own check of the answer failed, so a refusal is answered on the same
+	// page rather than with a new countdown.
+	for try := 1; ; try++ {
+		// The form takes the answer of either kind in its own field and the
+		// one the widget adds, as a browser sends them.
+		fields.Set("DownloadCaptchaForm[verifyCode]", answer)
+		fields.Set("g-recaptcha-response", answer)
+		if c.Kind == hoster.Turnstile {
+			fields.Set("cf-turnstile-response", answer)
+		}
+		sent := b.now().Sub(ready)
+		body, resp, err := s.post(ctx, action, fields)
+		if err != nil {
+			return "", err
+		}
+		if !captchaWrong.MatchString(body) {
+			direct, err := freeLink(body)
+			if err == nil && resp.StatusCode != http.StatusOK {
+				err = &APIError{Status: resp.StatusCode, Details: action + " answered " + http.StatusText(resp.StatusCode)}
+			}
+			if err != nil {
+				s.explain("no download link after the captcha", fileIDOf(norm), sent, body, resp)
+			}
+			return direct, err
+		}
 		s.explain("Rapidgator refused the captcha answer", fileIDOf(norm), sent, body, resp)
-		return "", errCaptchaRefused
+		if try == maxAnswers {
+			return "", errCaptchaRefused
+		}
+		if answer, err = ask(c); err != nil {
+			return "", err
+		}
 	}
-	direct, err := freeLink(body)
-	if err == nil && resp.StatusCode != http.StatusOK {
-		err = &APIError{Status: resp.StatusCode, Details: action + " answered " + http.StatusText(resp.StatusCode)}
-	}
-	if err != nil {
-		s.explain("no download link after the captcha", fileIDOf(norm), sent, body, resp)
-	}
-	return direct, err
 }
 
 // explain logs why an answer to the captcha led to no download, so a report

@@ -81,6 +81,9 @@ type Server struct {
 	// page after an accepted one carries the link.
 	answers []url.Values
 	ready   ReadyPage
+	// refusals are what the next answers are turned down with, whatever
+	// they are.
+	refusals []string
 }
 
 // ReadyPage is how the page after an accepted answer carries the download
@@ -169,6 +172,14 @@ func (s *Server) Ready(p ReadyPage) {
 	s.ready = p
 }
 
+// Refuse turns the next answers down, one with each of whys, as the form
+// does when its own check of the answer fails.
+func (s *Server) Refuse(whys ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.refusals = append(s.refusals, whys...)
+}
+
 // Answers is every captcha form posted, oldest first.
 func (s *Server) Answers() []url.Values {
 	s.mu.Lock()
@@ -239,12 +250,16 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 				fmt.Fprint(w, hourlyLimit)
 				return true
 			}
-			if r.PostForm.Get("DownloadCaptchaForm[verifyCode]") == Token && r.PostForm.Get("DownloadCaptchaForm[captcha]") == "" {
+			why := "The verification code is incorrect."
+			switch {
+			case len(s.refusals) > 0:
+				why, s.refusals = s.refusals[0], s.refusals[1:]
+			case r.PostForm.Get("DownloadCaptchaForm[verifyCode]") == Token && r.PostForm.Get("DownloadCaptchaForm[captcha]") == "":
 				s.readyPage(w, r, run)
 				return true
 			}
-			fmt.Fprint(w, "<html><body><div class=\"errorSummary\"><p>Please fix the following input errors:</p>"+
-				"<ul><li>The verification code is incorrect.</li></ul></div>")
+			fmt.Fprintf(w, "<html><body><div class=\"errorSummary\"><p>Please fix the following input errors:</p>"+
+				"<ul><li>%s</li></ul></div>", why)
 		} else {
 			fmt.Fprint(w, "<html><body>")
 		}

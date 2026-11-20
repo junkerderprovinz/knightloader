@@ -317,6 +317,37 @@ func TestAWrongAnswerIsTriedAgainAndThenFailsAsACaptcha(t *testing.T) {
 	if u := awaitSettled(t, ups); u.Reason != core.ReasonCaptcha || len(a.captchas) != 3 {
 		t.Errorf("settled as %+v after %d captchas, want a captcha failure after three", u, len(a.captchas))
 	}
+	if n := countdowns(srv); n != 1 {
+		t.Errorf("started %d countdowns, want the three answers on one captcha page", n)
+	}
+}
+
+// Rapidgator's own check of the answer can fail on its side, as in "Curl
+// error: Recv failure: Connection reset by peer".
+func TestAnAnswerRapidgatorCouldNotCheckIsAskedAgainOnTheSamePage(t *testing.T) {
+	srv := rgtest.New(t)
+	srv.Countdown(30)
+	srv.Refuse("Curl error: Recv failure: Connection reset by peer")
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, eng, ups, a := newFreeBackend(srv)
+
+	b.Download("t1", link, nil, 1)
+	if _, ok := awaitOutcome(t, eng, ups); !ok {
+		t.Fatalf("the download ended as %+v, want it handed on", ups.last())
+	}
+	if n := countdowns(srv); n != 1 || len(a.captchas) != 2 {
+		t.Errorf("started %d countdowns and asked %d captchas, want one countdown and a second answer", n, len(a.captchas))
+	}
+}
+
+func countdowns(srv *rgtest.Server) int {
+	n := 0
+	for _, r := range srv.Requests() {
+		if strings.HasSuffix(r, "/download/AjaxStartTimer") {
+			n++
+		}
+	}
+	return n
 }
 
 func TestAMissingFileFailsAsGoneBeforeAnyCountdown(t *testing.T) {
