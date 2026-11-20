@@ -1353,6 +1353,7 @@ export const fa: Dict = {
   'accounts.removed': 'حذف شد.',
   'accounts.rename': 'تغییر نام',
   'accounts.renew': 'تمدید',
+  'accounts.runsUntil': 'معتبر تا {date}',
   'accounts.rowActions': 'عملیات حساب',
   'accounts.save': 'ذخیره',
   'accounts.saveAnyway': 'در هر صورت ذخیره شود',

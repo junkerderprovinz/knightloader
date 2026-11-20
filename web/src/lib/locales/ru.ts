@@ -1346,6 +1346,7 @@ export const ru: Dict = {
   'accounts.removed': 'Удалено.',
   'accounts.rename': 'Переименовать',
   'accounts.renew': 'Продлить',
+  'accounts.runsUntil': 'Действует до {date}',
   'accounts.rowActions': 'Действия с аккаунтом',
   'accounts.save': 'Сохранить',
   'accounts.saveAnyway': 'Сохранить всё равно',

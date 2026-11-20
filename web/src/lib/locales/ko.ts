@@ -1353,6 +1353,7 @@ export const ko: Dict = {
   'accounts.removed': '제거했습니다.',
   'accounts.rename': '이름 바꾸기',
   'accounts.renew': '갱신',
+  'accounts.runsUntil': '만료: {date}',
   'accounts.rowActions': '계정 작업',
   'accounts.save': '저장',
   'accounts.saveAnyway': '그래도 저장',

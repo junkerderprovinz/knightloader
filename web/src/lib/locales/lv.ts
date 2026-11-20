@@ -1354,6 +1354,7 @@ export const lv: Dict = {
   'accounts.removed': 'Noņemts.',
   'accounts.rename': 'Pārdēvēt',
   'accounts.renew': 'Atjaunot',
+  'accounts.runsUntil': 'Derīgs līdz {date}',
   'accounts.rowActions': 'Konta darbības',
   'accounts.save': 'Saglabāt',
   'accounts.saveAnyway': 'Tomēr saglabāt',

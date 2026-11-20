@@ -1354,6 +1354,7 @@ export const bg: Dict = {
   'accounts.removed': 'Премахнато.',
   'accounts.rename': 'Преименувай',
   'accounts.renew': 'Подновяване',
+  'accounts.runsUntil': 'Важи до {date}',
   'accounts.rowActions': 'Действия с акаунта',
   'accounts.save': 'Запази',
   'accounts.saveAnyway': 'Запази въпреки това',

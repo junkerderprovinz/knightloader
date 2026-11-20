@@ -1354,6 +1354,7 @@ export const uk: Dict = {
   'accounts.removed': 'Прибрано.',
   'accounts.rename': 'Перейменувати',
   'accounts.renew': 'Продовжити',
+  'accounts.runsUntil': 'Діє до {date}',
   'accounts.rowActions': 'Дії з обліковим записом',
   'accounts.save': 'Зберегти',
   'accounts.saveAnyway': 'Зберегти попри все',

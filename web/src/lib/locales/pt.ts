@@ -1345,6 +1345,7 @@ export const pt: Dict = {
   'accounts.removed': 'Removida.',
   'accounts.rename': 'Mudar nome',
   'accounts.renew': 'Renovar',
+  'accounts.runsUntil': 'Válido até {date}',
   'accounts.rowActions': 'Ações da conta',
   'accounts.save': 'Guardar',
   'accounts.saveAnyway': 'Guardar mesmo assim',

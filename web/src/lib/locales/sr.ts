@@ -1353,6 +1353,7 @@ export const sr: Dict = {
   'accounts.removed': 'Уклоњено.',
   'accounts.rename': 'Преименуј',
   'accounts.renew': 'Обнови',
+  'accounts.runsUntil': 'Важи до {date}',
   'accounts.rowActions': 'Радње налога',
   'accounts.save': 'Сачувај',
   'accounts.saveAnyway': 'Ипак сачувај',

@@ -1353,6 +1353,7 @@ export const id: Dict = {
   'accounts.removed': 'Dihapus.',
   'accounts.rename': 'Ganti nama',
   'accounts.renew': 'Perpanjang',
+  'accounts.runsUntil': 'Berlaku sampai {date}',
   'accounts.rowActions': 'Tindakan akun',
   'accounts.save': 'Simpan',
   'accounts.saveAnyway': 'Tetap simpan',

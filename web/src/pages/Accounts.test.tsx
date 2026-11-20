@@ -564,7 +564,7 @@ describe('a new Usenet server', () => {
   });
 });
 
-it('opens an account from anywhere on its row, and its menu on a right click', async () => {
+it('offers an account’s options as buttons on its row, Remove last', async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string) => {
@@ -580,17 +580,152 @@ it('opens an account from anywhere on its row, and its menu on a right click', a
     }),
   );
   await act(async () => root.render(page));
-  const row = host.querySelector('[aria-label="Debrid accounts"] tbody tr')!;
+  const row = host.querySelector('[aria-label="Debrid accounts"] [data-glim="ConnectionRow"][aria-label="TorBox"]')!;
+  const words = [...row.querySelectorAll('.glim-connection-actions button')].map((b) => b.textContent);
+  expect(words).toEqual(['Disable', 'Refresh', 'Edit', 'Remove']);
 
-  await act(async () => row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 40, clientY: 40 })));
-  const entries = [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((i) => i.textContent);
-  expect(entries).toContain('Disable');
-  expect(entries).toContain('Edit credential');
-  expect(entries).toContain('Remove');
-  await act(async () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
-
-  await act(async () => row.querySelector('td:nth-child(3)')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  await act(async () => row.querySelector<HTMLButtonElement>('[data-connection="edit"]')!.click());
   expect(windowTitle()).toContain('TorBox');
+});
+
+describe('every connected service as a connection row', () => {
+  const later = '2027-06-08T12:00:00Z';
+  const account = (extra: Record<string, unknown>) => ({
+    id: 'realdebrid',
+    service: 'realdebrid',
+    account: '',
+    label: '',
+    enabled: true,
+    configured: true,
+    fromEnv: false,
+    ok: true,
+    detail: 'ok',
+    hosts: 0,
+    tier: 'premium',
+    traffic: { used: 30e9, limit: 100e9, unlimited: false },
+    ...extra,
+  });
+  const catalogue = [
+    { id: 'realdebrid', label: 'Real-Debrid', kind: 'apiKey', group: 'debrid', whereUrl: 'https://real-debrid.com/apitoken' },
+    { id: 'premiumize', label: 'Premiumize.me', kind: 'apiKey', group: 'debrid', whereUrl: '' },
+    { id: 'remotefs', label: 'Seedbox (FTP, SFTP, WebDAV)', kind: 'usernamePassword', group: 'remoteServer', whereUrl: '' },
+  ];
+  let answers: Record<string, unknown>;
+
+  beforeEach(() => {
+    answers = { '/api/accounts/catalogue': catalogue };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url in answers) return reply(answers[url]);
+        if (url === '/api/settings') return reply({ premiumOnly: false });
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
+        return reply([]);
+      }),
+    );
+  });
+
+  const row = (name: string) => host.querySelector<HTMLElement>(`[data-glim="ConnectionRow"][aria-label="${name}"]`)!;
+  const status = (name: string) => row(name).querySelector('.glim-connection-status')?.textContent;
+  const buttons = (name: string) => [...row(name).querySelectorAll('.glim-connection-actions button')].map((b) => b.textContent);
+
+  it('says a debrid account’s plan, how long it runs and what is left of its traffic, and offers to renew it', async () => {
+    answers['/api/accounts'] = [account({ expiry: later })];
+    await act(async () => root.render(page));
+    expect(status('Real-Debrid')).toMatch(/^Premium · Runs until .*2027/);
+    expect(row('Real-Debrid').textContent).toContain('70 GB of 100 GB left');
+    expect(row('Real-Debrid').querySelector('.glim-connection-badges')).toBeNull();
+    expect(buttons('Real-Debrid')).toEqual(['Renew', 'Disable', 'Refresh', 'Edit', 'Remove']);
+  });
+
+  it('puts a failed check in a badge after the name and its reason in the status line', async () => {
+    answers['/api/accounts'] = [account({ ok: false, detail: 'The key was refused (401)' })];
+    await act(async () => root.render(page));
+    expect(row('Real-Debrid').querySelector('.glim-connection-badges')?.textContent).toBe('Not working');
+    expect(status('Real-Debrid')).toBe('The key was refused (401)');
+  });
+
+  it('turns the Refresh button red with the reason when the account still fails', async () => {
+    answers['/api/accounts'] = [account({})];
+    answers['/api/accounts/realdebrid/test'] = account({ ok: false, detail: 'The key was refused (401)' });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url.startsWith('/api/accounts/test')) return reply(answers['/api/accounts/realdebrid/test']);
+        if (url in answers) return reply(answers[url]);
+        if (url === '/api/settings') return reply({ premiumOnly: false });
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
+        return reply([]);
+      }),
+    );
+    await act(async () => root.render(page));
+    await act(async () => row('Real-Debrid').querySelector<HTMLButtonElement>('[data-connection="test"]')!.click());
+    const test = row('Real-Debrid').querySelector<HTMLButtonElement>('[data-connection="test"]')!;
+    expect(test.className).toContain('bg-statusFailSolid');
+    expect(row('Real-Debrid').querySelector('[role="status"]')?.textContent).toBe('The key was refused (401)');
+  });
+
+  it('keeps an account from the environment and says where it is set', async () => {
+    answers['/api/accounts'] = [account({ id: 'premiumize', service: 'premiumize', fromEnv: true, envVar: 'KL_PREMIUMIZE' })];
+    await act(async () => root.render(page));
+    expect(buttons('Premiumize.me')).toEqual(['Disable', 'Refresh', 'Edit']);
+    expect(row('Premiumize.me').textContent).toContain('KL_PREMIUMIZE');
+  });
+
+  it('gives a seedbox no test, since only a download tries its login', async () => {
+    answers['/api/accounts'] = [account({ id: 'remotefs:nas.lan', service: 'remotefs', account: 'nas.lan', detail: '', tier: 'unknown' })];
+    await act(async () => root.render(page));
+    expect(buttons('nas.lan')).toEqual(['Disable', 'Edit', 'Remove']);
+    expect(status('nas.lan')).toContain('only when it downloads from it');
+  });
+
+  it('says a hoster login’s plan and traffic and offers no test, which JD has none of', async () => {
+    answers['/api/hosterauth/logins'] = [
+      { host: 'rapidgator.net', username: 'maria', status: 'active', enabled: true, tier: 'free', expiry: later, trafficLeft: 3e9, trafficMax: 10e9 },
+    ];
+    await act(async () => root.render(page));
+    expect(status('rapidgator.net')).toMatch(/^Free · Runs until /);
+    expect(row('rapidgator.net').textContent).toContain('3.0 GB of 10 GB left');
+    expect(buttons('rapidgator.net')).toEqual(['Disable', 'Edit', 'Remove']);
+  });
+
+  it('marks a disabled hoster login and offers to enable it again', async () => {
+    const posted: unknown[] = [];
+    answers['/api/hosterauth/logins'] = [{ host: 'nitroflare.com', username: 'maria', status: 'off', enabled: false }];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === '/api/hosterauth/logins/enabled') posted.push(JSON.parse(String(init?.body)));
+        if (url in answers) return reply(answers[url]);
+        if (url === '/api/settings') return reply({ premiumOnly: false });
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
+        return reply([]);
+      }),
+    );
+    await act(async () => root.render(page));
+    expect(row('nitroflare.com').querySelector('.glim-connection-badges')?.textContent).toBe('Disabled');
+    await act(async () => row('nitroflare.com').querySelector<HTMLButtonElement>('[data-connection="switch"]')!.click());
+    expect(posted).toEqual([{ host: 'nitroflare.com', enabled: true }]);
+  });
+
+  it('tests a Usenet server from its row and says what the server answered', async () => {
+    const server = { id: 'news.example.com', host: 'news.example.com', port: 563, tls: true, connections: 8, level: 0, retentionDays: 0, optional: false, enabled: true, username: 'reader', hasPassword: true };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url === '/api/usenet/servers/test') return reply({ ok: false, detail: '481 authentication failed' });
+        if (url === '/api/usenet/servers') return reply([server]);
+        if (url === '/api/settings') return reply({ premiumOnly: false });
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
+        return reply([]);
+      }),
+    );
+    await act(async () => root.render(page));
+    expect(status('news.example.com')).toBe('Not checked');
+    await act(async () => row('news.example.com').querySelector<HTMLButtonElement>('[data-connection="test"]')!.click());
+    expect(status('news.example.com')).toBe('481 authentication failed');
+    expect(row('news.example.com').querySelector('.glim-connection-badges')?.textContent).toBe('Not working');
+  });
 });
 
 describe('enabling and disabling accounts', () => {
@@ -628,8 +763,7 @@ describe('enabling and disabling accounts', () => {
     );
   });
 
-  const row = (name: string) =>
-    [...host.querySelectorAll('[aria-label="Debrid accounts"] tbody tr')].find((tr) => tr.textContent?.includes(name))!;
+  const row = (name: string) => host.querySelector(`[aria-label="Debrid accounts"] [data-glim="ConnectionRow"][aria-label="${name}"]`)!;
 
   it('leaves the switch out of the rows and says in its row that an account is disabled', async () => {
     await act(async () => root.render(page));
@@ -666,12 +800,9 @@ describe('enabling and disabling accounts', () => {
     expect(entry('Enable all').disabled).toBe(false);
   });
 
-  it('disables one account from its own row menu', async () => {
+  it('disables one account from its own row', async () => {
     await act(async () => root.render(page));
-    await act(async () =>
-      row('TorBox').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 40, clientY: 40 })),
-    );
-    await act(async () => entry('Disable').click());
+    await act(async () => row('TorBox').querySelector<HTMLButtonElement>('[data-connection="switch"]')!.click());
     expect(switched).toEqual([{ service: 'torbox', account: '', enabled: false }]);
     expect(row('TorBox').textContent).toContain('Disabled');
   });
@@ -732,8 +863,8 @@ it.each([
     }),
   );
   await act(async () => root.render(page));
-  const row = [...card('Hoster accounts').querySelectorAll('tr')].find((r) => r.textContent?.includes('rapidgator.net'))!;
-  expect(row.querySelector(`[aria-label="${words}"]`)).not.toBeNull();
+  const row = card('Hoster accounts').querySelector('[data-glim="ConnectionRow"][aria-label="rapidgator.net"]')!;
+  expect(row.querySelector('.glim-connection-status')?.textContent).toBe(words);
 });
 
 /** stubPriority answers the download order with `rows` and records what the card saves. */
@@ -892,8 +1023,8 @@ describe('a hoster login with two-factor sign-in', () => {
 
   async function openStored() {
     await act(async () => root.render(page));
-    const row = [...card('Hoster accounts').querySelectorAll<HTMLElement>('tr')].find((r) => r.textContent?.includes('rapidgator.net'))!;
-    await act(async () => row.querySelector('td')!.click());
+    const row = card('Hoster accounts').querySelector('[data-glim="ConnectionRow"][aria-label="rapidgator.net"]')!;
+    await act(async () => row.querySelector<HTMLButtonElement>('[data-connection="edit"]')!.click());
   }
 
   async function saveLogin() {

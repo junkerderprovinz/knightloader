@@ -1353,6 +1353,7 @@ export const fi: Dict = {
   'accounts.removed': 'Poistettu.',
   'accounts.rename': 'Nimeä uudelleen',
   'accounts.renew': 'Uusi',
+  'accounts.runsUntil': 'Voimassa {date} asti',
   'accounts.rowActions': 'Tilin toiminnot',
   'accounts.save': 'Tallenna',
   'accounts.saveAnyway': 'Tallenna silti',

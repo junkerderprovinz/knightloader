@@ -1356,6 +1356,7 @@ export const no: Dict = {
   'accounts.removed': 'Fjernet.',
   'accounts.rename': 'Gi nytt navn',
   'accounts.renew': 'Forny',
+  'accounts.runsUntil': 'Varer til {date}',
   'accounts.rowActions': 'Kontohandlinger',
   'accounts.save': 'Lagre',
   'accounts.saveAnyway': 'Lagre likevel',

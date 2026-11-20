@@ -1697,6 +1697,7 @@ export const en = {
   'accounts.removed': 'Removed.',
   'accounts.rename': 'Rename',
   'accounts.renew': 'Renew',
+  'accounts.runsUntil': 'Runs until {date}',
   'accounts.rowActions': 'Account actions',
   'accounts.save': 'Save',
   'accounts.saveAnyway': 'Save anyway',

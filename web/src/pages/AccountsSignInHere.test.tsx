@@ -78,9 +78,9 @@ it('says a hoster login waits for a sign-in on the site’s own page and offers 
     ),
   );
 
-  const row = [...host.querySelectorAll('tr')].find((r) => r.textContent?.includes('katfile.com'))!;
+  const row = host.querySelector('[data-glim="ConnectionRow"][aria-label="katfile.com"]')!;
   expect(row.textContent).toContain('Needs a sign-in');
-  await act(async () => (row.querySelectorAll('td')[1] as HTMLElement).click());
+  await act(async () => row.querySelector<HTMLButtonElement>('[data-connection="edit"]')!.click());
 
   const dialog = document.querySelector('[role="dialog"]')!;
   expect(dialog.textContent).toContain('Does the site ask for a code when you sign in?');

@@ -1353,6 +1353,7 @@ export const ca: Dict = {
   'accounts.removed': 'Eliminat.',
   'accounts.rename': 'Canvia el nom',
   'accounts.renew': 'Renova',
+  'accounts.runsUntil': 'Vàlid fins al {date}',
   'accounts.rowActions': 'Accions del compte',
   'accounts.save': 'Desa',
   'accounts.saveAnyway': 'Desa igualment',

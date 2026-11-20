@@ -1353,6 +1353,7 @@ export const hr: Dict = {
   'accounts.removed': 'Uklonjeno.',
   'accounts.rename': 'Preimenuj',
   'accounts.renew': 'Obnovi',
+  'accounts.runsUntil': 'Vrijedi do {date}',
   'accounts.rowActions': 'Radnje računa',
   'accounts.save': 'Spremi',
   'accounts.saveAnyway': 'Ipak spremi',

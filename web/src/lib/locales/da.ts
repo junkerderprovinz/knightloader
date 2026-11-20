@@ -1353,6 +1353,7 @@ export const da: Dict = {
   'accounts.removed': 'Fjernet.',
   'accounts.rename': 'Omdøb',
   'accounts.renew': 'Forny',
+  'accounts.runsUntil': 'Gælder til {date}',
   'accounts.rowActions': 'Kontohandlinger',
   'accounts.save': 'Gem',
   'accounts.saveAnyway': 'Gem alligevel',

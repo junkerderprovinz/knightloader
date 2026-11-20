@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it } from 'vitest';
 
 import type { AccountPause } from '../lib/api';
 import { I18nProvider } from '../lib/i18n';
-import { PausedStatus } from './Accounts';
+import { PausedBadge } from './Accounts';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -28,7 +28,7 @@ async function show(pauses: AccountPause[]) {
   await act(async () =>
     root.render(
       <I18nProvider>
-        <PausedStatus pauses={pauses} />
+        <PausedBadge pauses={pauses} />
       </I18nProvider>,
     ),
   );

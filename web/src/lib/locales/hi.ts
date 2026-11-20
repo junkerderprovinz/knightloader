@@ -1354,6 +1354,7 @@ export const hi: Dict = {
   'accounts.removed': 'हटा दिया गया।',
   'accounts.rename': 'नाम बदलें',
   'accounts.renew': 'नवीनीकृत करें',
+  'accounts.runsUntil': '{date} तक मान्य',
   'accounts.rowActions': 'खाता क्रियाएँ',
   'accounts.save': 'सहेजें',
   'accounts.saveAnyway': 'फिर भी सहेजें',

@@ -1,16 +1,15 @@
 // Hoster logins for the headless JD sidecar (see internal/hosterauth). Saving
 // writes the credential into JD's account config through its Remote API, and
-// JD's hoster plugin performs the login; JD's own UI is never shown. The table
-// is AccountTable, shared with the debrid card; this file adds the JD status
-// badge and the host picker. The picker offers no debrid service: KnightLoader
-// speaks to each of those itself. The card's Add button on the accounts page
-// opens the picker through `adding`.
+// JD's hoster plugin performs the login; JD's own UI is never shown. Each login
+// is a connection row that says what JD makes of it, and this file adds the
+// host picker. The picker offers no debrid service: KnightLoader speaks to
+// each of those itself. The card's Add button on the accounts page opens the
+// picker through `adding`.
 //
 // The sites signed into through the browser (internal/sitelogin) are added
-// from the same picker and stand under the table as connection rows: each says
-// who it signs in as and where from, or how to sign in, tests its session,
-// signs in again in the sign-in browser, and opens SiteLoginDialog rather than
-// a password form.
+// from the same picker and stand under the logins: each says who it signs in
+// as and where from, or how to sign in, tests its session, signs in again in
+// the sign-in browser, and opens SiteLoginDialog rather than a password form.
 import { pageLang } from '../lib/picker';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -32,17 +31,17 @@ import { en } from '../lib/locales/en';
 import { fmtDate } from '../lib/format';
 import { type SignInWays, nextStep, siteForHost, signedIn, sourceNote, stateNote, readsBrowsers, unreadableBrowsers } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
-import { Button, EmptyState, InfoBubble, LabelBadge, Modal, TextInput } from './ui';
-import { AccountTable, type AccountRow } from './AccountTable';
+import { Button, EmptyState, LabelBadge, Modal, TextInput } from './ui';
+import { ConnectionList, ServiceConnection, TrafficLine, planLine, switchAction } from './AccountConnection';
 import { IconAccounts, IconBack, IconCheck, IconClose, IconSave, IconSignIn, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { catalogBrands } from './CatalogTiles';
 import { ownTile } from './OwnLogos';
 import { DOWNLOAD_PROVIDERS, type DownloadProviderId } from '../lib/catalogs/downloadProviders';
+import { catalogEntry } from '../lib/catalogs/catalog';
 import { IconCloud } from '../lib/glyphs';
 import { SiteLoginDialog } from './SiteLoginDialog';
-import { ConnectionRow, type ConnectionTest } from './ConnectionRow';
-import { HosterIcon, hostPaint, type Paint } from './HosterIcon';
+import type { ConnectionTest } from './ConnectionRow';
 import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
@@ -186,27 +185,6 @@ function signInPageOf(login: HosterLogin): SiteLogin {
   };
 }
 
-/** hosterLoginRow is one login as an AccountTable row. here opens the sign-in browser on the hoster's own page. */
-function hosterLoginRow(
-  row: HosterLogin,
-  handlers: { onToggle: (v: boolean) => void; onEdit: () => void; onRemove: () => void },
-  here?: { label: string; onSelect: () => void },
-): AccountRow {
-  return {
-    key: row.host,
-    iconHost: row.host,
-    label: row.host,
-    enabled: row.enabled,
-    status: <HosterLoginStatusBadge login={row} />,
-    tier: row.tier,
-    expiry: row.expiry,
-    // JD reports bytes left and max; without a max the row shows a dash.
-    traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
-    ...handlers,
-    actions: here ? [{ id: 'signin-here', icon: <IconSignIn width={16} height={16} />, ...here }] : undefined,
-  };
-}
-
 /** HosterLoginSection is the hoster card. */
 export function HosterLoginSection({
   data,
@@ -241,30 +219,18 @@ export function HosterLoginSection({
 
   return (
     <div className="flex flex-col gap-3">
-      {rows.length > 0 && (
-        <AccountTable
-          tableId="hoster"
-          label={t('accounts.hoster.title')}
-          rows={rows
-            .map((row) =>
-              hosterLoginRow(
-                row,
-                {
-                  onToggle: (v) => void data.toggle(row, v),
-                  onEdit: () => setEditing(row),
-                  onRemove: () => setConfirming(row),
-                },
-                browserHere && row.signInSite
-                  ? { label: t('signInBrowser.signInHere'), onSelect: () => setBrowsingLogin(row) }
-                  : undefined,
-              ),
-            )
-            .sort(byLabel)}
-        />
-      )}
-
-      {added.length > 0 && (
-        <div data-new="site-logins" className="flex flex-col gap-2">
+      {hasRows && (
+        <ConnectionList label={t('accounts.hoster.title')} data-new="site-logins">
+          {[...rows].sort(byHost).map((row) => (
+            <HosterConnection
+              key={row.host}
+              login={row}
+              onToggle={(v) => void data.toggle(row, v)}
+              onEdit={() => setEditing(row)}
+              onRemove={() => setConfirming(row)}
+              onSignInHere={browserHere && row.signInSite ? () => setBrowsingLogin(row) : undefined}
+            />
+          ))}
           {[...added].sort(byName).map((site) => (
             <SiteConnection
               key={site.id}
@@ -276,7 +242,7 @@ export function HosterLoginSection({
               onSignInHere={browserHere ? () => setBrowsingSite(site) : undefined}
             />
           ))}
-        </div>
+        </ConnectionList>
       )}
 
       {unreadable.length > 0 && (
@@ -359,9 +325,8 @@ export function HosterLoginSection({
   );
 }
 
-/** byLabel puts the hosters in order by the name each row shows. */
-function byLabel(a: AccountRow, b: AccountRow): number {
-  return a.label.localeCompare(b.label, pageLang(), { sensitivity: 'base' });
+function byHost(a: HosterLogin, b: HosterLogin): number {
+  return a.host.localeCompare(b.host, pageLang(), { sensitivity: 'base' });
 }
 
 function byName(a: SiteLogin, b: SiteLogin): number {
@@ -432,7 +397,6 @@ function SiteConnection({
   onSignInHere?: () => void;
 }) {
   const { t } = useT();
-  const [read, setRead] = useState<Paint>();
   const [test, setTest] = useState<ConnectionTest>();
   const note = stateNote(site);
   const from = sourceNote(site);
@@ -454,10 +418,9 @@ function SiteConnection({
   }
 
   return (
-    <ConnectionRow
+    <ServiceConnection
       name={site.name}
-      mark={<HosterIcon host={site.host} size={40} lit onPaint={setRead} />}
-      paint={read ?? hostPaint(site.host)}
+      host={site.host}
       status={working ? t(note.key, note.vars) : step && t(step.key, step.vars)}
       badges={!working && <LabelBadge tone="fail" label={t(note.key, note.vars)} />}
       test={test}
@@ -471,74 +434,73 @@ function SiteConnection({
     >
       {from && <span>{t(from.key, from.vars)}</span>}
       {working && site.expires && <span className="glim-num">{t('siteLogins.runsUntil', { date: fmtDate(site.expires) })}</span>}
-    </ConnectionRow>
+    </ServiceConnection>
   );
 }
 
-function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
+/**
+ * HosterConnection is one login as a connection row: its plan, how long it
+ * runs and what is left of its traffic once JD has signed in with it, or why
+ * not. A login waiting for a code or a sign-in has its own word, since that
+ * names the person's next step.
+ */
+function HosterConnection({
+  login,
+  onToggle,
+  onEdit,
+  onRemove,
+  onSignInHere,
+}: {
+  login: HosterLogin;
+  onToggle: (enabled: boolean) => void;
+  onEdit: () => void;
+  onRemove: () => void;
+  /** Opens the sign-in browser on the hoster's own sign-in page. */
+  onSignInHere?: () => void;
+}) {
   const { t } = useT();
-  const detail = loginDetail(t, login);
-  // Beside JD's word on the login, why JD has a login KnightLoader signs in
-  // with itself.
-  const handed = login.handedOver && <InfoBubble tip={t('accounts.hoster.handedOver', { host: login.host })} />;
-  switch (login.status) {
-    case 'off':
-      // Not "queued": JD does not have a switched-off login at all.
-      return (
-        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
-          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-carbon-textMuted" />
-          {t('accounts.hoster.status.off')}
-        </span>
-      );
-    case 'active':
-      return (
-        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
-          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
-          {t('accounts.hoster.status.active')}
-          {handed}
-        </span>
-      );
-    case 'rejected':
-      // Waiting for a code or a sign-in has its own word, since it names the
-      // person's next step, and the colour of every login that is not signed in.
-      if (login.signInHere) {
-        return (
-          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
-            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
-            {t('accounts.hoster.status.needsSignIn')}
-            {detail && <InfoBubble tip={detail} />}
-          </span>
-        );
-      }
-      if (login.askCode) {
-        return (
-          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
-            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
-            {t('accounts.hoster.status.needsCode')}
-            {detail && <InfoBubble tip={detail} />}
-          </span>
-        );
-      }
-      return (
-        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
-          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
-          {t('accounts.hoster.status.rejected')}
-          {detail && <InfoBubble tip={detail} />}
-          {handed}
-        </span>
-      );
-    default:
-      // 'queued' covers both "not yet confirmed" and "not yet validated" by JD;
-      // the detail text says which.
-      return (
-        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
-          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
-          {t('accounts.hoster.status.queued')}
-          {detail && <InfoBubble tip={detail} />}
-          {handed}
-        </span>
-      );
-  }
+  const off = !login.enabled || login.status === 'off';
+  const refused = login.signInHere
+    ? 'accounts.hoster.status.needsSignIn'
+    : login.askCode
+      ? 'accounts.hoster.status.needsCode'
+      : 'accounts.hoster.status.rejected';
+  const badge = off ? (
+    <LabelBadge label={t('accounts.disabled')} />
+  ) : login.status === 'rejected' ? (
+    <span data-new="login-waits" className="inline-flex">
+      <LabelBadge tone="fail" label={t(refused)} />
+    </span>
+  ) : (
+    // 'queued' covers both "not yet confirmed" and "not yet validated" by
+    // JD; the status line says which.
+    login.status === 'queued' && <LabelBadge label={t('accounts.hoster.status.queued')} />
+  );
+  const plan = planLine(t, login.tier, login.expiry);
+  const status = login.status === 'active' ? (plan ?? t('accounts.hoster.status.active')) : off ? plan : loginDetail(t, login);
+  return (
+    <ServiceConnection
+      name={login.host}
+      catalogMark={catalogEntry(DOWNLOAD_PROVIDERS, login.host)?.mark}
+      host={login.host}
+      status={status}
+      badges={badge || undefined}
+      text={{ test: t('siteLogins.test'), edit: t('siteLogins.edit'), remove: t('accounts.remove') }}
+      actions={[
+        ...(onSignInHere ? [{ id: 'sign-in-here', label: t('signInBrowser.signInHere'), icon: <IconSignIn />, onClick: onSignInHere }] : []),
+        switchAction(t, login.enabled, onToggle),
+      ]}
+      onEdit={onEdit}
+      onRemove={onRemove}
+    >
+      {/* JD reports bytes left and max; without a max there is no allowance to show. */}
+      {!!login.trafficMax && (
+        <TrafficLine traffic={{ used: Math.max(0, login.trafficMax - (login.trafficLeft ?? 0)), limit: login.trafficMax }} />
+      )}
+      {/* Why JD has a login KnightLoader signs in with itself. */}
+      {login.handedOver && <span>{t('accounts.hoster.handedOver', { host: login.host })}</span>}
+    </ServiceConnection>
+  );
 }
 
 // accounts.Redacted: sent back unchanged, it keeps the stored password.

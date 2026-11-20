@@ -237,10 +237,8 @@ it('lists the sites by name under the hoster accounts', async () => {
   sites = [{ ...youtube, state: 'signedIn' }, patreon];
   hosterRows = [{ host: 'rapidgator.net', enabled: true, status: 'active' }];
   await renderCard();
-  expect([...host.querySelectorAll('tbody tr')].map((tr) => tr.textContent?.includes('rapidgator.net'))).toEqual([true]);
   const names = [...host.querySelectorAll('[data-glim="ConnectionRow"]')].map((r) => r.getAttribute('aria-label'));
-  expect(names).toEqual(['Patreon', 'YouTube']);
-  expect(host.querySelector('table')!.compareDocumentPosition(row('Patreon')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(names).toEqual(['rapidgator.net', 'Patreon', 'YouTube']);
 });
 
 it('signs a site that is signed in already in again from its row, in the sign-in browser', async () => {

@@ -1353,6 +1353,7 @@ export const tr: Dict = {
   'accounts.removed': 'Kaldırıldı.',
   'accounts.rename': 'Yeniden adlandır',
   'accounts.renew': 'Yenile (süre)',
+  'accounts.runsUntil': '{date} tarihine kadar geçerli',
   'accounts.rowActions': 'Hesap işlemleri',
   'accounts.save': 'Kaydet',
   'accounts.saveAnyway': 'Yine de kaydet',

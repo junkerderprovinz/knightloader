@@ -1353,6 +1353,7 @@ export const sk: Dict = {
   'accounts.removed': 'Odstránené.',
   'accounts.rename': 'Premenovať',
   'accounts.renew': 'Obnoviť platnosť',
+  'accounts.runsUntil': 'Platí do {date}',
   'accounts.rowActions': 'Akcie s účtom',
   'accounts.save': 'Uložiť',
   'accounts.saveAnyway': 'Napriek tomu uložiť',

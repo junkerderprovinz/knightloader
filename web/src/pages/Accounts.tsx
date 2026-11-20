@@ -3,11 +3,11 @@
 // accounts come first, the hoster logins below them (the sites signed into
 // through the browser among them), then the own Usenet servers, the logins for
 // the user's own servers and the captcha solvers' keys; the section follows the
-// catalogue's Group field, and every card draws an AccountTable. Under them
-// comes the Allow free downloads switch, since whether a link may be fetched
-// for free is a question of which accounts there are, and last the two
-// priority cards side by side, one for the download backends and one for the
-// captcha accounts.
+// catalogue's Group field, and every card lists its accounts as connection
+// rows. Under them comes the Allow free downloads switch, since whether a link
+// may be fetched for free is a question of which accounts there are, and last
+// the two priority cards side by side, one for the download backends and one
+// for the captcha accounts.
 // Every card adds its own kind through the Add button at the end of its
 // heading, as every other list card in the app does.
 import { pageLang } from '../lib/picker';
@@ -35,8 +35,9 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { fmtDate } from '../lib/format';
 import { resolverLabel } from '../lib/resolverLabels';
-import { Button, Card, EmptyState, ErrorCard, InfoBubble, LinkBadge, LoadingCard, Modal, PageHeader, PasswordInput, SectionTitle, TextInput, Toggle } from '../components/ui';
-import { AccountTable, type AccountRow } from '../components/AccountTable';
+import { Button, Card, EmptyState, ErrorCard, LabelBadge, LinkBadge, LoadingCard, Modal, PageHeader, PasswordInput, SectionTitle, TextInput, Toggle } from '../components/ui';
+import { ConnectionList, ServiceConnection, TrafficLine, planLine, switchAction } from '../components/AccountConnection';
+import type { ConnectionTest } from '../components/ConnectionRow';
 import { AccountSwitches, type SwitchableAccount } from '../components/AccountSwitches';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
@@ -53,7 +54,6 @@ import {
   IconCompressAuto,
   IconExternalLink,
   IconFleet,
-  IconRetry,
   IconSave,
   IconTrash,
 } from '../lib/icons';
@@ -67,7 +67,7 @@ import {
 import { PriorityCard, PriorityLadder } from '../components/PriorityLadder';
 import { catalogBrands } from '../components/CatalogTiles';
 import { ownTile } from '../components/OwnLogos';
-import type { Catalog } from '../lib/catalogs/catalog';
+import { catalogEntry, type Catalog } from '../lib/catalogs/catalog';
 import { CAPTCHA_PROVIDERS } from '../lib/catalogs/captchaProviders';
 import { DOWNLOAD_PROVIDERS } from '../lib/catalogs/downloadProviders';
 import { IconUnlock } from '../lib/glyphs';
@@ -123,7 +123,6 @@ export function Accounts() {
   const [dialog, setDialog] = useState<DialogState | null>(null);
   // The row awaiting confirmation; the only path to removeAccountCredential.
   const [confirming, setConfirming] = useState<Account | null>(null);
-  const [refreshing, setRefreshing] = useState<ReadonlySet<string>>(new Set());
   const [loginHosts, setLoginHosts] = useState('');
   // Bumped on every change to the Usenet servers, whose row on the priority
   // card comes and goes with them.
@@ -150,19 +149,14 @@ export function Accounts() {
     return () => window.clearInterval(timer);
   }, [load]);
 
-  async function onRefresh(a: Account) {
-    setRefreshing((s) => new Set(s).add(a.id));
+  // The row's Test button shows how it came out, so a failure needs no toast.
+  async function onRefresh(a: Account): Promise<Account | undefined> {
     try {
       const updated = await testAccount(a.service, a.account);
       setAccounts((cur) => cur?.map((x) => (x.id === a.id ? updated : x)) ?? cur);
+      return updated;
     } catch {
-      toast(t('common.loadFailed'), 'fail');
-    } finally {
-      setRefreshing((s) => {
-        const next = new Set(s);
-        next.delete(a.id);
-        return next;
-      });
+      return undefined;
     }
   }
 
@@ -221,9 +215,8 @@ export function Accounts() {
 
   const labelOf = (a: Account) => byId.get(a.service)?.label ?? a.service;
 
-  const tableProps = {
+  const rowProps = {
     catalogue: byId,
-    refreshing,
     onRefresh,
     onToggle: (a: Account, enabled: boolean) => void onToggle([a], enabled),
     onRemove: (a: Account) => setConfirming(a),
@@ -290,7 +283,7 @@ export function Accounts() {
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
-          <AccountsTable tableId="debrid" label={t('accounts.debrid.title')} rows={debridRows} {...tableProps} />
+          <AccountRows data-new="account-rows" label={t('accounts.debrid.title')} rows={debridRows} {...rowProps} />
         ) : (
           <EmptyState
             nested
@@ -333,7 +326,7 @@ export function Accounts() {
             {t('accounts.server.title')}
           </SectionTitle>
           {serverRows.length > 0 ? (
-            <AccountsTable tableId="server" label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
+            <AccountRows label={t('accounts.server.title')} rows={serverRows} {...rowProps} />
           ) : (
             <EmptyState
               nested
@@ -359,7 +352,7 @@ export function Accounts() {
           {t('accounts.captcha.title')}
         </SectionTitle>
         {solverRows.length > 0 ? (
-          <AccountsTable tableId="captcha" label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
+          <AccountRows label={t('accounts.captcha.title')} rows={solverRows} {...rowProps} />
         ) : (
           <EmptyState
             nested
@@ -447,131 +440,103 @@ export function Accounts() {
   );
 }
 
-interface TableActions {
+interface RowActions {
   catalogue: Map<string, CatalogueService>;
-  refreshing: ReadonlySet<string>;
-  onRefresh: (a: Account) => void;
+  onRefresh: (a: Account) => Promise<Account | undefined>;
   onToggle: (a: Account, enabled: boolean) => void;
   onRemove: (a: Account) => void;
   onEdit: (a: Account) => void;
 }
 
-function AccountsTable({
-  tableId,
-  label,
-  rows,
-  catalogue,
-  refreshing,
-  onRefresh,
-  onToggle,
-  onRemove,
-  onEdit,
-}: TableActions & { tableId: string; label: string; rows: Account[] }) {
-  const { t } = useT();
+function AccountRows({ label, rows, 'data-new': news, ...actions }: RowActions & { label: string; rows: Account[]; 'data-new'?: string }) {
   return (
-    <AccountTable
-      tableId={tableId}
-      label={label}
-      rows={rows.map((a): AccountRow => {
-        const svc = catalogue.get(a.service);
-        // An own server's row is its hostname. KnightLoader has no way to check
-        // that login apart from a download, so the row has nothing to refresh.
-        const server = svc?.group === 'remoteServer';
-        // A solver's key has no plan to renew; its row menu only checks it.
-        const renewable = svc?.group !== 'captchaSolver';
-        return {
-          key: a.id,
-          // The service's icon, from the host of its "where do I get a key"
-          // link; an own server shows its own.
-          iconHost: server ? a.account : (svc?.whereUrl ?? ''),
-          label: server ? a.account : (svc?.label ?? a.service),
-          enabled: a.enabled,
-          status: server ? <ServerStatus /> : <AccountStatus account={a} busy={refreshing.has(a.id)} />,
-          tier: a.tier,
-          expiry: a.expiry,
-          traffic: a.traffic,
-          onToggle: (v) => onToggle(a, v),
-          onEdit: () => onEdit(a),
-          // A credential from the container's environment cannot be removed here.
-          onRemove: a.fromEnv ? undefined : () => onRemove(a),
-          actions: server
-            ? undefined
-            : [
-                {
-                  id: 'refresh',
-                  label: t('accounts.refresh'),
-                  icon: <IconRetry width={16} height={16} />,
-                  onSelect: () => onRefresh(a),
-                },
-                ...(renewable
-                  ? [
-                      {
-                        id: 'renew',
-                        label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
-                        icon: <IconExternalLink width={16} height={16} />,
-                        // Only with an expiry and somewhere to renew.
-                        disabled: !a.expiry || !svc?.whereUrl,
-                        onSelect: () => {
-                          if (svc?.whereUrl) openExternal(svc.whereUrl);
-                        },
-                      },
-                    ]
-                  : []),
-              ],
-        };
-      })}
-    />
-  );
-}
-
-function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
-  const { t } = useT();
-  if (busy) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
-        {/* The house's live dot rather than animate-spin, so it follows the
-            motion level and reduced motion. */}
-        <span
-          aria-hidden
-          className="glim-live h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent"
-        />
-        {t('accounts.refreshing')}
-      </span>
-    );
-  }
-  if (account.paused?.length) return <PausedStatus pauses={account.paused} />;
-  // Never checked yet differs from a failed check.
-  if (!account.detail) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
-        <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
-        {t('accounts.unchecked')}
-      </span>
-    );
-  }
-  if (account.ok) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
-        <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
-        {t('accounts.ok')}
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
-      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
-      {t('accounts.failed')}
-      <InfoBubble tip={account.detail} />
-    </span>
+    <ConnectionList label={label} data-new={news}>
+      {rows.map((a) => (
+        <AccountRow key={a.id} account={a} {...actions} />
+      ))}
+    </ConnectionList>
   );
 }
 
 /**
- * PausedStatus is an account routing passes over for now. The word names the
+ * AccountRow is one stored account as a connection row. A debrid account says
+ * its plan, how long it runs and what is left of its allowance; a failed check
+ * says why. An own server's login is only tried by a download, so its row has
+ * no test, and a solver's key has no plan to renew.
+ */
+function AccountRow({
+  account: a,
+  catalogue,
+  onRefresh,
+  onToggle,
+  onRemove,
+  onEdit,
+}: RowActions & { account: Account }) {
+  const { t } = useT();
+  const [test, setTest] = useState<ConnectionTest>();
+  const svc = catalogue.get(a.service);
+  const server = svc?.group === 'remoteServer';
+  const solver = svc?.group === 'captchaSolver';
+  const label = svc?.label ?? a.service;
+  // The account id tells two accounts of one service apart, as the removal question does.
+  const name = server ? a.account : a.account ? `${label} · ${a.account}` : label;
+  const failed = !server && !!a.detail && !a.ok;
+
+  async function runTest() {
+    setTest({ busy: true });
+    const next = await onRefresh(a);
+    if (!next) setTest({ tone: 'danger', title: t('common.loadFailed') });
+    else setTest(next.ok ? { tone: 'ok', title: t('accounts.ok') } : { tone: 'danger', title: next.detail });
+  }
+
+  const badge = !a.enabled ? (
+    <LabelBadge label={t('accounts.disabled')} />
+  ) : a.paused?.length ? (
+    <PausedBadge pauses={a.paused} />
+  ) : failed ? (
+    <LabelBadge tone="fail" label={t('accounts.failed')} />
+  ) : (
+    !server && !a.detail && <LabelBadge label={t('accounts.unchecked')} />
+  );
+  const status = server
+    ? t('accounts.server.uncheckedHint')
+    : failed
+      ? a.detail
+      : (planLine(t, a.tier, a.expiry) ?? (a.ok && a.detail ? t('accounts.ok') : undefined));
+  const renew =
+    !server && !solver && a.expiry && svc?.whereUrl
+      ? [{ id: 'renew', label: t('accounts.renew'), icon: <IconExternalLink />, onClick: () => openExternal(svc.whereUrl) }]
+      : [];
+
+  return (
+    <ServiceConnection
+      name={name}
+      catalogMark={catalogEntry(solver ? CAPTCHA_PROVIDERS : DOWNLOAD_PROVIDERS, a.service)?.mark}
+      // An own server shows its own icon, any other service the one of the
+      // site its "where do I get a key" link points to.
+      host={server ? a.account : (svc?.whereUrl ?? '')}
+      status={status}
+      badges={badge || undefined}
+      test={test}
+      text={{ test: t('accounts.refresh'), edit: t('siteLogins.edit'), remove: t('accounts.remove') }}
+      actions={[...renew, switchAction(t, a.enabled, (on) => onToggle(a, on))]}
+      onTest={server ? undefined : () => void runTest()}
+      onEdit={() => onEdit(a)}
+      // A credential from the container's environment cannot be removed here.
+      onRemove={a.fromEnv ? undefined : () => onRemove(a)}
+    >
+      {!server && !solver && <TrafficLine traffic={a.traffic} />}
+      {a.fromEnv && <span>{t('accounts.credentialFromEnv', { env: a.envVar ?? '' })}</span>}
+    </ServiceConnection>
+  );
+}
+
+/**
+ * PausedBadge is an account routing passes over for now. The word names the
  * cause, the bubble says for which hoster and until when, and how to try the
  * account again before then.
  */
-export function PausedStatus({ pauses }: { pauses: AccountPause[] }) {
+export function PausedBadge({ pauses }: { pauses: AccountPause[] }) {
   const { t } = useT();
   const whole = pauses.find((p) => !p.host);
   const word = whole
@@ -585,10 +550,9 @@ export function PausedStatus({ pauses }: { pauses: AccountPause[] }) {
   });
   lines.push(t('accounts.paused.retry'));
   return (
-    <span data-new="volume-used" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
-      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
-      {word}
-      <InfoBubble
+    <span data-new="volume-used" className="inline-flex">
+      <LabelBadge
+        tone="warn"
         label={word}
         tip={lines.map((line) => (
           <span key={line} className="block">
@@ -596,18 +560,6 @@ export function PausedStatus({ pauses }: { pauses: AccountPause[] }) {
           </span>
         ))}
       />
-    </span>
-  );
-}
-
-/** ServerStatus is an own server's status: its login is only tried by a download. */
-function ServerStatus() {
-  const { t } = useT();
-  return (
-    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
-      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
-      {t('accounts.unchecked')}
-      <InfoBubble tip={t('accounts.server.uncheckedHint')} />
     </span>
   );
 }

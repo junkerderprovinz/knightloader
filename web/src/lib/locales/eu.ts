@@ -1354,6 +1354,7 @@ export const eu: Dict = {
   'accounts.removed': 'Kenduta.',
   'accounts.rename': 'Berrizendatu',
   'accounts.renew': 'Berritu',
+  'accounts.runsUntil': '{date} arte balio du',
   'accounts.rowActions': 'Kontuaren ekintzak',
   'accounts.save': 'Gorde',
   'accounts.saveAnyway': 'Gorde hala ere',

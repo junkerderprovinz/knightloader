@@ -1353,6 +1353,7 @@ export const sv: Dict = {
   'accounts.removed': 'Borttaget.',
   'accounts.rename': 'Byt namn',
   'accounts.renew': 'Förnya',
+  'accounts.runsUntil': 'Gäller till {date}',
   'accounts.rowActions': 'Kontoåtgärder',
   'accounts.save': 'Spara',
   'accounts.saveAnyway': 'Spara ändå',

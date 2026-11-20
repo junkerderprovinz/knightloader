@@ -21,6 +21,7 @@ class OffScreen {
 
 beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', OffScreen);
+  vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response(JSON.stringify({ available: false, site: '' }), { headers: { 'Content-Type': 'application/json' } })),
@@ -94,8 +95,8 @@ it('paints a hoster login that waits for a sign-in or a code in the danger colou
       </I18nProvider>,
     ),
   );
-  const inks = [...host.querySelectorAll('tbody tr')].map(
-    (tr) => tr.children[1].querySelector('span')?.className.split(/\s+/).find((c) => /^text-status/.test(c)),
+  const inks = [...host.querySelectorAll('[data-glim="ConnectionRow"] .glim-connection-badges')].map((b) =>
+    [...b.querySelectorAll('span')].flatMap((s) => s.className.split(/\s+/)).find((c) => /^text-status/.test(c)),
   );
   expect(inks).toEqual(['text-statusFail', 'text-statusFail']);
 });

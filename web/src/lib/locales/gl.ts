@@ -1353,6 +1353,7 @@ export const gl: Dict = {
   'accounts.removed': 'Eliminada.',
   'accounts.rename': 'Renomear',
   'accounts.renew': 'Renovar',
+  'accounts.runsUntil': 'Válido ata {date}',
   'accounts.rowActions': 'Accións da conta',
   'accounts.save': 'Gardar',
   'accounts.saveAnyway': 'Gardar igualmente',

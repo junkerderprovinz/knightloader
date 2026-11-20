@@ -1354,6 +1354,7 @@ export const lt: Dict = {
   'accounts.removed': 'Pašalinta.',
   'accounts.rename': 'Pervadinti',
   'accounts.renew': 'Pratęsti',
+  'accounts.runsUntil': 'Galioja iki {date}',
   'accounts.rowActions': 'Paskyros veiksmai',
   'accounts.save': 'Įrašyti',
   'accounts.saveAnyway': 'Vis tiek įrašyti',

@@ -1353,6 +1353,7 @@ export const et: Dict = {
   'accounts.removed': 'Eemaldatud.',
   'accounts.rename': 'Nimeta ümber',
   'accounts.renew': 'Uuenda',
+  'accounts.runsUntil': 'Kehtib kuni {date}',
   'accounts.rowActions': 'Konto toimingud',
   'accounts.save': 'Salvesta',
   'accounts.saveAnyway': 'Salvesta ikkagi',

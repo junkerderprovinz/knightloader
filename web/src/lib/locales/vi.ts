@@ -1353,6 +1353,7 @@ export const vi: Dict = {
   'accounts.removed': 'Đã gỡ bỏ.',
   'accounts.rename': 'Đổi tên',
   'accounts.renew': 'Gia hạn',
+  'accounts.runsUntil': 'Có hiệu lực đến {date}',
   'accounts.rowActions': 'Thao tác tài khoản',
   'accounts.save': 'Lưu',
   'accounts.saveAnyway': 'Vẫn lưu',

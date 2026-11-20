@@ -1355,6 +1355,7 @@ export const ro: Dict = {
   'accounts.removed': 'Eliminat.',
   'accounts.rename': 'Redenumește',
   'accounts.renew': 'Reînnoiește',
+  'accounts.runsUntil': 'Valabil până la {date}',
   'accounts.rowActions': 'Acțiuni cont',
   'accounts.save': 'Salvează',
   'accounts.saveAnyway': 'Salvează oricum',

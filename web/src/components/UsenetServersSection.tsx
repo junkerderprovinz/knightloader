@@ -4,7 +4,7 @@
 // dialog: it has a host, a port and limits that no debrid key has. The Add
 // button the page hands in opens the window for a new one through `adding`,
 // which starts on the tiles of lib/usenetProviders.ts.
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   REDACTED_HEADER,
   type UsenetServerRow,
@@ -18,10 +18,11 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconBack, IconCheck, IconClose, IconGlobe, IconSave, IconTrash } from '../lib/icons';
 import { USENET_PROVIDERS, type UsenetProvider } from '../lib/usenetProviders';
-import { AccountTable } from './AccountTable';
+import { ConnectionList, ServiceConnection, switchAction } from './AccountConnection';
+import type { ConnectionTest } from './ConnectionRow';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { TestButton } from './TestButton';
-import { Button, EmptyState, InfoBubble, Modal, NumberInput, PasswordInput, SectionTitle, TextInput, ToggleRow, type ButtonVerdict } from './ui';
+import { Button, EmptyState, InfoBubble, LabelBadge, Modal, NumberInput, PasswordInput, SectionTitle, TextInput, ToggleRow, type ButtonVerdict } from './ui';
 import { SettingRow } from '../pages/settings/controls';
 import { AccountSwitches } from './AccountSwitches';
 
@@ -97,13 +98,14 @@ export function UsenetServersSection({
     for (const r of rows ?? []) if (r.enabled !== enabled) await onToggle(r, enabled);
   }
 
+  // A test that could not run at all reads as a failure on the row's button.
   async function onTest(r: UsenetServerRow) {
     setTesting((s) => new Set(s).add(r.id));
     try {
       const res = await testUsenetServer(asSave(r));
       setChecked((c) => ({ ...c, [r.id]: res }));
     } catch {
-      toast(t('common.loadFailed'), 'fail');
+      setChecked((c) => ({ ...c, [r.id]: { ok: false, detail: t('common.loadFailed') } }));
     } finally {
       setTesting((s) => {
         const next = new Set(s);
@@ -162,28 +164,21 @@ export function UsenetServersSection({
           hint={t('accounts.usenet.emptyHint')}
         />
       ) : (
-        <AccountTable
-          tableId="usenet"
-          label={t('accounts.usenet.title')}
-          rows={rows.map((r) => ({
-            key: r.id,
-            iconHost: r.host,
-            label: rowLabel(r),
-            enabled: r.enabled,
-            status: <ServerStatus checked={checked[r.id]} busy={testing.has(r.id)} />,
-            onToggle: (v) => void onToggle(r, v),
-            onEdit: () => setEditing(asSave(r)),
-            onRemove: () => setConfirming(r),
-            actions: [
-              {
-                id: 'test',
-                label: t('accounts.usenet.test'),
-                icon: <IconCheck width={16} height={16} />,
-                onSelect: () => void onTest(r),
-              },
-            ],
-          }))}
-        />
+        <ConnectionList label={t('accounts.usenet.title')}>
+          {rows.map((r) => (
+            <UsenetConnection
+              key={r.id}
+              server={r}
+              name={rowLabel(r)}
+              checked={checked[r.id]}
+              busy={testing.has(r.id)}
+              onTest={() => void onTest(r)}
+              onToggle={(v) => void onToggle(r, v)}
+              onEdit={() => setEditing(asSave(r))}
+              onRemove={() => setConfirming(r)}
+            />
+          ))}
+        </ConnectionList>
       )}
 
       {form && (
@@ -234,38 +229,59 @@ function asSave(r: UsenetServerRow): UsenetServerSave {
   return { ...rest, password: hasPassword ? REDACTED_HEADER : '' };
 }
 
-function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
+/**
+ * UsenetConnection is one server as a connection row. A server is checked only
+ * when its Test button asks, so the row says how the last test on this page
+ * came out, and the button turns with it.
+ */
+function UsenetConnection({
+  server,
+  name,
+  checked,
+  busy,
+  onTest,
+  onToggle,
+  onEdit,
+  onRemove,
+}: {
+  server: UsenetServerRow;
+  name: string;
+  checked?: Checked;
+  busy: boolean;
+  onTest: () => void;
+  onToggle: (enabled: boolean) => void;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
   const { t } = useT();
-  if (busy) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
-        <span aria-hidden className="glim-live h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent" />
-        {t('accounts.refreshing')}
-      </span>
-    );
-  }
-  if (!checked) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
-        <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
-        {t('accounts.unchecked')}
-      </span>
-    );
-  }
-  if (checked.ok) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
-        <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
-        {t('accounts.ok')}
-      </span>
-    );
-  }
+  // Held while nothing changes, since every new test object shakes a failed button once more.
+  const test = useMemo<ConnectionTest | undefined>(
+    () =>
+      busy
+        ? { busy: true }
+        : checked && (checked.ok ? { tone: 'ok', title: t('accounts.ok') } : { tone: 'danger', title: checked.detail }),
+    [busy, checked, t],
+  );
+  const provider = USENET_PROVIDERS.find((p) => p.host === server.host);
+  const failed = checked && !checked.ok;
+  const badge = !server.enabled ? (
+    <LabelBadge label={t('accounts.disabled')} />
+  ) : (
+    failed && <LabelBadge tone="fail" label={t('accounts.failed')} />
+  );
   return (
-    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
-      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
-      {t('accounts.failed')}
-      <InfoBubble tip={checked.detail} />
-    </span>
+    <ServiceConnection
+      name={name}
+      host={provider?.site ?? server.host}
+      status={!checked ? t('accounts.unchecked') : checked.ok ? t('accounts.ok') : checked.detail}
+      badges={badge || undefined}
+      test={test}
+      text={{ test: t('accounts.usenet.test'), edit: t('siteLogins.edit'), remove: t('accounts.remove') }}
+      actions={[switchAction(t, server.enabled, onToggle)]}
+      onTest={onTest}
+      onEdit={onEdit}
+      onRemove={onRemove}
+    />
   );
 }
 

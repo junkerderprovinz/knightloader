@@ -1353,6 +1353,7 @@ export const ms: Dict = {
   'accounts.removed': 'Dibuang.',
   'accounts.rename': 'Namakan semula',
   'accounts.renew': 'Perbaharui',
+  'accounts.runsUntil': 'Sah sehingga {date}',
   'accounts.rowActions': 'Tindakan akaun',
   'accounts.save': 'Simpan',
   'accounts.saveAnyway': 'Tetap simpan',

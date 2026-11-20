@@ -1353,6 +1353,7 @@ export const zh: Dict = {
   'accounts.removed': '已移除。',
   'accounts.rename': '重命名',
   'accounts.renew': '续期',
+  'accounts.runsUntil': '有效期至 {date}',
   'accounts.rowActions': '账户操作',
   'accounts.save': '保存',
   'accounts.saveAnyway': '仍然保存',

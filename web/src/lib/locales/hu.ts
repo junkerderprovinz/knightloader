@@ -1354,6 +1354,7 @@ export const hu: Dict = {
   'accounts.removed': 'Eltávolítva.',
   'accounts.rename': 'Átnevezés',
   'accounts.renew': 'Megújítás',
+  'accounts.runsUntil': 'Lejárat: {date}',
   'accounts.rowActions': 'Fiókműveletek',
   'accounts.save': 'Mentés',
   'accounts.saveAnyway': 'Mentés mindenképp',

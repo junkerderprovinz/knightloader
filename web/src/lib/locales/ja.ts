@@ -1353,6 +1353,7 @@ export const ja: Dict = {
   'accounts.removed': '削除しました。',
   'accounts.rename': '名前を変更',
   'accounts.renew': '更新（延長）',
+  'accounts.runsUntil': '{date}まで有効',
   'accounts.rowActions': 'アカウントの操作',
   'accounts.save': '保存',
   'accounts.saveAnyway': 'それでも保存',

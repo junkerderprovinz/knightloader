@@ -1354,6 +1354,7 @@ export const el: Dict = {
   'accounts.removed': 'Αφαιρέθηκε.',
   'accounts.rename': 'Μετονομασία',
   'accounts.renew': 'Ανανέωση συνδρομής',
+  'accounts.runsUntil': 'Ισχύει έως {date}',
   'accounts.rowActions': 'Ενέργειες λογαριασμού',
   'accounts.save': 'Αποθήκευση',
   'accounts.saveAnyway': 'Αποθήκευση ούτως ή άλλως',

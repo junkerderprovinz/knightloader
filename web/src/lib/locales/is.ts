@@ -1353,6 +1353,7 @@ export const is: Dict = {
   'accounts.removed': 'Fjarlægt.',
   'accounts.rename': 'Endurnefna',
   'accounts.renew': 'Endurnýja áskrift',
+  'accounts.runsUntil': 'Gildir til {date}',
   'accounts.rowActions': 'Aðgerðir aðgangs',
   'accounts.save': 'Vista',
   'accounts.saveAnyway': 'Vista samt',

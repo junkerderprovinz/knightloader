@@ -1355,6 +1355,7 @@ export const ar: Dict = {
   'accounts.removed': 'تمت الإزالة.',
   'accounts.rename': 'إعادة تسمية',
   'accounts.renew': 'تجديد',
+  'accounts.runsUntil': 'صالح حتى {date}',
   'accounts.rowActions': 'إجراءات الحساب',
   'accounts.save': 'حفظ',
   'accounts.saveAnyway': 'حفظ على أي حال',

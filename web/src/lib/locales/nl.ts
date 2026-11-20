@@ -1345,6 +1345,7 @@ export const nl: Dict = {
   'accounts.removed': 'Verwijderd.',
   'accounts.rename': 'Naam wijzigen',
   'accounts.renew': 'Verlengen',
+  'accounts.runsUntil': 'Geldig tot {date}',
   'accounts.rowActions': 'Accountacties',
   'accounts.save': 'Opslaan',
   'accounts.saveAnyway': 'Toch opslaan',

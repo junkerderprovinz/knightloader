@@ -124,6 +124,11 @@ const EXCLUDED = new Map([
   ],
   ['settings.system.restoreKeyHint', 'its explanation, in the same window'],
   [
+    'accounts.disabled',
+    "the badge after a Usenet server's name that says it is switched off. It reports how one server stands rather than naming a setting, and the card's title already leads there",
+  ],
+  ['accounts.failed', 'the badge that says the last test of a server failed, the same'],
+  [
     'auth.twoFactor.qrLabel',
     'the accessible name of the QR code image inside the second factor enrolment. It reaches the catalogue through QRCode\'s `label` prop, which is an alt text rather than a caption; the card it belongs to is indexed by its own title, and it only exists while somebody is halfway through an enrolment',
   ],

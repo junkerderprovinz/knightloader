@@ -1355,6 +1355,7 @@ export const he: Dict = {
   'accounts.removed': 'הוסר.',
   'accounts.rename': 'שינוי שם',
   'accounts.renew': 'חידוש',
+  'accounts.runsUntil': 'בתוקף עד {date}',
   'accounts.rowActions': 'פעולות חשבון',
   'accounts.save': 'שמור',
   'accounts.saveAnyway': 'שמור בכל זאת',

@@ -1353,6 +1353,7 @@ export const th: Dict = {
   'accounts.removed': 'นำออกแล้ว',
   'accounts.rename': 'เปลี่ยนชื่อ',
   'accounts.renew': 'ต่ออายุ',
+  'accounts.runsUntil': 'ใช้ได้ถึง {date}',
   'accounts.rowActions': 'การดำเนินการกับบัญชี',
   'accounts.save': 'บันทึก',
   'accounts.saveAnyway': 'บันทึกอยู่ดี',
