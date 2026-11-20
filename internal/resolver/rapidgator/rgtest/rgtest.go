@@ -95,6 +95,9 @@ const (
 	LinkVariable
 	// LinkButton puts the link on the download button itself.
 	LinkButton
+	// NoLink shows a download button whose link a further call of its script
+	// would fetch.
+	NoLink
 )
 
 // freeRun is one free download on its way through the website.
@@ -271,6 +274,9 @@ func (s *Server) readyPage(w http.ResponseWriter, r *http.Request, run *freeRun)
 	case LinkButton:
 		fmt.Fprintf(w, "<html><body><div class=\"download-ready\"><a href=\"%s\" class=\"btn btn-download\">CLICK HERE TO DOWNLOAD</a></div>"+
 			"<script>var download_link = '';</script></body></html>", direct)
+	case NoLink:
+		fmt.Fprintf(w, "<html><head><title>Download file %s</title></head><body><div class=\"download-ready\">%s</div>"+
+			"<script>$.getJSON('/download/AjaxShowLink', {sid: '%s'});</script>%s</body></html>", name, button, run.sid, script)
 	}
 }
 

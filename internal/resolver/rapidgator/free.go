@@ -12,6 +12,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -51,6 +52,9 @@ var (
 	captchaWrong      = regexp.MustCompile(`>\s*Please fix the following input errors|>\s*The verification code is incorrect`)
 	pageError         = regexp.MustCompile(`(?is)<div\b[^>]*\bclass="(?:error|errorSummary)"[^>]*>(.*?)</div>|<strong style="color:red">(.*?)</strong>`)
 	markup            = regexp.MustCompile(`<[^>]*>`)
+	pageTitle         = regexp.MustCompile(`(?is)<title>(.*?)</title>`)
+	scriptCall        = regexp.MustCompile(`'(/download/[A-Za-z]+)'`)
+	pageName          = regexp.MustCompile(`^[A-Za-z]{1,24}$`)
 	// Each is a way the page after the answer carries the link, as
 	// JDownloader's plugin and other clients read it. The last takes a link
 	// to the file anywhere on the page, such as on the download button.
@@ -211,27 +215,27 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 		action = html.UnescapeString(a[1])
 	}
 	sent := b.now().Sub(ready)
-	body, status, err := s.post(ctx, action, fields)
+	body, resp, err := s.post(ctx, action, fields)
 	if err != nil {
 		return "", err
 	}
 	if captchaWrong.MatchString(body) {
-		s.explain("Rapidgator refused the captcha answer", fileIDOf(norm), sent, body)
+		s.explain("Rapidgator refused the captcha answer", fileIDOf(norm), sent, body, resp)
 		return "", errCaptchaRefused
 	}
 	direct, err := freeLink(body)
-	if err == nil && status != http.StatusOK {
-		err = &APIError{Status: status, Details: action + " answered " + http.StatusText(status)}
+	if err == nil && resp.StatusCode != http.StatusOK {
+		err = &APIError{Status: resp.StatusCode, Details: action + " answered " + http.StatusText(resp.StatusCode)}
 	}
 	if err != nil {
-		s.explain("no download link after the captcha", fileIDOf(norm), sent, body)
+		s.explain("no download link after the captcha", fileIDOf(norm), sent, body, resp)
 	}
 	return direct, err
 }
 
 // explain logs why an answer to the captcha led to no download, so a report
 // tells an answer Rapidgator found too late from one it found wrong.
-func (s *session) explain(what, id string, sent time.Duration, body string) {
+func (s *session) explain(what, id string, sent time.Duration, body string, resp *http.Response) {
 	failed := "not set"
 	u, _ := url.Parse(s.c.site)
 	for _, c := range s.hc.Jar.Cookies(u) {
@@ -243,8 +247,51 @@ func (s *session) explain(what, id string, sent time.Duration, body string) {
 	if text := pageText(body); text != "" {
 		says = strconv.Quote(text)
 	}
-	log.Printf("rapidgator: %s for file %s, answer sent %ds after the countdown (failed_on_captcha %s): %s",
-		what, id, int(sent.Seconds()), failed, says)
+	log.Printf("rapidgator: %s for file %s, answer sent %ds after the countdown (failed_on_captcha %s): %s. Page: %s",
+		what, id, int(sent.Seconds()), failed, says, pageSummary(body, resp))
+}
+
+// pageSummary says what a page is without a session id, token or query, since
+// the line ends up in public issues: its status and path, its title, whether
+// the captcha form is back and which of the site's calls its scripts make.
+func pageSummary(body string, resp *http.Response) string {
+	title := "no title"
+	if m := pageTitle.FindStringSubmatch(body); m != nil {
+		title = "title " + strconv.Quote(strings.Join(strings.Fields(html.UnescapeString(m[1])), " "))
+	}
+	form := "no captcha form"
+	if captchaForm.MatchString(body) {
+		form = "captcha form shown"
+	}
+	calls := "no script calls under /download/"
+	var seen []string
+	for _, m := range scriptCall.FindAllStringSubmatch(body, -1) {
+		if !slices.Contains(seen, m[1]) {
+			seen = append(seen, m[1])
+		}
+	}
+	if len(seen) > 0 {
+		calls = "script calls " + strings.Join(seen, ", ")
+	}
+	return fmt.Sprintf("status %d at %s, %s, %s, %s", resp.StatusCode, sitePath(resp.Request.URL.Path), title, form, calls)
+}
+
+// sitePath is path up to its first part that names no page of the site, such
+// as a file id or a session on a download server.
+func sitePath(path string) string {
+	path = strings.Trim(path, "/")
+	if path == "" {
+		return "/"
+	}
+	var kept []string
+	for _, part := range strings.Split(path, "/") {
+		if !pageName.MatchString(part) {
+			kept = append(kept, "...")
+			break
+		}
+		kept = append(kept, part)
+	}
+	return "/" + strings.Join(kept, "/")
 }
 
 // pageText is the first error a page shows, in plain words and cut short.
@@ -332,19 +379,20 @@ func (s *session) page(ctx context.Context, path string) (string, error) {
 	return s.read(req, path)
 }
 
-// post sends form and returns the page with its status, whatever they say,
-// since the page after the captcha is read for why it holds no link.
-func (s *session) post(ctx context.Context, path string, form url.Values) (string, int, error) {
+// post sends form and returns the page and the answer it came with, whatever
+// they say, since the page after the captcha is read for why it holds no
+// link.
+func (s *session) post(ctx context.Context, path string, form url.Values) (string, *http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.c.site+path, strings.NewReader(form.Encode()))
 	if err != nil {
-		return "", 0, err
+		return "", nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, body, err := s.do(req)
 	if err != nil {
-		return "", 0, err
+		return "", nil, err
 	}
-	return body, resp.StatusCode, nil
+	return body, resp, nil
 }
 
 func (s *session) read(req *http.Request, path string) (string, error) {

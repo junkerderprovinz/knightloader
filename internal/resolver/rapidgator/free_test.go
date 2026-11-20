@@ -241,7 +241,8 @@ func TestARefusedAnswerIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
 		t.Errorf("logged %d lines for %d answers, want one each: %q", len(got), len(srv.Answers()), got)
 	}
 	want := "rapidgator: Rapidgator refused the captcha answer for file " + fileID +
-		`, answer sent 0s after the countdown (failed_on_captcha not set): "Please fix the following input errors: The verification code is incorrect."`
+		`, answer sent 0s after the countdown (failed_on_captcha not set): "Please fix the following input errors: The verification code is incorrect."` +
+		`. Page: status 200 at /download/captcha, no title, captcha form shown, no script calls under /download/`
 	if !strings.HasSuffix(got[0], want) {
 		t.Errorf("logged %q, want %q", got[0], want)
 	}
@@ -262,9 +263,32 @@ func TestAnAnswerThatLeadsNowhereIsLoggedWithItsTimingAndRapidgatorsWords(t *tes
 		t.Errorf("logged %d lines for %d answers, want one each: %q", len(got), len(srv.Answers()), got)
 	}
 	want := "rapidgator: no download link after the captcha for file " + fileID +
-		`, answer sent 150s after the countdown (failed_on_captcha set): "You have reached your hourly downloads limit."`
+		`, answer sent 150s after the countdown (failed_on_captcha set): "You have reached your hourly downloads limit."` +
+		`. Page: status 200 at /download/captcha, no title, no captcha form, no script calls under /download/`
 	if !strings.HasSuffix(got[0], want) {
 		t.Errorf("logged %q, want %q", got[0], want)
+	}
+}
+
+func TestAPageWithoutALinkIsLoggedWithWhatItShowsAndNoSessionIDs(t *testing.T) {
+	lines := logLines(t)
+	srv := rgtest.New(t)
+	srv.Countdown(30)
+	srv.Ready(rgtest.NoLink)
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, _, ups, _ := newFreeBackend(srv)
+
+	b.Download("t1", link, nil, 1)
+	awaitSettled(t, ups)
+	got := lines()
+	want := "rapidgator: no download link after the captcha for file " + fileID +
+		", answer sent 0s after the countdown (failed_on_captcha not set): the page shows no error" +
+		`. Page: status 200 at /download/captcha, title "Download file a.bin", no captcha form, script calls /download/AjaxShowLink`
+	if !strings.HasSuffix(got[0], want) {
+		t.Errorf("logged %q, want %q", got[0], want)
+	}
+	if sid := "s" + fileID[:12]; strings.Contains(strings.Join(got, " "), sid) {
+		t.Errorf("the log carries the session id %s: %q", sid, got)
 	}
 }
 
@@ -317,5 +341,18 @@ func TestTheFreeRefusalsReadAsTheirCause(t *testing.T) {
 	}
 	if err := freeRefusal("<div>Downloading: a.bin</div>"); err != nil {
 		t.Errorf("an ordinary page reads as %v", err)
+	}
+}
+
+func TestALoggedPathKeepsTheSitesPageNamesAndDropsWhatFollowsAnID(t *testing.T) {
+	for _, tt := range []struct{ path, want string }{
+		{"/download/captcha", "/download/captcha"},
+		{"/download/s0001234422b3/a.bin", "/download/..."},
+		{"/file/" + fileID + "/a.bin.html", "/file/..."},
+		{"/", "/"},
+	} {
+		if got := sitePath(tt.path); got != tt.want {
+			t.Errorf("sitePath(%q) = %q, want %q", tt.path, got, tt.want)
+		}
 	}
 }
