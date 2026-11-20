@@ -668,3 +668,29 @@ func TestCanInstallLeavesNothingBehind(t *testing.T) {
 		t.Error("no data directory at all was accepted")
 	}
 }
+
+// On Alpine the glibc build cannot start, so the musl build has to come first,
+// and the glibc one is not worth a download at all.
+func TestMuslLinuxTriesTheMuslBuild(t *testing.T) {
+	cases := []struct {
+		arch string
+		musl bool
+		want string
+	}{
+		{"amd64", true, "yt-dlp_musllinux"},
+		{"arm64", true, "yt-dlp_musllinux_aarch64"},
+		{"amd64", false, "yt-dlp_linux"},
+		{"arm64", false, "yt-dlp_linux_aarch64"},
+	}
+	for _, c := range cases {
+		got := linuxCandidates(c.arch, c.musl)
+		if got[0] != c.want {
+			t.Errorf("%s (musl %v) tries %v first, want %s", c.arch, c.musl, got, c.want)
+		}
+		for _, name := range got {
+			if c.musl && strings.HasPrefix(name, "yt-dlp_linux") {
+				t.Errorf("%s on musl offers the glibc build %s", c.arch, name)
+			}
+		}
+	}
+}
