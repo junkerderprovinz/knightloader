@@ -183,38 +183,43 @@ func TestATurnstileAnswerGoesInUnderTheFieldsABrowserSends(t *testing.T) {
 }
 
 // Rapidgator bars the address for an hour when the answer comes in more than
-// a couple of minutes after the countdown.
-func TestACaptchaTheUserTakesMinutesOverStillLeadsToTheDownload(t *testing.T) {
+// a couple of minutes after the countdown. The file page shows no captcha, so
+// only a download after the first knows the captcha before its page.
+func TestALaterFreeDownloadAnswersTheCaptchaDuringTheCountdown(t *testing.T) {
 	srv := rgtest.New(t)
 	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
 	b, eng, ups, a := newFreeBackend(srv)
-	a.took = 2*time.Minute + 30*time.Second
-
 	b.Download("t1", link, nil, 1)
+	awaitHandoff(t, eng)
+
+	a.took = 2*time.Minute + 30*time.Second
+	b.Download("t2", link, nil, 1)
 	if _, ok := awaitOutcome(t, eng, ups); !ok {
 		t.Fatalf("the download ended as %+v after %d captchas, want it handed on", ups.last(), len(a.captchas))
 	}
-	if len(a.captchas) != 1 {
-		t.Errorf("asked %d captchas, want one", len(a.captchas))
+	if len(a.captchas) != 2 {
+		t.Errorf("asked %d captchas for two downloads, want one each", len(a.captchas))
 	}
 	if ups.waited() >= time.Hour {
 		t.Errorf("waited %v, want no pause between free downloads", ups.waited())
 	}
 }
 
-func TestACaptchaPageWithAnotherKeyThanTheSignInFormIsAnsweredThere(t *testing.T) {
+func TestACaptchaPageWithANewKeyIsAnsweredThere(t *testing.T) {
 	srv := rgtest.New(t)
 	srv.Countdown(30)
-	srv.LoginKey("0x4AAAAAAAsignInOnly")
 	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
 	b, eng, ups, a := newFreeBackend(srv)
-
 	b.Download("t1", link, nil, 1)
+	awaitHandoff(t, eng)
+
+	srv.CaptchaKey("0x4AAAAAAAnewKey")
+	b.Download("t2", link, nil, 1)
 	if _, ok := awaitOutcome(t, eng, ups); !ok {
 		t.Fatalf("the download ended as %+v, want it handed on", ups.last())
 	}
-	if len(a.captchas) != 2 || a.captchas[1].SiteKey != rgtest.SiteKey {
-		t.Errorf("captchas = %+v, want the captcha page's asked after the sign-in form's", a.captchas)
+	if len(a.captchas) != 3 || a.captchas[2].SiteKey != "0x4AAAAAAAnewKey" {
+		t.Errorf("captchas = %+v, want the new key asked on the captcha page after the old one", a.captchas)
 	}
 }
 
@@ -251,16 +256,15 @@ func TestARefusedAnswerIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
 func TestAnAnswerThatLeadsNowhereIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
 	lines := logLines(t)
 	srv := rgtest.New(t)
-	srv.LoginKey("0x4AAAAAAAsignInOnly")
 	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
-	b, _, ups, a := newFreeBackend(srv)
+	b, eng, ups, a := newFreeBackend(srv)
 	a.took = 2*time.Minute + 30*time.Second
 
 	b.Download("t1", link, nil, 1)
-	awaitSettled(t, ups)
+	awaitOutcome(t, eng, ups)
 	got := lines()
-	if len(got) != len(srv.Answers()) {
-		t.Errorf("logged %d lines for %d answers, want one each: %q", len(got), len(srv.Answers()), got)
+	if len(got) != 1 {
+		t.Errorf("logged %q, want a line for the late answer alone", got)
 	}
 	want := "rapidgator: no download link after the captcha for file " + fileID +
 		`, answer sent 150s after the countdown (failed_on_captcha set): "You have reached your hourly downloads limit."` +

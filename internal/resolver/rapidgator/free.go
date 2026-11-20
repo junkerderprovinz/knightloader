@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -94,6 +95,11 @@ type FreeBackend struct {
 	client   *Client
 	onUpdate func(taskID string, u core.Update)
 	now      func() time.Time
+
+	mu sync.Mutex
+	// last is the captcha the last captcha page asked, the zero Captcha
+	// before the first.
+	last hoster.Captcha
 }
 
 func NewFreeBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *FreeBackend {
@@ -156,11 +162,14 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 	countdown := time.Duration(wait)*time.Second + time.Second
 	// Rapidgator times the answer from the end of the countdown and bars the
 	// address for an hour when it comes late, as one from a phone easily
-	// does. The sign-in form's Turnstile has the captcha page's key, so it is
-	// answered during the countdown, as JDownloader's plugin does.
-	early, ok := widgetCaptcha(body)
+	// does. Its captcha keeps its key from one download to the next, so the
+	// last one is answered during the countdown, as JDownloader's plugin
+	// does with the type it last met.
+	b.mu.Lock()
+	early := b.last
+	b.mu.Unlock()
 	var answer string
-	if ok {
+	if early.SiteKey != "" {
 		if err := sitOut(countdown-answerLife, delay); err != nil {
 			return "", err
 		}
@@ -205,6 +214,9 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 	if !ok {
 		return "", errors.New("rapidgator: the captcha page asks for a captcha KnightLoader does not know")
 	}
+	b.mu.Lock()
+	b.last = c
+	b.mu.Unlock()
 	if answer == "" || c.Kind != early.Kind || c.SiteKey != early.SiteKey {
 		if answer, err = ask(c); err != nil {
 			return "", err

@@ -71,12 +71,11 @@ type Server struct {
 	secs     int
 	pauses   int
 	sessions map[string]*freeRun
-	// loginKey is the key of the Turnstile in the file page's sign-in form,
-	// and barred the end of the hour an answer that came too late cost the
-	// address.
-	loginKey string
-	barred   time.Time
-	now      func() time.Time
+	// captchaKey is the key of the captcha page's Turnstile, and barred the
+	// end of the hour an answer that came too late cost the address.
+	captchaKey string
+	barred     time.Time
+	now        func() time.Time
 	// answers is every captcha form posted, oldest first, and ready how the
 	// page after an accepted one carries the link.
 	answers []url.Values
@@ -135,14 +134,14 @@ type failure struct {
 // New starts a server that closes when the test ends.
 func New(t *testing.T) *Server {
 	s := &Server{
-		accounts: map[string]*Account{},
-		files:    map[string]File{},
-		tokens:   map[string]*Account{},
-		fail:     map[string][]failure{},
-		secs:     180,
-		sessions: map[string]*freeRun{},
-		loginKey: SiteKey,
-		now:      time.Now,
+		accounts:   map[string]*Account{},
+		files:      map[string]File{},
+		tokens:     map[string]*Account{},
+		fail:       map[string][]failure{},
+		secs:       180,
+		sessions:   map[string]*freeRun{},
+		captchaKey: SiteKey,
+		now:        time.Now,
 	}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
@@ -157,12 +156,11 @@ func (s *Server) Clock(now func() time.Time) {
 	s.now = now
 }
 
-// LoginKey sets the key of the Turnstile in the file page's sign-in form,
-// which is the captcha page's unless set.
-func (s *Server) LoginKey(key string) {
+// CaptchaKey gives the captcha page's Turnstile key instead of SiteKey.
+func (s *Server) CaptchaKey(key string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.loginKey = key
+	s.captchaKey = key
 }
 
 // Ready makes the page after an accepted answer carry the link as p does.
@@ -266,7 +264,7 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 		fmt.Fprintf(w, "<form id=\"captchaform\" action=\"/download/captcha\" method=\"post\">"+
 			"<input type=\"hidden\" name=\"DownloadCaptchaForm[captcha]\" value=\"\" />"+
 			"<div class=\"cf-turnstile\" data-sitekey=\"%s\"></div>"+
-			"<input type=\"submit\" value=\"Download\" /></form></body></html>", SiteKey)
+			"<input type=\"submit\" value=\"Download\" /></form></body></html>", s.captchaKey)
 	default:
 		return false
 	}
@@ -440,11 +438,10 @@ func (s *Server) page(w http.ResponseWriter, r *http.Request, rest string) {
 	s.sessions[session] = &freeRun{id: id, secs: s.secs}
 	http.SetCookie(w, &http.Cookie{Name: "PHPSESSID", Value: session, Path: "/"})
 	_ = pages.ExecuteTemplate(w, "file.html", map[string]any{
-		"Name":     f.Name,
-		"Size":     fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
-		"Secs":     s.secs,
-		"Fid":      894317393,
-		"LoginKey": s.loginKey,
+		"Name": f.Name,
+		"Size": fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
+		"Secs": s.secs,
+		"Fid":  894317393,
 	})
 }
 
