@@ -697,6 +697,9 @@ body {
 [data-rainbow] .glim-hue {
   --hover-chroma: 0.3;
   --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.432 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
+  /* The hover of a control that already rests on surface3, one Carbon step
+     further: surface3 to hover-raised in every theme, in the same hue. */
+  --hover-up: light-dark(oklab(from var(--hover) calc(l - 0.034) a b), oklab(from var(--hover) calc(l + 0.1) a b));
 }
 
 /* OLED moves surface3 one Carbon step down, and the hover with it. data-oled
@@ -3203,8 +3206,8 @@ body {
   min-width: 0;
   padding: 0.75rem 1rem;
 }
-/* The name keeps its line and the badges move under it before it ends in an
-   ellipsis, and the buttons do the same under the status. */
+/* The badges follow the name and move under it before it ends in an ellipsis,
+   and the buttons keep to the end of the row under the status. */
 .glim-connection-head,
 .glim-connection-foot {
   display: flex;
@@ -3213,10 +3216,10 @@ body {
   justify-content: flex-end;
   min-width: 0;
 }
-.glim-connection-head { gap: 0.25rem 0.75rem; }
+.glim-connection-head { justify-content: flex-start; gap: 0.25rem 0.75rem; }
 .glim-connection-foot { gap: 0.5rem 1rem; }
 .glim-connection-name {
-  flex: 1 1 12rem;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3238,6 +3241,21 @@ body {
 .glim-connection-badges .bg-statusFailBg { background: linear-gradient(var(--status-fail-bg), var(--status-fail-bg)) var(--carbon-surface); }
 .glim-connection-badges .bg-statusWarnBg { background: linear-gradient(var(--status-warn-bg), var(--status-warn-bg)) var(--carbon-surface); }
 .glim-connection-badges .bg-carbon-surface2 { background-color: var(--carbon-surface3); }
+/* A badge here stands as tall as the buttons and in their type, so the row's
+   labels and its buttons read as one size. */
+.glim-connection-badges .glim-badge {
+  height: var(--btn-h);
+  padding-inline: 0.875rem;
+  font-size: var(--text-body);
+}
+/* The row is the well's surface2, which a quiet button wears too, so its
+   buttons step one surface up and hover one step further, as on a sub-card. */
+.glim-connection-actions .glim-btn-subtle {
+  background-color: var(--carbon-surface3);
+}
+.glim-connection-actions .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) {
+  background-color: var(--hover-up);
+}
 .glim-connection-about {
   display: flex;
   flex: 1 1 12rem;

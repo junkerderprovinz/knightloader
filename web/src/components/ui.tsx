@@ -409,7 +409,7 @@ export function LabelBadge({
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, onClick } : {})}
-      className={`inline-flex ${BTN_H} shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3
+      className={`glim-badge inline-flex ${BTN_H} shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3
         text-meta font-medium transition duration-150
         ${hued ? 'glim-tint-badge bg-carbon-surface2 text-carbon-textSub' : toneClass}
         ${onClick ? `motion-safe:active:scale-[.97] ${hoverClass}` : ''}`}

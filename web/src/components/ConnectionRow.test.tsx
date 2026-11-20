@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { VPN_MARKS } from '../lib/catalogs/vpnMarks';
 import { ConnectionRow, type ConnectionTest } from './ConnectionRow';
+import { LabelBadge } from './ui';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -50,6 +51,11 @@ describe('a connection row', () => {
   it('puts the accent behind a mark that brings no colours', () => {
     act(() => root.render(<ConnectionRow name="Backup server" mark={<svg />} text={text} />));
     expect(tile().getAttribute('style')).toBeNull();
+  });
+
+  it('marks a badge so the row can size it like its buttons', () => {
+    act(() => root.render(<ConnectionRow name="Backup server" mark={<svg />} text={text} badges={<LabelBadge label="Disabled" />} />));
+    expect(host.querySelector('.glim-connection-badges .glim-badge')?.textContent).toBe('Disabled');
   });
 
   it('shows only the buttons it is given handlers for', () => {
@@ -113,6 +119,24 @@ describe("a connection row's tile", () => {
   it('reaches the edge of the row with no ring inside it', () => {
     expect(rule('.glim-connection-tile')).toBeDefined();
     expect(rule('.glim-connection-tile')).not.toMatch(/box-shadow|border/);
+  });
+
+  it('puts the badges right after the name, which grows no further than its words', () => {
+    expect(rule('.glim-connection-head')).toMatch(/justify-content:\s*flex-start/);
+    expect(rule('.glim-connection-name')).toMatch(/flex:\s*0 1 auto/);
+  });
+
+  it('gives a badge the height and type of the buttons beside it', () => {
+    const badge = rule('.glim-connection-badges .glim-badge');
+    expect(badge).toMatch(/height:\s*var\(--btn-h\)/);
+    expect(badge).toMatch(/font-size:\s*var\(--text-body\)/);
+  });
+
+  it('steps its buttons one surface above the row, and their hover one further', () => {
+    expect(rule('.glim-connection-actions .glim-btn-subtle')).toMatch(/background-color:\s*var\(--carbon-surface3\)/);
+    expect(rule('.glim-connection-actions .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible)')).toMatch(
+      /background-color:\s*var\(--hover-up\)/,
+    );
   });
 
   it('hides the resting drawing of a logo in one ink, as of every other, beside the lit one', () => {
