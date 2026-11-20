@@ -1498,6 +1498,8 @@ export function PasswordInput({
   autoFocus,
   id,
   field,
+  invalid,
+  describedBy,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -1508,6 +1510,9 @@ export function PasswordInput({
   id?: string;
   /** The sign-in card's name for the field, which a refusal focuses (lib/signIn.ts). */
   field?: string;
+  /** The value cannot stand, which the line `describedBy` names says why. */
+  invalid?: boolean;
+  describedBy?: string;
 }) {
   const [reveal, setReveal] = useState(false);
   const label = reveal ? hideLabel : showLabel;
@@ -1525,6 +1530,8 @@ export function PasswordInput({
         autoFocus={autoFocus}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         // Room for the reveal button, which is the field's own height wide, so
         // the box is square and its glyph is half of it (rule 13).
         className="pe-8"

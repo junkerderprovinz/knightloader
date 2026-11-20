@@ -124,6 +124,10 @@ const EXCLUDED = new Map([
   ],
   ['settings.system.restoreKeyHint', 'its explanation, in the same window'],
   [
+    'auth.reset.repeat',
+    'the second field of the password card, which stands only while a new password is typed. The card is indexed by its own title and the first field',
+  ],
+  [
     'accounts.disabled',
     "the badge after a Usenet server's name that says it is switched off. It reports how one server stands rather than naming a setting, and the card's title already leads there",
   ],

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Button, Card, Field, IconBadge, IconTile, LabelBadge, LinkBadge, Modal, PasswordInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
+import { Button, Card, Field, FieldError, IconBadge, IconTile, LabelBadge, LinkBadge, Modal, PasswordInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import {
   type ApiToken,
@@ -88,6 +88,7 @@ export function PasswordCard({
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
+  const [repeat, setRepeat] = useState('');
   const [done, setDone] = useState(false);
   // The failure counter of the apply button, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
@@ -117,6 +118,7 @@ export function PasswordCard({
       setAuth(await setPassword(current, next));
       setCurrent('');
       setNext('');
+      setRepeat('');
       setDone(true);
       setTimeout(() => setDone(false), 1800);
       onAuthChanged();
@@ -127,6 +129,10 @@ export function PasswordCard({
   }
 
   const locked = auth?.enabled ?? false;
+  // A repetition that differs says so; one still being typed is not wrong yet.
+  const mismatch = next !== '' && repeat !== '' && repeat !== next;
+  // Emptying the first field takes the second away, and with it what was in it.
+  if (next === '' && repeat !== '') setRepeat('');
 
   return (
       <Card hue={0} className="flex flex-col gap-5">
@@ -154,6 +160,31 @@ export function PasswordCard({
             hideLabel={t('common.hidePassword')}
           />
         </SettingRow>
+        {/* A new password is typed twice, so a slip of the finger never
+            becomes the one nobody can sign in with. The second field comes
+            once the first holds something. */}
+        {next !== '' && (
+          <SettingRow control="long" label={t('auth.reset.repeat')}>
+            <span className="flex flex-col">
+              <PasswordInput
+                value={repeat}
+                onChange={setRepeat}
+                autoComplete="new-password"
+                invalid={mismatch}
+                describedBy={mismatch ? 'password-mismatch' : undefined}
+                showLabel={t('common.showPassword')}
+                hideLabel={t('common.hidePassword')}
+              />
+              <span aria-live="polite">
+                {mismatch && (
+                  <FieldError id="password-mismatch" className="mt-1.5">
+                    {t('auth.reset.mismatch')}
+                  </FieldError>
+                )}
+              </span>
+            </span>
+          </SettingRow>
+        )}
         {/* The state stands just before the button that changes it, both at
             the end of the row. It takes the warning hue only when this
             instance is reachable from elsewhere. */}
@@ -169,7 +200,7 @@ export function PasswordCard({
             shake={shake}
             kind="secondary"
             onClick={onApply}
-            disabled={locked ? current === '' : next === ''}
+            disabled={(locked && current === '') || (next === '' ? !locked : repeat !== next)}
           >
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>

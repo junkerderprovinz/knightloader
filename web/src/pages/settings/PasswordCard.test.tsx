@@ -65,15 +65,24 @@ async function open() {
   );
 }
 
-async function setPassword(password: string) {
-  const caption = [...host.querySelectorAll('[data-glim-label]')].find(
-    (c) => c.getAttribute('data-glim-label') === en['settings.passwordNew'],
-  )!;
-  const input = caption.closest('label')!.querySelector('input')!;
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, password);
+/** The field of the row captioned `caption`, or undefined while the row is not there. */
+const field = (caption: string) =>
+  [...host.querySelectorAll('[data-glim-label]')]
+    .find((c) => c.getAttribute('data-glim-label') === caption)
+    ?.closest('label')
+    ?.querySelector('input') ?? undefined;
+
+function type(input: HTMLInputElement, text: string) {
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, text);
   act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
-  const apply = [...host.querySelectorAll('button')].find((b) => b.textContent === en['settings.setPassword'])!;
-  await act(async () => apply.click());
+}
+
+const apply = () => [...host.querySelectorAll('button')].find((b) => b.textContent === en['settings.setPassword'])!;
+
+async function setPassword(password: string) {
+  type(field(en['settings.passwordNew'])!, password);
+  type(field(en['auth.reset.repeat'])!, password);
+  await act(async () => apply().click());
 }
 
 describe('the password card', () => {
@@ -97,6 +106,25 @@ describe('the password card', () => {
 
     expect(toast).toHaveBeenCalledWith(en['auth.passwordShort'], 'fail');
     expect(puts).toHaveLength(0);
+  });
+
+  it('asks for a new password a second time once one is typed, and sets it only when both match', async () => {
+    await open();
+    expect(field(en['auth.reset.repeat'])).toBeUndefined();
+
+    type(field(en['settings.passwordNew'])!, 'a-good-password');
+    expect(field(en['auth.reset.repeat'])).toBeDefined();
+    expect(apply().disabled).toBe(true);
+
+    type(field(en['auth.reset.repeat'])!, 'a-good-passwort');
+    expect(host.textContent).toContain(en['auth.reset.mismatch']);
+    expect(field(en['auth.reset.repeat'])!.getAttribute('aria-invalid')).toBe('true');
+    expect(apply().disabled).toBe(true);
+
+    type(field(en['auth.reset.repeat'])!, 'a-good-password');
+    expect(host.textContent).not.toContain(en['auth.reset.mismatch']);
+    await act(async () => apply().click());
+    expect(puts).toEqual([expect.objectContaining({ new: 'a-good-password' })]);
   });
 
   it('refuses a password longer than bcrypt takes before sending it', async () => {
