@@ -64,7 +64,12 @@ FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5
 # renovate: datasource=github-releases depName=yt-dlp/yt-dlp versioning=loose extractVersion=^(?<version>.+)$
 ARG YTDLP_VERSION=2026.10.26
 ARG TARGETARCH
-RUN case "${TARGETARCH}" in \
+# The sums are signed with yt-dlp's release key, the same file and fingerprint
+# the app checks its own yt-dlp updates with (internal/mediatools/signature.go).
+ARG YTDLP_SIGNER=AC0CBBE6848D6A873464AF4E57CF65933B5A7581
+COPY internal/mediatools/ytdlp-signing-key.asc /tmp/
+RUN apk add --no-cache gpg gpgv \
+    && case "${TARGETARCH}" in \
       amd64) asset=yt-dlp_musllinux ;; \
       arm64) asset=yt-dlp_musllinux_aarch64 ;; \
       *) echo "yt-dlp publishes no musl build for ${TARGETARCH}" >&2; exit 1 ;; \
@@ -72,6 +77,10 @@ RUN case "${TARGETARCH}" in \
     && base="https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}" \
     && cd /tmp \
     && wget -qO SHA2-256SUMS "${base}/SHA2-256SUMS" \
+    && wget -qO SHA2-256SUMS.sig "${base}/SHA2-256SUMS.sig" \
+    && gpg --batch --dearmor -o ytdlp.gpg ytdlp-signing-key.asc \
+    && gpgv --status-fd 1 --keyring ./ytdlp.gpg SHA2-256SUMS.sig SHA2-256SUMS \
+      | grep -q "^\[GNUPG:\] VALIDSIG .* ${YTDLP_SIGNER}\$" \
     && wget -qO "${asset}" "${base}/${asset}" \
     && sum=$(grep -x "[0-9a-f]\{64\}  ${asset}" SHA2-256SUMS) \
     && echo "${sum}" | sha256sum -c - \

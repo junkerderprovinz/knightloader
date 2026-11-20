@@ -88,21 +88,23 @@ func CheckLatest(ctx context.Context, installed string) Latest {
 //  2. refuse outright if the release has no SHA2-256SUMS, never falling back
 //     to an unverified download: a release missing its digests is a broken or
 //     tampered release, not an old one to be lenient about;
-//  3. for each candidate asset for this platform, best first: download it to a
+//  3. refuse it as well unless SHA2-256SUMS.sig is a valid signature over it
+//     by yt-dlp's signing key (signature.go);
+//  4. for each candidate asset for this platform, best first: download it to a
 //     ".part" file under a size cap and check the byte count against what the
 //     release says;
-//  4. verify its SHA-256 against the entry for that exact asset name,
+//  5. verify its SHA-256 against the entry for that exact asset name,
 //     requiring a 256-bit digest;
-//  5. make it executable;
-//  6. run it, and require exit 0 and the release's own tag on stdout. The
+//  6. make it executable;
+//  7. run it, and require exit 0 and the release's own tag on stdout. The
 //     glibc build refuses to start on the musl container with an error that
 //     reads like a missing file, and a /data mounted noexec accepts the chmod
 //     and then refuses the exec. Neither is detectable any other way;
-//  7. only now swap it into place, rename-aside first so a Windows lock cannot
+//  8. only now swap it into place, rename-aside first so a Windows lock cannot
 //     leave nothing installed at all;
-//  8. write the record.
+//  9. write the record.
 //
-// Until step 7 the copy that was already working keeps working, and the
+// Until step 8 the copy that was already working keeps working, and the
 // system's own yt-dlp is never touched at any point. progress, when not nil,
 // hears how much of the download has arrived of how much; total is -1 while
 // unknown.
@@ -124,9 +126,20 @@ func Install(ctx context.Context, dataDir string, progress func(done, total int6
 	if !ok {
 		return rec, fmt.Errorf("release %s has no %s file, so nothing downloaded from it could be verified; refusing to install it", rel.Tag, checksumAsset)
 	}
+	sigAsset, ok := rel.Find(signatureAsset)
+	if !ok {
+		return rec, fmt.Errorf("release %s has no %s file, so its %s could not be checked; refusing to install it", rel.Tag, signatureAsset, checksumAsset)
+	}
 	sumsRaw, err := ghrelease.Bytes(ctx, sumsAsset, maxChecksumBytes)
 	if err != nil {
 		return rec, err
+	}
+	sig, err := ghrelease.Bytes(ctx, sigAsset, maxChecksumBytes)
+	if err != nil {
+		return rec, err
+	}
+	if err := verifySums(sumsRaw, sig); err != nil {
+		return rec, fmt.Errorf("release %s: %w; refusing to install it", rel.Tag, err)
 	}
 	sums, err := checksum.ParseHashFile(bytes.NewReader(sumsRaw))
 	if err != nil {

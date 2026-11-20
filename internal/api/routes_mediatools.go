@@ -47,7 +47,7 @@ func registerMediaTools(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/mediatools/ytdlp/update",
-		"fetch yt-dlp's newest release, verify it against the release's own SHA2-256SUMS, prove it runs here, and put it in force",
+		"fetch yt-dlp's newest release, verify it against the release's own signed SHA2-256SUMS, prove it runs here, and put it in force",
 		func(w http.ResponseWriter, r *http.Request) {
 			// Blocks for the download plus the smoke test. Nothing is
 			// replaced until every step has passed, so a request the browser

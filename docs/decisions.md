@@ -204,7 +204,7 @@ component, because a video link that no yt-dlp reads falls through to
 JDownloader and lands as one plain row, and the copy the app keeps current is
 the fetched one anyway: the program's folder is read-only to the app. The
 installer on Windows and Linux fetches it into the data folder, checked against
-the release's `SHA2-256SUMS`, as the last step of the install. The macOS app, a
+the release's signed `SHA2-256SUMS`, as the last step of the install. The macOS app, a
 copy from the zip, the Flatpak and a silent install fetch it at the first
 start, where the app finds none. The Windows and Linux zips stay the program
 alone, because every installed copy updates itself from them and refuses a zip
