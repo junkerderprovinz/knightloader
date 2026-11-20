@@ -57,19 +57,40 @@ RUN apk add --no-cache g++ make \
     && install -Dm755 /tmp/unrar/unrar /out/unrar \
     && install -Dm644 /tmp/unrar/license.txt /out/license.txt
 
+# yt-dlp from its own releases, because Alpine's package trails the fixes the
+# big video sites keep forcing. The musl builds run on Alpine without python3
+# and carry yt-dlp's YouTube solver scripts (yt-dlp-ejs).
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS ytdlp
+# renovate: datasource=github-releases depName=yt-dlp/yt-dlp versioning=loose extractVersion=^(?<version>.+)$
+ARG YTDLP_VERSION=2026.10.26
+ARG TARGETARCH
+RUN case "${TARGETARCH}" in \
+      amd64) asset=yt-dlp_musllinux ;; \
+      arm64) asset=yt-dlp_musllinux_aarch64 ;; \
+      *) echo "yt-dlp publishes no musl build for ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && base="https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}" \
+    && cd /tmp \
+    && wget -qO SHA2-256SUMS "${base}/SHA2-256SUMS" \
+    && wget -qO "${asset}" "${base}/${asset}" \
+    && sum=$(grep -x "[0-9a-f]\{64\}  ${asset}" SHA2-256SUMS) \
+    && echo "${sum}" | sha256sum -c - \
+    && install -Dm755 "${asset}" /out/yt-dlp \
+    && [ "$(/out/yt-dlp --version)" = "${YTDLP_VERSION}" ]
+
 FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need. tini is PID 1 so the
-# ffmpeg left behind when a yt-dlp download is stopped gets reaped. yt-dlp's
-# YouTube solver (yt-dlp-ejs) takes whichever JavaScript runtime apk picks, so
-# deno is named to make it the one KL_DENO points at. Chromium is the sign-in
-# browser (internal/signinbrowser), started only while somebody signs in to a
-# site from the web interface; Noto covers the scripts a login page falls back
-# to where its own web fonts do not.
-RUN apk add --no-cache ca-certificates yt-dlp deno ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
+# ffmpeg left behind when a yt-dlp download is stopped gets reaped. Deno runs
+# yt-dlp's YouTube solver (KL_DENO). Chromium is the sign-in browser
+# (internal/signinbrowser), started only while somebody signs in to a site from
+# the web interface; Noto covers the scripts a login page falls back to where
+# its own web fonts do not.
+RUN apk add --no-cache ca-certificates deno ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
       chromium font-noto \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
+COPY --from=ytdlp /out/yt-dlp /usr/bin/yt-dlp
 COPY --from=unrar /out/unrar /usr/local/bin/unrar
 COPY --from=unrar /out/license.txt /usr/share/licenses/unrar/license.txt
 

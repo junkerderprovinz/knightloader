@@ -185,8 +185,9 @@ none.
 
 yt-dlp does ship regressions, and a new one changes what downloads produce.
 The switch is on anyway because the other failure is the common one: the
-container carries Alpine's yt-dlp package, which lags weeks behind, and a site
-that changed its page breaks every download from it until yt-dlp catches up. A
+container ships the yt-dlp release that was current when the image was built,
+and a site that changed its page breaks every download from it until yt-dlp
+catches up. A
 new release that fails its checksum or does not start here replaces nothing.
 yt-dlp is asked after daily for the same reason, and the others weekly because
 they move slower. ffmpeg's rolling build changes every night, so its weekly

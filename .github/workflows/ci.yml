@@ -245,6 +245,13 @@ jobs:
       - name: Build
         run: docker build --build-arg COMMIT=${{ github.sha }} -t knightloader:ci .
 
+      - name: yt-dlp is the pinned release
+        run: |
+          want=$(sed -n 's/^ARG YTDLP_VERSION=//p' Dockerfile)
+          got=$(docker run --rm --entrypoint /usr/bin/yt-dlp knightloader:ci --version)
+          echo "yt-dlp in the image: $got"
+          [ -n "$want" ] && [ "$got" = "$want" ] || { echo "the image runs yt-dlp $got, the Dockerfile pins $want" >&2; exit 1; }
+
       # Root, because the folders it sets up and inspects belong to root.
       - name: Ownership on a first start
         run: sudo scripts/image-ownership.sh knightloader:ci
