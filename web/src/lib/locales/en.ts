@@ -3847,7 +3847,7 @@ export const en = {
   'settings.selftest.ytdlp.ok': '{version}, {days} days old.',
   'settings.selftest.ytdlp.aging': '{version} is {days} days old.',
   'settings.selftest.ytdlp.old': '{version} is {days} days old. The big video sites usually break it within weeks.',
-  'settings.selftest.ytdlp.oldAdvice': 'In the container, yt-dlp comes from the Alpine package that was current when the image was built, and it never updates itself. Pull a newer image, or mount a yt-dlp of your own into the container and point KL_YTDLP at it.',
+  'settings.selftest.ytdlp.oldAdvice': 'Update now under Components on the Info page fetches the newest yt-dlp, and Update components automatically keeps it current after that. In the container, a newer image brings a newer one too.',
   'settings.selftest.ytdlp.missing': 'Not found, so media pages fail with the hoster\'s own error instead.',
   'settings.selftest.ytdlp.missingAdvice': 'Point KL_YTDLP at the binary, or put yt-dlp on PATH. It is looked for once while starting up, so one installed now is only used after a restart.',
   'settings.selftest.ytdlp.undated': '{version} does not look like a date, so its age cannot be judged.',

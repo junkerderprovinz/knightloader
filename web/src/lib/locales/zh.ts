@@ -3142,7 +3142,7 @@ export const zh: Dict = {
   'settings.selftest.ytdlp.ok': '{version}，已有 {days} 天。',
   'settings.selftest.ytdlp.aging': '{version} 已经 {days} 天了。',
   'settings.selftest.ytdlp.old': '{version} 已经 {days} 天了。大的视频站通常几周之内就会把它弄坏。',
-  'settings.selftest.ytdlp.oldAdvice': '在容器里，yt-dlp 来自构建镜像时当下最新的那个 Alpine 包，它从不自己更新。拉一个新一点的镜像，或者把你自己的 yt-dlp 挂进容器，并让 KL_YTDLP 指向它。',
+  'settings.selftest.ytdlp.oldAdvice': '“信息”页面“组件”下的“立即更新”会拉取最新的 yt-dlp，打开“自动更新组件”后它会一直保持最新。在容器里，新一点的镜像也会带来新一点的 yt-dlp。',
   'settings.selftest.ytdlp.missing': '没找到，于是媒体页面会带着网盘自己的报错失败。',
   'settings.selftest.ytdlp.missingAdvice': '把 KL_YTDLP 指向那个可执行文件，或者把 yt-dlp 放进 PATH。它只在启动时找一次，所以现在装上的那个，要等重启之后才会被用。',
   'settings.selftest.ytdlp.undated': '{version} 看着不像一个日期，所以判断不出它有多旧。',

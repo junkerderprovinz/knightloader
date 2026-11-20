@@ -3155,7 +3155,7 @@ export const el: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, ηλικίας {days} ημερών.',
   'settings.selftest.ytdlp.aging': 'Το {version} είναι {days} ημερών.',
   'settings.selftest.ytdlp.old': 'Το {version} είναι {days} ημερών. Οι μεγάλες σελίδες βίντεο συνήθως το χαλούν μέσα σε λίγες εβδομάδες.',
-  'settings.selftest.ytdlp.oldAdvice': 'Στο κοντέινερ το yt-dlp έρχεται από το πακέτο Alpine που ήταν τρέχον όταν χτίστηκε το image, και δεν ενημερώνεται ποτέ μόνο του. Πάρε νεότερο image, ή προσάρτησε ένα δικό σου yt-dlp μέσα στο κοντέινερ και δείξε με το KL_YTDLP σε αυτό.',
+  'settings.selftest.ytdlp.oldAdvice': 'Το «Ενημέρωση τώρα» στα «Στοιχεία» της σελίδας «Πληροφορίες» φέρνει το νεότερο yt-dlp, και το «Αυτόματη ενημέρωση στοιχείων» το κρατά ενημερωμένο από εκεί και πέρα. Στο κοντέινερ, ένα νεότερο image φέρνει και νεότερο yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Δεν βρέθηκε, γι’ αυτό οι σελίδες πολυμέσων αποτυγχάνουν με το σφάλμα του ίδιου του hoster.',
   'settings.selftest.ytdlp.missingAdvice': 'Δείξε με το KL_YTDLP στο εκτελέσιμο, ή βάλε το yt-dlp στο PATH. Η αναζήτηση γίνεται μία μόνο φορά κατά την εκκίνηση, οπότε ένα που εγκαθιστάς τώρα χρησιμοποιείται μόνο μετά από επανεκκίνηση.',
   'settings.selftest.ytdlp.undated': 'Το {version} δεν μοιάζει με ημερομηνία, οπότε η ηλικία του δεν κρίνεται.',

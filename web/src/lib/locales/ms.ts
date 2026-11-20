@@ -3154,7 +3154,7 @@ export const ms: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, berumur {days} hari.',
   'settings.selftest.ytdlp.aging': '{version} berumur {days} hari.',
   'settings.selftest.ytdlp.old': '{version} berumur {days} hari. Laman video besar biasanya merosakkannya dalam beberapa minggu.',
-  'settings.selftest.ytdlp.oldAdvice': 'Dalam bekas, yt-dlp datang daripada pakej Alpine yang terkini semasa imej itu dibina, dan ia tidak pernah mengemas kini dirinya sendiri. Tarik imej yang lebih baharu, atau lekapkan yt-dlp anda sendiri ke dalam bekas itu dan halakan KL_YTDLP kepadanya.',
+  'settings.selftest.ytdlp.oldAdvice': '“Kemas kini sekarang” di bawah “Komponen” pada halaman “Maklumat” mengambil yt-dlp terbaharu, dan “Kemas kini komponen secara automatik” memastikannya kekal terkini selepas itu. Dalam bekas, imej yang lebih baharu turut membawa yt-dlp yang lebih baharu.',
   'settings.selftest.ytdlp.missing': 'Tidak dijumpai, jadi halaman media gagal dengan ralat hoster itu sendiri.',
   'settings.selftest.ytdlp.missingAdvice': 'Halakan KL_YTDLP kepada fail binari itu, atau letakkan yt-dlp pada PATH. Ia dicari sekali sahaja semasa permulaan, jadi yang dipasang sekarang hanya digunakan selepas mula semula.',
   'settings.selftest.ytdlp.undated': '{version} tidak kelihatan seperti tarikh, jadi umurnya tidak dapat dinilai.',

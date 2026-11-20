@@ -3155,7 +3155,7 @@ export const ja: Dict = {
   'settings.selftest.ytdlp.ok': '{version}、{days} 日前のものです。',
   'settings.selftest.ytdlp.aging': '{version} は {days} 日前のものです。',
   'settings.selftest.ytdlp.old': '{version} は {days} 日前のものです。大きな動画サイトは、たいてい数週間のうちにこれを壊します。',
-  'settings.selftest.ytdlp.oldAdvice': 'コンテナでは、yt-dlp はイメージを作った時点で最新だった Alpine のパッケージから来ていて、自分で更新することはありません。新しいイメージを取ってくるか、自分の yt-dlp をコンテナにマウントして KL_YTDLP をそこへ向けてください。',
+  'settings.selftest.ytdlp.oldAdvice': '「情報」ページの「コンポーネント」にある「今すぐ更新」で最新の yt-dlp を取ってこられます。「コンポーネントを自動で更新」をオンにしておけば、その後も最新に保たれます。コンテナでは、新しいイメージにすると yt-dlp も新しくなります。',
   'settings.selftest.ytdlp.missing': '見つかりません。そのためメディアページは、かわりにホスター自身のエラーで失敗します。',
   'settings.selftest.ytdlp.missingAdvice': 'KL_YTDLP を実行ファイルに向けるか、yt-dlp を PATH に置いてください。探されるのは起動のときの一度きりなので、いま入れたものが使われるのは再起動のあとです。',
   'settings.selftest.ytdlp.undated': '{version} は日付に見えないので、古さを判断できません。',

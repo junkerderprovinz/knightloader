@@ -3141,7 +3141,7 @@ export const ca: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} dies d’antiguitat.',
   'settings.selftest.ytdlp.aging': '{version} té {days} dies.',
   'settings.selftest.ytdlp.old': '{version} té {days} dies. Els grans llocs de vídeo solen espatllar-lo en poques setmanes.',
-  'settings.selftest.ytdlp.oldAdvice': 'Al contenidor, yt-dlp ve del paquet d’Alpine que era actual quan es va construir la imatge, i no s’actualitza mai sol. Agafa una imatge més nova, o munta un yt-dlp teu dins del contenidor i fes que KL_YTDLP hi apunti.',
+  'settings.selftest.ytdlp.oldAdvice': '«Actualitza ara», a «Components» de la pàgina «Informació», baixa el yt-dlp més nou, i «Actualitza els components automàticament» el manté al dia a partir d’aquí. Al contenidor, una imatge més nova també porta un yt-dlp més nou.',
   'settings.selftest.ytdlp.missing': 'No s’ha trobat, per això les pàgines multimèdia fallen amb l’error del mateix allotjador.',
   'settings.selftest.ytdlp.missingAdvice': 'Fes que KL_YTDLP apunti al binari, o posa yt-dlp al PATH. Es busca un sol cop en arrencar, així que un que instal·lis ara no es fa servir fins després d’un reinici.',
   'settings.selftest.ytdlp.undated': '{version} no sembla una data, així que no se’n pot jutjar l’antiguitat.',

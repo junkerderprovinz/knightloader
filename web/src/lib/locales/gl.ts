@@ -3152,7 +3152,7 @@ export const gl: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} días de antigüidade.',
   'settings.selftest.ytdlp.aging': '{version} ten {days} días de antigüidade.',
   'settings.selftest.ytdlp.old': '{version} ten {days} días de antigüidade. Os grandes sitios de vídeo adoitan rompelo en poucas semanas.',
-  'settings.selftest.ytdlp.oldAdvice': 'No contedor, yt-dlp vén do paquete de Alpine que estaba ao día cando se compilou a imaxe, e nunca se actualiza só. Colle unha imaxe máis nova, ou monta un yt-dlp teu dentro do contedor e fai que KL_YTDLP apunte a el.',
+  'settings.selftest.ytdlp.oldAdvice': '«Actualizar agora», en «Compoñentes» na páxina «Información», descarga o yt-dlp máis novo, e «Actualizar os compoñentes automaticamente» manteno ao día despois. No contedor, unha imaxe máis nova tamén trae un yt-dlp máis novo.',
   'settings.selftest.ytdlp.missing': 'Non se atopou, así que as páxinas de medios fallan co erro do propio aloxador.',
   'settings.selftest.ytdlp.missingAdvice': 'Fai que KL_YTDLP apunte ao binario, ou pon yt-dlp no PATH. Búscase unha soa vez ao arrancar, así que un instalado agora só se usa despois dun reinicio.',
   'settings.selftest.ytdlp.undated': '{version} non ten pinta de data, así que a súa antigüidade non se pode xulgar.',

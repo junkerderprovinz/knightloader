@@ -3156,7 +3156,7 @@ export const uk: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, вік {days} дн.',
   'settings.selftest.ytdlp.aging': '{version} має вік {days} дн.',
   'settings.selftest.ytdlp.old': '{version} має вік {days} дн. Великі відеосайти зазвичай ламають його за кілька тижнів.',
-  'settings.selftest.ytdlp.oldAdvice': 'У контейнері yt-dlp приходить із пакета Alpine, актуального на момент збирання образу, і сам себе не оновлює ніколи. Візьміть новіший образ, або вмонтуйте в контейнер власний yt-dlp і спрямуйте на нього KL_YTDLP.',
+  'settings.selftest.ytdlp.oldAdvice': '«Оновити зараз» у розділі «Компоненти» на сторінці «Відомості» завантажує найновіший yt-dlp, а «Оновлювати компоненти автоматично» підтримує його актуальним і надалі. У контейнері новіший образ теж приносить новіший yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Не знайдено, тому медіасторінки натомість провалюються з власною помилкою хостера.',
   'settings.selftest.ytdlp.missingAdvice': 'Спрямуйте KL_YTDLP на цей файл, або покладіть yt-dlp у PATH. Його шукають один раз під час запуску, тож установлений зараз буде використано лише після перезапуску.',
   'settings.selftest.ytdlp.undated': '{version} не схоже на дату, тож вік оцінити не можна.',

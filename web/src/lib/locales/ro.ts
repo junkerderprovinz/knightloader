@@ -3163,7 +3163,7 @@ export const ro: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, vechi de {days} zile.',
   'settings.selftest.ytdlp.aging': '{version} este vechi de {days} zile.',
   'settings.selftest.ytdlp.old': '{version} este vechi de {days} zile. Site-urile mari de video îl strică de obicei în câteva săptămâni.',
-  'settings.selftest.ytdlp.oldAdvice': 'În container, yt-dlp vine din pachetul Alpine care era actual când a fost construită imaginea, și nu se actualizează niciodată singur. Ia o imagine mai nouă, sau montează în container un yt-dlp al tău și îndreaptă KL_YTDLP către el.',
+  'settings.selftest.ytdlp.oldAdvice': '„Actualizează acum” din „Componente”, pe pagina „Informații”, aduce cel mai nou yt-dlp, iar „Actualizează automat componentele” îl ține la zi după aceea. În container, o imagine mai nouă aduce și un yt-dlp mai nou.',
   'settings.selftest.ytdlp.missing': 'Nu a fost găsit, deci paginile media eșuează în schimb cu eroarea proprie a hosterului.',
   'settings.selftest.ytdlp.missingAdvice': 'Îndreaptă KL_YTDLP către fișierul executabil, sau pune yt-dlp în PATH. Este căutat o singură dată la pornire, deci unul instalat acum se folosește abia după o repornire.',
   'settings.selftest.ytdlp.undated': '{version} nu arată a dată, deci vechimea lui nu poate fi apreciată.',

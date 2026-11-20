@@ -3151,7 +3151,7 @@ export const is: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} daga gamalt.',
   'settings.selftest.ytdlp.aging': '{version} er {days} daga gamalt.',
   'settings.selftest.ytdlp.old': '{version} er {days} daga gamalt. Stóru myndbandavefirnir brjóta það yfirleitt innan fárra vikna.',
-  'settings.selftest.ytdlp.oldAdvice': 'Í gáminum kemur yt-dlp úr Alpine-pakkanum sem var nýjastur þegar gámamyndin var smíðuð, og það uppfærir sig aldrei sjálft. Sæktu nýrri gámamynd, eða tengdu þitt eigið yt-dlp inn í gáminn og láttu KL_YTDLP benda á það.',
+  'settings.selftest.ytdlp.oldAdvice': '„Uppfæra núna“ undir „Íhlutir“ á síðunni „Upplýsingar“ sækir nýjasta yt-dlp, og „Uppfæra íhluti sjálfkrafa“ heldur því uppfærðu eftir það. Í gáminum fylgir nýrri gámamynd líka nýrra yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Fannst ekki, þess vegna mistakast miðlasíður með villu hýsingaraðilans sjálfs í staðinn.',
   'settings.selftest.ytdlp.missingAdvice': 'Láttu KL_YTDLP benda á keyrsluskrána, eða settu yt-dlp á PATH. Leitað er að því einu sinni við ræsingu, eintak sem er sett upp núna er því ekki notað fyrr en eftir endurræsingu.',
   'settings.selftest.ytdlp.undated': '{version} lítur ekki út eins og dagsetning, aldurinn verður því ekki metinn.',

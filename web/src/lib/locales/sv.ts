@@ -3155,7 +3155,7 @@ export const sv: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} dagar gammal.',
   'settings.selftest.ytdlp.aging': '{version} är {days} dagar gammal.',
   'settings.selftest.ytdlp.old': '{version} är {days} dagar gammal. De stora videosajterna gör den oftast obrukbar inom ett par veckor.',
-  'settings.selftest.ytdlp.oldAdvice': 'I containern kommer yt-dlp från det Alpine-paket som var aktuellt när avbildningen byggdes, och det uppdaterar sig aldrig självt. Hämta en nyare avbildning, eller montera in ett eget yt-dlp i containern och låt KL_YTDLP peka på det.',
+  'settings.selftest.ytdlp.oldAdvice': '”Uppdatera nu” under ”Komponenter” på sidan ”Info” hämtar det senaste yt-dlp, och ”Uppdatera komponenter automatiskt” håller det aktuellt därefter. I containern ger en nyare avbildning också ett nyare yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Inte hittad, därför misslyckas mediesidor i stället med hosterns eget felmeddelande.',
   'settings.selftest.ytdlp.missingAdvice': 'Låt KL_YTDLP peka på filen, eller lägg yt-dlp i PATH. Den söks bara en gång vid uppstarten, ett som installeras nu används alltså först efter en omstart.',
   'settings.selftest.ytdlp.undated': '{version} ser inte ut som ett datum, åldern går alltså inte att bedöma.',

@@ -3154,7 +3154,7 @@ export const ar: Dict = {
   'settings.selftest.ytdlp.ok': '{version}، وعمره {days} يومًا.',
   'settings.selftest.ytdlp.aging': '{version} عمره {days} يومًا.',
   'settings.selftest.ytdlp.old': '{version} عمره {days} يومًا. ومواقع الفيديو الكبيرة تكسره عادةً في غضون أسابيع.',
-  'settings.selftest.ytdlp.oldAdvice': 'في الحاوية يأتي yt-dlp من حزمة Alpine التي كانت حديثة وقت بناء الصورة، وهو لا يحدّث نفسه أبدًا. اسحب صورة أحدث، أو ركّب yt-dlp خاصًّا بك داخل الحاوية واجعل KL_YTDLP يشير إليه.',
+  'settings.selftest.ytdlp.oldAdvice': '«حدّث الآن» ضمن «المكونات» في صفحة «معلومات» يجلب أحدث yt-dlp، و«تحديث المكوّنات تلقائيًا» يبقيه محدّثًا بعد ذلك. وفي الحاوية تأتي الصورة الأحدث بـ yt-dlp أحدث أيضًا.',
   'settings.selftest.ytdlp.missing': 'غير موجود، ولذلك تفشل صفحات الوسائط بخطأ المستضيف نفسه بدلًا من ذلك.',
   'settings.selftest.ytdlp.missingAdvice': 'اجعل KL_YTDLP يشير إلى الملف التنفيذي، أو ضع yt-dlp في PATH. والبحث عنه يقع مرة واحدة أثناء الإقلاع، فما يُثبَّت الآن لا يُستعمل إلا بعد إعادة تشغيل.',
   'settings.selftest.ytdlp.undated': '{version} لا يبدو تاريخًا، فلا يمكن الحكم على عمره.',

@@ -3156,7 +3156,7 @@ export const lt: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} dienų senumo.',
   'settings.selftest.ytdlp.aging': '{version} yra {days} dienų senumo.',
   'settings.selftest.ytdlp.old': '{version} yra {days} dienų senumo. Didžiosios vaizdo įrašų svetainės jį paprastai sulaužo per kelias savaites.',
-  'settings.selftest.ytdlp.oldAdvice': 'Konteineryje yt-dlp ateina iš to Alpine paketo, kuris buvo naujausias statant atvaizdą, ir pats niekada neatsinaujina. Parsisiųsk naujesnį atvaizdą arba prijunk į konteinerį savo paties yt-dlp ir nukreipk į jį KL_YTDLP.',
+  'settings.selftest.ytdlp.oldAdvice': '„Atnaujinti dabar“ skiltyje „Komponentai“ puslapyje „Informacija“ parsiunčia naujausią yt-dlp, o „Atnaujinti komponentus automatiškai“ po to jį palaiko atnaujintą. Konteineryje naujesnis atvaizdas atneša ir naujesnį yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Nerastas, todėl medijos puslapiai vietoj to žlunga su paties hosterio klaida.',
   'settings.selftest.ytdlp.missingAdvice': 'Nukreipk KL_YTDLP į pačią programą arba padėk yt-dlp į PATH. Jo ieškoma vieną kartą kylant, tad dabar įdiegtas bus naudojamas tik po paleidimo iš naujo.',
   'settings.selftest.ytdlp.undated': '{version} neatrodo kaip data, tad jo amžiaus įvertinti nepavyksta.',

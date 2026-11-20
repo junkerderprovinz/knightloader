@@ -3146,7 +3146,7 @@ export const et: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} päeva vana.',
   'settings.selftest.ytdlp.aging': '{version} on {days} päeva vana.',
   'settings.selftest.ytdlp.old': '{version} on {days} päeva vana. Suured videosaidid teevad ta tavaliselt nädalatega katki.',
-  'settings.selftest.ytdlp.oldAdvice': 'Konteineris tuleb yt-dlp Alpine-paketist, mis oli kujutise ehitamise ajal värske, ja ta ei uuenda end kunagi ise. Võta uuem kujutis, või haagi konteinerisse oma yt-dlp ja lase KL_YTDLP sellele osutada.',
+  'settings.selftest.ytdlp.oldAdvice': '„Uuenda kohe“ lehe „Info“ jaotises „Komponendid“ toob uusima yt-dlp ja „Uuenda komponente automaatselt“ hoiab seda edaspidi ajakohasena. Konteineris toob uuem kujutis ka uuema yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Ei leitud, seepärast ebaõnnestuvad meedialehed hoopis hosteri enda veateatega.',
   'settings.selftest.ytdlp.missingAdvice': 'Lase KL_YTDLP failile osutada või pane yt-dlp PATH-i. Teda otsitakse ühe korra käivitumise ajal, seega võetakse praegu paigaldatu kasutusele alles pärast taaskäivitust.',
   'settings.selftest.ytdlp.undated': '{version} ei näe kuupäeva moodi välja, tema vanust ei saa seega hinnata.',

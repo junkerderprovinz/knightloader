@@ -3138,7 +3138,7 @@ export const nl: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} dagen oud.',
   'settings.selftest.ytdlp.aging': '{version} is {days} dagen oud.',
   'settings.selftest.ytdlp.old': '{version} is {days} dagen oud. De grote videosites maken het meestal binnen enkele weken kapot.',
-  'settings.selftest.ytdlp.oldAdvice': 'In de container komt yt-dlp uit het Alpine-pakket dat actueel was toen het image werd gebouwd, en het werkt zichzelf nooit bij. Haal een nieuwer image op, of mount een eigen yt-dlp in de container en laat KL_YTDLP daarnaar wijzen.',
+  'settings.selftest.ytdlp.oldAdvice': '‘Nu bijwerken’ onder ‘Onderdelen’ op de pagina ‘Info’ haalt het nieuwste yt-dlp op, en ‘Componenten automatisch bijwerken’ houdt het daarna actueel. In de container brengt een nieuwer image ook een nieuwer yt-dlp mee.',
   'settings.selftest.ytdlp.missing': 'Niet gevonden, mediapagina’s mislukken daarom met de foutmelding van de hoster zelf.',
   'settings.selftest.ytdlp.missingAdvice': 'Laat KL_YTDLP naar het programma wijzen, of zet yt-dlp in het PATH. Er wordt tijdens het opstarten één keer naar gezocht, een exemplaar dat je nu installeert wordt dus pas na een herstart gebruikt.',
   'settings.selftest.ytdlp.undated': '{version} ziet er niet uit als een datum, de ouderdom valt dus niet te beoordelen.',

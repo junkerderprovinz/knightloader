@@ -3155,7 +3155,7 @@ export const vi: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} ngày tuổi.',
   'settings.selftest.ytdlp.aging': '{version} đã {days} ngày tuổi.',
   'settings.selftest.ytdlp.old': '{version} đã {days} ngày tuổi. Các trang video lớn thường làm nó hỏng trong vòng vài tuần.',
-  'settings.selftest.ytdlp.oldAdvice': 'Trong container, yt-dlp đến từ gói Alpine đang là bản mới nhất lúc ảnh container được dựng, và nó không bao giờ tự cập nhật. Hãy lấy một ảnh container mới hơn, hoặc gắn một yt-dlp của riêng bạn vào container rồi cho KL_YTDLP trỏ vào đó.',
+  'settings.selftest.ytdlp.oldAdvice': '“Cập nhật ngay” trong mục “Thành phần” ở trang “Thông tin” sẽ tải yt-dlp mới nhất, và “Tự động cập nhật các thành phần” giữ nó luôn mới sau đó. Trong container, ảnh container mới hơn cũng mang theo yt-dlp mới hơn.',
   'settings.selftest.ytdlp.missing': 'Không tìm thấy, nên các trang media thất bại kèm thông báo lỗi của chính hoster.',
   'settings.selftest.ytdlp.missingAdvice': 'Hãy cho KL_YTDLP trỏ vào tệp nhị phân đó, hoặc đặt yt-dlp vào PATH. Việc tìm chỉ diễn ra một lần lúc khởi động, nên một bản cài ngay bây giờ chỉ được dùng sau một lần khởi động lại.',
   'settings.selftest.ytdlp.undated': '{version} trông không giống một ngày tháng, nên không đánh giá được tuổi của nó.',
