@@ -127,6 +127,40 @@ func TestAFreeDownloadSitsOutTheCountdownAnswersTheTurnstileAndGoesOutOnOneConne
 	}
 }
 
+func TestTheLinkAfterAnAcceptedAnswerIsFoundInEachFormThePageCarriesIt(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		ready rgtest.ReadyPage
+	}{
+		{"a session link the script goes to", rgtest.SessionScript},
+		{"the script's download_link the button follows", rgtest.LinkVariable},
+		{"the link on the download button", rgtest.LinkButton},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := rgtest.New(t)
+			srv.Countdown(30)
+			srv.Ready(tt.ready)
+			body := bytes.Repeat([]byte("rushmore "), 512)
+			link := srv.Add(fileID, rgtest.File{Name: "Rushmore.mkv", Body: body})
+			b, eng, ups, _ := newFreeBackend(srv)
+
+			b.Download("t1", link, nil, 1)
+			got, ok := awaitOutcome(t, eng, ups)
+			if !ok {
+				t.Fatalf("the download ended as %+v, want it handed on", ups.last())
+			}
+			resp, err := srv.Client().Get(got.url)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+			if fetched, _ := io.ReadAll(resp.Body); !bytes.Equal(fetched, body) {
+				t.Errorf("the link handed on does not serve the file: %s", got.url)
+			}
+		})
+	}
+}
+
 // The Turnstile widget puts its answer into the form as cf-turnstile-response,
 // and the page's callback copies it into the form's own field.
 func TestATurnstileAnswerGoesInUnderTheFieldsABrowserSends(t *testing.T) {

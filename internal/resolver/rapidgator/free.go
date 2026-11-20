@@ -51,10 +51,18 @@ var (
 	captchaWrong      = regexp.MustCompile(`>\s*Please fix the following input errors|>\s*The verification code is incorrect`)
 	pageError         = regexp.MustCompile(`(?is)<div\b[^>]*\bclass="(?:error|errorSummary)"[^>]*>(.*?)</div>|<strong style="color:red">(.*?)</strong>`)
 	markup            = regexp.MustCompile(`<[^>]*>`)
-	freeLinks         = []*regexp.Regexp{
+	// Each is a way the page after the answer carries the link, as
+	// JDownloader's plugin and other clients read it. The last takes a link
+	// to the file anywhere on the page, such as on the download button.
+	freeLinks = []*regexp.Regexp{
 		regexp.MustCompile(`'(https?://[A-Za-z0-9\-_]+\.[^/]+//\?r=download/index&session_id=[A-Za-z0-9]+)'`),
 		regexp.MustCompile(`location\.href\s*=\s*'(https?://[^']+)'`),
+		regexp.MustCompile(`var download_link\s*=\s*'(https?://[^']+)'`),
+		regexp.MustCompile(`(https?://[^/'"<>\s]+/download/[^'"<>\s]+)`),
 	}
+	// stepLink is a link back into the steps before the download rather
+	// than to the file.
+	stepLink = regexp.MustCompile(`^https?://[^/]+/download/(?:captcha|Ajax)`)
 
 	delayPattern  = regexp.MustCompile(`Delay between downloads must be not less than (\d+) min`)
 	hourlyLimit   = regexp.MustCompile(`>\s*You have reached your (?:hourly|daily) downloads limit`)
@@ -283,8 +291,10 @@ func sitOut(d time.Duration, delay func(time.Duration) error) error {
 // to.
 func freeLink(body string) (string, error) {
 	for _, p := range freeLinks {
-		if m := p.FindStringSubmatch(body); m != nil {
-			return m[1], nil
+		for _, m := range p.FindAllStringSubmatch(body, -1) {
+			if !stepLink.MatchString(m[1]) {
+				return strings.ReplaceAll(m[1], "&amp;", "&"), nil
+			}
 		}
 	}
 	if err := freeRefusal(body); err != nil {

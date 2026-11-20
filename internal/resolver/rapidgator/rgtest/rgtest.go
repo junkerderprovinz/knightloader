@@ -77,9 +77,25 @@ type Server struct {
 	loginKey string
 	barred   time.Time
 	now      func() time.Time
-	// answers is every captcha form posted, oldest first.
+	// answers is every captcha form posted, oldest first, and ready how the
+	// page after an accepted one carries the link.
 	answers []url.Values
+	ready   ReadyPage
 }
+
+// ReadyPage is how the page after an accepted answer carries the download
+// link.
+type ReadyPage int
+
+const (
+	// SessionScript sends the browser on to the session link in a script.
+	SessionScript ReadyPage = iota
+	// LinkVariable keeps the link in the script's download_link, which the
+	// page's download button follows.
+	LinkVariable
+	// LinkButton puts the link on the download button itself.
+	LinkButton
+)
 
 // freeRun is one free download on its way through the website.
 type freeRun struct {
@@ -141,6 +157,13 @@ func (s *Server) LoginKey(key string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.loginKey = key
+}
+
+// Ready makes the page after an accepted answer carry the link as p does.
+func (s *Server) Ready(p ReadyPage) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.ready = p
 }
 
 // Answers is every captcha form posted, oldest first.
@@ -214,8 +237,7 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 				return true
 			}
 			if r.PostForm.Get("DownloadCaptchaForm[verifyCode]") == Token && r.PostForm.Get("DownloadCaptchaForm[captcha]") == "" {
-				link := "http://" + r.Host + "//?r=download/index&session_id=" + run.sid
-				fmt.Fprintf(w, "<html><body><script>var download_link = '%s'; location.href = '%s';</script></body></html>", link, link)
+				s.readyPage(w, r, run)
 				return true
 			}
 			fmt.Fprint(w, "<html><body><div class=\"errorSummary\"><p>Please fix the following input errors:</p>"+
@@ -233,9 +255,39 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 	return true
 }
 
+// readyPage answers an accepted captcha with the download link, the way
+// s.ready says.
+func (s *Server) readyPage(w http.ResponseWriter, r *http.Request, run *freeRun) {
+	name := s.files[run.id].Name
+	direct := "http://" + r.Host + "/download/" + run.sid + "/" + url.PathEscape(name)
+	button := `<a href="#" class="btn btn-download">CLICK HERE TO DOWNLOAD</a>`
+	script := "<script>$(\"div\").on('click', '.btn-download', function() { location.href = download_link; return false; });</script>"
+	switch s.ready {
+	case SessionScript:
+		link := "http://" + r.Host + "//?r=download/index&session_id=" + run.sid
+		fmt.Fprintf(w, "<html><body><script>var download_link = '%s'; location.href = '%s';</script></body></html>", link, link)
+	case LinkVariable:
+		fmt.Fprintf(w, "<html><body><div class=\"download-ready\">%s</div><script>var download_link = '%s';</script>%s</body></html>", button, direct, script)
+	case LinkButton:
+		fmt.Fprintf(w, "<html><body><div class=\"download-ready\"><a href=\"%s\" class=\"btn btn-download\">CLICK HERE TO DOWNLOAD</a></div>"+
+			"<script>var download_link = '';</script></body></html>", direct)
+	}
+}
+
 // serveFree hands out a file through the link a free download's captcha led
 // to.
 func (s *Server) serveFree(w http.ResponseWriter, r *http.Request) bool {
+	if rest, ok := strings.CutPrefix(r.URL.Path, "/download/"); ok {
+		sid, _, _ := strings.Cut(rest, "/")
+		for _, run := range s.sessions {
+			if run.sid == sid && run.counted {
+				f := s.files[run.id]
+				http.ServeContent(w, r, f.Name, time.Time{}, bytes.NewReader(f.Body))
+				return true
+			}
+		}
+		return false
+	}
 	sid := r.URL.Query().Get("session_id")
 	if strings.Trim(r.URL.Path, "/") != "" || r.URL.Query().Get("r") != "download/index" || sid == "" {
 		return false
