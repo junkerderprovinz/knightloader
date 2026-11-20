@@ -77,6 +77,15 @@ async function setPassword(password: string) {
 }
 
 describe('the password card', () => {
+  it('says whether a password is set at the start of its row and puts the button at the end', async () => {
+    await open();
+    const apply = [...host.querySelectorAll('button')].find((b) => b.textContent === en['settings.setPassword'])!;
+    const row = apply.parentElement!;
+    expect(row.className).toContain('justify-end');
+    expect(row.firstElementChild?.textContent).toBe(en['settings.lockOff']);
+    expect(row.lastElementChild).toBe(apply);
+  });
+
   it('counts characters, not bytes, and says so in its own words', async () => {
     await open();
 

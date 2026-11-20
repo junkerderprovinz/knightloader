@@ -154,7 +154,16 @@ export function PasswordCard({
             hideLabel={t('common.hidePassword')}
           />
         </SettingRow>
-        <div className="flex flex-wrap items-center gap-3">
+        {/* The state at the start of the row and the button that changes it at
+            its end, as a setting's control stands. The state takes the warning
+            hue only when this instance is reachable from elsewhere. */}
+        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+          <p
+            className={`min-w-0 flex-[1_1_12.5rem] text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
+          >
+            {locked ? t('settings.lockOn') : t('settings.lockOff')}
+          </p>
+          {done && <span className="text-sm text-statusOk">{t('settings.passwordSaved')}</span>}
           <Button
             icon={next === '' && locked ? <IconKeyRevoke /> : <IconKey />}
             shake={shake}
@@ -164,14 +173,6 @@ export function PasswordCard({
           >
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>
-          {/* Beside the button that changes it, in the warning hue only when
-              this instance is reachable from elsewhere. */}
-          <span
-            className={`text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
-          >
-            {locked ? t('settings.lockOn') : t('settings.lockOff')}
-          </span>
-          {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
         {/* Everything works without an app key, so it is a name with its
             explanation behind the (i) rather than a warning or a state. */}
