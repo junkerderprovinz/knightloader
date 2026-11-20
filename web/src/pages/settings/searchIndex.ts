@@ -611,7 +611,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.passwordNew', hint: 'settings.passwordHint' },
         { key: 'settings.access.trustedProxies', hint: 'settings.access.trustedProxiesHint' },
       ],
-      // The app key is a name with its (i), and no control.
+      // The encryption key is a name with its (i), and no control.
       also: ['settings.appKeyTitle'],
       body: ['settings.appKeyHint'],
     },

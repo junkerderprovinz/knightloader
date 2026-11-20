@@ -95,7 +95,7 @@ func (s *Store) sealPlainPasswords() error {
 	if _, err := conn.ExecContext(ctx, `VACUUM`); err != nil {
 		log.Printf("store: the file could not be rebuilt after sealing the task passwords: %v", err)
 	}
-	log.Printf("store: sealed the passwords of %d task(s) with the app key", len(plain))
+	log.Printf("store: sealed the passwords of %d task(s) with the encryption key", len(plain))
 	return nil
 }
 

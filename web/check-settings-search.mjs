@@ -120,7 +120,7 @@ const EXCLUDED = new Map([
   ],
   [
     'settings.system.restoreKeyLabel',
-    'the app key field in the window that confirms a restore, which opens only once a sealed backup is chosen',
+    'the encryption key field in the window that confirms a restore, which opens only once a sealed backup is chosen',
   ],
   ['settings.system.restoreKeyHint', 'its explanation, in the same window'],
   [

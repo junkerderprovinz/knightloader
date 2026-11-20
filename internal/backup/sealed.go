@@ -20,10 +20,10 @@ const SealedExt = ".sealed"
 var (
 	// ErrNeedsKey is a sealed archive uploaded to an instance without an app
 	// key.
-	ErrNeedsKey = errors.New("this backup is encrypted with an app key and this instance has none; " +
+	ErrNeedsKey = errors.New("this backup is sealed with an encryption key and this instance has none; " +
 		"send the " + appkey.EnvVar + " of the instance that made the backup along with it")
 	// ErrWrongKey is a sealed archive no key at hand opens.
-	ErrWrongKey = errors.New("this backup is encrypted with a different app key; " +
+	ErrWrongKey = errors.New("this backup is sealed with a different encryption key; " +
 		"restoring it needs the " + appkey.EnvVar + " of the instance that made it")
 )
 

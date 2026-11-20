@@ -47,8 +47,8 @@ import {
 } from './access/tokenScopes';
 import { TwoFactorCard } from './access/TwoFactorCard';
 
-// The manual's section on the app key, which says how to make one and move it.
-const APP_KEY_MANUAL = 'https://junkerderprovinz.github.io/knightloader/installing/#app-key';
+// The manual's section on the encryption key, which says how to make one and move it.
+const APP_KEY_MANUAL = 'https://junkerderprovinz.github.io/knightloader/installing/#encryption-key';
 
 export function Access() {
   /**
@@ -174,7 +174,7 @@ export function PasswordCard({
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>
         </div>
-        {/* Everything works without an app key, so it is a name with its
+        {/* Everything works without an encryption key, so it is a name with its
             explanation behind the (i) rather than a warning or a state. */}
         <div data-testid="app-key">
           <SettingRow label={t('settings.appKeyTitle')} hint={t('settings.appKeyHint')}>

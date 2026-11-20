@@ -38,7 +38,10 @@ read it, as an octal mask such as `000`, `002` or `022`. With `--user` the
 container starts as that account straight away, and `PUID` and `PGID` are not
 read. Settings, Health & diagnostics shows which user and mask are in force.
 
-### App key
+<!-- The Security page of an installed release links to the old name. -->
+<a id="app-key"></a>
+
+### Encryption key
 
 `KL_APP_KEY` makes the secrets in the data folder useless without it. The login
 password is hashed with Argon2id and peppered with the key. The session key,
@@ -69,7 +72,7 @@ for seven days without a value failing to seal or open; each such failure, a
 start with the wrong key included, starts the seven days over. Until then the
 Security page says when the folder goes. The password itself moves to Argon2id
 the next time you sign in. Without the variable everything works as before. On
-the Security page the info bubble beside **App key** says what the key does and
+the Security page the info bubble beside **Encryption key** says what the key does and
 how to add one.
 
 A sealed backup ends in `.zip.sealed`. On an instance with another key or none,
@@ -246,7 +249,7 @@ against the SHA-256 KnightLoader carries for it before it runs.
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`. The
 [AppImage](#the-appimage) and the [Flatpak](#the-flatpak) bring their own.
 
-The desktop app makes its own [app key](#app-key) at the first start and keeps
+The desktop app makes its own [encryption key](#encryption-key) at the first start and keeps
 it in the operating system's credential store (Windows Credential Manager, the
 macOS Keychain, the Secret Service on Linux) as `app-key` under `KnightLoader`.
 Its data folder and its backups then open only with that key. To move them to

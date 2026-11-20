@@ -626,7 +626,7 @@ func openPending(pending string, key *appkey.Key) (*zip.Reader, error) {
 		return nil, fmt.Errorf("could not read the staged restore: %w", err)
 	}
 	if b, err = Unseal(b, key); err != nil {
-		return nil, fmt.Errorf("the staged restore does not open with this instance's app key: %w", err)
+		return nil, fmt.Errorf("the staged restore does not open with this instance's encryption key: %w", err)
 	}
 	zr, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
 	if err != nil {

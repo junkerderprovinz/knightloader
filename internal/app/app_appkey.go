@@ -25,10 +25,10 @@ func keepCopiesBeforeSealing(dataDir string, key *appkey.Key) error {
 	}
 	dir, err := appkey.KeepCopies(dataDir, []string{auth.FileName, accounts.KeyringName, settings.FileName}, time.Now())
 	if err != nil {
-		return fmt.Errorf("app key: %w", err)
+		return fmt.Errorf("encryption key: %w", err)
 	}
 	if dir != "" {
-		log.Printf("app key: sealing the secrets in %s for the first time. The files as they were are kept in %s "+
+		log.Printf("encryption key: sealing the secrets in %s for the first time. The files as they were are kept in %s "+
 			"and removed after %s without a sealing error", dataDir, dir, appkey.CopiesKept)
 	}
 	return nil
@@ -42,7 +42,7 @@ func noteKeyFailures(dataDir string, key *appkey.Key) {
 	}
 	key.OnFailure(func(err error) {
 		if nerr := appkey.NoteFailure(dataDir, time.Now()); nerr != nil {
-			log.Printf("app key: %v, and the copies from before the key could not be told: %v", err, nerr)
+			log.Printf("encryption key: %v, and the copies from before the key could not be told: %v", err, nerr)
 		}
 	})
 }
@@ -55,10 +55,10 @@ func (a *App) sweepKeyCopies() {
 	for {
 		removed, err := appkey.SweepCopies(a.DataDir, time.Now())
 		for _, dir := range removed {
-			log.Printf("app key: removed %s, the copies of the files from before the key", dir)
+			log.Printf("encryption key: removed %s, the copies of the files from before the key", dir)
 		}
 		if err != nil {
-			log.Printf("app key: the copies from before the key could not be removed: %v", err)
+			log.Printf("encryption key: the copies from before the key could not be removed: %v", err)
 		}
 		select {
 		case <-a.ctx.Done():

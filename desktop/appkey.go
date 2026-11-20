@@ -47,7 +47,7 @@ func loadAppKey(store keyStore, dataDir string) (*appkey.Key, error) {
 		return appkey.Parse(v)
 	}
 	if !errors.Is(err, keyring.ErrNotFound) {
-		log.Printf("app key: the credential store cannot be read (%v); secrets in %s stay as they are", err, dataDir)
+		log.Printf("encryption key: the credential store cannot be read (%v); secrets in %s stay as they are", err, dataDir)
 		return nil, nil
 	}
 	if b, err := os.ReadFile(filepath.Join(dataDir, auth.FileName)); err == nil && appkey.IsSealed(string(b)) {
@@ -58,7 +58,7 @@ func loadAppKey(store keyStore, dataDir string) (*appkey.Key, error) {
 		return nil, err
 	}
 	if err := store.Set(keyringService, keyringUser, k.Hex()); err != nil {
-		log.Printf("app key: the credential store refused a new key (%v); secrets in %s stay as they are", err, dataDir)
+		log.Printf("encryption key: the credential store refused a new key (%v); secrets in %s stay as they are", err, dataDir)
 		return nil, nil
 	}
 	return k, nil

@@ -33,7 +33,7 @@ finish-args:
   - --talk-name=org.freedesktop.Notifications
   # The tray icon, which brings the hidden window back.
   - --talk-name=org.kde.StatusNotifierWatcher
-  # The app key that seals the stored logins lives in the Secret Service.
+  # The encryption key that seals the stored logins lives in the Secret Service.
   - --talk-name=org.freedesktop.secrets
 modules:
   - name: knightloader

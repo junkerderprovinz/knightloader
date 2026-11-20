@@ -90,22 +90,22 @@ describe('Access', () => {
     );
   }
 
-  it('names the app key without a warning when there is none', async () => {
+  it('names the encryption key without a warning when there is none', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: false });
     const line = host.querySelector('[data-testid="app-key"]')!;
-    expect(line.textContent).toContain('App key');
+    expect(line.textContent).toContain('Encryption key');
     expect(line.className).not.toMatch(/statusWarn/);
-    expect(line.querySelector('a[href*="#app-key"]')).not.toBeNull();
+    expect(line.querySelector('a[href*="#encryption-key"]')).not.toBeNull();
   });
 
   it('says nothing about old copies once the key has been in use long enough', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: true });
-    expect(host.textContent).not.toContain('from before the app key');
+    expect(host.textContent).not.toContain('from before the encryption key');
   });
 
-  it('says when the copies from before the app key go', async () => {
+  it('says when the copies from before the encryption key go', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: true, appKeyCopiesUntil: '2026-10-18T12:00:00Z' });
-    expect(host.textContent).toContain('A copy of the files from before the app key is still in the data folder.');
+    expect(host.textContent).toContain('A copy of the files from before the encryption key is still in the data folder.');
   });
 
   it('leaves the trusted proxies out while no request comes through a proxy', async () => {

@@ -32,10 +32,10 @@ const keyLen = 32
 
 var (
 	// ErrMissing is sealed data met without a key.
-	ErrMissing = errors.New("it is sealed with an app key, and none is set; start KnightLoader with the same " + EnvVar)
+	ErrMissing = errors.New("it is sealed with an encryption key, and none is set; start KnightLoader with the same " + EnvVar)
 	// ErrWrongKey is sealed data the key in use does not open, or that was
 	// changed after sealing.
-	ErrWrongKey = errors.New("it is sealed with a different app key; start KnightLoader with the " + EnvVar + " it was sealed with")
+	ErrWrongKey = errors.New("it is sealed with a different encryption key; start KnightLoader with the " + EnvVar + " it was sealed with")
 )
 
 // Key is the app key. A nil *Key means the install runs without one, and
