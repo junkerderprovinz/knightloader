@@ -127,6 +127,40 @@ func TestAFreeDownloadSitsOutTheCountdownAnswersTheTurnstileAndGoesOutOnOneConne
 	}
 }
 
+func TestTheLinkAfterAnAcceptedAnswerIsFoundInEachFormThePageCarriesIt(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		ready rgtest.ReadyPage
+	}{
+		{"a session link the script goes to", rgtest.SessionScript},
+		{"the script's download_link the button follows", rgtest.LinkVariable},
+		{"the link on the download button", rgtest.LinkButton},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := rgtest.New(t)
+			srv.Countdown(30)
+			srv.Ready(tt.ready)
+			body := bytes.Repeat([]byte("rushmore "), 512)
+			link := srv.Add(fileID, rgtest.File{Name: "Rushmore.mkv", Body: body})
+			b, eng, ups, _ := newFreeBackend(srv)
+
+			b.Download("t1", link, nil, 1)
+			got, ok := awaitOutcome(t, eng, ups)
+			if !ok {
+				t.Fatalf("the download ended as %+v, want it handed on", ups.last())
+			}
+			resp, err := srv.Client().Get(got.url)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+			if fetched, _ := io.ReadAll(resp.Body); !bytes.Equal(fetched, body) {
+				t.Errorf("the link handed on does not serve the file: %s", got.url)
+			}
+		})
+	}
+}
+
 // The Turnstile widget puts its answer into the form as cf-turnstile-response,
 // and the page's callback copies it into the form's own field.
 func TestATurnstileAnswerGoesInUnderTheFieldsABrowserSends(t *testing.T) {
@@ -149,38 +183,43 @@ func TestATurnstileAnswerGoesInUnderTheFieldsABrowserSends(t *testing.T) {
 }
 
 // Rapidgator bars the address for an hour when the answer comes in more than
-// a couple of minutes after the countdown.
-func TestACaptchaTheUserTakesMinutesOverStillLeadsToTheDownload(t *testing.T) {
+// a couple of minutes after the countdown. The file page shows no captcha, so
+// only a download after the first knows the captcha before its page.
+func TestALaterFreeDownloadAnswersTheCaptchaDuringTheCountdown(t *testing.T) {
 	srv := rgtest.New(t)
 	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
 	b, eng, ups, a := newFreeBackend(srv)
-	a.took = 2*time.Minute + 30*time.Second
-
 	b.Download("t1", link, nil, 1)
+	awaitHandoff(t, eng)
+
+	a.took = 2*time.Minute + 30*time.Second
+	b.Download("t2", link, nil, 1)
 	if _, ok := awaitOutcome(t, eng, ups); !ok {
 		t.Fatalf("the download ended as %+v after %d captchas, want it handed on", ups.last(), len(a.captchas))
 	}
-	if len(a.captchas) != 1 {
-		t.Errorf("asked %d captchas, want one", len(a.captchas))
+	if len(a.captchas) != 2 {
+		t.Errorf("asked %d captchas for two downloads, want one each", len(a.captchas))
 	}
 	if ups.waited() >= time.Hour {
 		t.Errorf("waited %v, want no pause between free downloads", ups.waited())
 	}
 }
 
-func TestACaptchaPageWithAnotherKeyThanTheSignInFormIsAnsweredThere(t *testing.T) {
+func TestACaptchaPageWithANewKeyIsAnsweredThere(t *testing.T) {
 	srv := rgtest.New(t)
 	srv.Countdown(30)
-	srv.LoginKey("0x4AAAAAAAsignInOnly")
 	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
 	b, eng, ups, a := newFreeBackend(srv)
-
 	b.Download("t1", link, nil, 1)
+	awaitHandoff(t, eng)
+
+	srv.CaptchaKey("0x4AAAAAAAnewKey")
+	b.Download("t2", link, nil, 1)
 	if _, ok := awaitOutcome(t, eng, ups); !ok {
 		t.Fatalf("the download ended as %+v, want it handed on", ups.last())
 	}
-	if len(a.captchas) != 2 || a.captchas[1].SiteKey != rgtest.SiteKey {
-		t.Errorf("captchas = %+v, want the captcha page's asked after the sign-in form's", a.captchas)
+	if len(a.captchas) != 3 || a.captchas[2].SiteKey != "0x4AAAAAAAnewKey" {
+		t.Errorf("captchas = %+v, want the new key asked on the captcha page after the old one", a.captchas)
 	}
 }
 
@@ -207,7 +246,8 @@ func TestARefusedAnswerIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
 		t.Errorf("logged %d lines for %d answers, want one each: %q", len(got), len(srv.Answers()), got)
 	}
 	want := "rapidgator: Rapidgator refused the captcha answer for file " + fileID +
-		`, answer sent 0s after the countdown (failed_on_captcha not set): "Please fix the following input errors: The verification code is incorrect."`
+		`, answer sent 0s after the countdown (failed_on_captcha not set): "Please fix the following input errors: The verification code is incorrect."` +
+		`. Page: status 200 at /download/captcha, no title, captcha form shown, no script calls under /download/`
 	if !strings.HasSuffix(got[0], want) {
 		t.Errorf("logged %q, want %q", got[0], want)
 	}
@@ -216,21 +256,43 @@ func TestARefusedAnswerIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
 func TestAnAnswerThatLeadsNowhereIsLoggedWithItsTimingAndRapidgatorsWords(t *testing.T) {
 	lines := logLines(t)
 	srv := rgtest.New(t)
-	srv.LoginKey("0x4AAAAAAAsignInOnly")
 	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
-	b, _, ups, a := newFreeBackend(srv)
+	b, eng, ups, a := newFreeBackend(srv)
 	a.took = 2*time.Minute + 30*time.Second
+
+	b.Download("t1", link, nil, 1)
+	awaitOutcome(t, eng, ups)
+	got := lines()
+	if len(got) != 1 {
+		t.Errorf("logged %q, want a line for the late answer alone", got)
+	}
+	want := "rapidgator: no download link after the captcha for file " + fileID +
+		`, answer sent 150s after the countdown (failed_on_captcha set): "You have reached your hourly downloads limit."` +
+		`. Page: status 200 at /download/captcha, no title, no captcha form, no script calls under /download/`
+	if !strings.HasSuffix(got[0], want) {
+		t.Errorf("logged %q, want %q", got[0], want)
+	}
+}
+
+func TestAPageWithoutALinkIsLoggedWithWhatItShowsAndNoSessionIDs(t *testing.T) {
+	lines := logLines(t)
+	srv := rgtest.New(t)
+	srv.Countdown(30)
+	srv.Ready(rgtest.NoLink)
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, _, ups, _ := newFreeBackend(srv)
 
 	b.Download("t1", link, nil, 1)
 	awaitSettled(t, ups)
 	got := lines()
-	if len(got) != len(srv.Answers()) {
-		t.Errorf("logged %d lines for %d answers, want one each: %q", len(got), len(srv.Answers()), got)
-	}
 	want := "rapidgator: no download link after the captcha for file " + fileID +
-		`, answer sent 150s after the countdown (failed_on_captcha set): "You have reached your hourly downloads limit."`
+		", answer sent 0s after the countdown (failed_on_captcha not set): the page shows no error" +
+		`. Page: status 200 at /download/captcha, title "Download file a.bin", no captcha form, script calls /download/AjaxShowLink`
 	if !strings.HasSuffix(got[0], want) {
 		t.Errorf("logged %q, want %q", got[0], want)
+	}
+	if sid := "s" + fileID[:12]; strings.Contains(strings.Join(got, " "), sid) {
+		t.Errorf("the log carries the session id %s: %q", sid, got)
 	}
 }
 
@@ -259,6 +321,37 @@ func TestAWrongAnswerIsTriedAgainAndThenFailsAsACaptcha(t *testing.T) {
 	if u := awaitSettled(t, ups); u.Reason != core.ReasonCaptcha || len(a.captchas) != 3 {
 		t.Errorf("settled as %+v after %d captchas, want a captcha failure after three", u, len(a.captchas))
 	}
+	if n := countdowns(srv); n != 1 {
+		t.Errorf("started %d countdowns, want the three answers on one captcha page", n)
+	}
+}
+
+// Rapidgator's own check of the answer can fail on its side, as in "Curl
+// error: Recv failure: Connection reset by peer".
+func TestAnAnswerRapidgatorCouldNotCheckIsAskedAgainOnTheSamePage(t *testing.T) {
+	srv := rgtest.New(t)
+	srv.Countdown(30)
+	srv.Refuse("Curl error: Recv failure: Connection reset by peer")
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 64)})
+	b, eng, ups, a := newFreeBackend(srv)
+
+	b.Download("t1", link, nil, 1)
+	if _, ok := awaitOutcome(t, eng, ups); !ok {
+		t.Fatalf("the download ended as %+v, want it handed on", ups.last())
+	}
+	if n := countdowns(srv); n != 1 || len(a.captchas) != 2 {
+		t.Errorf("started %d countdowns and asked %d captchas, want one countdown and a second answer", n, len(a.captchas))
+	}
+}
+
+func countdowns(srv *rgtest.Server) int {
+	n := 0
+	for _, r := range srv.Requests() {
+		if strings.HasSuffix(r, "/download/AjaxStartTimer") {
+			n++
+		}
+	}
+	return n
 }
 
 func TestAMissingFileFailsAsGoneBeforeAnyCountdown(t *testing.T) {
@@ -283,5 +376,18 @@ func TestTheFreeRefusalsReadAsTheirCause(t *testing.T) {
 	}
 	if err := freeRefusal("<div>Downloading: a.bin</div>"); err != nil {
 		t.Errorf("an ordinary page reads as %v", err)
+	}
+}
+
+func TestALoggedPathKeepsTheSitesPageNamesAndDropsWhatFollowsAnID(t *testing.T) {
+	for _, tt := range []struct{ path, want string }{
+		{"/download/captcha", "/download/captcha"},
+		{"/download/s0001234422b3/a.bin", "/download/..."},
+		{"/file/" + fileID + "/a.bin.html", "/file/..."},
+		{"/", "/"},
+	} {
+		if got := sitePath(tt.path); got != tt.want {
+			t.Errorf("sitePath(%q) = %q, want %q", tt.path, got, tt.want)
+		}
 	}
 }

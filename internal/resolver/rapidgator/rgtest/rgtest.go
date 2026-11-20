@@ -71,15 +71,36 @@ type Server struct {
 	secs     int
 	pauses   int
 	sessions map[string]*freeRun
-	// loginKey is the key of the Turnstile in the file page's sign-in form,
-	// and barred the end of the hour an answer that came too late cost the
-	// address.
-	loginKey string
-	barred   time.Time
-	now      func() time.Time
-	// answers is every captcha form posted, oldest first.
+	// captchaKey is the key of the captcha page's Turnstile, and barred the
+	// end of the hour an answer that came too late cost the address.
+	captchaKey string
+	barred     time.Time
+	now        func() time.Time
+	// answers is every captcha form posted, oldest first, and ready how the
+	// page after an accepted one carries the link.
 	answers []url.Values
+	ready   ReadyPage
+	// refusals are what the next answers are turned down with, whatever
+	// they are.
+	refusals []string
 }
+
+// ReadyPage is how the page after an accepted answer carries the download
+// link.
+type ReadyPage int
+
+const (
+	// SessionScript sends the browser on to the session link in a script.
+	SessionScript ReadyPage = iota
+	// LinkVariable keeps the link in the script's download_link, which the
+	// page's download button follows.
+	LinkVariable
+	// LinkButton puts the link on the download button itself.
+	LinkButton
+	// NoLink shows a download button whose link a further call of its script
+	// would fetch.
+	NoLink
+)
 
 // freeRun is one free download on its way through the website.
 type freeRun struct {
@@ -113,14 +134,14 @@ type failure struct {
 // New starts a server that closes when the test ends.
 func New(t *testing.T) *Server {
 	s := &Server{
-		accounts: map[string]*Account{},
-		files:    map[string]File{},
-		tokens:   map[string]*Account{},
-		fail:     map[string][]failure{},
-		secs:     180,
-		sessions: map[string]*freeRun{},
-		loginKey: SiteKey,
-		now:      time.Now,
+		accounts:   map[string]*Account{},
+		files:      map[string]File{},
+		tokens:     map[string]*Account{},
+		fail:       map[string][]failure{},
+		secs:       180,
+		sessions:   map[string]*freeRun{},
+		captchaKey: SiteKey,
+		now:        time.Now,
 	}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
@@ -135,12 +156,26 @@ func (s *Server) Clock(now func() time.Time) {
 	s.now = now
 }
 
-// LoginKey sets the key of the Turnstile in the file page's sign-in form,
-// which is the captcha page's unless set.
-func (s *Server) LoginKey(key string) {
+// CaptchaKey gives the captcha page's Turnstile key instead of SiteKey.
+func (s *Server) CaptchaKey(key string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.loginKey = key
+	s.captchaKey = key
+}
+
+// Ready makes the page after an accepted answer carry the link as p does.
+func (s *Server) Ready(p ReadyPage) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.ready = p
+}
+
+// Refuse turns the next answers down, one with each of whys, as the form
+// does when its own check of the answer fails.
+func (s *Server) Refuse(whys ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.refusals = append(s.refusals, whys...)
 }
 
 // Answers is every captcha form posted, oldest first.
@@ -213,29 +248,65 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 				fmt.Fprint(w, hourlyLimit)
 				return true
 			}
-			if r.PostForm.Get("DownloadCaptchaForm[verifyCode]") == Token && r.PostForm.Get("DownloadCaptchaForm[captcha]") == "" {
-				link := "http://" + r.Host + "//?r=download/index&session_id=" + run.sid
-				fmt.Fprintf(w, "<html><body><script>var download_link = '%s'; location.href = '%s';</script></body></html>", link, link)
+			why := "The verification code is incorrect."
+			switch {
+			case len(s.refusals) > 0:
+				why, s.refusals = s.refusals[0], s.refusals[1:]
+			case r.PostForm.Get("DownloadCaptchaForm[verifyCode]") == Token && r.PostForm.Get("DownloadCaptchaForm[captcha]") == "":
+				s.readyPage(w, r, run)
 				return true
 			}
-			fmt.Fprint(w, "<html><body><div class=\"errorSummary\"><p>Please fix the following input errors:</p>"+
-				"<ul><li>The verification code is incorrect.</li></ul></div>")
+			fmt.Fprintf(w, "<html><body><div class=\"errorSummary\"><p>Please fix the following input errors:</p>"+
+				"<ul><li>%s</li></ul></div>", why)
 		} else {
 			fmt.Fprint(w, "<html><body>")
 		}
 		fmt.Fprintf(w, "<form id=\"captchaform\" action=\"/download/captcha\" method=\"post\">"+
 			"<input type=\"hidden\" name=\"DownloadCaptchaForm[captcha]\" value=\"\" />"+
 			"<div class=\"cf-turnstile\" data-sitekey=\"%s\"></div>"+
-			"<input type=\"submit\" value=\"Download\" /></form></body></html>", SiteKey)
+			"<input type=\"submit\" value=\"Download\" /></form></body></html>", s.captchaKey)
 	default:
 		return false
 	}
 	return true
 }
 
+// readyPage answers an accepted captcha with the download link, the way
+// s.ready says.
+func (s *Server) readyPage(w http.ResponseWriter, r *http.Request, run *freeRun) {
+	name := s.files[run.id].Name
+	direct := "http://" + r.Host + "/download/" + run.sid + "/" + url.PathEscape(name)
+	button := `<a href="#" class="btn btn-download">CLICK HERE TO DOWNLOAD</a>`
+	script := "<script>$(\"div\").on('click', '.btn-download', function() { location.href = download_link; return false; });</script>"
+	switch s.ready {
+	case SessionScript:
+		link := "http://" + r.Host + "//?r=download/index&session_id=" + run.sid
+		fmt.Fprintf(w, "<html><body><script>var download_link = '%s'; location.href = '%s';</script></body></html>", link, link)
+	case LinkVariable:
+		fmt.Fprintf(w, "<html><body><div class=\"download-ready\">%s</div><script>var download_link = '%s';</script>%s</body></html>", button, direct, script)
+	case LinkButton:
+		fmt.Fprintf(w, "<html><body><div class=\"download-ready\"><a href=\"%s\" class=\"btn btn-download\">CLICK HERE TO DOWNLOAD</a></div>"+
+			"<script>var download_link = '';</script></body></html>", direct)
+	case NoLink:
+		fmt.Fprintf(w, "<html><head><title>Download file %s</title></head><body><div class=\"download-ready\">%s</div>"+
+			"<script>$.getJSON('/download/AjaxShowLink', {sid: '%s'});</script>%s</body></html>", name, button, run.sid, script)
+	}
+}
+
 // serveFree hands out a file through the link a free download's captcha led
 // to.
 func (s *Server) serveFree(w http.ResponseWriter, r *http.Request) bool {
+	if rest, ok := strings.CutPrefix(r.URL.Path, "/download/"); ok {
+		sid, _, _ := strings.Cut(rest, "/")
+		for _, run := range s.sessions {
+			if run.sid == sid && run.counted {
+				f := s.files[run.id]
+				http.ServeContent(w, r, f.Name, time.Time{}, bytes.NewReader(f.Body))
+				return true
+			}
+		}
+		return false
+	}
 	sid := r.URL.Query().Get("session_id")
 	if strings.Trim(r.URL.Path, "/") != "" || r.URL.Query().Get("r") != "download/index" || sid == "" {
 		return false
@@ -367,11 +438,10 @@ func (s *Server) page(w http.ResponseWriter, r *http.Request, rest string) {
 	s.sessions[session] = &freeRun{id: id, secs: s.secs}
 	http.SetCookie(w, &http.Cookie{Name: "PHPSESSID", Value: session, Path: "/"})
 	_ = pages.ExecuteTemplate(w, "file.html", map[string]any{
-		"Name":     f.Name,
-		"Size":     fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
-		"Secs":     s.secs,
-		"Fid":      894317393,
-		"LoginKey": s.loginKey,
+		"Name": f.Name,
+		"Size": fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
+		"Secs": s.secs,
+		"Fid":  894317393,
 	})
 }
 

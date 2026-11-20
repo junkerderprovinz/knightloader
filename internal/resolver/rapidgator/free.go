@@ -12,8 +12,10 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -35,6 +37,10 @@ const freePrio = 42
 // answer is still fresh when the form goes in.
 const answerLife = 100 * time.Second
 
+// maxAnswers is how many answers one captcha page is given before the
+// download fails as a captcha.
+const maxAnswers = 3
+
 // The free page's script and the captcha page, as JDownloader's plugin reads
 // them.
 var (
@@ -51,10 +57,21 @@ var (
 	captchaWrong      = regexp.MustCompile(`>\s*Please fix the following input errors|>\s*The verification code is incorrect`)
 	pageError         = regexp.MustCompile(`(?is)<div\b[^>]*\bclass="(?:error|errorSummary)"[^>]*>(.*?)</div>|<strong style="color:red">(.*?)</strong>`)
 	markup            = regexp.MustCompile(`<[^>]*>`)
-	freeLinks         = []*regexp.Regexp{
+	pageTitle         = regexp.MustCompile(`(?is)<title>(.*?)</title>`)
+	scriptCall        = regexp.MustCompile(`'(/download/[A-Za-z]+)'`)
+	pageName          = regexp.MustCompile(`^[A-Za-z]{1,24}$`)
+	// Each is a way the page after the answer carries the link, as
+	// JDownloader's plugin and other clients read it. The last takes a link
+	// to the file anywhere on the page, such as on the download button.
+	freeLinks = []*regexp.Regexp{
 		regexp.MustCompile(`'(https?://[A-Za-z0-9\-_]+\.[^/]+//\?r=download/index&session_id=[A-Za-z0-9]+)'`),
 		regexp.MustCompile(`location\.href\s*=\s*'(https?://[^']+)'`),
+		regexp.MustCompile(`var download_link\s*=\s*'(https?://[^']+)'`),
+		regexp.MustCompile(`(https?://[^/'"<>\s]+/download/[^'"<>\s]+)`),
 	}
+	// stepLink is a link back into the steps before the download rather
+	// than to the file.
+	stepLink = regexp.MustCompile(`^https?://[^/]+/download/(?:captcha|Ajax)`)
 
 	delayPattern  = regexp.MustCompile(`Delay between downloads must be not less than (\d+) min`)
 	hourlyLimit   = regexp.MustCompile(`>\s*You have reached your (?:hourly|daily) downloads limit`)
@@ -78,15 +95,23 @@ type FreeBackend struct {
 	client   *Client
 	onUpdate func(taskID string, u core.Update)
 	now      func() time.Time
+
+	mu sync.Mutex
+	// last is the captcha the last captcha page asked, the zero Captcha
+	// before the first.
+	last hoster.Captcha
 }
 
 func NewFreeBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *FreeBackend {
 	b := &FreeBackend{client: c, onUpdate: onUpdate, now: time.Now}
 	b.Free = ownlogin.NewFree(eng, onUpdate, ownlogin.FreeConfig{
-		Name: "Rapidgator", Unlock: b.unlock, Refused: errCaptchaRefused,
+		Name: "Rapidgator", Unlock: b.unlock,
 		Reason: func(err error) core.Reason {
-			if errors.Is(err, ErrPremiumOnly) {
+			switch {
+			case errors.Is(err, ErrPremiumOnly):
 				return core.ReasonAuth
+			case errors.Is(err, errCaptchaRefused):
+				return core.ReasonCaptcha
 			}
 			return reason(err)
 		},
@@ -137,11 +162,14 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 	countdown := time.Duration(wait)*time.Second + time.Second
 	// Rapidgator times the answer from the end of the countdown and bars the
 	// address for an hour when it comes late, as one from a phone easily
-	// does. The sign-in form's Turnstile has the captcha page's key, so it is
-	// answered during the countdown, as JDownloader's plugin does.
-	early, ok := widgetCaptcha(body)
+	// does. Its captcha keeps its key from one download to the next, so the
+	// last one is answered during the countdown, as JDownloader's plugin
+	// does with the type it last met.
+	b.mu.Lock()
+	early := b.last
+	b.mu.Unlock()
 	var answer string
-	if ok {
+	if early.SiteKey != "" {
 		if err := sitOut(countdown-answerLife, delay); err != nil {
 			return "", err
 		}
@@ -186,44 +214,57 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 	if !ok {
 		return "", errors.New("rapidgator: the captcha page asks for a captcha KnightLoader does not know")
 	}
+	b.mu.Lock()
+	b.last = c
+	b.mu.Unlock()
 	if answer == "" || c.Kind != early.Kind || c.SiteKey != early.SiteKey {
 		if answer, err = ask(c); err != nil {
 			return "", err
 		}
 	}
-	// The form takes the answer of either kind in its own field and the one
-	// the widget adds, as a browser sends them.
-	fields.Set("DownloadCaptchaForm[verifyCode]", answer)
-	fields.Set("g-recaptcha-response", answer)
-	if c.Kind == hoster.Turnstile {
-		fields.Set("cf-turnstile-response", answer)
-	}
 	action := "/download/captcha"
 	if a := formAction.FindStringSubmatch(form[0]); a != nil && a[1] != "" {
 		action = html.UnescapeString(a[1])
 	}
-	sent := b.now().Sub(ready)
-	body, status, err := s.post(ctx, action, fields)
-	if err != nil {
-		return "", err
+	// The form takes another answer after one it turned down, also when its
+	// own check of the answer failed, so a refusal is answered on the same
+	// page rather than with a new countdown.
+	for try := 1; ; try++ {
+		// The form takes the answer of either kind in its own field and the
+		// one the widget adds, as a browser sends them.
+		fields.Set("DownloadCaptchaForm[verifyCode]", answer)
+		fields.Set("g-recaptcha-response", answer)
+		if c.Kind == hoster.Turnstile {
+			fields.Set("cf-turnstile-response", answer)
+		}
+		sent := b.now().Sub(ready)
+		body, resp, err := s.post(ctx, action, fields)
+		if err != nil {
+			return "", err
+		}
+		if !captchaWrong.MatchString(body) {
+			direct, err := freeLink(body)
+			if err == nil && resp.StatusCode != http.StatusOK {
+				err = &APIError{Status: resp.StatusCode, Details: action + " answered " + http.StatusText(resp.StatusCode)}
+			}
+			if err != nil {
+				s.explain("no download link after the captcha", fileIDOf(norm), sent, body, resp)
+			}
+			return direct, err
+		}
+		s.explain("Rapidgator refused the captcha answer", fileIDOf(norm), sent, body, resp)
+		if try == maxAnswers {
+			return "", errCaptchaRefused
+		}
+		if answer, err = ask(c); err != nil {
+			return "", err
+		}
 	}
-	if captchaWrong.MatchString(body) {
-		s.explain("Rapidgator refused the captcha answer", fileIDOf(norm), sent, body)
-		return "", errCaptchaRefused
-	}
-	direct, err := freeLink(body)
-	if err == nil && status != http.StatusOK {
-		err = &APIError{Status: status, Details: action + " answered " + http.StatusText(status)}
-	}
-	if err != nil {
-		s.explain("no download link after the captcha", fileIDOf(norm), sent, body)
-	}
-	return direct, err
 }
 
 // explain logs why an answer to the captcha led to no download, so a report
 // tells an answer Rapidgator found too late from one it found wrong.
-func (s *session) explain(what, id string, sent time.Duration, body string) {
+func (s *session) explain(what, id string, sent time.Duration, body string, resp *http.Response) {
 	failed := "not set"
 	u, _ := url.Parse(s.c.site)
 	for _, c := range s.hc.Jar.Cookies(u) {
@@ -235,8 +276,51 @@ func (s *session) explain(what, id string, sent time.Duration, body string) {
 	if text := pageText(body); text != "" {
 		says = strconv.Quote(text)
 	}
-	log.Printf("rapidgator: %s for file %s, answer sent %ds after the countdown (failed_on_captcha %s): %s",
-		what, id, int(sent.Seconds()), failed, says)
+	log.Printf("rapidgator: %s for file %s, answer sent %ds after the countdown (failed_on_captcha %s): %s. Page: %s",
+		what, id, int(sent.Seconds()), failed, says, pageSummary(body, resp))
+}
+
+// pageSummary says what a page is without a session id, token or query, since
+// the line ends up in public issues: its status and path, its title, whether
+// the captcha form is back and which of the site's calls its scripts make.
+func pageSummary(body string, resp *http.Response) string {
+	title := "no title"
+	if m := pageTitle.FindStringSubmatch(body); m != nil {
+		title = "title " + strconv.Quote(strings.Join(strings.Fields(html.UnescapeString(m[1])), " "))
+	}
+	form := "no captcha form"
+	if captchaForm.MatchString(body) {
+		form = "captcha form shown"
+	}
+	calls := "no script calls under /download/"
+	var seen []string
+	for _, m := range scriptCall.FindAllStringSubmatch(body, -1) {
+		if !slices.Contains(seen, m[1]) {
+			seen = append(seen, m[1])
+		}
+	}
+	if len(seen) > 0 {
+		calls = "script calls " + strings.Join(seen, ", ")
+	}
+	return fmt.Sprintf("status %d at %s, %s, %s, %s", resp.StatusCode, sitePath(resp.Request.URL.Path), title, form, calls)
+}
+
+// sitePath is path up to its first part that names no page of the site, such
+// as a file id or a session on a download server.
+func sitePath(path string) string {
+	path = strings.Trim(path, "/")
+	if path == "" {
+		return "/"
+	}
+	var kept []string
+	for _, part := range strings.Split(path, "/") {
+		if !pageName.MatchString(part) {
+			kept = append(kept, "...")
+			break
+		}
+		kept = append(kept, part)
+	}
+	return "/" + strings.Join(kept, "/")
 }
 
 // pageText is the first error a page shows, in plain words and cut short.
@@ -283,8 +367,10 @@ func sitOut(d time.Duration, delay func(time.Duration) error) error {
 // to.
 func freeLink(body string) (string, error) {
 	for _, p := range freeLinks {
-		if m := p.FindStringSubmatch(body); m != nil {
-			return m[1], nil
+		for _, m := range p.FindAllStringSubmatch(body, -1) {
+			if !stepLink.MatchString(m[1]) {
+				return strings.ReplaceAll(m[1], "&amp;", "&"), nil
+			}
 		}
 	}
 	if err := freeRefusal(body); err != nil {
@@ -322,19 +408,20 @@ func (s *session) page(ctx context.Context, path string) (string, error) {
 	return s.read(req, path)
 }
 
-// post sends form and returns the page with its status, whatever they say,
-// since the page after the captcha is read for why it holds no link.
-func (s *session) post(ctx context.Context, path string, form url.Values) (string, int, error) {
+// post sends form and returns the page and the answer it came with, whatever
+// they say, since the page after the captcha is read for why it holds no
+// link.
+func (s *session) post(ctx context.Context, path string, form url.Values) (string, *http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.c.site+path, strings.NewReader(form.Encode()))
 	if err != nil {
-		return "", 0, err
+		return "", nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, body, err := s.do(req)
 	if err != nil {
-		return "", 0, err
+		return "", nil, err
 	}
-	return body, resp.StatusCode, nil
+	return body, resp, nil
 }
 
 func (s *session) read(req *http.Request, path string) (string, error) {
