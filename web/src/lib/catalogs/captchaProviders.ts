@@ -13,15 +13,12 @@ import { CAPTCHA_MARKS as M } from "./captchaMarks";
 
 export type CaptchaGroup = "solver";
 
-const SOLVER = "IconCaptcha";
-
 const ENTRIES = [
   { id: "2captcha", name: "2Captcha", group: "solver", terms: ["ruCaptcha"], mark: M.twocaptcha },
-  { id: "9kw", name: "9kw.eu", group: "solver", glyph: SOLVER },
-  { id: "anticaptcha", name: "Anti-Captcha", group: "solver", glyph: SOLVER },
+  { id: "anticaptcha", name: "Anti-Captcha", group: "solver", mark: M.anticaptcha },
   { id: "capmonster", name: "CapMonster Cloud", group: "solver", terms: ["ZennoLab"], mark: M.capmonster },
   { id: "capsolver", name: "CapSolver", group: "solver", mark: M.capsolver },
-  { id: "deathbycaptcha", name: "DeathByCaptcha", group: "solver", terms: ["Death By Captcha"], glyph: SOLVER },
+  { id: "deathbycaptcha", name: "DeathByCaptcha", group: "solver", terms: ["Death By Captcha"], mark: M.deathbycaptcha },
   { id: "solvecha", name: "Solvecha", group: "solver", mark: M.solvecha },
 ] as const satisfies readonly CatalogEntry<CaptchaGroup>[];
 

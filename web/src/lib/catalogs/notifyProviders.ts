@@ -4,8 +4,7 @@
 // address, a token, a priority) beside them by id.
 //
 // A service somebody looks for by name stands under services. Email and the
-// webhook are standards, and the webhook, which takes anything, is the tile an
-// app marks last.
+// webhook are standards, and the webhook, which takes anything, stands last.
 //
 // A service an app reaches only through Shoutrrr or Apprise is a search word on
 // that tile rather than a tile of its own: the id is what the app stores, and
@@ -51,7 +50,7 @@ const ENTRIES = [
   { id: "unraid", name: "Unraid", group: "service", mark: M.unraid },
 
   { id: "smtp", name: "Email", kind: "SMTP", group: "standard", glyph: "IconMail", word: true },
-  { id: "webhook", name: "Webhook", group: "standard", terms: ["HTTP"], glyph: "IconLink", word: true },
+  { id: "webhook", name: "Webhook", group: "standard", terms: ["HTTP"], glyph: "IconLink", word: true, last: true },
 ] as const satisfies readonly CatalogEntry<NotifyGroup>[];
 
 export type NotifyProviderId = (typeof ENTRIES)[number]["id"];

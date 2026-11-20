@@ -31,15 +31,18 @@ export interface AccountTraffic {
 /**
  * ServiceConnection is a ConnectionRow for a service known by its host: the
  * catalog's mark where GlimStone has one, else the logo HosterIcon finds for
- * the host, lit in the colours read from it.
+ * the host, lit in the colours read from it, or `glyph` on the accent for a
+ * service with neither.
  */
 export function ServiceConnection({
   catalogMark,
   host,
+  glyph,
   ...row
-}: Omit<ComponentProps<typeof ConnectionRow>, 'mark' | 'paint'> & { catalogMark?: TileMark; host: string }) {
+}: Omit<ComponentProps<typeof ConnectionRow>, 'mark' | 'paint'> & { catalogMark?: TileMark; host: string; glyph?: ReactNode }) {
   const [read, setRead] = useState<Paint>();
   if (catalogMark) return <ConnectionRow mark={catalogMark} {...row} />;
+  if (glyph) return <ConnectionRow mark={glyph} {...row} />;
   return <ConnectionRow mark={<HosterIcon host={host} size={40} lit onPaint={setRead} />} paint={read ?? hostPaint(host)} {...row} />;
 }
 

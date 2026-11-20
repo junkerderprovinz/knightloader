@@ -6,7 +6,7 @@
 // A client stands by what people use it as: a chat app on the desktop, one that
 // runs models of its own, a chat in the browser, an editor, an extension inside
 // VS Code, a tool in the terminal, or a workflow that calls tools. The client
-// that takes any address stands in the last group, and the app marks it last.
+// that takes any address stands last in the last group.
 //
 // A client wears its own mark or its maker's, never a neighbour's: a mark naming
 // the wrong client is worse than the glyph of its kind.
@@ -22,7 +22,7 @@ const ENTRIES = [
   { id: "perplexity", name: "Perplexity", group: "chat", mark: M.perplexity },
 
   { id: "anythingllm", name: "AnythingLLM", group: "models", mark: M.anythingllm },
-  { id: "jan", name: "Jan", group: "models", glyph: "IconApp" },
+  { id: "jan", name: "Jan", group: "models", mark: M.jan },
   { id: "lmstudio", name: "LM Studio", group: "models", mark: M.lmstudio },
   { id: "msty", name: "Msty", group: "models", mark: M.msty },
   { id: "openwebui", name: "Open WebUI", group: "models", terms: ["Ollama"], mark: M.openwebui },
@@ -55,7 +55,7 @@ const ENTRIES = [
   { id: "warp", name: "Warp", group: "terminal", mark: M.warp },
 
   { id: "n8n", name: "n8n", group: "automation", mark: M.n8n },
-  { id: "other", name: "Other client", group: "automation", terms: ["MCP"], glyph: "IconLink", word: true },
+  { id: "other", name: "Other client", group: "automation", terms: ["MCP"], glyph: "IconLink", word: true, last: true },
 ] as const satisfies readonly CatalogEntry<McpGroup>[];
 
 export type McpProviderId = (typeof ENTRIES)[number]["id"];

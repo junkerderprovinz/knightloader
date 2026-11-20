@@ -1,5 +1,4 @@
 import { ProviderMark } from '../../../components/CatalogTiles';
-import { ownRowMark } from '../../../components/OwnLogos';
 import { LabelBadge } from '../../../components/ui';
 import type { VpnConnState, VpnProvider } from '../../../lib/api';
 import { catalogEntry } from '../../../lib/catalogs/catalog';
@@ -11,9 +10,7 @@ type T = (key: TranslationKey, vars?: Record<string, string | number>) => string
 
 /** VpnMark is the mark a provider's tile wears in the picker, or the VPN glyph for one without. */
 export function VpnMark({ id, size }: { id: string; size: number }) {
-  const mark = catalogEntry(VPN_PROVIDERS, id)?.mark;
-  const own = ownRowMark('vpn', id, mark, size);
-  return <ProviderMark mark={own ? undefined : mark} glyph={own ?? <IconShieldOn />} size={size} />;
+  return <ProviderMark mark={catalogEntry(VPN_PROVIDERS, id)?.mark} glyph={<IconShieldOn />} size={size} />;
 }
 
 const STATE_WORD: Record<VpnConnState, TranslationKey> = {

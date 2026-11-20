@@ -30,6 +30,18 @@ describe('catalogPicker', () => {
     ]);
   });
 
+  it('puts the tile the catalog marks as taking any provider last, without the app saying so', () => {
+    const catalog: Catalog<'a'> = {
+      groups: ['a'],
+      entries: [
+        { id: 'any', name: 'Any', group: 'a', glyph: 'IconLink', last: true },
+        { id: 'alpha', name: 'Alpha', group: 'a', glyph: 'IconLink' },
+      ],
+    };
+    const { items } = catalogPicker(catalog, { ids: ['any', 'alpha'], titles: { a: '' }, glyph: () => 'glyph', lang: 'en' });
+    expect(items.find((i) => i.id === 'any')?.last).toBe(true);
+  });
+
   it('finds a translated name by the catalog name as well', () => {
     const { items } = catalogPicker(CATALOG, {
       ids: ['any'],
@@ -68,6 +80,16 @@ describe('catalogBrands', () => {
 
   it('finds a tile by its search words and drops the groups a search empties', () => {
     expect(narrowGroups(groups, (b) => brandMatches(b, 'first')).map((g) => g.brands.map((b) => b.id))).toEqual([['alpha']]);
+  });
+});
+
+describe('a wordmark', () => {
+  it('stands for the name on its tile', () => {
+    const [b] = catalogBrands(
+      { groups: ['a'], entries: [{ id: 'w', name: 'Wordy', group: 'a', mark: { svg: '<svg></svg>', tile: '#000000', ink: '#ffffff', wordmark: true } }] },
+      { ids: ['w'], titles: { a: '' }, glyph: () => <i />, lang: 'en' },
+    )[0].brands;
+    expect(b.wordmark).toBe(true);
   });
 });
 

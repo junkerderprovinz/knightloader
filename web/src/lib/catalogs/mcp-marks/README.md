@@ -53,6 +53,12 @@ than under a licence: `msty.svg` is <https://msty.ai/brands/studio.svg>, the
 cube that <https://msty.ai/> names as its organisation's logo. Its tile lights
 in the blue of the cube, `#198fe1`, rather than the black outline round it.
 
+**The client's own picture, traced**, under the same trademark position:
+`jan.svg` is the waving hand of <https://docs.jan.ai/assets/logo-jan.svg>, which
+holds it only as a picture. It was traced from that 1024 px picture in its two
+yellows and the grey of the motion lines. Both yellows fade into a light tile,
+so the light theme deepens them as a pair, to `#a67c00` and `#8a6400`.
+
 Apache-2.0 and MIT may be carried into this project's AGPL-3.0, so the combined
 work stays AGPL-3.0.
 
@@ -64,8 +70,7 @@ Chat and Mistral Vibe Mistral AI's, and Copilot CLI and GitHub Copilot the
 Copilot mark.
 
 A client whose own mark has no clean source wears the glyph of its kind
-instead. Jan's logo exists only as a picture inside an SVG, in its own
-repository, on jan.ai and in Dashboard Icons, and selfh.st icons has none.
+instead. Only the catch-all tile for any other client does.
 
 ## Trademarks
 

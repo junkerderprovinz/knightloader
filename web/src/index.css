@@ -3507,6 +3507,56 @@ body {
   opacity: 0.45;
 }
 
+/* A wordmark already says the name, so it spans the button in the name's
+   place, and the SVG centres it on its own aspect. A long one is held to a
+   width that keeps its letters near the size of a name, and a short one
+   grows to the full height. The hidden name still holds the second line
+   where it stands on every tile, and when that line comes in the wordmark
+   rises and shrinks onto the name's line. */
+.glim-readme-btn-mark--wordmark {
+  inset-inline: 0.875rem;
+  width: auto;
+  height: 1.625rem;
+  justify-content: center;
+  transition:
+    translate calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease),
+    scale calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease);
+}
+
+.glim-readme-btn-mark--wordmark svg {
+  max-width: 6rem;
+}
+
+.glim-readme-btn-mark--wordmark ~ .glim-readme-btn-text {
+  inset-inline: 0.875rem;
+  align-items: center;
+  text-align: center;
+}
+
+.glim-readme-btn-mark--wordmark ~ .glim-readme-btn-text > .glim-readme-btn-name {
+  visibility: hidden;
+}
+
+/* The (i) at the end takes the same room off both sides, so the wordmark
+   stays in the middle of the tile. */
+.glim-readme-btn-unit:has(.glim-readme-btn-hint) :is(.glim-readme-btn-mark--wordmark, .glim-readme-btn-mark--wordmark ~ .glim-readme-btn-text) {
+  inset-inline: 1.75rem;
+}
+
+.glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon)
+  > .glim-readme-btn:has(.glim-readme-btn-sub)
+  > .glim-readme-btn-mark--wordmark {
+  translate: 0 calc(-50% - 0.4375rem);
+  scale: 0.53;
+}
+
+@media (hover: none) {
+  .glim-readme-btn:has(.glim-readme-btn-sub) > .glim-readme-btn-mark--wordmark {
+    translate: 0 calc(-50% - 0.4375rem);
+    scale: 0.53;
+  }
+}
+
 /* Without a pointer there is no hover to bring the second line in. */
 @media (hover: none) {
   .glim-readme-btn-name:not(:only-child) {

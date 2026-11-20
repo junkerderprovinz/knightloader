@@ -83,6 +83,7 @@ export function catalogBrands<G extends string, I extends string>(
           sub: item.status ?? item.sub,
           terms: item.terms,
           mark: isTileMark(mark) ? <TileMarkView mark={mark} /> : <GlyphMark>{mark}</GlyphMark>,
+          wordmark: (isTileMark(mark) && mark.wordmark) || undefined,
           paint: lit,
           tile: lit ? undefined : 'glim-tile-house',
           unavailable: item.status ? (item.hint ?? item.status) : undefined,

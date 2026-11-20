@@ -65,12 +65,12 @@ import {
   type Brand,
 } from '../components/BrandPicker';
 import { PriorityCard, PriorityLadder } from '../components/PriorityLadder';
-import { catalogBrands } from '../components/CatalogTiles';
-import { ownTile } from '../components/OwnLogos';
+import { catalogBrands, GlyphMark } from '../components/CatalogTiles';
+import { hasOwnLogo, ownTile } from '../components/OwnLogos';
 import { catalogEntry, type Catalog } from '../lib/catalogs/catalog';
 import { CAPTCHA_PROVIDERS } from '../lib/catalogs/captchaProviders';
 import { DOWNLOAD_PROVIDERS } from '../lib/catalogs/downloadProviders';
-import { IconUnlock } from '../lib/glyphs';
+import { IconDownload } from '../lib/glyphs';
 
 // Reads what the background account-health refresher stored; expiry and
 // traffic change in hours.
@@ -83,6 +83,9 @@ const FIELD_LABELS: Record<CredentialField, TranslationKey> = {
   customerId: 'accounts.field.customerId',
   email: 'accounts.field.email',
 };
+
+/** The glyph GlimStone's catalogs give a debrid service or captcha solver that has no mark. */
+const serviceGlyph = (solver: boolean) => (solver ? <IconCaptcha /> : <IconDownload />);
 
 /** The catalogue groups this page adds and edits accounts of itself. */
 type AccountGroup = 'debrid' | 'captchaSolver';
@@ -512,6 +515,7 @@ function AccountRow({
     <ServiceConnection
       name={name}
       catalogMark={catalogEntry(solver ? CAPTCHA_PROVIDERS : DOWNLOAD_PROVIDERS, a.service)?.mark}
+      glyph={server || hasOwnLogo(svc?.whereUrl ?? '') ? undefined : serviceGlyph(solver)}
       // An own server shows its own icon, any other service the one of the
       // site its "where do I get a key" link points to.
       host={server ? a.account : (svc?.whereUrl ?? '')}
@@ -746,7 +750,8 @@ function CredentialDialog({
 
   // A tile's second line says where the brand lives, or that it has a key
   // already, which stays in view. GlimStone's catalog names the services and
-  // gives their marks; a service it does not know brings the logo its site has.
+  // gives their marks; a service it does not know wears the picture bundled
+  // for its site, or the catalog's glyph.
   const where = (s: CatalogueService): Partial<Brand> => {
     const connected = hasDefault(s.id);
     return { sub: connected ? t('accounts.connected') : siteOf(s.whereUrl), held: connected };
@@ -760,13 +765,22 @@ function CredentialDialog({
       {
         ids: services.map((s) => s.id),
         titles: { solver: '', debrid: '', hoster: '' },
-        glyph: () => (solver ? <IconCaptcha /> : <IconUnlock />),
+        glyph: () => serviceGlyph(solver),
         lang: pageLang(),
       },
       (id) => where(byService.get(id)!),
-      (id, mark) => ownTile(solver ? 'captcha' : 'download', id, mark, byService.get(id)!.whereUrl),
+      (id, mark) => ownTile(mark, byService.get(id)!.whereUrl),
     ).flatMap((g) => g.brands),
-    ...services.filter((s) => !known.has(s.id)).map((s) => ({ id: s.id, name: s.label, host: s.whereUrl, ...where(s) })),
+    ...services
+      .filter((s) => !known.has(s.id))
+      .map((s) => ({
+        id: s.id,
+        name: s.label,
+        ...(hasOwnLogo(s.whereUrl)
+          ? { host: s.whereUrl }
+          : { mark: <GlyphMark>{serviceGlyph(solver)}</GlyphMark>, tile: 'glim-tile-house' }),
+        ...where(s),
+      })),
   ].sort((x, y) => x.name.localeCompare(y.name, pageLang(), { sensitivity: 'base' }));
 
   return (

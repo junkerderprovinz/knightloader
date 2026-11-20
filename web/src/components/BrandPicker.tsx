@@ -23,6 +23,8 @@ export interface Brand {
   held?: boolean;
   /** A logo of the page's own in place of the one fetched for host. */
   mark?: ReactNode;
+  /** The mark is the brand's name written out, so it stands on the tile in the name's place. */
+  wordmark?: boolean;
   /** The `.glim-tile-*` class the tile lights up in. */
   tile?: string;
   /** The colours the tile lights up in, for a brand without a class; a host's are its logo's. */
@@ -92,7 +94,7 @@ function BrandTile({ brand: b, current, onPick }: { brand: Brand; current: boole
   const colours = paint && ({ '--tile': paint.tile, '--tile-ink': paint.ink } as CSSProperties);
   const face = (
     <>
-      <span className="glim-readme-btn-mark" aria-hidden>
+      <span className={`glim-readme-btn-mark ${b.wordmark ? 'glim-readme-btn-mark--wordmark' : ''}`} aria-hidden>
         {/* Lazy, so only tiles scrolled into view fetch their logo. */}
         {b.mark ?? <HosterIcon host={b.host ?? ''} size={25} lit={!b.unavailable} onPaint={setRead} />}
       </span>

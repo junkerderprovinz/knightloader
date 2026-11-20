@@ -613,7 +613,7 @@ function HosterLoginDialog({
         lang: pageLang(),
       },
       (id) => ({ sub: id }),
-      (id, mark) => ownTile('download', id, mark, id),
+      (id, mark) => ownTile(mark, id),
     ).flatMap((g) => g.brands),
     ...offered.filter((h) => !known.has(h.id)).map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id })),
     ...sites.filter((s) => !s.listed).map((s) => ({ id: SITE_BRAND + s.id, name: s.name, host: s.host, sub: s.host })),

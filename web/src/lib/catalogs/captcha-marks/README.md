@@ -34,14 +34,19 @@ serves:
   <https://2captcha.com/dist/web/assets/twocaptcha-logo-CYCKxIN9.svg>, the
   header logo of <https://2captcha.com/>, without the word beside it. Its id
   is not `2captcha`, which a script cannot name a constant.
+- `anticaptcha.svg`: <https://anti-captcha.com/_nuxt/logo.108c78f7.svg>, the
+  header logo of <https://anti-captcha.com/>, the first letters of its name
+  drawn in white. It lights in the `#111d35` the page sets it on and takes
+  that navy on the light ground. Its letters run the full width of a mark's
+  box, so the generator gives the box a quarter more room, half on each side,
+  to keep them off the name.
+- `deathbycaptcha.svg`: DeathByCaptcha's boxed name as an SVG, marked as a
+  wordmark. Its near-black turns white on the dark ground.
 
 ## Left out
 
-A solver whose own mark has no clean source wears the captcha glyph. No icon
-set carries 9kw.eu, Anti-Captcha or DeathByCaptcha, selfh.st icons included.
-Anti-Captcha's header SVG holds only part of its name, DeathByCaptcha's site
-and browser extensions show it only as a picture, and 9kw.eu's site did not
-answer.
+A solver whose own mark has no clean source wears the captcha glyph. Every
+solver in the catalog has a mark.
 
 ## Trademarks
 
@@ -55,7 +60,8 @@ colour, and nothing here claims endorsement by or affiliation with any of them.
 Drop the SVG in here as its source has it, leaving out at most the word beside
 the mark, add a line to `LOCAL` in the generator naming its source and licence,
 and its id to `HOVER` with an `<id>-hover.svg` where its colours do not survive
-one ink, add both to the section above and the licence's text beside this file
+one ink, and to `WORDMARK` when the mark is the brand's name written out, add
+both to the section above and the licence's text beside this file
 when it asks for one, then give the solver its `mark` in
 `src/captchaProviders.ts` and run the generator:
 

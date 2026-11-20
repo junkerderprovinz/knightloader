@@ -150,7 +150,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
     titles: { service: '', standard: '' },
     glyph: () => <IconLink width={18} height={18} />,
     lang: pageLang(),
-    own: (e) => (e.id === 'webhook' ? { label: t('settings.eventTargets.anyAddress'), last: true } : undefined),
+    own: (e) => (e.id === 'webhook' ? { label: t('settings.eventTargets.anyAddress') } : undefined),
   }).flatMap((g) => g.brands);
 
   /** Moves a pending row into the draft once its address is valid. */

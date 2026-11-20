@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { PickerSearch, brandMatches } from '../../../components/BrandPicker';
 import { PickerGroups, catalogBrands, narrowGroups } from '../../../components/CatalogTiles';
-import { ownTile } from '../../../components/OwnLogos';
 import { Button, HintBubble, Modal, PasswordInput, TextArea, TextInput } from '../../../components/ui';
 import { ApiError, connectVpn, type VpnField, type VpnProvider, type VpnState } from '../../../lib/api';
 import { VPN_PROVIDERS, type VpnProviderId } from '../../../lib/catalogs/vpnProviders';
@@ -95,17 +94,12 @@ export function VpnPicker({
       titles: { provider: '', appOnly: t('settings.vpn.appOnlyTitle') },
       glyph: () => <IconShieldOn />,
       lang: pageLang(),
-      own: (e) => {
-        if (e.id === 'custom') return { last: true };
-        if (!offered.has(e.id)) return { status: t('settings.vpn.appOnlyTitle'), hint: t('settings.vpn.appOnlyHint') };
-        return undefined;
-      },
+      own: (e) => (offered.has(e.id) ? undefined : { status: t('settings.vpn.appOnlyTitle'), hint: t('settings.vpn.appOnlyHint') }),
     },
     (id) => {
       const configured = vpn.providers.find((x) => x.id === id)?.configured;
       return configured ? { sub: t('settings.vpn.state.saved'), held: true } : undefined;
     },
-    (id, mark) => ownTile('vpn', id, mark),
   );
   const shown = narrowGroups(groups, (b) => brandMatches(b, query));
 

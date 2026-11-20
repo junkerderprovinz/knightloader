@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { PickerSearch, brandMatches } from '../../../components/BrandPicker';
 import { PickerGroups, TileMarkView, catalogBrands, narrowGroups } from '../../../components/CatalogTiles';
-import { ownRowMark, ownTile } from '../../../components/OwnLogos';
 import {
   Button,
   Card,
@@ -96,8 +95,6 @@ const GROUP_TITLE: Record<McpGroup, TranslationKey> = {
 /** ClientMark draws the mark a client's tile wears, and the link glyph for Other client. */
 export function ClientMark({ client }: { client: McpClient }) {
   const mark = catalogEntry(MCP_PROVIDERS, client.id)?.mark;
-  const own = ownRowMark('mcp', client.id, mark, 18);
-  if (own) return own;
   return mark ? <TileMarkView mark={mark} /> : <IconLink width={18} height={18} />;
 }
 
@@ -394,10 +391,8 @@ function AddClientWindow({
         ) as Record<McpGroup, string | { title: string; hint: string }>,
         glyph: () => <IconLink width={18} height={18} />,
         lang: pageLang(),
-        own: (e) => (e.id === 'other' ? { label: t('settings.access.mcp.other'), last: true } : undefined),
+        own: (e) => (e.id === 'other' ? { label: t('settings.access.mcp.other') } : undefined),
       },
-      undefined,
-      (id, mark) => ownTile('mcp', id, mark),
     ),
     (b) => brandMatches(b, query),
   );
