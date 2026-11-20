@@ -154,16 +154,16 @@ export function PasswordCard({
             hideLabel={t('common.hidePassword')}
           />
         </SettingRow>
-        {/* The state at the start of the row and the button that changes it at
-            its end, as a setting's control stands. The state takes the warning
-            hue only when this instance is reachable from elsewhere. */}
+        {/* The state stands just before the button that changes it, both at
+            the end of the row. It takes the warning hue only when this
+            instance is reachable from elsewhere. */}
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+          {done && <span className="text-sm text-statusOk">{t('settings.passwordSaved')}</span>}
           <p
-            className={`min-w-0 flex-[1_1_12.5rem] text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
+            className={`min-w-0 text-end text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
           >
             {locked ? t('settings.lockOn') : t('settings.lockOff')}
           </p>
-          {done && <span className="text-sm text-statusOk">{t('settings.passwordSaved')}</span>}
           <Button
             icon={next === '' && locked ? <IconKeyRevoke /> : <IconKey />}
             shake={shake}

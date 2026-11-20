@@ -77,12 +77,16 @@ async function setPassword(password: string) {
 }
 
 describe('the password card', () => {
-  it('says whether a password is set at the start of its row and puts the button at the end', async () => {
+  it('says whether a password is set just before the button, both at the end of the row', async () => {
     await open();
     const apply = [...host.querySelectorAll('button')].find((b) => b.textContent === en['settings.setPassword'])!;
     const row = apply.parentElement!;
+    const state = apply.previousElementSibling!;
     expect(row.className).toContain('justify-end');
-    expect(row.firstElementChild?.textContent).toBe(en['settings.lockOff']);
+    expect(state.textContent).toBe(en['settings.lockOff']);
+    // A state that grew would push itself to the start of the row, away from the button.
+    expect(state.className).not.toMatch(/(^|\s)(flex-1|grow|flex-\[1)/);
+    expect(state.className).toContain('text-end');
     expect(row.lastElementChild).toBe(apply);
   });
 
