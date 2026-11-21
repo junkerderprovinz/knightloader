@@ -249,6 +249,25 @@ jobs:
       - name: Ownership on a first start
         run: sudo scripts/image-ownership.sh knightloader:ci
 
+      # The image's Deno is a glibc build among musl libraries, so a library it
+      # cannot find shows only when it runs. yt-dlp's -v header names the
+      # runtimes it would use, which is what the self-test reads too.
+      - name: Deno for yt-dlp
+        run: |
+          docker run --rm --entrypoint /usr/local/bin/deno knightloader:ci --version
+          runtimes=$(docker run --rm --entrypoint sh knightloader:ci -c 'yt-dlp -v --js-runtimes "deno:$KL_DENO" 2>&1' | sed -n 's/^\[debug\] JS runtimes: //p' || true)
+          echo "yt-dlp finds: ${runtimes}"
+          case "$runtimes" in
+            deno-*) ;;
+            *) echo "yt-dlp does not take the image's Deno" >&2; exit 1 ;;
+          esac
+
+      # The release builds arm64 too, where the loader has another name.
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Deno on arm64
+        run: docker buildx build --platform linux/arm64 --target deno .
+
   # The desktop app replaces itself differently on each system, and only that
   # system's runner can run its tests. Linux is covered by the server job.
   updater:
