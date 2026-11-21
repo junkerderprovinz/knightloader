@@ -15,6 +15,7 @@ import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
 import { ACCENTS, SHAPES, SHAPES_STORED, accentSlot, discoTap, leafTap, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GLIMSTONE_REPO, GLIMSTONE_VERSION } from '../theme/version';
+import { installStore } from '../installStore';
 import {
   CardButton,
   GlimButton,
@@ -964,15 +965,15 @@ export default function SettingsScreen({
       </NotchCard>
 
       {/* The Info tile's four cards in their order: Version, Components, Help
-          and About. The store updates the app, so the Version card checks
-          nothing and says where updates come from. */}
+          and About. The store the app came from updates it, so the Version
+          card checks nothing and names that store. */}
       <NotchCard title={t('settings.aboutVersion')} hue={9} info={t('versionCard.hint', { app: 'KnightLoader' })}>
         <View style={styles.versionHead}>
           <Text style={[styles.versionApp, { color: c.text }]}>KnightLoader</Text>
           <VersionNumber version={appVersion} repo={REPO_URL} ink={c.text} />
         </View>
         <View style={styles.versionFoot}>
-          <Text style={[styles.versionLine, { color: c.textSub }]}>{t('versionCard.store', { store: 'F-Droid' })}</Text>
+          <Text style={[styles.versionLine, { color: c.textSub }]}>{t('versionCard.store', { store: installStore })}</Text>
           {/* The app keeps no window of changes, so this version's notes
               open on its release page. */}
           <GlimButton
