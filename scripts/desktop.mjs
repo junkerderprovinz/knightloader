@@ -150,10 +150,21 @@ function checkUnrar(unrar, dir) {
   }
 }
 
+// The PommelPorter the installer is built against, which the Components card
+// lists; the program itself does not link it.
+const pommelporter = readFileSync(join(desktop, 'installer', 'go.mod'), 'utf8').match(
+  /^\s*github\.com\/junkerderprovinz\/pommelporter (v\S+)/m,
+)?.[1]
+if (!pommelporter) {
+  console.error('desktop/installer/go.mod names no PommelPorter version')
+  process.exit(1)
+}
+
 function goBuild(out, { goos, goarch, cgo, tags, ldflags = '', env = {} }) {
+  const info = 'github.com/junkerderprovinz/knightloader/internal/buildinfo'
   run('go', [
     'build', '-tags', tags, '-trimpath', '-buildvcs=false',
-    '-ldflags', `-s -w ${ldflags} ${dlcFlags} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${version}`,
+    '-ldflags', `-s -w ${ldflags} ${dlcFlags} -X ${info}.Version=${version} -X ${info}.Installer=${pommelporter}`,
     '-o', out, '.',
   ], { env: { GOOS: goos, GOARCH: goarch, CGO_ENABLED: cgo, ...env } })
 }

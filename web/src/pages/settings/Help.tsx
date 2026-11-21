@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useT } from '../../lib/i18n';
-import { Button, Card, SectionTitle } from '../../components/ui';
+import { Card, ErrorCard, SectionTitle } from '../../components/ui';
 import { IconDiagnostics, IconDiscord, IconGithub } from '../../lib/icons';
 import { COFFEE_BUTTON_SVG, MANUAL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
@@ -9,31 +9,38 @@ import { CoffeeDialog } from '../../components/CoffeeDialog';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 import { PaypalDialog } from '../../components/PaypalDialog';
 import { PAYPAL_PAGE } from '../../lib/donate';
-import { followExternal, openExternal, popupsWork } from '../../lib/external';
+import { fetchDeploymentInfo } from '../../lib/api';
+import { openExternal, popupsWork } from '../../lib/external';
+import { useResource } from '../../lib/useResource';
 import { useToast } from '../../lib/toast';
 import { saveDiagnostics } from './diagnostics/bundle';
 import { ComponentsCard } from './help/Components';
+import { MANUAL_URL, REPO_URL, VersionCard } from './help/VersionCard';
 
 /**
- * Help draws the Info tile, the last one in Settings: every component the app
- * is made of or starts, the ways to report something and who made the app, in
- * the order of BombVault's Info tile. What the app can do is told by the
- * manual, which the Help card opens.
+ * Help draws the Info tile, the last one in Settings, with GlimStone's four
+ * cards in their order: KnightLoader's version and updates, every component
+ * it starts, the ways to report something and who made the app. What the app
+ * can do is told by the manual, which the Help card opens.
  */
 export function Help() {
+  const { t } = useT();
+  // Both version cards wait for how this instance runs rather than flash the
+  // wrong route or rows.
+  const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
   return (
     <div data-new="info-tile" className="flex flex-col gap-10">
       {/* The hues number the cards in draw order; renumber when adding one. */}
-      <ComponentsCard hue={0} />
-      <Report hue={1} />
-      <About hue={2} />
+      {failed && <ErrorCard message={t('common.loadFailed')} retry={reload} retryLabel={t('common.retry')} />}
+      {deployment && <VersionCard deployment={deployment} hue={0} />}
+      {deployment && <ComponentsCard deployment={deployment} hue={1} />}
+      <Report hue={2} />
+      <About hue={3} />
     </div>
   );
 }
 
-const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const DISCORD_URL = 'https://discord.gg/2CTZyKaFb6';
-const MANUAL_URL = 'https://junkerderprovinz.github.io/knightloader/';
 
 /**
  * About says who made the app and on what terms, then offers the ways to give.

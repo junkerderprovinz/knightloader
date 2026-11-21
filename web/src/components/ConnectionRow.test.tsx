@@ -154,10 +154,10 @@ describe("a connection row's tile", () => {
     expect(rule('.glim-connection-name')).toMatch(/flex:\s*0 1 auto/);
   });
 
-  it('gives a badge the height and type of the buttons beside it', () => {
+  it('keeps a badge a size below the buttons beside it', () => {
     const badge = rule('.glim-connection-badges .glim-badge');
-    expect(badge).toMatch(/height:\s*var\(--btn-h\)/);
-    expect(badge).toMatch(/font-size:\s*var\(--text-body\)/);
+    expect(badge).toMatch(/height:\s*1\.5rem/);
+    expect(badge).not.toMatch(/var\(--btn-h\)/);
   });
 
   it('steps its buttons one surface above the row, hovering to the accent', () => {
@@ -167,10 +167,10 @@ describe("a connection row's tile", () => {
     );
   });
 
-  it('keeps a neutral badge on the well inside a ring, so it does not pass for a button', () => {
+  it('fills a neutral badge halfway between the well and the buttons, with no ring', () => {
     const neutral = rule('.glim-connection-badges .bg-carbon-surface2');
-    expect(neutral).toMatch(/background-color:\s*var\(--carbon-surface2\)/);
-    expect(neutral).toMatch(/box-shadow:\s*inset 0 0 0 1px var\(--carbon-surface3\)/);
+    expect(neutral).toMatch(/background-color:\s*color-mix\(in srgb, var\(--carbon-surface2\), var\(--carbon-surface3\)\)/);
+    expect(neutral).not.toMatch(/box-shadow/);
   });
 
   it('hides the resting drawing of a logo in one ink, as of every other, beside the lit one', () => {

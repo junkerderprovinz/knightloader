@@ -1728,8 +1728,8 @@ async function renderAppearance() {
 // and the shape of the setup. It leaves out anything private: no instance
 // address, no token, no relay key.
 
-// The GlimStone version comes from appearance.js, beside the ports it
-// describes, rather than from a number kept next to this card.
+// The GlimStone version and repository come from appearance.js, beside the
+// ports they describe, rather than from a number kept next to this card.
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const DISCORD_URL = 'https://discord.gg/2CTZyKaFb6';
 // The widget page for the coffee handle in the README's donate row.
@@ -1740,45 +1740,67 @@ const COFFEE_WIDGET_URL = 'https://buymeacoffee.com/widget/page/junkerderprovinz
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
 
 /**
- * One row of the Version card: the name at the start and the number at the
- * end, linking to its release in a new tab. The number carries no "v", which
- * belongs to the tag (GlimStone 3.8.0).
+ * The number on a version card, as GlimStone's numberLink has it: plain text
+ * that opens the newest release of its project. A build that is no release
+ * says so and links nowhere.
  */
-function versionRow(name, href, number) {
-  const row = document.createElement('div');
-  row.className = 'glim-row';
-  const label = document.createElement('span');
-  label.className = 'glim-row-label';
-  label.textContent = name;
-  const a = document.createElement('a');
-  a.href = href;
-  a.target = '_blank';
-  a.rel = 'noreferrer noopener';
-  a.className = 'versionLink glim-num';
-  a.textContent = number;
-  row.append(label, a);
-  return row;
+function versionNumber(el, repo, number) {
+  const released = /^\d+(\.\d+)+$/.test(number);
+  el.textContent = released ? number : t('options.versionCard.unreleased', { version: number });
+  if (released) el.href = `${repo}/releases/latest`;
+  else el.removeAttribute('href');
+}
+
+/** The add-on store this browser updates the extension from. */
+function addonStore() {
+  if (location.protocol === 'moz-extension:') return 'Firefox Add-ons';
+  if (/Edg\//.test(navigator.userAgent)) return 'Microsoft Edge Add-ons';
+  return 'Chrome Web Store';
 }
 
 /**
- * The Version, Help and About cards: every version, the ways to report
- * something, then a thank-you and the ways to give. The extension's version
- * comes from the manifest.
+ * The Version and Components cards, then the Help and About cards: the
+ * extension's version with where its updates come from, every other version
+ * it carries, the ways to report something, then a thank-you and the ways to
+ * give. The extension's version comes from the manifest.
  */
 function renderAbout() {
-  const versions = document.getElementById('versionRows');
   const text = document.getElementById('aboutText');
   const gh = document.getElementById('aboutGithub');
   const discord = document.getElementById('aboutDiscord');
-  if (!versions) return;
+  if (!text) return;
   document.getElementById('versionHeading').textContent = t('options.aboutVersion');
+  glimSetInfo('versionHeading', t('options.versionCard.hint', { app: 'KnightLoader' }));
   // The extension carries KnightLoader's own number, so its release is the
   // main one.
   const own = chrome.runtime.getManifest().version;
-  versions.replaceChildren(
-    versionRow('KnightLoader', `${REPO_URL}/releases/tag/v${own}`, own),
-    versionRow('GlimStone', GLIMSTONE_RELEASE_URL, GLIMSTONE_VERSION),
-  );
+  versionNumber(document.getElementById('versionNumber'), REPO_URL, own);
+  document.getElementById('versionLine').textContent = t('options.versionCard.store', { store: addonStore() });
+  const whatsNew = document.getElementById('versionWhatsNew');
+  whatsNew.replaceChildren(glimGlyph('IconWhatsNew', 14), document.createTextNode(t('options.versionCard.whatsNew')));
+  // The extension keeps no window of changes, so this version's notes open on
+  // its release page.
+  whatsNew.onclick = () => window.open(`${REPO_URL}/releases/tag/v${own}`, '_blank', 'noopener');
+
+  document.getElementById('componentsHeading').textContent = t('options.componentsCard.title');
+  glimSetInfo('componentsHeading', t('options.componentsCard.hint', { app: 'KnightLoader' }));
+  // The extension brings no program of its own, so GlimStone is its one row.
+  const row = document.createElement('li');
+  row.className = 'glim-version-row';
+  const name = document.createElement('span');
+  name.className = 'glim-version-name';
+  const part = document.createElement('span');
+  part.className = 'glim-version-part';
+  part.textContent = 'GlimStone';
+  name.append(part, glimInfoIcon(t('options.componentsCard.design')));
+  const number = document.createElement('a');
+  number.className = 'glim-num glim-version-number';
+  number.target = '_blank';
+  number.rel = 'noreferrer noopener';
+  versionNumber(number, GLIMSTONE_REPO, GLIMSTONE_VERSION);
+  row.append(name, number);
+  document.getElementById('componentRows').replaceChildren(row);
+
   text.textContent = t('options.aboutText');
   const coffeeText = document.getElementById('aboutCoffee');
   if (coffeeText) coffeeText.textContent = t('options.aboutCoffee');

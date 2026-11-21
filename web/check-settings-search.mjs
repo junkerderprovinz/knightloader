@@ -47,9 +47,11 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Look.tsx', pages: ['look', 'appearance'] },
   { file: 'src/pages/settings/look/', pages: ['look'] },
   { file: 'src/pages/settings/appearance/', pages: ['appearance'] },
-  // The Info tile: the Components, Help and About cards.
+  // The Info tile: the Version, Components, Help and About cards, whose
+  // version cards take their words from lib/versionCards.ts.
   { file: 'src/pages/settings/Help.tsx', pages: ['help'] },
   { file: 'src/pages/settings/help/', pages: ['help'] },
+  { file: 'src/lib/versionCards.ts', pages: ['help'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/Integrations.tsx', pages: ['integrations'] },
   { file: 'src/pages/settings/integrations/', pages: ['integrations'] },

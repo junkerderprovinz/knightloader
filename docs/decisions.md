@@ -171,7 +171,7 @@ current by one switch, **Update components automatically**, which ships on.
 While it is on, the app asks after yt-dlp once a day and after the others once
 a week, and downloads only a version newer than the one in use. Every fetch
 verifies its checksum, proves the program RUNS on this machine, and only then
-swaps it in. **Update now** on the Components card runs the same updates at
+swaps it in. **Update components** on the Components card runs the same updates at
 once, whatever the switch says. When each component was last asked after is
 kept in `tools/checks.json` in the data folder, so a restart does not ask again
 before one is due.
@@ -245,7 +245,7 @@ The self-test does not take a Deno on disk as proof: it asks yt-dlp, whose
 a day, checks it against the release's `checksums.txt` and puts it in place of
 the program for the next start. The switch is on from the start.
 
-**Not built:** an Install now button that restarts into the new version, and a
+**Not built:** a button that restarts into the new version, and a
 code signature check.
 
 A restart in the middle of the day would cut off whatever is downloading, and

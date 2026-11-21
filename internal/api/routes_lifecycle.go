@@ -6,6 +6,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -34,6 +35,9 @@ type DeploymentInfo struct {
 	// Engines are the libraries compiled in that do a share of the work
 	// somebody sees, which the Updates card lists beside the programs.
 	Engines []buildinfo.Module `json:"engines"`
+	// Installer is the PommelPorter version the desktop build's installer
+	// carries, which the Components card lists last; see buildinfo.Installer.
+	Installer string `json:"installer,omitempty"`
 }
 
 // engineModules are the libraries Engines names, in the order the card lists them.
@@ -106,6 +110,7 @@ func deploymentInfo(a *app.App) DeploymentInfo {
 		CanQuit:    a.RequestExit != nil,
 		CanRestart: a.RequestExit != nil,
 		Engines:    buildinfo.Modules(engineModules...),
+		Installer:  strings.TrimPrefix(buildinfo.Installer, "v"),
 
 		UpdatesFromStore: flatpak.ID() != "",
 	}

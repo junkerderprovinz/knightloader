@@ -118,11 +118,11 @@ describe('every hover in the stylesheet', () => {
 });
 
 describe('a glyph with no ground of its own', () => {
-  it('takes the accent under the pointer: the number steppers, the password eye and the version link', () => {
+  it('takes the accent under the pointer: the number steppers, the password eye and a version number', () => {
     const ui = read('components/ui.tsx');
     expect(ui.match(/const STEPPER =\s*([\s\S]*?);/)?.[1]).toMatch(/'hover:text-accentGlyph /);
     expect(ui.match(/onClick=\{\(\) => setReveal\(\(r\) => !r\)\}[\s\S]*?className="([^"]+)"/)?.[1]).toMatch(/hover:text-accentGlyph$/);
-    expect(read('pages/settings/help/Components.tsx')).toMatch(/underline-offset-2 hover:text-accentInk hover:decoration-current/);
+    expect(read('index.css')).toMatch(/a\.glim-version-number:hover \{ color: var\(--accent-ink\); \}/);
   });
 });
 

@@ -4235,6 +4235,8 @@ export interface DeploymentInfo {
   updatesFromStore?: boolean;
   /** The libraries the Updates card lists beside the programs, null when the build carries none of them. */
   engines: BuiltModule[] | null;
+  /** The PommelPorter version the desktop build's installer carries, absent elsewhere. */
+  installer?: string;
 }
 
 export async function fetchDeploymentInfo(): Promise<DeploymentInfo> {
