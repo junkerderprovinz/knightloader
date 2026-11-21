@@ -953,17 +953,17 @@
     },
     {
         "type": "file",
-        "url": "https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.5.tgz",
-        "sha512": "f4771f0cc53a249fdfa7a8096581b0344e919275464b89018c7d4790dc3de7d982262ef44d5c1d8a9416bf6144a25f6e1a98be4994c5b55a493ed1107dac9e3b",
-        "dest-filename": "1f0cc53a249fdfa7a8096581b0344e919275464b89018c7d4790dc3de7d982262ef44d5c1d8a9416bf6144a25f6e1a98be4994c5b55a493ed1107dac9e3b",
-        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/f4/77"
+        "url": "https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.6.tgz",
+        "sha512": "6bc27316c284637118f502fbb784f56f53a1b98d278047f03335d036004eff672e216f74dbc25b56adee936aca9e32eb79dcdc2280ca2f352482e22ae9f9e414",
+        "dest-filename": "7316c284637118f502fbb784f56f53a1b98d278047f03335d036004eff672e216f74dbc25b56adee936aca9e32eb79dcdc2280ca2f352482e22ae9f9e414",
+        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/6b/c2"
     },
     {
         "type": "file",
-        "url": "https://registry.npmjs.org/react-router/-/react-router-7.18.5.tgz",
-        "sha512": "75382f7170ceacb3eb94b1eb71902a5af7a22b584c4aa37eac6009cde80ff07b663647d1c4ea2c846581357dd92747198ce1e445d95426d68885930b2f21b23f",
-        "dest-filename": "2f7170ceacb3eb94b1eb71902a5af7a22b584c4aa37eac6009cde80ff07b663647d1c4ea2c846581357dd92747198ce1e445d95426d68885930b2f21b23f",
-        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/75/38"
+        "url": "https://registry.npmjs.org/react-router/-/react-router-7.18.6.tgz",
+        "sha512": "48ff0aa8a7d12e5273ab33ec782fabeb2605b2a3c46afb50082e01295f35d2d0468a38c448bb7054f6a6fa03ce3bec18797ad837f4cdcb6080ca441570d83889",
+        "dest-filename": "0aa8a7d12e5273ab33ec782fabeb2605b2a3c46afb50082e01295f35d2d0468a38c448bb7054f6a6fa03ce3bec18797ad837f4cdcb6080ca441570d83889",
+        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/48/ff"
     },
     {
         "type": "file",
@@ -1554,9 +1554,9 @@
     },
     {
         "type": "inline",
-        "contents": "62d3cdb6c934cdd2d0bcb65f33c015d5a3c03af6\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/react-router/-/react-router-7.18.5.tgz\", \"integrity\": \"sha512-dTgvcXDOrLPrlLHrcZAqWveiK1hMSqN+rGAJzegP8HtmNkfRxOoshGWBNX3ZJ0cZjOHkRdlUJtaIhZMLLyGyPw==\", \"time\": 0, \"size\": 1089647, \"metadata\": {\"url\": \"https://registry.npmjs.org/react-router/-/react-router-7.18.5.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
-        "dest-filename": "2343d17696ea8594a4ae920bf9a2be5fa5cb9a7aa1c3266e8c4e773976fd",
-        "dest": "flatpak-node/npm-cache/_cacache/index-v5/9e/fd"
+        "contents": "6291f3cfe654e840be4f25dd672cc5a72efea55b\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/react-router/-/react-router-7.18.6.tgz\", \"integrity\": \"sha512-SP8KqKfRLlJzqzPseC+r6yYFsqPEavtQCC4BKV810tBGijjESLtwVPam+gPOO+wYeXrYN/TNy2CAykQVcNg4iQ==\", \"time\": 0, \"size\": 1094722, \"metadata\": {\"url\": \"https://registry.npmjs.org/react-router/-/react-router-7.18.6.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
+        "dest-filename": "0cb6c4a74227f6f6ad4d81be020a059aeb49d35f17da45f973c99863c234",
+        "dest": "flatpak-node/npm-cache/_cacache/index-v5/ba/d1"
     },
     {
         "type": "inline",
@@ -2094,9 +2094,9 @@
     },
     {
         "type": "inline",
-        "contents": "ee0bd38e8fdc7a7cd33066ff650fb804e2c6521a\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.5.tgz\", \"integrity\": \"sha512-9HcfDMU6JJ/fp6gJZYGwNE6RknVGS4kBjH1HkNw959mCJi70TVwdipQWv2FEol9uGpi+SZTFtVpJPtEQfayeOw==\", \"time\": 0, \"size\": 2382, \"metadata\": {\"url\": \"https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.5.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
-        "dest-filename": "71f6f09309494145f490ddb3235f1a74807839d3f88662d84b1cf8494543",
-        "dest": "flatpak-node/npm-cache/_cacache/index-v5/1b/44"
+        "contents": "bb275b254c094ca90c347e3a7e0c88f7486f55b8\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.6.tgz\", \"integrity\": \"sha512-a8JzFsKEY3EY9QL7t4T1b1OhuY0ngEfwMzXQNgBO/2cuIW9028JbVq3uk2rKnjLredzcIoDKLzUkguIq6fnkFA==\", \"time\": 0, \"size\": 2382, \"metadata\": {\"url\": \"https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.6.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
+        "dest-filename": "b57248518f3de5b73b1d698c7564fda48763ba6f145034be9103d3d68a83",
+        "dest": "flatpak-node/npm-cache/_cacache/index-v5/ad/ea"
     },
     {
         "type": "inline",
