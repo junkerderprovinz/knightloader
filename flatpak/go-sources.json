@@ -561,17 +561,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/klauspost/compress/@v/v1.20.4.mod",
+        "url": "https://proxy.golang.org/github.com/klauspost/compress/@v/v1.20.5.mod",
         "sha256": "0d4e90d99acbc19eea5706e7390f8c925b26b1f5861385bb4f1321d454a1d48c",
         "dest": "gomod/github.com/klauspost/compress/@v",
-        "dest-filename": "v1.20.4.mod"
+        "dest-filename": "v1.20.5.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/klauspost/compress/@v/v1.20.4.zip",
-        "sha256": "680860caaacbb74f2010f32e4eb81f14cdc597e8a4633c7316946ab7cca5895a",
+        "url": "https://proxy.golang.org/github.com/klauspost/compress/@v/v1.20.5.zip",
+        "sha256": "2cb95c464f1c1522b3299759fe0dca47470451b0563274235f5910e5c8867847",
         "dest": "gomod/github.com/klauspost/compress/@v",
-        "dest-filename": "v1.20.4.zip"
+        "dest-filename": "v1.20.5.zip"
     },
     {
         "type": "file",

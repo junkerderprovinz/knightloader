@@ -26,6 +26,8 @@ github.com/junkerderprovinz/gopeed v0.0.0-20261114165838-d7e4c5d8e23c h1:wVLTdPW
 github.com/junkerderprovinz/gopeed v0.0.0-20261114165838-d7e4c5d8e23c/go.mod h1:eKdnery16emlCbVdVZxuHmyX5nR9TkGcgkTfWDTw0hc=
 github.com/junkerderprovinz/pommelporter v1.2.4 h1:d2YTxuaC65W9ZJcD9dAGNvvFHKNvJzbG/W+dAHRzNjs=
 github.com/junkerderprovinz/pommelporter v1.2.4/go.mod h1:0Rc8Zq+0IXiJ5qGU8LeMagaBrXizc0eoHuUYdq4gq5g=
+github.com/junkerderprovinz/pommelporter v1.2.5 h1:iZW3wki6ZPOm+HHm5WuWBNt9KSEV/GeWKQycT//Klt0=
+github.com/junkerderprovinz/pommelporter v1.2.5/go.mod h1:0Rc8Zq+0IXiJ5qGU8LeMagaBrXizc0eoHuUYdq4gq5g=
 github.com/klauspost/compress v1.20.4 h1:dD0v/bvxtjCBqQu6sx1TNWkalEY5lNTIe+HY9w8TeNI=
 github.com/klauspost/compress v1.20.4/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/nwaples/rardecode/v2 v2.4.6 h1:ddDMXtry2leooYMOXn0F8RzCvt+9tfq6SpleiRRvS1o=
