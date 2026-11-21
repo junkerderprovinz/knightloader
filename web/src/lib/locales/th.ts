@@ -4207,4 +4207,5 @@ export const th: Dict = {
   'componentsCard.about.java': 'รันแบ็กเอนด์ JDownloader',
   'componentsCard.about.jd': 'ดาวน์โหลดจากบริการฝากไฟล์',
   'componentsCard.about.qbit': 'ดาวน์โหลดทอร์เรนต์',
+  'versionCard.restart': 'รีสตาร์ตเพื่อใช้ {version}',
 };

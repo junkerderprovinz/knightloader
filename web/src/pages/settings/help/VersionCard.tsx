@@ -4,6 +4,7 @@ import {
   fetchUpdateCheck,
   fetchUpdateProgress,
   installUpdate,
+  restartIntoUpdate,
   type DeploymentInfo,
   type UpdateCheck,
   type UpdateProgress,
@@ -68,7 +69,7 @@ export function stateOf(s: {
  * build also says there whether a downloaded version waits for its next
  * start. Update now on the desktop build fetches the new version at once: the
  * copy installed for all users starts the new installer, any other copy puts
- * it in place for the next start.
+ * it in place, and Restart for it then starts it.
  */
 export function VersionCard({ deployment, hue }: { deployment: DeploymentInfo; hue: number }) {
   const { t, lang } = useT();
@@ -138,6 +139,14 @@ export function VersionCard({ deployment, hue }: { deployment: DeploymentInfo; h
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cfg.autoUpdate]);
 
+  const onRestart = useCallback(async () => {
+    try {
+      await restartIntoUpdate();
+    } catch (e) {
+      setProgress({ state: 'failed', error: errorText(e) });
+    }
+  }, []);
+
   const onUpdate = useCallback(async () => {
     try {
       await follow(await installUpdate());
@@ -174,6 +183,7 @@ export function VersionCard({ deployment, hue }: { deployment: DeploymentInfo; h
       state={state}
       onCheck={() => void onCheck()}
       onUpdate={() => void onUpdate()}
+      onRestart={() => void onRestart()}
       guideUrl={`${MANUAL_URL}installing/${flatpak ? '#the-flatpak' : '#updating-the-container'}`}
       onWhatsNew={onWhatsNew}
       unseen={news?.unseen.length ?? 0}

@@ -4218,4 +4218,5 @@ export const cs: Dict = {
   'componentsCard.about.java': 'Spouští backend JDownloaderu',
   'componentsCard.about.jd': 'Stahuje z úložišť souborů',
   'componentsCard.about.qbit': 'Stahuje torrenty',
+  'versionCard.restart': 'Restartovat kvůli {version}',
 };

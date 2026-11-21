@@ -4209,4 +4209,5 @@ export const hu: Dict = {
   'componentsCard.about.java': 'Futtatja a JDownloader háttérszolgáltatást',
   'componentsCard.about.jd': 'Fájltárhelyekről tölt le',
   'componentsCard.about.qbit': 'Torrenteket tölt le',
+  'versionCard.restart': 'Újraindítás a(z) {version} miatt',
 };

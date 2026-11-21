@@ -1,7 +1,7 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { Button, Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
 import { openExternal } from '../../../lib/external';
-import { IconBook, IconInstall, IconSync, IconUpdate, IconWhatsNew } from '../../../lib/icons';
+import { IconBook, IconInstall, IconRetry, IconSync, IconUpdate, IconWhatsNew } from '../../../lib/icons';
 import {
   autoSwitch,
   checkButton,
@@ -54,6 +54,8 @@ export function VersionNumber({ row, unreleased }: { row: Pick<ComponentRow, 've
   );
 }
 
+const ACTION_GLYPH = { update: <IconInstall />, restart: <IconRetry />, guide: <IconBook /> };
+
 /** The dot before "What's new": green while something is unseen, grey once nothing is. */
 function WhatsNewGlyph({ unseen }: { unseen: boolean }) {
   return (
@@ -73,6 +75,7 @@ export interface InfoVersionCardProps {
   state: UpdateState;
   onCheck?: () => void;
   onUpdate?: () => void;
+  onRestart?: () => void;
   guideUrl?: string;
   onWhatsNew: () => void;
   unseen?: number;
@@ -97,6 +100,7 @@ export function InfoVersionCard({
   state,
   onCheck,
   onUpdate,
+  onRestart,
   guideUrl,
   onWhatsNew,
   unseen = 0,
@@ -112,7 +116,8 @@ export function InfoVersionCard({
   const press = () => {
     if (action?.kind === 'guide') {
       if (guideUrl) openExternal(guideUrl);
-    } else onUpdate?.();
+    } else if (action?.kind === 'restart') onRestart?.();
+    else onUpdate?.();
   };
   return (
     <Card hue={hue} data-new={mark} className="flex flex-col gap-4">
@@ -164,7 +169,7 @@ export function InfoVersionCard({
             </Button>
           )}
           {action && (
-            <Button kind={action.kind === 'guide' ? 'secondary' : 'primary'} icon={action.kind === 'guide' ? <IconBook /> : <IconInstall />} onClick={press}>
+            <Button kind={action.kind === 'guide' ? 'secondary' : 'primary'} icon={ACTION_GLYPH[action.kind]} onClick={press}>
               {action.label}
             </Button>
           )}

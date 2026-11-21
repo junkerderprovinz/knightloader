@@ -4209,4 +4209,5 @@ export const uk: Dict = {
   'componentsCard.about.java': 'Запускає бекенд JDownloader',
   'componentsCard.about.jd': 'Завантажує з файлообмінників',
   'componentsCard.about.qbit': 'Завантажує торенти',
+  'versionCard.restart': 'Перезапустити для {version}',
 };

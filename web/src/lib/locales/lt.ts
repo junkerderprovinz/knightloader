@@ -4210,4 +4210,5 @@ export const lt: Dict = {
   'componentsCard.about.java': 'Paleidžia JDownloader foninę dalį',
   'componentsCard.about.jd': 'Atsisiunčia iš failų talpinimo paslaugų',
   'componentsCard.about.qbit': 'Atsisiunčia torrentus',
+  'versionCard.restart': 'Paleisti iš naujo dėl {version}',
 };

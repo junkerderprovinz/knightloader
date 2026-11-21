@@ -4449,6 +4449,7 @@ export const en = {
   'componentsCard.about.java': 'Runs the JDownloader backend',
   'componentsCard.about.jd': 'Downloads from file hosters',
   'componentsCard.about.qbit': 'Downloads torrents',
+  'versionCard.restart': 'Restart for {version}',
 } as const;
 
 export type TranslationKey = keyof typeof en;

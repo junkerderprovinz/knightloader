@@ -4208,4 +4208,5 @@ export const vi: Dict = {
   'componentsCard.about.java': 'Chạy backend JDownloader',
   'componentsCard.about.jd': 'Tải từ các dịch vụ lưu trữ tệp',
   'componentsCard.about.qbit': 'Tải torrent',
+  'versionCard.restart': 'Khởi động lại để dùng {version}',
 };

@@ -4222,4 +4222,5 @@ export const sr: Dict = {
   'componentsCard.about.java': 'Покреће JDownloader позадину',
   'componentsCard.about.jd': 'Преузима са сервиса за дељење датотека',
   'componentsCard.about.qbit': 'Преузима торенте',
+  'versionCard.restart': 'Поново покрени за {version}',
 };

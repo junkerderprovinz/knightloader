@@ -4209,4 +4209,5 @@ export const fi: Dict = {
   'componentsCard.about.java': 'Suorittaa JDownloader-taustapalvelua',
   'componentsCard.about.jd': 'Lataa tiedostopalveluista',
   'componentsCard.about.qbit': 'Lataa torrentteja',
+  'versionCard.restart': 'Käynnistä uudelleen versiota {version} varten',
 };

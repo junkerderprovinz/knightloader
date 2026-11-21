@@ -21,6 +21,7 @@ const T = {
   downloading: (p: number) => `Downloading … ${p}%`,
   ready: (v: string) => `${v} is ready`,
   update: 'Update now',
+  restart: (v: string) => `Restart for ${v}`,
   guide: 'How to update',
   store: (s: string) => `Updates come through ${s}.`,
 } as unknown as VersionCardText;
@@ -31,7 +32,8 @@ describe('the Version card logic', () => {
     expect(updateAction('install', { kind: 'available', version: '2.0.0' }, T)?.label).toBe('Update now');
     expect(updateAction('guide', { kind: 'available', version: '2.0.0' }, T)?.label).toBe('How to update');
     expect(updateAction('store', { kind: 'available', version: '2.0.0' }, T)).toBeNull();
-    expect(updateAction('install', { kind: 'ready', version: '2.0.0' }, T)).toBeNull();
+    expect(updateAction('install', { kind: 'ready', version: '2.0.0' }, T)?.label).toBe('Restart for 2.0.0');
+    expect(updateAction('guide', { kind: 'ready', version: '2.0.0' }, T)).toBeNull();
   });
 
   it('drops the check once there is nothing left to look for', () => {

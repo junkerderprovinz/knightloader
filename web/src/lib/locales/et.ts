@@ -4199,4 +4199,5 @@ export const et: Dict = {
   'componentsCard.about.java': 'Käitab JDownloaderi taustateenust',
   'componentsCard.about.jd': 'Laadib failimajutusteenustest alla',
   'componentsCard.about.qbit': 'Laadib torrenteid alla',
+  'versionCard.restart': 'Taaskäivita versiooni {version} jaoks',
 };

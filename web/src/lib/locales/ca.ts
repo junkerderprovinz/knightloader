@@ -4195,4 +4195,5 @@ export const ca: Dict = {
   'componentsCard.about.java': 'Executa el backend de JDownloader',
   'componentsCard.about.jd': 'Baixa de serveis d\'allotjament de fitxers',
   'componentsCard.about.qbit': 'Baixa torrents',
+  'versionCard.restart': 'Reinicia per a la {version}',
 };

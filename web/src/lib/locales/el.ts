@@ -4209,4 +4209,5 @@ export const el: Dict = {
   'componentsCard.about.java': 'Εκτελεί το backend του JDownloader',
   'componentsCard.about.jd': 'Κατεβάζει από υπηρεσίες φιλοξενίας αρχείων',
   'componentsCard.about.qbit': 'Κατεβάζει torrent',
+  'versionCard.restart': 'Επανεκκίνηση για την {version}',
 };

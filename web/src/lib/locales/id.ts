@@ -4208,4 +4208,5 @@ export const id: Dict = {
   'componentsCard.about.java': 'Menjalankan backend JDownloader',
   'componentsCard.about.jd': 'Mengunduh dari layanan hosting file',
   'componentsCard.about.qbit': 'Mengunduh torrent',
+  'versionCard.restart': 'Mulai ulang untuk {version}',
 };

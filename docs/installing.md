@@ -330,6 +330,8 @@ window says when it is ready. Pre-releases are never installed. **Update
 automatically** on the Version card under Settings, Info turns this off; it is
 on from the start. When **Check for updates** there finds a newer release,
 **Update now** fetches it at once instead of waiting for the next daily check.
+Once a new version is in place, **Restart for** on the same card closes
+KnightLoader and opens the new one, so you need not wait for the next start.
 
 **The installed copy** on Windows cannot replace itself, since no user may
 write to its folder. A scheduled task named **KnightLoader Update** does it instead,

@@ -4208,4 +4208,5 @@ export const sv: Dict = {
   'componentsCard.about.java': 'Kör JDownloader-backend',
   'componentsCard.about.jd': 'Laddar ner från fildelningstjänster',
   'componentsCard.about.qbit': 'Laddar ner torrenter',
+  'versionCard.restart': 'Starta om för {version}',
 };

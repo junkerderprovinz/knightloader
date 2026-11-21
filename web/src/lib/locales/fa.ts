@@ -4197,4 +4197,5 @@ export const fa: Dict = {
   'componentsCard.about.java': 'بک‌اند JDownloader را اجرا می‌کند',
   'componentsCard.about.jd': 'از سرویس‌های میزبانی فایل دانلود می‌کند',
   'componentsCard.about.qbit': 'تورنت دانلود می‌کند',
+  'versionCard.restart': 'راه‌اندازی دوباره برای {version}',
 };

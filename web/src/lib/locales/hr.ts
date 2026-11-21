@@ -4222,4 +4222,5 @@ export const hr: Dict = {
   'componentsCard.about.java': 'Pokreće JDownloader pozadinu',
   'componentsCard.about.jd': 'Preuzima sa servisa za dijeljenje datoteka',
   'componentsCard.about.qbit': 'Preuzima torrente',
+  'versionCard.restart': 'Ponovno pokreni za {version}',
 };

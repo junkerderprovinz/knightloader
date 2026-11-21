@@ -288,11 +288,20 @@ describe('updating the desktop build from the Version card', () => {
     expect(line()).toBe('Downloading … 100%');
   });
 
-  it('says a downloaded version waits for the next start', async () => {
+  it('offers to restart into a downloaded version', async () => {
     answers['/api/system/update-check'] = { checked: true, available: true, current: 'v1.8.4', latest: 'v1.9.0', ready: 'v1.9.0' };
+    answers['POST /api/system/update-restart'] = { status: 'restarting' };
     await draw({ autoUpdate: true }, DESKTOP);
     expect(line()).toBe('1.9.0 is ready');
-    expect(buttons(card('Version'))).toEqual(["What's new"]);
+    expect(buttons(card('Version'))).toEqual(["What's new", 'Restart for 1.9.0']);
+    await act(async () => button(actions(card('Version')), 'Restart for 1.9.0').click());
+    expect(asked).toContain('POST /api/system/update-restart');
+  });
+
+  it('keeps a container and a Flatpak from offering a restart', async () => {
+    answers['/api/system/update-check'] = { checked: true, available: false, current: 'v1.8.4', ready: 'v1.9.0' };
+    await draw({ autoUpdate: true }, FLATPAK);
+    expect(buttons(card('Version'))).toEqual(["What's new", 'Check for updates']);
   });
 
   it('picks up an update that was started before the page opened', async () => {

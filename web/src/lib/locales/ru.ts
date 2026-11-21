@@ -4188,4 +4188,5 @@ export const ru: Dict = {
   'componentsCard.about.java': 'Запускает бэкенд JDownloader',
   'componentsCard.about.jd': 'Скачивает с файлообменников',
   'componentsCard.about.qbit': 'Скачивает торренты',
+  'versionCard.restart': 'Перезапустить для {version}',
 };

@@ -88,6 +88,24 @@ func registerLifecycle(reg *Registry, a *app.App) {
 			writeJSON(w, a.UpdateProgress())
 		})
 
+	reg.Add(http.MethodPost, "/api/system/update-restart",
+		"desktop: end the program and start the version an update put in place",
+		func(w http.ResponseWriter, r *http.Request) {
+			if a.RestartIntoUpdate == nil {
+				http.Error(w, "only the desktop build starts itself again", http.StatusNotImplemented)
+				return
+			}
+			if a.UpdateReady == nil || a.UpdateReady() == "" {
+				writeJSONStatus(w, http.StatusConflict, map[string]string{"status": "no update waits for a restart"})
+				return
+			}
+			if !a.RestartIntoUpdate() {
+				writeJSONStatus(w, http.StatusConflict, map[string]string{"status": "a shutdown is already in progress"})
+				return
+			}
+			writeJSONStatus(w, http.StatusAccepted, map[string]string{"status": "restarting"})
+		})
+
 	reg.Add(http.MethodPost, "/api/system/update-install",
 		"desktop: download the newest release now and install it, or have it start next time where the program cannot replace itself while running",
 		func(w http.ResponseWriter, r *http.Request) {

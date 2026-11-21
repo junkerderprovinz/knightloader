@@ -4209,4 +4209,5 @@ export const bg: Dict = {
   'componentsCard.about.java': 'Изпълнява бекенда на JDownloader',
   'componentsCard.about.jd': 'Изтегля от файлови хостинги',
   'componentsCard.about.qbit': 'Изтегля торенти',
+  'versionCard.restart': 'Рестартирай за {version}',
 };

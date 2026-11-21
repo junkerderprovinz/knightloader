@@ -47,6 +47,7 @@ export interface VersionCardText {
   downloading: (percent: number) => string;
   ready: (version: string) => string;
   update: string;
+  restart: (version: string) => string;
   guide: string;
   store: (store: string) => string;
   auto: string;
@@ -106,6 +107,7 @@ export function versionCardText(t: Translate, lang: string, autoCheckHint: strin
       t('versionCard.downloading', { percent: (percent / 100).toLocaleString(lang, { style: 'percent' }) }),
     ready: (version) => t('versionCard.ready', { version }),
     update: t('versionCard.update'),
+    restart: (version) => t('versionCard.restart', { version }),
     guide: t('versionCard.guide'),
     store: (store) => t('versionCard.store', { store }),
     auto: t('versionCard.auto'),
@@ -157,15 +159,14 @@ export function updateLine(state: UpdateState, text: VersionCardText, now?: Date
   }
 }
 
-export type UpdateActionKind = 'update' | 'guide';
+export type UpdateActionKind = 'update' | 'restart' | 'guide';
 
 /**
  * The one button the Version card shows, or null. There is only something to
- * press once a new version is there, and what it does follows the route. A
- * downloaded version starts the next time KnightLoader opens, since the
- * desktop app cannot start itself again, so a ready one offers nothing.
+ * press once a new version is there, and what it does follows the route.
  */
 export function updateAction(route: UpdateRoute, state: UpdateState, text: VersionCardText): { kind: UpdateActionKind; label: string } | null {
+  if (state.kind === 'ready' && route === 'install') return { kind: 'restart', label: text.restart(state.version) };
   if (state.kind !== 'available') return null;
   switch (route) {
     case 'install':

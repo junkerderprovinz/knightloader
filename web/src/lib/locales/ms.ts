@@ -4208,4 +4208,5 @@ export const ms: Dict = {
   'componentsCard.about.java': 'Menjalankan backend JDownloader',
   'componentsCard.about.jd': 'Memuat turun dari perkhidmatan hos fail',
   'componentsCard.about.qbit': 'Memuat turun torrent',
+  'versionCard.restart': 'Mulakan semula untuk {version}',
 };

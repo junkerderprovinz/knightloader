@@ -4204,4 +4204,5 @@ export const is: Dict = {
   'componentsCard.about.java': 'Keyrir JDownloader-bakendann',
   'componentsCard.about.jd': 'Sækir af skráahýsingum',
   'componentsCard.about.qbit': 'Sækir torrent-skrár',
+  'versionCard.restart': 'Endurræsa fyrir {version}',
 };

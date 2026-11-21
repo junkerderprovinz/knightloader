@@ -4199,4 +4199,5 @@ export const lv: Dict = {
   'componentsCard.about.java': 'Darbina JDownloader aizmugursistēmu',
   'componentsCard.about.jd': 'Lejupielādē no failu mitināšanas pakalpojumiem',
   'componentsCard.about.qbit': 'Lejupielādē torrentus',
+  'versionCard.restart': 'Restartēt versijai {version}',
 };

@@ -4217,4 +4217,5 @@ export const ro: Dict = {
   'componentsCard.about.java': 'Rulează backendul JDownloader',
   'componentsCard.about.jd': 'Descarcă de pe serviciile de găzduire de fișiere',
   'componentsCard.about.qbit': 'Descarcă torente',
+  'versionCard.restart': 'Repornește pentru {version}',
 };

@@ -4205,4 +4205,5 @@ export const ja: Dict = {
   'componentsCard.about.java': 'JDownloader バックエンドを実行',
   'componentsCard.about.jd': 'ファイルホスティングからダウンロード',
   'componentsCard.about.qbit': 'トレントをダウンロード',
+  'versionCard.restart': '{version} のために再起動',
 };

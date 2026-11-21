@@ -4196,4 +4196,5 @@ export const ko: Dict = {
   'componentsCard.about.java': 'JDownloader 백엔드 실행',
   'componentsCard.about.jd': '파일 호스팅에서 다운로드',
   'componentsCard.about.qbit': '토렌트 다운로드',
+  'versionCard.restart': '{version}을(를) 위해 다시 시작',
 };

@@ -4194,4 +4194,5 @@ export const da: Dict = {
   'componentsCard.about.java': 'Kører JDownloader-backend',
   'componentsCard.about.jd': 'Henter fra filhostingtjenester',
   'componentsCard.about.qbit': 'Henter torrents',
+  'versionCard.restart': 'Genstart for {version}',
 };

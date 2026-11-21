@@ -4207,4 +4207,5 @@ export const tr: Dict = {
   'componentsCard.about.java': 'JDownloader arka ucunu çalıştırır',
   'componentsCard.about.jd': 'Dosya barındırma servislerinden indirir',
   'componentsCard.about.qbit': 'Torrent indirir',
+  'versionCard.restart': '{version} için yeniden başlat',
 };

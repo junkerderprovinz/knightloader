@@ -4207,4 +4207,5 @@ export const sl: Dict = {
   'componentsCard.about.java': 'Poganja zaledje JDownloader',
   'componentsCard.about.jd': 'Prenaša s storitev za gostovanje datotek',
   'componentsCard.about.qbit': 'Prenaša torrente',
+  'versionCard.restart': 'Znova zaženi za {version}',
 };

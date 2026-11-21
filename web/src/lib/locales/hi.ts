@@ -4209,4 +4209,5 @@ export const hi: Dict = {
   'componentsCard.about.java': 'JDownloader बैकएंड चलाता है',
   'componentsCard.about.jd': 'फ़ाइल होस्टरों से डाउनलोड करता है',
   'componentsCard.about.qbit': 'टॉरेंट डाउनलोड करता है',
+  'versionCard.restart': '{version} के लिए फिर से शुरू करें',
 };

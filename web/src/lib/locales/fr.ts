@@ -4197,4 +4197,5 @@ export const fr: Dict = {
   'componentsCard.about.java': 'Exécute le backend JDownloader',
   'componentsCard.about.jd': 'Télécharge depuis les hébergeurs de fichiers',
   'componentsCard.about.qbit': 'Télécharge les torrents',
+  'versionCard.restart': 'Redémarrer pour {version}',
 };

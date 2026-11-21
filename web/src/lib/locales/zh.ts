@@ -4192,4 +4192,5 @@ export const zh: Dict = {
   'componentsCard.about.java': '运行 JDownloader 后端',
   'componentsCard.about.jd': '从网盘下载',
   'componentsCard.about.qbit': '下载种子',
+  'versionCard.restart': '重启以使用 {version}',
 };

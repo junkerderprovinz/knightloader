@@ -4205,4 +4205,5 @@ export const gl: Dict = {
   'componentsCard.about.java': 'Executa o backend de JDownloader',
   'componentsCard.about.jd': 'Descarga de servizos de aloxamento de ficheiros',
   'componentsCard.about.qbit': 'Descarga torrents',
+  'versionCard.restart': 'Reiniciar para {version}',
 };

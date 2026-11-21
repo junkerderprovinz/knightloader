@@ -3714,6 +3714,11 @@ export async function fetchUpdateProgress(): Promise<UpdateProgress> {
   return json(await fetch('/api/system/update-install'));
 }
 
+/** Ends the desktop build and starts the version an update put in place. */
+export async function restartIntoUpdate(): Promise<void> {
+  await json(await fetch('/api/system/update-restart', { method: 'POST' }));
+}
+
 /** Starts installing the newest release on the desktop build; the answer is where it starts. */
 export async function installUpdate(): Promise<UpdateProgress> {
   return json(await fetch('/api/system/update-install', { method: 'POST' }));

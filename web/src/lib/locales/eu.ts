@@ -4204,4 +4204,5 @@ export const eu: Dict = {
   'componentsCard.about.java': 'JDownloader-en backenda exekutatzen du',
   'componentsCard.about.jd': 'Fitxategi-ostatuetatik deskargatzen du',
   'componentsCard.about.qbit': 'Torrentak deskargatzen ditu',
+  'versionCard.restart': 'Berrabiarazi {version} bertsiorako',
 };

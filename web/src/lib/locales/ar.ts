@@ -4206,4 +4206,5 @@ export const ar: Dict = {
   'componentsCard.about.java': 'يشغّل خلفية JDownloader',
   'componentsCard.about.jd': 'ينزّل من خدمات استضافة الملفات',
   'componentsCard.about.qbit': 'ينزّل ملفات التورنت',
+  'versionCard.restart': 'أعد التشغيل للإصدار {version}',
 };

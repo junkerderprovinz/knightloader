@@ -4225,4 +4225,5 @@ export const he: Dict = {
   'componentsCard.about.java': 'מריץ את שרת JDownloader',
   'componentsCard.about.jd': 'מוריד מאתרי אחסון קבצים',
   'componentsCard.about.qbit': 'מוריד טורנטים',
+  'versionCard.restart': 'הפעלה מחדש לגרסה {version}',
 };
