@@ -67,9 +67,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   2026.10.26 from yt-dlp's own releases, so it no longer waits for Alpine's
   package to catch up. The image and the app also check yt-dlp's signature on
   every release they fetch.
-- **Fresh building blocks.** Deno 2.9.8. The container takes it from Deno's
-  own releases and checks it against their checksum, since Alpine's package
-  trails them by months.
+- **Fresh building blocks.** Deno 2.9.8 and PommelPorter 1.2.6. The container
+  takes Deno from Deno's own releases and checks it against their checksum,
+  since Alpine's package trails them by months.
 - **Security fixes in the container image.** The build installs every Alpine
   update published after the base image, which brings the fixed OpenSSL and
   zlib. Python is gone from the image, and py3-cryptography with it.
@@ -86,6 +86,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   into a used-up download volume, such as Debrid-Link's daily traffic for one
   hoster, gave up after three quick retries and never started again. They now
   wait until the volume is back and pick up by themselves.
+- **Uninstalling quietly closes KnightLoader first.** A silent uninstall left a
+  running KnightLoader and its qBittorrent open, also when the app ran in
+  another Windows session. It now ends both before it removes the files.
 
 ### Translations
 
