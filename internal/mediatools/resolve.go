@@ -21,7 +21,7 @@ const (
 	// SourceManaged is the copy Install put beside the data directory.
 	SourceManaged Source = "managed"
 	// SourceEnv is KL_YTDLP or KL_DENO, which the container image pins to
-	// /usr/bin/yt-dlp and /usr/bin/deno on every install (Dockerfile).
+	// /usr/bin/yt-dlp and /usr/local/bin/deno on every install (Dockerfile).
 	SourceEnv Source = "env"
 	// SourceBundled is a yt-dlp that sits beside the program.
 	SourceBundled Source = "bundled"

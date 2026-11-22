@@ -57,27 +57,70 @@ RUN apk add --no-cache g++ make \
     && install -Dm755 /tmp/unrar/unrar /out/unrar \
     && install -Dm644 /tmp/unrar/license.txt /out/license.txt
 
+# Deno publishes glibc builds only, and Alpine's deno package trails its
+# releases by months. The official binary gets the few glibc libraries it links
+# from distroless, kept in /usr/local/lib/glibc apart from Alpine's musl ones,
+# and patchelf points its loader and library path there, as denoland/deno's own
+# Alpine image does.
+FROM gcr.io/distroless/cc-debian13:latest@sha256:809d04afa1be033c441f76bb0051878c342fb76d0ea236bc6dc94b655fa0fbd6 AS glibc
+
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS deno
+# Deno's GitHub releases are immutable, so the .sha256sum beside the zip holds
+# it as firmly as a checksum written here, and a version bump is all an update
+# takes.
+# renovate: datasource=github-releases depName=denoland/deno
+ARG DENO_VERSION=2.9.8
+ARG TARGETARCH
+WORKDIR /tmp
+RUN --mount=type=bind,from=glibc,source=/usr/lib,target=/glibc \
+    case "${TARGETARCH}" in \
+      amd64) arch=x86_64; loader=ld-linux-x86-64.so.2 ;; \
+      arm64) arch=aarch64; loader=ld-linux-aarch64.so.1 ;; \
+      *) echo "Deno publishes no Linux build for ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && apk add --no-cache patchelf \
+    && zip="deno-${arch}-unknown-linux-gnu.zip" \
+    && url="https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/${zip}" \
+    && wget -qO "/tmp/${zip}" "${url}" \
+    && wget -qO /tmp/deno.sha256sum "${url}.sha256sum" \
+    && sha256sum -c deno.sha256sum \
+    && unzip -q "/tmp/${zip}" deno -d /tmp \
+    && mkdir -p /usr/local/lib/glibc \
+    && for lib in "${loader}" libc.so.6 libm.so.6 libdl.so.2 libpthread.so.0 librt.so.1 libgcc_s.so.1; do \
+         cp -L "/glibc/${arch}-linux-gnu/${lib}" /usr/local/lib/glibc/; \
+       done \
+    && patchelf --set-interpreter "/usr/local/lib/glibc/${loader}" --set-rpath /usr/local/lib/glibc /tmp/deno \
+    && install -Dm755 /tmp/deno /usr/local/bin/deno \
+    && deno --version
+
 FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need. tini is PID 1 so the
-# ffmpeg left behind when a yt-dlp download is stopped gets reaped. yt-dlp's
-# YouTube solver (yt-dlp-ejs) takes whichever JavaScript runtime apk picks, so
-# deno is named to make it the one KL_DENO points at. Chromium is the sign-in
-# browser (internal/signinbrowser), started only while somebody signs in to a
-# site from the web interface; Noto covers the scripts a login page falls back
-# to where its own web fonts do not.
-RUN apk add --no-cache ca-certificates yt-dlp deno ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
-      chromium font-noto \
+# ffmpeg left behind when a yt-dlp download is stopped gets reaped. yt-dlp is
+# Alpine's yt-dlp package without py3-secretstorage, which only opens a desktop
+# keyring for --cookies-from-browser and brings py3-cryptography with it.
+# yt-dlp-ejs, the YouTube solver, wants a JavaScript runtime from apk, and
+# QuickJS is the smallest; yt-dlp runs the Deno above, which it is handed with
+# --js-runtimes. Chromium is the sign-in browser (internal/signinbrowser),
+# started only while somebody signs in to a site from the web interface; Noto
+# covers the scripts a login page falls back to where its own web fonts do not.
+# apk upgrade takes the fixes Alpine published after the base image was built.
+RUN apk add --no-cache ca-certificates ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
+      yt-dlp-core attr py3-brotli py3-mutagen py3-pycryptodomex py3-websockets \
+      yt-dlp-ejs yt-dlp-ejs-rt-quickjs chromium font-noto \
+    && apk upgrade --no-cache \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
 COPY --from=unrar /out/unrar /usr/local/bin/unrar
 COPY --from=unrar /out/license.txt /usr/share/licenses/unrar/license.txt
+COPY --from=deno /usr/local/lib/glibc /usr/local/lib/glibc
+COPY --from=deno /usr/local/bin/deno /usr/local/bin/deno
 
 # Data (SQLite, settings, encrypted accounts) and downloads live on volumes.
 ENV KL_DATA=/data \
     KL_ADDR=:8749 \
     KL_YTDLP=/usr/bin/yt-dlp \
-    KL_DENO=/usr/bin/deno \
+    KL_DENO=/usr/local/bin/deno \
     KL_CHROMIUM=/usr/lib/chromium/chromium
 VOLUME ["/data"]
 EXPOSE 8749

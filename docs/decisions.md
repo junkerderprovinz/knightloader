@@ -234,9 +234,13 @@ list on Windows), runs it with `--version` and puts it beside the fetched
 yt-dlp. Every yt-dlp run gets it as `--js-runtimes deno:<path>`, the fetched
 copy ahead of `KL_DENO` and `PATH` as for yt-dlp itself, and without a Deno
 yt-dlp runs as before with fewer YouTube formats. A newer release replaces the
-fetched copy. The container installs Alpine's deno package instead, which is
-built for musl on both architectures, where the official builds need glibc.
-The self-test does not take a Deno on disk as proof: it asks yt-dlp, whose
+fetched copy. The container takes the official release too, pinned in the
+Dockerfile and checked against the same `.sha256sum`, because Alpine's deno
+package trails the releases by months and carries their security fixes late.
+The official builds need glibc, so the image keeps the few glibc libraries
+Deno links in `/usr/local/lib/glibc`, away from Alpine's musl, and the binary
+is patched to load them from there. A Deno update in the container comes with
+a new image, never at run time. The self-test does not take a Deno on disk as proof: it asks yt-dlp, whose
 `-v` header names the runtimes it found, and warns on `JS runtimes: none`.
 
 ## The desktop update: on the next start or a restart asked for, checked by its checksum
