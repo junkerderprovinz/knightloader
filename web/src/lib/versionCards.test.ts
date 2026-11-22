@@ -68,6 +68,19 @@ describe('the Version card logic', () => {
     expect(timeAgo(new Date('2026-11-21T11:57:00Z'), 'en', now)).toBe('3 minutes ago');
     expect(timeAgo(new Date('2026-11-21T11:59:50Z'), 'de', now)).toBe('jetzt');
   });
+
+  it('gives the time of day, or the date before today, where the engine has no RelativeTimeFormat', () => {
+    const intl = Intl as unknown as Record<string, unknown>;
+    const relative = intl.RelativeTimeFormat;
+    delete intl.RelativeTimeFormat;
+    try {
+      const now = new Date(2026, 10, 22, 14, 30);
+      expect(timeAgo(new Date(2026, 10, 22, 14, 5), 'en', now)).toMatch(/^2:05\sPM$/);
+      expect(timeAgo(new Date(2026, 10, 21, 9, 0), 'en', now)).toBe('Nov 21');
+    } finally {
+      intl.RelativeTimeFormat = relative;
+    }
+  });
 });
 
 describe('the Components card logic', () => {

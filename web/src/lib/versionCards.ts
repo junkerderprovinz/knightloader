@@ -5,6 +5,7 @@
 // componentsCard.*, which carry GlimStone's own tables.
 
 import { GLIMSTONE_REPO, GLIMSTONE_VERSION } from './glimstoneVersion';
+import { intlHas } from './intl';
 import type { TranslationKey } from './locales/en';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
@@ -73,8 +74,13 @@ export interface ComponentsCardText {
   unreleased: (version: string) => string;
 }
 
-/** A time before now in the language's words: "3 minutes ago", "yesterday". */
+/** A time before now in the language's words: "3 minutes ago", "yesterday". Without RelativeTimeFormat, the time of day or the date. */
 export function timeAgo(at: Date, lang: string, now: Date = new Date()): string {
+  if (!intlHas('RelativeTimeFormat')) {
+    return at.toDateString() === now.toDateString()
+      ? at.toLocaleTimeString(lang, { hour: 'numeric', minute: '2-digit' })
+      : at.toLocaleDateString(lang, { day: 'numeric', month: 'short' });
+  }
   const seconds = Math.round((at.getTime() - now.getTime()) / 1000);
   const format = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
   const steps: [Intl.RelativeTimeFormatUnit, number][] = [
