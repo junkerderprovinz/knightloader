@@ -3944,6 +3944,7 @@ export const ms: Dict = {
   'whatsnew.change.appImage': 'Linux kini ada AppImage untuk amd64 dan arm64 yang berjalan tanpa pemasangan dan mengemas kini dirinya sendiri.',
   'whatsnew.change.connectionRows': 'Log masuk anda di laman dan hos dipaparkan sebagai baris padat dengan “{signIn}”, “{test}”, “{edit}” dan “{remove}”.',
   'whatsnew.change.parkedBand': 'Muat turun yang dinyahdayakan terletak pada jalur lebih gelap yang mengikut tahap lorekan yang anda pilih.',
+  'whatsnew.change.versionCard': 'Kad “{name}” menunjukkan keadaan kemas kini. Pada desktop, kad ini memuat turun versi baharu dan memulakan semula KnightLoader dengannya hanya dengan satu butang.',
   'whatsnew.change.listShade': 'Muat turun dan Pengumpul pautan melorek bayang pada barisnya: setiap pakej terpisah daripada pakej seterusnya, dan failnya berselang-seli samar. “{name}” mematikannya.',
   'whatsnew.change.accountSwitches': 'Akaun didayakan dan dinyahdayakan dalam menu gear pada kadnya, satu demi satu di bawah “{name}” atau semua sekali gus. Akaun yang dinyahdayakan menyatakannya dalam barisnya.',
   'whatsnew.change.hostSelect': 'Penapis “{name}” dalam pengumpul pautan ada butang di sebelah setiap hos yang memilih semua pautannya dalam senarai. Pilih hos cermin yang tidak kamu perlukan dan padamkan semuanya sekali gus.',

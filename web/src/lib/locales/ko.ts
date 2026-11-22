@@ -3932,6 +3932,7 @@ export const ko: Dict = {
   'whatsnew.change.appImage': 'Linux용 amd64·arm64 AppImage가 생겼습니다. 설치 없이 실행되고 스스로 업데이트합니다.',
   'whatsnew.change.connectionRows': '사이트와 호스터 로그인이 “{signIn}”, “{test}”, “{edit}”, “{remove}” 버튼이 있는 간결한 행으로 표시됩니다.',
   'whatsnew.change.parkedBand': '비활성화된 다운로드는 선택한 음영 단계에 맞춘 더 어두운 띠 위에 놓입니다.',
+  'whatsnew.change.versionCard': '“{name}” 카드에 업데이트 상태가 표시됩니다. 데스크톱에서는 새 버전을 내려받고, 버튼 하나로 KnightLoader를 새 버전으로 다시 시작합니다.',
   'whatsnew.change.listShade': '다운로드와 링크 수집기의 행에 음영이 들어갑니다. 패키지마다 다음 패키지와 구분되고, 그 파일은 옅게 번갈아 칠해집니다. “{name}”으로 끌 수 있습니다.',
   'whatsnew.change.accountSwitches': '계정은 카드의 톱니바퀴 메뉴에서 사용하거나 끌 수 있습니다. “{name}”에서 하나씩, 또는 한 번에 모두 바꿀 수 있습니다. 사용하지 않는 계정은 행에 그렇게 표시됩니다.',
   'whatsnew.change.hostSelect': '링크 수집기의 “{name}” 필터에는 호스트마다 목록에서 그 호스트의 링크를 모두 선택하는 버튼이 있습니다. 필요 없는 미러 호스트를 골라 한 번에 삭제하세요.',

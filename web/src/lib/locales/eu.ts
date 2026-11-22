@@ -3940,6 +3940,7 @@ export const eu: Dict = {
   'whatsnew.change.appImage': 'Linuxek AppImage bat du amd64 eta arm64rako, ezer instalatu gabe dabilena eta bere burua eguneratzen duena.',
   'whatsnew.change.connectionRows': 'Webguneetako eta ostalarietako saio-hasierak errenkada trinko gisa ageri dira, «{signIn}», «{test}», «{edit}» eta «{remove}» botoiekin.',
   'whatsnew.change.parkedBand': 'Desgaitutako deskarga bat banda ilunago batean dago, zuk aukeratutako itzaltze-mailari jarraitzen diona.',
+  'whatsnew.change.versionCard': '«{name}» txartelak eguneratzeak nola dauden erakusten du. Mahaigainean bertsio berria deskargatzen du, eta botoi bakar batekin KnightLoader berrabiarazten du harekin.',
   'whatsnew.change.listShade': 'Deskargak eta Esteka biltzailea atalek errenkadak itzaltzen dituzte: pakete bakoitza hurrengotik bereizten da, eta bere fitxategiak leunki txandakatzen dira. «{name}» aukerak desaktibatzen du.',
   'whatsnew.change.accountSwitches': 'Kontuak beren txarteleko engranaje-menuan gaitzen eta desgaitzen dira, banan-banan «{name}» atalean edo denak batera. Desgaitutako kontu batek bere errenkadan esaten du.',
   'whatsnew.change.hostSelect': 'Esteka biltzaileko «{name}» iragazkiak botoi bat du ostalari bakoitzaren ondoan, zerrendako bere esteka guztiak hautatzen dituena. Hautatu behar ez dituzun ispilu ostalariak eta ezabatu denak batera.',

@@ -3953,6 +3953,7 @@ export const ro: Dict = {
   'whatsnew.change.appImage': 'Linux primește un AppImage pentru amd64 și arm64 care rulează fără instalare și se actualizează singur.',
   'whatsnew.change.connectionRows': 'Conectările tale pe site-uri și la hosteri apar ca rânduri compacte cu „{signIn}”, „{test}”, „{edit}” și „{remove}”.',
   'whatsnew.change.parkedBand': 'O descărcare dezactivată stă pe o bandă mai închisă care urmează nivelul de umbrire ales.',
+  'whatsnew.change.versionCard': 'Cardul „{name}” arată cum stau actualizările. Pe desktop descarcă o versiune nouă și repornește KnightLoader cu ea dintr-un singur buton.',
   'whatsnew.change.listShade': 'Descărcări și colectorul de linkuri își umbresc rândurile: fiecare pachet se deosebește de următorul, iar fișierele lui alternează discret. „{name}” oprește asta.',
   'whatsnew.change.accountSwitches': 'Conturile se activează și se dezactivează din meniul cu rotiță de pe cardul lor, pe rând în „{name}” sau toate odată. Un cont dezactivat spune asta pe rândul său.',
   'whatsnew.change.hostSelect': 'Filtrul „{name}” din colectorul de linkuri are lângă fiecare gazdă un buton care selectează toate linkurile ei din listă. Selectează gazdele oglindă de care nu ai nevoie și șterge-le dintr-odată.',

@@ -3933,6 +3933,7 @@ export const fr: Dict = {
   'whatsnew.change.appImage': 'Linux a désormais une AppImage pour amd64 et arm64, qui tourne sans installation et se met à jour toute seule.',
   'whatsnew.change.connectionRows': 'Vos connexions aux sites et hébergeurs s’affichent en lignes compactes avec « {signIn} », « {test} », « {edit} » et « {remove} ».',
   'whatsnew.change.parkedBand': 'Un téléchargement désactivé repose sur une bande plus sombre qui suit le niveau d’ombrage choisi.',
+  'whatsnew.change.versionCard': 'La carte « {name} » montre où en sont les mises à jour. Sur l’ordinateur, elle télécharge une nouvelle version et redémarre KnightLoader dessus d’un simple bouton.',
   'whatsnew.change.listShade': 'Téléchargements et le collecteur de liens ombrent leurs lignes : chaque paquet se détache du suivant et ses fichiers alternent discrètement. « {name} » le désactive.',
   'whatsnew.change.accountSwitches': 'Les comptes s’activent et se désactivent dans le menu en forme d’engrenage de leur carte, un par un sous « {name} » ou tous à la fois. Un compte désactivé l’indique sur sa ligne.',
   'whatsnew.change.hostSelect': 'Le filtre « {name} » du collecteur de liens a, à côté de chaque hébergeur, un bouton qui sélectionne tous ses liens de la liste. Sélectionne les hébergeurs miroirs dont tu n\'as pas besoin et supprime-les d\'un coup.',

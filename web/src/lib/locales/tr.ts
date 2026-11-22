@@ -3943,6 +3943,7 @@ export const tr: Dict = {
   'whatsnew.change.appImage': 'Linux için amd64 ve arm64 AppImage geldi; kurulum gerektirmeden çalışır ve kendini günceller.',
   'whatsnew.change.connectionRows': 'Sitelerdeki ve barındırıcılardaki oturum açmaların “{signIn}”, “{test}”, “{edit}” ve “{remove}” içeren derli toplu satırlar olarak görünür.',
   'whatsnew.change.parkedBand': 'Devre dışı bırakılan bir indirme, seçtiğin gölgelendirme düzeyini izleyen daha koyu bir bant üzerinde durur.',
+  'whatsnew.change.versionCard': '“{name}” kartı güncellemelerin ne durumda olduğunu gösterir. Masaüstünde yeni sürümü indirir ve tek bir düğmeyle KnightLoader’ı onunla yeniden başlatır.',
   'whatsnew.change.listShade': 'İndirmeler ve Bağlantı toplayıcı satırlarını gölgelendirir: her paket bir sonrakinden ayrılır, dosyaları da hafifçe dönüşümlü renklenir. “{name}” bunu kapatır.',
   'whatsnew.change.accountSwitches': 'Hesaplar, kartlarındaki dişli menüsünden etkinleştirilir ve devre dışı bırakılır; “{name}” altında tek tek ya da hepsi birden. Devre dışı bir hesap bunu kendi satırında söyler.',
   'whatsnew.change.hostSelect': 'Bağlantı toplayıcıdaki “{name}” filtresinde her sunucunun yanında, listedeki tüm bağlantılarını seçen bir düğme var. İhtiyacın olmayan yansı sunucularını seç ve hepsini bir kerede sil.',

@@ -3935,6 +3935,7 @@ export const lv: Dict = {
   'whatsnew.change.appImage': 'Linux saņem AppImage priekš amd64 un arm64, kas darbojas bez instalēšanas un pats atjaunojas.',
   'whatsnew.change.connectionRows': 'Tavas pierakstīšanās vietnēs un pie mitinātājiem redzamas kā kompaktas rindas ar „{signIn}“, „{test}“, „{edit}“ un „{remove}“.',
   'whatsnew.change.parkedBand': 'Atspējota lejupielāde atrodas uz tumšākas joslas, kas seko izvēlētajam ēnojuma līmenim.',
+  'whatsnew.change.versionCard': 'Kartīte „{name}“ rāda, kā ir ar atjauninājumiem. Datorā tā lejupielādē jaunu versiju un ar vienu pogu restartē KnightLoader ar to.',
   'whatsnew.change.listShade': 'Lejupielādes un Saišu savācējs ēno savas rindas: katra paka atdalās no nākamās, un tās faili smalki mijas. „{name}“ to izslēdz.',
   'whatsnew.change.accountSwitches': 'Kontus iespējo un atspējo to kartītes zobrata izvēlnē, pa vienam sadaļā „{name}“ vai visus uzreiz. Atspējots konts to norāda savā rindā.',
   'whatsnew.change.hostSelect': 'Saišu savācēja filtrā “{name}” pie katra glabātāja ir poga, kas sarakstā atlasa visas tā saites. Atlasi nevajadzīgos spoguļglabātājus un izdzēs tos vienā reizē.',

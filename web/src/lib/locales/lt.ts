@@ -3946,6 +3946,7 @@ export const lt: Dict = {
   'whatsnew.change.appImage': 'Linux gauna AppImage, skirtą amd64 ir arm64, kuris veikia be diegimo ir pats atsinaujina.',
   'whatsnew.change.connectionRows': 'Tavo prisijungimai prie svetainių ir talpintojų rodomi kaip glausti eilutės su „{signIn}“, „{test}“, „{edit}“ ir „{remove}“.',
   'whatsnew.change.parkedBand': 'Išjungtas atsisiuntimas guli ant tamsesnės juostos, kuri seka pasirinktą šešėliavimo lygį.',
+  'whatsnew.change.versionCard': 'Kortelė „{name}“ rodo, kaip sekasi atnaujinimams. Kompiuteryje ji atsisiunčia naują versiją ir vienu mygtuku iš naujo paleidžia KnightLoader su ja.',
   'whatsnew.change.listShade': 'Atsisiuntimai ir Nuorodų rinkiklis šešėliuoja savo eilutes: kiekvienas paketas atsiskiria nuo kito, o jo failai švelniai kaitaliojasi. „{name}“ tai išjungia.',
   'whatsnew.change.accountSwitches': 'Paskyros įjungiamos ir išjungiamos jų kortelės krumpliaračio meniu, po vieną skiltyje „{name}“ arba visos iš karto. Išjungta paskyra tai nurodo savo eilutėje.',
   'whatsnew.change.hostSelect': 'Nuorodų rinkiklio filtre „{name}“ prie kiekvienos talpyklos yra mygtukas, kuris sąraše pasirenka visas jos nuorodas. Pasirink nereikalingas veidrodines talpyklas ir ištrink jas iš karto.',

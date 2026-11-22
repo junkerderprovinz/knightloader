@@ -3934,6 +3934,7 @@ export const pt: Dict = {
   'whatsnew.change.appImage': 'O Linux ganha uma AppImage para amd64 e arm64 que funciona sem instalar nada e se atualiza sozinha.',
   'whatsnew.change.connectionRows': 'Os teus inícios de sessão em sites e alojamentos aparecem como linhas compactas com «{signIn}», «{test}», «{edit}» e «{remove}».',
   'whatsnew.change.parkedBand': 'Uma transferência desativada fica numa faixa mais escura que segue o nível de sombreado escolhido.',
+  'whatsnew.change.versionCard': 'O cartão «{name}» mostra em que ponto estão as atualizações. No computador, descarrega uma versão nova e reinicia o KnightLoader com ela num só botão.',
   'whatsnew.change.listShade': 'Transferências e o coletor de links sombreiam as suas linhas: cada pacote destaca-se do seguinte e os seus ficheiros alternam com suavidade. «{name}» desativa-o.',
   'whatsnew.change.accountSwitches': 'As contas ativam-se e desativam-se no menu da engrenagem do seu cartão, uma a uma em «{name}» ou todas de uma vez. Uma conta desativada indica-o na sua linha.',
   'whatsnew.change.hostSelect': 'O filtro “{name}” do coletor de links tem, ao lado de cada host, um botão que seleciona todos os seus links na lista. Selecione os hosts espelho de que você não precisa e apague-os de uma vez.',

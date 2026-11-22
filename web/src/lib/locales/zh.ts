@@ -3928,6 +3928,7 @@ export const zh: Dict = {
   'whatsnew.change.appImage': 'Linux 有了适用于 amd64 和 arm64 的 AppImage，无需安装即可运行，并会自行更新。',
   'whatsnew.change.connectionRows': '你在网站和网盘上的登录以紧凑的行显示，带有 “{signIn}”、“{test}”、“{edit}” 和 “{remove}”。',
   'whatsnew.change.parkedBand': '已停用的下载显示在更深的色带上，深浅跟随你选择的阴影级别。',
+  'whatsnew.change.versionCard': '“{name}”卡片显示更新的进展。在桌面版中，它会下载新版本，并一键用新版本重启 KnightLoader。',
   'whatsnew.change.listShade': '下载和链接收集器的行加上了底纹：每个包与下一个包分开，包里的文件以浅色交替显示。“{name}”可以关闭它。',
   'whatsnew.change.accountSwitches': '账户在其卡片的齿轮菜单中启用和停用，可在“{name}”中逐个切换，也可一次全部切换。已停用的账户会在所在行中注明。',
   'whatsnew.change.hostSelect': '链接收集器的“{name}”筛选中，每个主机旁都有一个按钮，可选中列表中该主机的全部链接。选中你不需要的镜像主机，一次删掉即可。',

@@ -3940,6 +3940,7 @@ export const is: Dict = {
   'whatsnew.change.appImage': 'Linux fær AppImage fyrir amd64 og arm64 sem keyrir án uppsetningar og uppfærir sig sjálft.',
   'whatsnew.change.connectionRows': 'Innskráningar þínar á síðum og hjá hýsingaraðilum birtast sem þéttar línur með „{signIn}“, „{test}“, „{edit}“ og „{remove}“.',
   'whatsnew.change.parkedBand': 'Óvirkt niðurhal liggur á dekkri rönd sem fylgir skyggingarstiginu sem þú valdir.',
+  'whatsnew.change.versionCard': 'Spjaldið „{name}“ sýnir hvar uppfærslur standa. Á tölvunni sækir það nýja útgáfu og endurræsir KnightLoader í henni með einum hnappi.',
   'whatsnew.change.listShade': 'Niðurhal og Tenglasafnarinn skyggja línurnar sínar: hver pakki sker sig frá þeim næsta og skrár hans skiptast dauft á. „{name}“ slekkur á því.',
   'whatsnew.change.accountSwitches': 'Aðgangar eru virkjaðir og gerðir óvirkir í tannhjólsvalmynd spjaldsins þeirra, einn í einu undir „{name}“ eða allir í einu. Óvirkur aðgangur segir það í sinni línu.',
   'whatsnew.change.hostSelect': 'Sían „{name}“ í tenglasafnaranum er með hnapp við hvern hýsil sem velur alla tengla hans á listanum. Veldu speglahýslana sem þú þarft ekki og eyddu þeim í einu lagi.',

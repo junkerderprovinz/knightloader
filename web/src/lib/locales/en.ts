@@ -4248,6 +4248,7 @@ export const en = {
   'whatsnew.change.appImage': 'Linux gets an AppImage for amd64 and arm64 that runs without installing anything and updates itself.',
   'whatsnew.change.connectionRows': 'Your sign-ins at sites and hosters stand as compact rows with "{signIn}", "{test}", "{edit}" and "{remove}".',
   'whatsnew.change.parkedBand': 'A disabled download sits on a darker band that follows the shading level you picked.',
+  'whatsnew.change.versionCard': 'The "{name}" card shows where updates stand. On the desktop it downloads a new version and restarts KnightLoader into it at the press of a button.',
   'whatsnew.change.listShade': 'Downloads and the link collector shade their rows: each package stands apart from the next, and its files alternate faintly. "{name}" turns it off.',
   'whatsnew.change.accountSwitches': 'You enable and disable accounts in the gear menu on their card, one by one under "{name}" or all at once. A disabled account says so in its row.',
   'whatsnew.change.hostSelect': 'The "{name}" filter in the link collector has a button beside each host that selects all of its links in the list. Select the mirror hosts you do not need and delete them in one go.',

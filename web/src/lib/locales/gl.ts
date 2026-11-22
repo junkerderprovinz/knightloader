@@ -3941,6 +3941,7 @@ export const gl: Dict = {
   'whatsnew.change.appImage': 'Linux ten unha AppImage para amd64 e arm64 que funciona sen instalar nada e se actualiza soa.',
   'whatsnew.change.connectionRows': 'Os teus inicios de sesión en sitios e aloxamentos aparecen como filas compactas con «{signIn}», «{test}», «{edit}» e «{remove}».',
   'whatsnew.change.parkedBand': 'Unha descarga desactivada queda sobre unha franxa máis escura que segue o nivel de sombreado que escolliches.',
+  'whatsnew.change.versionCard': 'A tarxeta «{name}» mostra como van as actualizacións. No escritorio descarga unha versión nova e reinicia KnightLoader con ela cun só botón.',
   'whatsnew.change.listShade': 'Descargas e o colector de ligazóns sombrean as súas filas: cada paquete distínguese do seguinte e os seus ficheiros alternan con suavidade. «{name}» desactívao.',
   'whatsnew.change.accountSwitches': 'As contas actívanse e desactívanse no menú da roda dentada da súa tarxeta, unha a unha en «{name}» ou todas á vez. Unha conta desactivada indícao na súa fila.',
   'whatsnew.change.hostSelect': 'O filtro «{name}» do colector de ligazóns ten un botón xunto a cada servidor que selecciona todas as súas ligazóns da lista. Selecciona os servidores espello que non precises e bórraos dunha vez.',

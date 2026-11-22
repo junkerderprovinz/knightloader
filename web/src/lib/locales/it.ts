@@ -3928,6 +3928,7 @@ export const it: Dict = {
   'whatsnew.change.appImage': 'Linux ha un’AppImage per amd64 e arm64 che funziona senza installare nulla e si aggiorna da sola.',
   'whatsnew.change.connectionRows': 'I tuoi accessi a siti e hoster compaiono come righe compatte con «{signIn}», «{test}», «{edit}» e «{remove}».',
   'whatsnew.change.parkedBand': 'Un download disattivato sta su una fascia più scura che segue il livello di ombreggiatura scelto.',
+  'whatsnew.change.versionCard': 'La scheda «{name}» mostra a che punto sono gli aggiornamenti. Sul desktop scarica una nuova versione e riavvia KnightLoader con essa premendo un pulsante.',
   'whatsnew.change.listShade': 'Download e il raccoglitore di link ombreggiano le righe: ogni pacchetto si stacca dal successivo e i suoi file si alternano con discrezione. «{name}» la disattiva.',
   'whatsnew.change.accountSwitches': 'Gli account si attivano e disattivano dal menu a ingranaggio della loro scheda, uno alla volta in «{name}» o tutti insieme. Un account disattivato lo dice nella sua riga.',
   'whatsnew.change.hostSelect': 'Il filtro «{name}» del raccoglitore di link ha accanto a ogni host un pulsante che seleziona tutti i suoi link nell\'elenco. Seleziona gli host mirror che non ti servono ed eliminali in un colpo solo.',

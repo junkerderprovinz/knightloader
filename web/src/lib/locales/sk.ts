@@ -3954,6 +3954,7 @@ export const sk: Dict = {
   'whatsnew.change.appImage': 'Linux dostáva AppImage pre amd64 a arm64, ktorý beží bez inštalácie a sám sa aktualizuje.',
   'whatsnew.change.connectionRows': 'Tvoje prihlásenia na weboch a u hostiteľov stoja ako kompaktné riadky s „{signIn}“, „{test}“, „{edit}“ a „{remove}“.',
   'whatsnew.change.parkedBand': 'Vypnuté sťahovanie leží na tmavšom pruhu, ktorý sa riadi zvolenou úrovňou tieňovania.',
+  'whatsnew.change.versionCard': 'Karta „{name}“ ukazuje, ako sú na tom aktualizácie. Na počítači stiahne novú verziu a stlačením tlačidla do nej KnightLoader reštartuje.',
   'whatsnew.change.listShade': 'Sťahovanie a Zberač odkazov tieňujú svoje riadky: každý balík sa odlíši od ďalšieho a jeho súbory sa jemne striedajú. „{name}“ to vypne.',
   'whatsnew.change.accountSwitches': 'Účty sa zapínajú a vypínajú v ponuke ozubeného kolesa na ich karte, jednotlivo v „{name}“ alebo všetky naraz. Vypnutý účet to uvádza vo svojom riadku.',
   'whatsnew.change.hostSelect': 'Filter „{name}“ v zberači odkazov má pri každom hosteri tlačidlo, ktoré vyberie všetky jeho odkazy v zozname. Vyber zrkadlové hostery, ktoré nepotrebuješ, a zmaž ich naraz.',

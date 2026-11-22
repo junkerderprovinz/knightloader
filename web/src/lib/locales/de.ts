@@ -4010,6 +4010,7 @@ export const de: Dict = {
   'whatsnew.change.appImage': 'Für Linux gibt es ein AppImage für amd64 und arm64, das ohne Installation läuft und sich selbst aktualisiert.',
   'whatsnew.change.connectionRows': 'Deine Anmeldungen bei Seiten und Hostern stehen als kompakte Zeilen mit „{signIn}“, „{test}“, „{edit}“ und „{remove}“.',
   'whatsnew.change.parkedBand': 'Ein deaktivierter Download liegt auf einem dunkleren Band, das der gewählten Schattierungsstufe folgt.',
+  'whatsnew.change.versionCard': 'Die Karte „{name}“ zeigt, wie es um die Updates steht. Am Desktop lädt sie eine neue Version herunter und startet KnightLoader per Knopfdruck damit neu.',
   'whatsnew.change.listShade': 'Downloads und der Linksammler schattieren ihre Zeilen. So setzt sich jedes Paket vom nächsten ab, und seine Dateien sind abwechselnd leicht getönt. „{name}“ schaltet das aus.',
   'whatsnew.change.accountSwitches': 'Konten aktivierst und deaktivierst du im Zahnradmenü ihrer Karte, einzeln unter „{name}“ oder alle auf einmal. Ein deaktiviertes Konto sagt das in seiner Zeile.',
   'whatsnew.change.hostSelect': 'Der Filter „{name}“ im Linksammler hat neben jedem Hoster einen Knopf, der alle seine Links in der Liste auswählt. So wählst du die Mirror-Hoster, die du nicht brauchst, und löschst sie in einem Rutsch.',

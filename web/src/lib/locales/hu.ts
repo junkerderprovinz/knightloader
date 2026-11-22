@@ -3945,6 +3945,7 @@ export const hu: Dict = {
   'whatsnew.change.appImage': 'Linuxra érkezik egy AppImage amd64-re és arm64-re, amely telepítés nélkül fut és magától frissül.',
   'whatsnew.change.connectionRows': 'Az oldalakon és tárhelyeken lévő bejelentkezéseid tömör sorokban állnak, ezekkel: „{signIn}”, „{test}”, „{edit}” és „{remove}”.',
   'whatsnew.change.parkedBand': 'A kikapcsolt letöltés sötétebb sávon áll, amely a választott árnyalási szintet követi.',
+  'whatsnew.change.versionCard': 'A(z) „{name}” kártya megmutatja, hol tartanak a frissítések. Asztali gépen letölti az új verziót, és egy gombnyomásra azzal indítja újra a KnightLoadert.',
   'whatsnew.change.listShade': 'A Letöltések és a Linkgyűjtő árnyékolja a sorait: minden csomag elválik a következőtől, a fájljai pedig halványan váltakoznak. A(z) „{name}” kikapcsolja.',
   'whatsnew.change.accountSwitches': 'A fiókokat a kártyájuk fogaskerék menüjében kapcsolod be és ki, egyenként a „{name}” alatt vagy mindet egyszerre. A kikapcsolt fiók ezt a sorában jelzi.',
   'whatsnew.change.hostSelect': 'A linkgyűjtő „{name}” szűrőjében minden tárhely mellett van egy gomb, amely kijelöli a listában az összes linkjét. Jelöld ki a fölösleges tükörtárhelyeket, és töröld őket egyszerre.',

@@ -3944,6 +3944,7 @@ export const vi: Dict = {
   'whatsnew.change.appImage': 'Linux có AppImage cho amd64 và arm64, chạy không cần cài đặt và tự cập nhật.',
   'whatsnew.change.connectionRows': 'Các lần đăng nhập của bạn ở trang web và dịch vụ lưu trữ hiện thành các hàng gọn với “{signIn}”, “{test}”, “{edit}” và “{remove}”.',
   'whatsnew.change.parkedBand': 'Một lượt tải đã tắt nằm trên dải tối hơn, theo mức tô bóng bạn đã chọn.',
+  'whatsnew.change.versionCard': 'Thẻ “{name}” cho biết tình trạng cập nhật. Trên máy tính, thẻ này tải phiên bản mới và khởi động lại KnightLoader bằng phiên bản đó chỉ với một nút bấm.',
   'whatsnew.change.listShade': 'Tải xuống và Bộ thu liên kết tô bóng các hàng: mỗi gói tách khỏi gói tiếp theo, và các tệp của gói xen kẽ màu nhạt. “{name}” tắt tính năng này.',
   'whatsnew.change.accountSwitches': 'Tài khoản được bật và tắt trong menu bánh răng trên thẻ của chúng, từng cái trong “{name}” hoặc tất cả cùng lúc. Tài khoản đã tắt sẽ ghi rõ trong hàng của nó.',
   'whatsnew.change.hostSelect': 'Bộ lọc “{name}” trong bộ thu liên kết có một nút cạnh mỗi máy chủ để chọn tất cả liên kết của máy chủ đó trong danh sách. Chọn các máy chủ nhân bản bạn không cần rồi xóa chúng một lượt.',

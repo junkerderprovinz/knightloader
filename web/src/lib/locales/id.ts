@@ -3944,6 +3944,7 @@ export const id: Dict = {
   'whatsnew.change.appImage': 'Linux kini punya AppImage untuk amd64 dan arm64 yang berjalan tanpa instalasi dan memperbarui dirinya sendiri.',
   'whatsnew.change.connectionRows': 'Login kamu di situs dan hoster tampil sebagai baris ringkas dengan “{signIn}”, “{test}”, “{edit}”, dan “{remove}”.',
   'whatsnew.change.parkedBand': 'Unduhan yang dinonaktifkan berada di pita yang lebih gelap, mengikuti tingkat bayangan yang kamu pilih.',
+  'whatsnew.change.versionCard': 'Kartu “{name}” menunjukkan status pembaruan. Di desktop, kartu ini mengunduh versi baru dan memulai ulang KnightLoader dengannya cukup dengan satu tombol.',
   'whatsnew.change.listShade': 'Unduhan dan Pengumpul tautan memberi bayangan pada barisnya: setiap paket terpisah dari paket berikutnya, dan file-filenya berselang-seling samar. “{name}” mematikannya.',
   'whatsnew.change.accountSwitches': 'Akun diaktifkan dan dinonaktifkan di menu roda gigi pada kartunya, satu per satu di “{name}” atau sekaligus. Akun yang nonaktif menyebutkannya di barisnya.',
   'whatsnew.change.hostSelect': 'Filter “{name}” di pengumpul tautan punya tombol di samping setiap host yang memilih semua tautannya di daftar. Pilih host cermin yang tidak kamu perlukan lalu hapus sekaligus.',

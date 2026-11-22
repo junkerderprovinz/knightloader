@@ -3943,6 +3943,7 @@ export const sl: Dict = {
   'whatsnew.change.appImage': 'Linux dobi AppImage za amd64 in arm64, ki deluje brez namestitve in se sam posodablja.',
   'whatsnew.change.connectionRows': 'Tvoje prijave na spletnih mestih in pri gostiteljih so prikazane kot strnjene vrstice z »{signIn}«, »{test}«, »{edit}« in »{remove}«.',
   'whatsnew.change.parkedBand': 'Onemogočen prenos leži na temnejšem pasu, ki sledi izbrani stopnji senčenja.',
+  'whatsnew.change.versionCard': 'Kartica »{name}« pokaže, kako je s posodobitvami. Na namizju prenese novo različico in z enim gumbom z njo znova zažene KnightLoader.',
   'whatsnew.change.listShade': 'Prenosi in Zbiralnik povezav senčijo svoje vrstice: vsak paket se loči od naslednjega, njegove datoteke pa se nežno izmenjujejo. »{name}« to izklopi.',
   'whatsnew.change.accountSwitches': 'Račune omogočiš in onemogočiš v meniju z zobnikom na njihovi kartici, enega za drugim pod »{name}« ali vse hkrati. Onemogočen račun to pove v svoji vrstici.',
   'whatsnew.change.hostSelect': 'Filter »{name}« v zbiralniku povezav ima ob vsakem gostitelju gumb, ki na seznamu izbere vse njegove povezave. Izberi zrcalne gostitelje, ki jih ne potrebuješ, in jih izbriši naenkrat.',

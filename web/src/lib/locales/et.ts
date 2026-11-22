@@ -3935,6 +3935,7 @@ export const et: Dict = {
   'whatsnew.change.appImage': 'Linux saab AppImage’i amd64 ja arm64 jaoks, mis töötab ilma paigaldamata ja uuendab end ise.',
   'whatsnew.change.connectionRows': 'Sinu sisselogimised saitidele ja hostijatele on kompaktsed read nuppudega „{signIn}“, „{test}“, „{edit}“ ja „{remove}“.',
   'whatsnew.change.parkedBand': 'Keelatud allalaadimine on tumedamal ribal, mis järgib valitud varjutustaset.',
+  'whatsnew.change.versionCard': 'Kaart „{name}“ näitab, kus uuendused on. Arvutis laadib see uue versiooni alla ja käivitab KnightLoaderi nupuvajutusega sellega uuesti.',
   'whatsnew.change.listShade': 'Allalaadimised ja Linkide koguja varjutavad oma ridu: iga pakk eristub järgmisest ja selle failid vahelduvad õrnalt. „{name}“ lülitab selle välja.',
   'whatsnew.change.accountSwitches': 'Kontosid lubatakse ja keelatakse nende kaardi hammasratta menüüs, ükshaaval jaotises „{name}“ või kõik korraga. Keelatud konto ütleb seda oma real.',
   'whatsnew.change.hostSelect': 'Linkide koguja filtris „{name}“ on iga majutaja kõrval nupp, mis valib kõik tema lingid nimekirjas. Vali peeglimajutajad, mida sul vaja ei ole, ja kustuta need korraga.',

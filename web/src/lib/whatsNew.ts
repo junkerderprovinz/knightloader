@@ -51,6 +51,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.9.5',
+    changes: [{ id: 'version-card', text: 'whatsnew.change.versionCard', names: { name: 'versionCard.title' } }],
+  },
+  {
     version: '2.9.3',
     changes: [
       { id: 'appimage', to: ['/settings/browsertools'], text: 'whatsnew.change.appImage' },

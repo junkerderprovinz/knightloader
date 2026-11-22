@@ -3944,6 +3944,7 @@ export const sv: Dict = {
   'whatsnew.change.appImage': 'Linux får en AppImage för amd64 och arm64 som körs utan installation och uppdaterar sig själv.',
   'whatsnew.change.connectionRows': 'Dina inloggningar på webbplatser och värdar visas som kompakta rader med ”{signIn}”, ”{test}”, ”{edit}” och ”{remove}”.',
   'whatsnew.change.parkedBand': 'En inaktiverad nedladdning ligger på ett mörkare band som följer den skuggningsnivå du har valt.',
+  'whatsnew.change.versionCard': 'Kortet ”{name}” visar hur det står till med uppdateringarna. På datorn laddar det ner en ny version och startar om KnightLoader med den med en knapptryckning.',
   'whatsnew.change.listShade': 'Nedladdningar och Länksamlaren skuggar sina rader: varje paket skiljer sig från nästa, och dess filer växlar svagt. ”{name}” stänger av det.',
   'whatsnew.change.accountSwitches': 'Konton aktiveras och inaktiveras i kugghjulsmenyn på deras kort, ett i taget under ”{name}” eller alla på en gång. Ett inaktiverat konto säger det på sin rad.',
   'whatsnew.change.hostSelect': 'Filtret ”{name}” i länksamlaren har en knapp vid varje värd som markerar alla dess länkar i listan. Markera spegelvärdarna du inte behöver och ta bort dem i ett svep.',

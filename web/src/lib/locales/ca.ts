@@ -3931,6 +3931,7 @@ export const ca: Dict = {
   'whatsnew.change.appImage': 'Linux té una AppImage per a amd64 i arm64 que funciona sense instal·lar res i s’actualitza sola.',
   'whatsnew.change.connectionRows': 'Els teus inicis de sessió a llocs i allotjadors apareixen com a files compactes amb «{signIn}», «{test}», «{edit}» i «{remove}».',
   'whatsnew.change.parkedBand': 'Una baixada desactivada queda sobre una franja més fosca que segueix el nivell d’ombrejat que has triat.',
+  'whatsnew.change.versionCard': 'La targeta «{name}» mostra com estan les actualitzacions. A l’escriptori baixa una versió nova i reinicia KnightLoader amb ella amb només un botó.',
   'whatsnew.change.listShade': 'Baixades i el recol·lector d\'enllaços ombregen les files: cada paquet es distingeix del següent i els seus fitxers alternen suaument. «{name}» ho desactiva.',
   'whatsnew.change.accountSwitches': 'Els comptes s’activen i es desactiven al menú de l’engranatge de la seva targeta, d’un en un a «{name}» o tots alhora. Un compte desactivat ho diu a la seva fila.',
   'whatsnew.change.hostSelect': 'El filtre «{name}» del recol·lector d\'enllaços té un botó al costat de cada amfitrió que selecciona tots els seus enllaços de la llista. Selecciona els amfitrions mirall que no necessitis i esborra\'ls d\'un sol cop.',

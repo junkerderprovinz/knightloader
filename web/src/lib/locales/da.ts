@@ -3930,6 +3930,7 @@ export const da: Dict = {
   'whatsnew.change.appImage': 'Linux får et AppImage til amd64 og arm64, der kører uden installation og opdaterer sig selv.',
   'whatsnew.change.connectionRows': 'Dine logins på sider og hostere står som kompakte rækker med „{signIn}“, „{test}“, „{edit}“ og „{remove}“.',
   'whatsnew.change.parkedBand': 'En deaktiveret download ligger på et mørkere bånd, der følger det skyggeniveau, du har valgt.',
+  'whatsnew.change.versionCard': 'Kortet „{name}“ viser, hvor opdateringerne står. På computeren henter det en ny version og genstarter KnightLoader i den med et tryk på en knap.',
   'whatsnew.change.listShade': 'Downloads og Linksamleren skraverer deres rækker: hver pakke skiller sig ud fra den næste, og dens filer skifter svagt. „{name}“ slår det fra.',
   'whatsnew.change.accountSwitches': 'Konti slås til og fra i tandhjulsmenuen på deres kort, én ad gangen under „{name}“ eller alle på én gang. En konto, der er slået fra, siger det i sin række.',
   'whatsnew.change.hostSelect': 'Filteret “{name}” i linksamleren har en knap ved hver vært, som vælger alle dens links på listen. Vælg de spejlværter, du ikke har brug for, og slet dem på én gang.',

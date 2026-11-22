@@ -3947,6 +3947,7 @@ export const no: Dict = {
   'whatsnew.change.appImage': 'Linux får et AppImage for amd64 og arm64 som kjører uten installasjon og oppdaterer seg selv.',
   'whatsnew.change.connectionRows': 'Påloggingene dine på nettsteder og verter står som kompakte rader med «{signIn}», «{test}», «{edit}» og «{remove}».',
   'whatsnew.change.parkedBand': 'En deaktivert nedlasting ligger på et mørkere bånd som følger skyggenivået du har valgt.',
+  'whatsnew.change.versionCard': 'Kortet «{name}» viser hvor oppdateringene står. På datamaskinen laster det ned en ny versjon og starter KnightLoader på nytt med den med ett trykk på en knapp.',
   'whatsnew.change.listShade': 'Nedlastinger og Linksamleren skyggelegger radene sine: hver pakke skiller seg fra den neste, og filene veksler svakt. «{name}» slår det av.',
   'whatsnew.change.accountSwitches': 'Kontoer slås på og av i tannhjulmenyen på kortet deres, én om gangen under «{name}» eller alle på én gang. En konto som er slått av, sier det i raden sin.',
   'whatsnew.change.hostSelect': 'Filteret «{name}» i linksamleren har en knapp ved hver vert som velger alle lenkene dens i listen. Velg speilvertene du ikke trenger, og slett dem på én gang.',

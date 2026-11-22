@@ -3958,6 +3958,7 @@ export const hr: Dict = {
   'whatsnew.change.appImage': 'Linux dobiva AppImage za amd64 i arm64 koji radi bez instalacije i sam se ažurira.',
   'whatsnew.change.connectionRows': 'Tvoje prijave na stranice i hostere stoje kao kompaktni redovi s „{signIn}”, „{test}”, „{edit}” i „{remove}”.',
   'whatsnew.change.parkedBand': 'Isključeno preuzimanje stoji na tamnijoj traci koja prati odabranu razinu sjenčanja.',
+  'whatsnew.change.versionCard': 'Kartica „{name}” pokazuje kako stoje ažuriranja. Na računalu preuzima novu verziju i jednim gumbom ponovno pokreće KnightLoader s njom.',
   'whatsnew.change.listShade': 'Preuzimanja i Sakupljač poveznica zasjenjuju svoje retke: svaki se paket odvaja od sljedećeg, a njegove se datoteke nježno izmjenjuju. „{name}” to isključuje.',
   'whatsnew.change.accountSwitches': 'Računi se uključuju i isključuju u izborniku sa zupčanikom na njihovoj kartici, jedan po jedan pod „{name}” ili svi odjednom. Isključen račun to kaže u svom retku.',
   'whatsnew.change.hostSelect': 'Filtar „{name}” u sakupljaču poveznica uz svaki poslužitelj ima gumb koji odabire sve njegove poveznice na popisu. Odaberi zrcalne poslužitelje koji ti ne trebaju i izbriši ih odjednom.',

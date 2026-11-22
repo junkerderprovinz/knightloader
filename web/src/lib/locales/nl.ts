@@ -3927,6 +3927,7 @@ export const nl: Dict = {
   'whatsnew.change.appImage': 'Linux krijgt een AppImage voor amd64 en arm64 die zonder installatie draait en zichzelf bijwerkt.',
   'whatsnew.change.connectionRows': 'Je logins bij sites en hosters staan als compacte rijen met “{signIn}”, “{test}”, “{edit}” en “{remove}”.',
   'whatsnew.change.parkedBand': 'Een uitgeschakelde download ligt op een donkerdere band die het gekozen arceringsniveau volgt.',
+  'whatsnew.change.versionCard': 'De kaart “{name}” laat zien hoe het met updates staat. Op de desktop downloadt ze een nieuwe versie en start KnightLoader daarmee met één knop opnieuw.',
   'whatsnew.change.listShade': 'Downloads en de Linkverzamelaar arceren hun rijen: elk pakket steekt af tegen het volgende en de bestanden ervan wisselen zacht af. “{name}” zet het uit.',
   'whatsnew.change.accountSwitches': 'Accounts schakel je in en uit in het tandwielmenu op hun kaart, één voor één onder “{name}” of allemaal tegelijk. Een uitgeschakeld account zegt dat in zijn rij.',
   'whatsnew.change.hostSelect': 'Het filter ‘{name}’ in de linkverzamelaar heeft naast elke host een knop die al zijn links in de lijst selecteert. Selecteer de mirrorhosts die je niet nodig hebt en verwijder ze in één keer.',

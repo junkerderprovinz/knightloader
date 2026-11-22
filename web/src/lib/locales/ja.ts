@@ -3941,6 +3941,7 @@ export const ja: Dict = {
   'whatsnew.change.appImage': 'Linux 向けに amd64 と arm64 の AppImage が登場しました。インストール不要で動き、自分で更新します。',
   'whatsnew.change.connectionRows': 'サイトやホスターへのサインインは、「{signIn}」・「{test}」・「{edit}」・「{remove}」 を備えたコンパクトな行で表示されます。',
   'whatsnew.change.parkedBand': '無効にしたダウンロードは、選んだ網掛けの強さに合わせた濃い帯の上に表示されます。',
+  'whatsnew.change.versionCard': '「{name}」カードには更新の状況が表示されます。デスクトップ版では新しいバージョンをダウンロードし、ボタン一つで KnightLoader をそのバージョンで再起動します。',
   'whatsnew.change.listShade': 'ダウンロードとリンクコレクターの行に陰影がつきました。パッケージごとに区切りが見え、ファイルは淡く交互に色分けされます。「{name}」でオフにできます。',
   'whatsnew.change.accountSwitches': 'アカウントの有効化と無効化は、各カードの歯車メニューから行います。「{name}」で1つずつ、またはまとめて切り替えられます。無効なアカウントは行にそう表示されます。',
   'whatsnew.change.hostSelect': 'リンクコレクターの「{name}」フィルターでは、ホストごとにそのリンクをリスト内ですべて選択するボタンが付きました。不要なミラーのホストを選んで、まとめて削除できます。',

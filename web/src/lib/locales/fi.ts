@@ -3945,6 +3945,7 @@ export const fi: Dict = {
   'whatsnew.change.appImage': 'Linuxille on AppImage amd64:lle ja arm64:lle, joka toimii ilman asennusta ja päivittää itsensä.',
   'whatsnew.change.connectionRows': 'Kirjautumisesi sivustoille ja palveluntarjoajille näkyvät tiiviinä riveinä, joissa on ”{signIn}”, ”{test}”, ”{edit}” ja ”{remove}”.',
   'whatsnew.change.parkedBand': 'Poistettu lataus on tummemmalla raidalla, joka seuraa valitsemaasi varjostustasoa.',
+  'whatsnew.change.versionCard': 'Kortti ”{name}” näyttää, missä päivitykset menevät. Työpöydällä se lataa uuden version ja käynnistää KnightLoaderin napin painalluksella uudelleen sillä.',
   'whatsnew.change.listShade': 'Lataukset ja Linkkikerääjä varjostavat rivinsä: jokainen paketti erottuu seuraavasta, ja sen tiedostot vuorottelevat hienovaraisesti. ”{name}” poistaa sen käytöstä.',
   'whatsnew.change.accountSwitches': 'Tilit otetaan käyttöön ja poistetaan käytöstä niiden kortin rataskuvakkeen valikosta, yksitellen kohdassa ”{name}” tai kaikki kerralla. Käytöstä poistettu tili kertoo sen rivillään.',
   'whatsnew.change.hostSelect': 'Linkkikerääjän suodattimessa ”{name}” on jokaisen palvelun vieressä painike, joka valitsee kaikki sen linkit listalla. Valitse peilipalvelut, joita et tarvitse, ja poista ne kerralla.',

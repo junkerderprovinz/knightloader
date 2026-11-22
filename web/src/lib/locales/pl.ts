@@ -3929,6 +3929,7 @@ export const pl: Dict = {
   'whatsnew.change.appImage': 'Linux dostaje AppImage dla amd64 i arm64, który działa bez instalacji i sam się aktualizuje.',
   'whatsnew.change.connectionRows': 'Twoje logowania na stronach i u hostingów stoją jako zwarte wiersze z „{signIn}”, „{test}”, „{edit}” i „{remove}”.',
   'whatsnew.change.parkedBand': 'Wyłączone pobieranie leży na ciemniejszym pasie, który podąża za wybranym poziomem cieniowania.',
+  'whatsnew.change.versionCard': 'Karta „{name}” pokazuje, jak wyglądają aktualizacje. Na komputerze pobiera nową wersję i jednym przyciskiem uruchamia z nią KnightLoadera ponownie.',
   'whatsnew.change.listShade': 'Pobierania i Kolektor linków cieniują swoje wiersze: każdy pakiet odcina się od następnego, a jego pliki subtelnie się przeplatają. „{name}” to wyłącza.',
   'whatsnew.change.accountSwitches': 'Konta włącza się i wyłącza w menu z kołem zębatym na ich karcie, pojedynczo w „{name}” albo wszystkie naraz. Wyłączone konto mówi o tym w swoim wierszu.',
   'whatsnew.change.hostSelect': 'Filtr „{name}” w kolektorze linków ma przy każdym hosterze przycisk, który zaznacza wszystkie jego linki na liście. Zaznacz niepotrzebnych hosterów lustrzanych i usuń ich linki za jednym razem.',
