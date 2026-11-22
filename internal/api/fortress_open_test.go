@@ -162,11 +162,25 @@ func TestTheMembersInterfaceOpensBehindItsOwnSignIn(t *testing.T) {
 	}
 }
 
-func TestAMemberWithoutAPasswordDoesNotOpen(t *testing.T) {
+func TestAMemberWithoutAPasswordOpensWithItsOwnDoorsShut(t *testing.T) {
 	t.Parallel()
 	p := openingTwo(t, false)
-	if code, out := p.open(t, p.browser); code != http.StatusForbidden || out.Code != "ui_no_login" {
-		t.Errorf("opening a member without a password answered %d %+v", code, out)
+	tab := p.tab(t)
+	if code, raw := inTab(t, http.MethodGet, tab+"/api/tasks", ""); code != http.StatusOK {
+		t.Errorf("the member's list answered %d %.200s", code, raw)
+	}
+	for _, door := range []struct{ method, path, body string }{
+		{http.MethodPut, "/api/auth/password", `{"new":"set from elsewhere"}`},
+		{http.MethodGet, "/api/tokens", ""},
+		{http.MethodGet, "/api/system/backup", ""},
+	} {
+		code, raw := inTab(t, door.method, tab+door.path, door.body)
+		if code != http.StatusForbidden || !strings.Contains(raw, `"code":"notThroughFortress"`) {
+			t.Errorf("%s %s answered %d %.200s through the tunnel", door.method, door.path, code, raw)
+		}
+	}
+	if p.b.Auth.Enabled() {
+		t.Error("a page opened through the fortress gave the member its first password")
 	}
 }
 

@@ -43,11 +43,10 @@ var fortressUses = append(slices.Clone(afterdownload.Uses), kitfortress.OpenActi
 // the bar above an opened tab shows.
 const printLength = 8
 
-// fortressUI is this instance's web interface as the other members open it.
-// It opens only while the password is set, since without one every holder
-// of the phrase could use it.
+// fortressUI is this instance's web interface as the other members open it,
+// behind the password where one is set.
 func fortressUI(a *app.App, serve http.Handler) *kitfortress.UI {
-	return &kitfortress.UI{Handler: serve, SignIn: a.Auth.Enabled, Opened: func(from kitfortress.Caller) { openedBy(a, from) }}
+	return &kitfortress.UI{Handler: serve, Opened: func(from kitfortress.Caller) { openedBy(a, from) }}
 }
 
 // openedBy writes a member's new session on this instance's pages to the log
@@ -166,7 +165,7 @@ var tunnelShut = map[string]bool{
 
 // shutInTunnel reports whether r came through the fortress for a route that
 // stays closed to it. Setting the first password counts while there is none,
-// though the fortress opens nothing then.
+// so that the owner and not another member decides on one.
 func (reg *Registry) shutInTunnel(a *app.App, r *http.Request) bool {
 	if _, ok := kitfortress.Opened(r); !ok {
 		return false
@@ -193,8 +192,9 @@ func refuseOpen(w http.ResponseWriter, err error) {
 		writeRefusal(w, http.StatusNotFound, "no_ui", "that member has no pages to open", nil)
 	case errors.Is(err, kitfortress.ErrPermissionOff):
 		writeRefusal(w, http.StatusForbidden, "permission_off", "the permission to open its pages is off", nil)
+	// Only a member on an older kit answers this.
 	case errors.As(err, &no) && no.Code == "ui_no_login":
-		writeRefusal(w, http.StatusForbidden, "ui_no_login", "that app opens from elsewhere only once it has a password", nil)
+		writeRefusal(w, http.StatusForbidden, "ui_no_login", "that app needs an update before it opens from elsewhere", nil)
 	case errors.As(err, &no) && (no.Code == "busy" || no.Code == "jars_full"):
 		writeRefusal(w, http.StatusServiceUnavailable, "busy", "that member is busy, try again in a moment", nil)
 	default:
@@ -212,7 +212,7 @@ const statusLogLines = 10
 
 func registerFortressOpen(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/fortress/open/{id}",
-		"open the web interface of a member of the fortress in a new tab, behind that member's own sign-in; "+
+		"open the web interface of a member of the fortress in a new tab, behind that member's own sign-in where it has one; "+
 			"only for a browser signed in here with the password; answers the tab's path below the base path, or a refusal code",
 		func(w http.ResponseWriter, r *http.Request) {
 			token, ok := passwordSession(a, r)
