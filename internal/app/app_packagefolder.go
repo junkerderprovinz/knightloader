@@ -884,6 +884,21 @@ func (a *App) beginHandoverLocked(id string) {
 	a.handing[id]++
 }
 
+// handOverLocked sends id on its way to its backend: f runs off the lock as a
+// handover, and as work Close waits for. Once Close has begun f does not run,
+// since the backends it would reach are being stopped. Caller holds a.mu.
+func (a *App) handOverLocked(id string, f func()) {
+	if !a.track() {
+		return
+	}
+	a.beginHandoverLocked(id)
+	go func() {
+		defer a.wg.Done()
+		defer a.endHandover(id)
+		f()
+	}()
+}
+
 // endHandover ends what beginHandoverLocked began.
 func (a *App) endHandover(id string) {
 	a.mu.Lock()

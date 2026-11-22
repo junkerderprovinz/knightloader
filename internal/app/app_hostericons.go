@@ -225,22 +225,36 @@ func (a *App) fetchHosterIcon(host string) <-chan struct{} {
 		close(done)
 		return done
 	}
+	done := make(chan struct{})
+	// The fetch writes into the data folder, so Close waits for it.
+	if !a.track() {
+		close(done)
+		return done
+	}
 	if a.icons == nil {
 		a.icons = map[string]iconEntry{}
 	}
 	if a.iconFetches == nil {
 		a.iconFetches = map[string]chan struct{}{}
 	}
-	done := make(chan struct{})
 	a.iconFetches[host] = done
 	go func() {
+		defer a.wg.Done()
 		iconSlots <- struct{}{}
-		body, ct, err := fetchHostIcon(context.Background(), host)
+		body, ct, err := fetchHostIcon(a.ctx, host)
 		<-iconSlots
-		e := a.storeHosterIcon(host, body, ct, err)
+		// A fetch Close cut short says nothing about the site, so the next
+		// start asks it again.
+		kept := a.ctx.Err() == nil
+		var e iconEntry
+		if kept {
+			e = a.storeHosterIcon(host, body, ct, err)
+		}
 
 		a.iconMu.Lock()
-		a.rememberIconLocked(host, e)
+		if kept {
+			a.rememberIconLocked(host, e)
+		}
 		delete(a.iconFetches, host)
 		a.iconMu.Unlock()
 		close(done)

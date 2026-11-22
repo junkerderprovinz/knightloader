@@ -46,6 +46,10 @@ const pastedJars = "ytdlpcookies"
 // browserReader reads the domains' cookies from the browsers on this machine.
 type browserReader func(domains []string) ([]browsercookies.Found, []browsercookies.Unreadable)
 
+// readBrowsers is browsercookies.Read, a variable so tests do not read the
+// browsers of the machine they run on.
+var readBrowsers browserReader = browsercookies.Read
+
 // browserScan is what the browsers held for a site at one read.
 type browserScan struct {
 	at time.Time
@@ -69,10 +73,16 @@ func (a *App) StartBrowserSessions() {
 	}
 	st := a.siteLogins()
 	st.mu.Lock()
-	st.read = browsercookies.Read
+	st.read = readBrowsers
 	st.mu.Unlock()
+	// Taking the rows over writes the site store, so Close waits for a read
+	// under way.
+	if !a.track() {
+		return
+	}
 	go func() {
-		a.takeOverSiteRows(browsercookies.Read)
+		defer a.wg.Done()
+		a.takeOverSiteRows(readBrowsers)
 		tick := time.NewTicker(browserScanEvery)
 		defer tick.Stop()
 		for {

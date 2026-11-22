@@ -929,14 +929,12 @@ func (a *App) dispatchLocked() {
 			if misrouted {
 				a.rerouting[engineID] = true
 			}
-			a.beginHandoverLocked(id)
-			go func() {
-				defer a.endHandover(id)
+			a.handOverLocked(id, func() {
 				if misrouted {
 					a.reroute(id, engineID, route, chosen)
 				}
 				be.Resume(id)
-			}()
+			})
 			continue
 		}
 		// The filter is asked once more before bytes move, since rules may
@@ -1079,7 +1077,7 @@ func (a *App) dispatchLocked() {
 			if old := a.backendFor(prev); old != be {
 				t.Loaded = 0
 				t.ServiceJob = nil
-				go old.Remove(id, true)
+				a.spawn(func() { old.Remove(id, true) })
 			}
 		}
 		conns := connsFor(t, cfg, result.Connections, hostCapFor(res, h))
@@ -1109,22 +1107,11 @@ func (a *App) dispatchLocked() {
 				// A torrent carries on with the files its earlier attempt left.
 				own = leftover{}
 			}
-			a.beginHandoverLocked(id)
 			var seq uint64
 			if later != nil {
 				seq = a.beginPreflightLocked(id)
 			}
-			// Tracked so Close waits for a preflight in flight, which would
-			// otherwise report or start the job after the store is gone.
-			tracked := a.track()
-			go func() {
-				if tracked {
-					defer a.wg.Done()
-				}
-				defer a.endHandover(id)
-				if !tracked {
-					return
-				}
+			a.handOverLocked(id, func() {
 				if later != nil && !a.preflight(&job, later, seq) {
 					return
 				}
@@ -1132,20 +1119,18 @@ func (a *App) dispatchLocked() {
 					own.drop(id)
 				}
 				a.Engine.Start(job)
-			}()
+			})
 		} else {
 			// Delegated backends reach the internet their own way, so they get
 			// no route. Those that pass their link on to the engine go through
 			// engineHandoff, which gives the engine the same job and route as
 			// above.
-			a.beginHandoverLocked(id)
-			go func() {
-				defer a.endHandover(id)
+			a.handOverLocked(id, func() {
 				if !a.Engine.Resumes(id, own.path) {
 					own.drop(id)
 				}
 				be.Download(id, result.DirectURL, result.Headers, conns)
-			}()
+			})
 		}
 	}
 	a.queue = rest

@@ -210,12 +210,15 @@ func (a *App) bringUpQBit(gen int, v nox.Version) {
 	}
 	r := a.runQBit(v)
 	a.qbitMu.Lock()
-	defer a.qbitMu.Unlock()
 	if gen != a.qbitGen {
-		go r.Stop()
+		a.qbitMu.Unlock()
+		// A newer start took over meanwhile. Stopped here, off the lock, so
+		// Close waits for it through the spawn this runs in.
+		_ = r.Stop()
 		return
 	}
 	a.qbitRun, a.qbitPhase = r, ""
+	a.qbitMu.Unlock()
 }
 
 // applyQBitVersion swaps the running qBittorrent when the settings now hold
