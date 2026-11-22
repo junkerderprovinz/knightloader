@@ -87,5 +87,4 @@ Any client that speaks Streamable HTTP works:
 | `404` | No client is set up, or the path is wrong. The endpoint is `/mcp`. |
 | `401` | The token is missing, mistyped or revoked, or it was not made for an MCP client. A proxy may be dropping the `Authorization` header; try `X-API-Key`. |
 | `403` | The request came from a browser page on another site. |
-| `421` | No password is set and the client reached KnightLoader under a domain it does not know. Add the domain under **Settings, Pairing, Known domains**, or set a password. |
 | `not_permitted` | The token lacks the right the tool needs. Remove the client and add it again with that right. |

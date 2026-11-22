@@ -29,33 +29,32 @@ func requestOn(t *testing.T, url, method, path, host, origin string, header map[
 	return resp.StatusCode
 }
 
-// TestARebindingPageGetsNothingFromAnInstanceWithoutAPassword is the DNS
-// rebinding case: a page whose own domain was re-pointed at this machine sends
-// Origin and Host that agree, and with no password nothing else would stop it.
-func TestARebindingPageGetsNothingFromAnInstanceWithoutAPassword(t *testing.T) {
+// TestAnInstanceWithoutAPasswordAnswersOnEveryName: a reverse proxy or a
+// dynamic DNS name nobody listed yet reaches the whole app.
+func TestAnInstanceWithoutAPasswordAnswersOnEveryName(t *testing.T) {
 	t.Parallel()
-	srv, a := testServer(t)
+	srv, _ := testServer(t)
 	defer srv.Close()
 
-	const host, origin = "evil.example:8749", "http://evil.example:8749"
-	for _, c := range []struct{ method, path string }{
-		{http.MethodGet, "/api/tasks"},
-		{http.MethodPatch, "/api/settings"},
-		{http.MethodPost, "/api/connect/reveal"},
-		{http.MethodPut, "/api/auth/password"},
-		{http.MethodGet, "/api/ws"},
-		{http.MethodGet, "/"},
+	for _, host := range []string{
+		"192.168.1.20:8749",
+		"tower:8749",
+		"kl.dyndns.example",
+		"kl.example.com:443",
 	} {
-		if code := requestOn(t, srv.URL, c.method, c.path, host, origin, nil); code != http.StatusMisdirectedRequest {
-			t.Errorf("%s %s on a rebound domain answered %d, want 421", c.method, c.path, code)
+		if code := requestOn(t, srv.URL, http.MethodGet, "/api/tasks", host, "", nil); code != http.StatusOK {
+			t.Errorf("GET /api/tasks on %s answered %d, want 200", host, code)
 		}
-	}
-	if a.Auth.Enabled() {
-		t.Error("the rebound page managed to set a password")
+		if code := requestOn(t, srv.URL, http.MethodGet, "/", host, "", nil); code != http.StatusOK {
+			t.Errorf("GET / on %s answered %d, want 200", host, code)
+		}
 	}
 }
 
-func TestAnInstanceWithoutAPasswordAnswersOnItsOwnNames(t *testing.T) {
+// TestTheRelayKnowsTheInstancesOwnNames: a relay hello proves an id only to
+// the relay it names, so the relay takes the names nobody outside the local
+// network can point here, and the domains the owner listed.
+func TestTheRelayKnowsTheInstancesOwnNames(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -67,6 +66,7 @@ func TestAnInstanceWithoutAPasswordAnswersOnItsOwnNames(t *testing.T) {
 	}
 
 	for _, host := range []string{
+		"",
 		"192.168.1.20:8749",
 		"[::1]:8749",
 		"localhost:8749",
@@ -85,8 +85,13 @@ func TestAnInstanceWithoutAPasswordAnswersOnItsOwnNames(t *testing.T) {
 		"plain.example.org",
 		"relay.example.net",
 	} {
-		if code := requestOn(t, srv.URL, http.MethodGet, "/api/tasks", host, "", nil); code != http.StatusOK {
-			t.Errorf("GET /api/tasks on %s answered %d, want 200", host, code)
+		if !ownHost(a, host) {
+			t.Errorf("ownHost(%q) = false, want true", host)
+		}
+	}
+	for _, host := range []string{"evil.example:8749", "kl.dyndns.example"} {
+		if ownHost(a, host) {
+			t.Errorf("ownHost(%q) = true, want false", host)
 		}
 	}
 }
@@ -110,11 +115,14 @@ func TestAPasswordLetsEveryNameThrough(t *testing.T) {
 }
 
 // TestATokenPassesOnAnyName: a phone or a script calls the address it was
-// given, and a rebound page has no token to send.
+// given, and a made-up token gets no further than no token at all.
 func TestATokenPassesOnAnyName(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
 	_, secret, err := a.APITokens.Create("phone")
 	if err != nil {
 		t.Fatal(err)
@@ -124,7 +132,7 @@ func TestATokenPassesOnAnyName(t *testing.T) {
 		t.Errorf("GET /api/tasks with a token on an unlisted domain answered %d, want 200", code)
 	}
 	wrong := map[string]string{"Authorization": "Bearer not-a-token"}
-	if code := requestOn(t, srv.URL, http.MethodGet, "/api/tasks", "kl.dyndns.example", "", wrong); code != http.StatusMisdirectedRequest {
-		t.Errorf("GET /api/tasks with a made-up token on an unlisted domain answered %d, want 421", code)
+	if code := requestOn(t, srv.URL, http.MethodGet, "/api/tasks", "kl.dyndns.example", "", wrong); code != http.StatusUnauthorized {
+		t.Errorf("GET /api/tasks with a made-up token on an unlisted domain answered %d, want 401", code)
 	}
 }

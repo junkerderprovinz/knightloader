@@ -1,32 +1,26 @@
 import { ApiError } from './api';
-import type { TranslationKey } from './i18n';
 
 /**
- * The lengths the server takes for a new password: at least twelve characters,
- * counted as it counts them, by code point, and at most 72 bytes, which is
- * what bcrypt hashes.
+ * The server takes any password up to 72 bytes, which is what bcrypt hashes.
+ * Below twelve characters, counted by code point so every alphabet is held to
+ * the same length, the page says the password is easy to guess and sets it all
+ * the same.
  */
-export const MIN_PASSWORD_CHARS = 12;
+export const SHORT_PASSWORD_CHARS = 12;
 export const MAX_PASSWORD_BYTES = 72;
 
-export type LengthProblem = 'short' | 'long';
-
-export const LENGTH_PROBLEM: Record<LengthProblem, TranslationKey> = {
-  short: 'auth.passwordShort',
-  long: 'auth.passwordLong',
-};
-
-/** lengthProblem says what is wrong with the length of password, if anything. */
-export function lengthProblem(password: string): LengthProblem | undefined {
-  if ([...password].length < MIN_PASSWORD_CHARS) return 'short';
-  if (new TextEncoder().encode(password).length > MAX_PASSWORD_BYTES) return 'long';
-  return undefined;
+/** isShort says whether password is typed but easy to guess for its length. */
+export function isShort(password: string): boolean {
+  const chars = [...password].length;
+  return chars > 0 && chars < SHORT_PASSWORD_CHARS;
 }
 
-/** refusedLength reads the server's refusal of a password for its length. */
-export function refusedLength(e: unknown): LengthProblem | undefined {
-  if (!(e instanceof ApiError)) return undefined;
-  if (e.code === 'passwordTooShort') return 'short';
-  if (e.code === 'passwordTooLong') return 'long';
-  return undefined;
+/** tooLong says whether the server would refuse password for its length. */
+export function tooLong(password: string): boolean {
+  return new TextEncoder().encode(password).length > MAX_PASSWORD_BYTES;
+}
+
+/** refusedTooLong reads the server's refusal of a password for its length. */
+export function refusedTooLong(e: unknown): boolean {
+  return e instanceof ApiError && e.code === 'passwordTooLong';
 }

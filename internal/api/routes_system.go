@@ -273,8 +273,8 @@ func registerSystem(reg *Registry, a *app.App) {
 // the interface translates, and reports whether err was one.
 func refusePasswordLength(w http.ResponseWriter, err error) bool {
 	switch {
-	case errors.Is(err, auth.ErrTooShort):
-		writeRefusal(w, http.StatusBadRequest, "passwordTooShort", err.Error(), nil)
+	case errors.Is(err, auth.ErrEmpty):
+		writeRefusal(w, http.StatusBadRequest, "passwordEmpty", err.Error(), nil)
 	case errors.Is(err, auth.ErrTooLong):
 		writeRefusal(w, http.StatusBadRequest, "passwordTooLong", err.Error(), nil)
 	default:

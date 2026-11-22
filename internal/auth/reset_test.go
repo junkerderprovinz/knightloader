@@ -251,14 +251,14 @@ func TestANewCodeIsMintedAtMostOnceAMinute(t *testing.T) {
 	}
 }
 
-func TestAPasswordThatIsTooShortKeepsTheCode(t *testing.T) {
+func TestAnEmptyPasswordKeepsTheCode(t *testing.T) {
 	g, _, code := askedFor(t)
-	if err := finish(g, code, "short"); !errors.Is(err, ErrTooShort) {
-		t.Fatalf("a short password = %v, want ErrTooShort", err)
+	if err := finish(g, code, ""); !errors.Is(err, ErrEmpty) {
+		t.Fatalf("an empty password = %v, want ErrEmpty", err)
 	}
 
 	if err := finish(g, code, resetPassword); err != nil {
-		t.Fatalf("the code did not survive a password that was too short: %v", err)
+		t.Fatalf("the code did not survive an empty password: %v", err)
 	}
 }
 
@@ -273,13 +273,13 @@ func TestAPasswordBcryptWouldRefuseKeepsTheCode(t *testing.T) {
 	}
 }
 
-func TestAResetCountsCharactersNotBytes(t *testing.T) {
+func TestAResetTakesAShortPassword(t *testing.T) {
 	g, _, code := askedFor(t)
-	if err := finish(g, code, "äöüßäöüéäöü"); !errors.Is(err, ErrTooShort) {
-		t.Fatalf("eleven characters in twenty-two bytes = %v, want ErrTooShort", err)
+	if err := finish(g, code, "kl"); err != nil {
+		t.Fatalf("a two character password was refused: %v", err)
 	}
-	if err := finish(g, code, "äöüßäöüéäöüß"); err != nil {
-		t.Fatalf("twelve characters were refused: %v", err)
+	if !g.Check("kl") {
+		t.Fatal("the short password from the reset does not sign in")
 	}
 }
 

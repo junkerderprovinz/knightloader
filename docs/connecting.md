@@ -604,10 +604,9 @@ Sonarr and Radarr send, each with its own credential. A request the browser
 marks as started by another site (`Sec-Fetch-Site: cross-site`) gets a 403 on
 every route.
 
-Without a password set, the API is open to whoever reaches the port, apart
-from downloading a backup, which carries every password in the settings. That
-answers 403 with the code `passwordNotSet` until a password is set. The desktop
-app opens no port, so its window can do it without one.
+Without a password set, the API is open to whoever reaches the port, under any
+name, downloading a backup with every password in the settings included. Set a
+password once someone other than you can reach the port.
 
 The rights are kept in `token-scopes.json` beside `tokens.json` in the data
 directory. A token stays as narrow as it was even after going back to a

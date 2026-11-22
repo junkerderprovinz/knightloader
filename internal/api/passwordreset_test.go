@@ -641,17 +641,17 @@ func TestAThrottledPasswordLeavesTheResetOpen(t *testing.T) {
 	}
 }
 
-func TestAPasswordThatIsTooShortCostsNeitherTheCodeNorAnAttempt(t *testing.T) {
+func TestAPasswordTooLongCostsNeitherTheCodeNorAnAttempt(t *testing.T) {
 	srv, _, out := resetServer(t)
 	code := askForCode(t, srv.URL, out)
 
 	for range loginFailLimit + 1 {
-		if status, body := finishReset(t, http.DefaultClient, srv.URL, code, "short"); status != http.StatusBadRequest {
-			t.Fatalf("a short password answered %d: %s", status, body)
+		if status, body := finishReset(t, http.DefaultClient, srv.URL, code, strings.Repeat("a", 73)); status != http.StatusBadRequest {
+			t.Fatalf("a 73 byte password answered %d: %s", status, body)
 		}
 	}
 	if status, body := finishReset(t, http.DefaultClient, srv.URL, code, resetNewPassword); status != http.StatusOK {
-		t.Errorf("the code answered %d after passwords that were too short: %s", status, body)
+		t.Errorf("the code answered %d after passwords that were too long: %s", status, body)
 	}
 }
 

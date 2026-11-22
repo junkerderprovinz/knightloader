@@ -210,17 +210,22 @@ describe('a forgotten password on the sign-in screen', () => {
     expect(posts('/api/auth/reset/finish')).toHaveLength(0);
   });
 
-  it.each([
-    ['shorter than the server takes', 'short', en['auth.passwordShort']],
-    ['of seven characters in fourteen bytes', 'äöüßäöü', en['auth.passwordShort']],
-    ['longer than bcrypt takes', 'a'.repeat(73), en['auth.passwordLong']],
-  ])('sends nothing for a password %s', async (_, password, said) => {
+  it('sends nothing for a password longer than bcrypt takes', async () => {
     await forgot();
 
-    await fillAndSubmit('abcd-efgh-jkmn', password);
+    await fillAndSubmit('abcd-efgh-jkmn', 'a'.repeat(73));
 
-    expect(alert()).toBe(said);
+    expect(alert()).toBe(en['auth.passwordLong']);
     expect(posts('/api/auth/reset/finish')).toHaveLength(0);
+  });
+
+  it('sets a short password like any other', async () => {
+    answers['/api/auth/reset/finish'] = answer(SIGNED_IN);
+    await forgot();
+
+    await fillAndSubmit('abcd-efgh-jkmn', 'kl');
+
+    expect(posts('/api/auth/reset/finish')).toHaveLength(1);
   });
 
   it('says in its own words why the server refused the length', async () => {

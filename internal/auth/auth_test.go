@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/base64"
 	"errors"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -175,52 +174,39 @@ func TestSessionsFromBeforeTheEpochStayValid(t *testing.T) {
 	}
 }
 
-func TestAPasswordIsMeasuredInCharactersAndBcryptsBytes(t *testing.T) {
+func TestAnyPasswordUpToBcryptsLimitIsTaken(t *testing.T) {
 	g, err := Open(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, c := range []struct {
-		password string
-		want     error
-	}{
-		{"äöüßäöüéäöü", ErrTooShort},
-		{"日本語のパスワードです", ErrTooShort},
-		{strings.Repeat("a", 73), ErrTooLong},
-		{strings.Repeat("ä", 37), ErrTooLong},
-	} {
-		if err := g.SetPassword("", c.password); !errors.Is(err, c.want) {
-			t.Errorf("%q (%d characters, %d bytes) = %v, want %v",
-				c.password, len([]rune(c.password)), len(c.password), err, c.want)
+	current := ""
+	for _, password := range []string{"a", "1234", "äöüßäöüéäöü", "日本語のパスワードです", strings.Repeat("a", 72)} {
+		if err := g.SetPassword(current, password); err != nil {
+			t.Errorf("%q (%d characters, %d bytes) was refused: %v", password, len([]rune(password)), len(password), err)
 		}
+		current = password
 	}
-	if err := g.SetPassword("", "äöüßäöüéäöüß"); err != nil {
-		t.Errorf("twelve characters were refused: %v", err)
+	for _, password := range []string{strings.Repeat("a", 73), strings.Repeat("ä", 37)} {
+		if err := g.SetPassword(current, password); !errors.Is(err, ErrTooLong) {
+			t.Errorf("%d bytes = %v, want ErrTooLong", len(password), err)
+		}
 	}
 }
 
-// TestAPasswordSetUnderTheOldMinimumStillSignsIn: the length counts for a new
-// password only, so an owner with an eight character one is not locked out.
-func TestAPasswordSetUnderTheOldMinimumStillSignsIn(t *testing.T) {
-	dir := t.TempDir()
-	h, err := hashPassword(nil, "eightchr")
+// TestAShortPasswordSignsIn: an owner who picks a short password gets the
+// lock they asked for.
+func TestAShortPasswordSignsIn(t *testing.T) {
+	g, err := Open(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := writeState(filepath.Join(dir, FileName), stored{Hash: string(h), Key: strings.Repeat("ab", 32)}, nil); err != nil {
+	if err := g.SetPassword("", "kl"); err != nil {
 		t.Fatal(err)
 	}
-	g, err := Open(dir)
-	if err != nil {
-		t.Fatal(err)
+	if !g.Enabled() || !g.Check("kl") {
+		t.Fatal("a two character password does not lock and sign in")
 	}
-	if !g.Check("eightchr") {
-		t.Fatal("a password set under the old minimum no longer signs in")
-	}
-	if err := g.SetPassword("eightchr", "ninechars"); !errors.Is(err, ErrTooShort) {
-		t.Errorf("a new password of nine characters = %v, want ErrTooShort", err)
-	}
-	if err := g.SetPassword("eightchr", "twelve-chars"); err != nil {
-		t.Errorf("changing it to twelve characters: %v", err)
+	if err := g.SetPassword("kl", "ninechars"); err != nil {
+		t.Errorf("changing it to nine characters: %v", err)
 	}
 }

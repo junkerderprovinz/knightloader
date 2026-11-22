@@ -12,7 +12,7 @@ import { SettingPathInput, SettingRow } from '../controls';
  * lists what the schedule has written. The switch and its three rows belong to
  * the shared draft; the files and the last run are read from the server.
  */
-export function AutoBackupSection({ hue, locked }: { hue: number; locked: boolean }) {
+export function AutoBackupSection({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch, dirty } = useDraft();
   const { data, failed, loading, reload, setData } = useResource<AutoBackupState>(fetchAutoBackups);
@@ -112,18 +112,15 @@ export function AutoBackupSection({ hue, locked }: { hue: number; locked: boolea
               </span>
               <span className="glim-num text-carbon-text">{fmtBytes(f.bytes)}</span>
               <span className="flex-1" />
-              {/* An anchor for its download attribute, drawn as a badge. A backup
-                  carries every stored password, so it waits for a login password. */}
-              {!locked && (
-                <a
-                  href={autoBackupHref(f.name)}
-                  download
-                  className="inline-flex h-[var(--btn-h)] shrink-0 items-center rounded-[var(--radius-pill)] bg-carbon-surface2
-                    px-2.5 text-xs font-medium text-carbon-textSub transition-colors hover:bg-hover hover:text-carbon-text"
-                >
-                  {t('settings.diagnostics.fileDownload')}
-                </a>
-              )}
+              {/* An anchor for its download attribute, drawn as a badge. */}
+              <a
+                href={autoBackupHref(f.name)}
+                download
+                className="inline-flex h-[var(--btn-h)] shrink-0 items-center rounded-[var(--radius-pill)] bg-carbon-surface2
+                  px-2.5 text-xs font-medium text-carbon-textSub transition-colors hover:bg-hover hover:text-carbon-text"
+              >
+                {t('settings.diagnostics.fileDownload')}
+              </a>
             </div>
           ))}
         </div>

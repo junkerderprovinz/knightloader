@@ -5,7 +5,7 @@ import { useT } from '../../../lib/i18n';
 import { ApiError, BACKUP_DOWNLOAD_URL, checkRestore, uploadRestore, type RestoreReport } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { withBase } from '../../../lib/basePath';
-import { passwordPath, usePasswordFirst } from '../../../lib/passwordFirst';
+import { passwordPath, useNoPassword } from '../../../lib/noPassword';
 import { SettingRow } from '../controls';
 import { AutoBackupSection } from './AutoBackups';
 
@@ -33,9 +33,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   const [restoreShake, setRestoreShake] = useState(0);
   // Upload pulses once a restore is staged.
   const [restored, setRestored] = useState(0);
-  // A backup carries every stored password, which the server keeps back until
-  // a login password is set.
-  const locked = usePasswordFirst();
+  // A backup carries every stored password, and without a login password it
+  // goes to whoever reaches the port, which is worth a word beside the button.
+  const noPassword = useNoPassword();
 
   async function choose(file: File) {
     setPendingSealed(new TextDecoder().decode(await file.slice(0, SEALED_MAGIC.length).arrayBuffer()) === SEALED_MAGIC);
@@ -96,7 +96,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         <Button
           kind="secondary"
           icon={<IconDownload width={16} height={16} />}
-          disabled={locked}
           onClick={() => {
             // Opened rather than fetched, so the browser owns the save dialog.
             window.location.href = withBase(BACKUP_DOWNLOAD_URL);
@@ -118,13 +117,13 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       {restoreStatus && (
         <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
       )}
-      {locked && (
+      {noPassword && (
         <span className="text-sm text-carbon-textSub">
-          {t('settings.transfer.needsPassword', { path: passwordPath(t) })}
+          {t('settings.transfer.noPasswordNote', { path: passwordPath(t) })}
         </span>
       )}
 
-      <AutoBackupSection hue={hue} locked={locked} />
+      <AutoBackupSection hue={hue} />
 
       {pendingFile && (
         <Modal

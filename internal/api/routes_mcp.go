@@ -63,7 +63,8 @@ func registerMCP(reg *Registry, a *app.App) {
 		JSONResponse: true,
 		// The SDK's rule refuses a loopback address reached under another
 		// name, which is what a reverse proxy on the same host looks like.
-		// knownHost and the token already stand where that rule would.
+		// The token, which the endpoint always asks for, stands where that
+		// rule would.
 		DisableLocalhostProtection:   true,
 		MaxRequestBodyBytes:          mcpMaxBody,
 		PropagateRequestCancellation: true,
