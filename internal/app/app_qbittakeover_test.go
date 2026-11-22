@@ -14,7 +14,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/qbittest"
 	"github.com/junkerderprovinz/knightloader/internal/torrents"
-	"github.com/junkerderprovinz/knightloader/internal/torrents/torrentstest"
 )
 
 const (
@@ -98,9 +97,7 @@ func TestATwinLeftWhileQBittorrentWasAwayGoesWithItsLinksAtTheNextStart(t *testi
 	gone := &core.Task{ID: "t2", Name: "Gone", Resolver: "torrent", InfoHash: hashOrphan, File: filepath.Join(r.dl, "Gone")}
 	r.a.xsAsked.Note("RED", hashOrphan, crossseed.Answer{Result: crossseed.ResultInjected, InfoHash: hashLeft})
 	r.a.xsAsked.Note("OPS", hashOrphan, crossseed.Answer{Result: crossseed.ResultInjected, InfoHash: hashStray})
-	off := torrentstest.New()
-	off.FailNext(torrents.ErrOff)
-	r.a.UseTorrents(off)
+	r.a.UseTorrents(torrents.QBit(func(context.Context) (*qbittorrent.Client, error) { return nil, errQBitOff }))
 	r.a.dropTwins(context.Background(), gone, r.a.xsAsked.Injected(hashOrphan), true)
 
 	r.put(hashLeft, torrents.Tag+","+CrossSeedTag, filepath.Join(r.dl, "links", "RED"))
