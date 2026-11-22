@@ -311,9 +311,6 @@
       .videoPicks select:disabled,
       .videoWindow .glim-modal-actions button:disabled { opacity: 0.55; cursor: default; }
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
-      /* Underlined only on hover, in the accent ink. */
-      .versionLink { color: var(--accent-ink); text-decoration: none; }
-      .versionLink:hover { text-decoration: underline; }
       pre.report {
         margin: 0 0 10px;
         padding: 12px;
@@ -684,17 +681,31 @@
       </div>
     </section>
 
-    <!-- Version, Help and About in the order of the web UI's Info tile
-         (GlimStone 3.5.0): every version as a row with its release, the ways
-         to report something, then who made the extension and the ways to
-         give. The browser updates the extension, so the card has no update
-         check. -->
+    <!-- Version, Components, Help and About, the Info tile's four cards in
+         their order: the extension with its number, every other version it
+         carries, the ways to report something, then who made it and the ways
+         to give. The browser's add-on store updates the extension, so the
+         Version card checks nothing and says where updates come from. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="versionHeading">Version</h2>
-      <div class="axes" id="versionRows"></div>
+      <div class="glim-version-head">
+        <span class="glim-version-app">KnightLoader</span>
+        <a id="versionNumber" class="glim-num glim-version-number" target="_blank" rel="noreferrer noopener"></a>
+      </div>
+      <div class="glim-version-foot">
+        <p class="glim-version-state" data-tone="neutral" role="status"><span class="glim-version-line" id="versionLine"></span></p>
+        <div class="glim-version-actions">
+          <button id="versionWhatsNew" class="glim-btn-subtle" type="button"></button>
+        </div>
+      </div>
     </section>
 
     <section class="glim-card glim-stagger-row" style="--row-i: 9">
+      <h2 class="glim-section-badge" id="componentsHeading">Components</h2>
+      <ul class="glim-version-rows" id="componentRows"></ul>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 10">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -710,7 +721,7 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 10">
+    <section class="glim-card glim-stagger-row" style="--row-i: 11">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>

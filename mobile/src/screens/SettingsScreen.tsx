@@ -14,7 +14,8 @@ import { useConfirm, useMotion, useShake } from '../theme/MotionContext';
 import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
 import { ACCENTS, SHAPES, SHAPES_STORED, accentSlot, discoTap, leafTap, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
-import { GLIMSTONE_RELEASE_URL, GLIMSTONE_VERSION } from '../theme/version';
+import { GLIMSTONE_REPO, GLIMSTONE_VERSION } from '../theme/version';
+import { installStore } from '../installStore';
 import {
   CardButton,
   GlimButton,
@@ -59,6 +60,7 @@ import IconBadge, {
   Trash,
   UnraidMark,
   VivaldiMark,
+  WhatsNew,
   WindowsMark,
   ZipMark,
 } from '../components/IconBadge';
@@ -145,6 +147,27 @@ const MOTION_GLYPHS: Record<Motion, typeof MotionOff> = {
  * bordered chips, a real switch for following the instance, and no drawn border
  * anywhere on the page.
  */
+/**
+ * VersionNumber is a number as GlimStone's numberLink has it: plain text that
+ * opens the newest release of its project. A build that is no release says so
+ * and opens nothing.
+ */
+function VersionNumber({ version, repo, ink }: { version: string; repo: string; ink: string }) {
+  const { t } = useT();
+  if (!/^\d+(\.\d+)+$/.test(version)) {
+    return <Text style={[styles.versionNumber, { color: ink }]}>{t('versionCard.unreleased', { version })}</Text>;
+  }
+  return (
+    <Text
+      accessibilityRole="link"
+      style={[styles.versionNumber, { color: ink }]}
+      onPress={() => Linking.openURL(`${repo}/releases/latest`)}
+    >
+      {version}
+    </Text>
+  );
+}
+
 export default function SettingsScreen({
   onBack,
   onOpenLanguagePicker,
@@ -164,6 +187,7 @@ export default function SettingsScreen({
   onSetPalette?: (palette: string[] | null) => Promise<void>;
 }) {
   const { t, lang } = useT();
+  const appVersion = Constants.expoConfig?.version ?? '';
   const {
     c,
     accent,
@@ -940,8 +964,55 @@ export default function SettingsScreen({
         </View>
       </NotchCard>
 
-      <NotchCard title={t('settings.problems')} hue={2} info={t('settings.problemsHint')}>
-        <View style={[styles.report, { backgroundColor: c.surface2, ...corners.control }]}>
+      {/* The Info tile's four cards in their order: Version, Components, Help
+          and About. The store the app came from updates it, so the Version
+          card checks nothing and names that store. */}
+      <NotchCard title={t('settings.aboutVersion')} hue={9} info={t('versionCard.hint', { app: 'KnightLoader' })}>
+        <View style={styles.versionHead}>
+          <Text style={[styles.versionApp, { color: c.text }]}>KnightLoader</Text>
+          <VersionNumber version={appVersion} repo={REPO_URL} ink={c.text} />
+        </View>
+        <View style={styles.versionFoot}>
+          <Text style={[styles.versionLine, { color: c.textSub }]}>{t('versionCard.store', { store: installStore })}</Text>
+          {/* The app keeps no window of changes, so this version's notes
+              open on its release page. */}
+          <GlimButton
+            tone="quiet"
+            label={t('versionCard.whatsNew')}
+            icon={(ink) => <WhatsNew color={ink} />}
+            onPress={() => Linking.openURL(`${REPO_URL}/releases/tag/v${appVersion}`)}
+          />
+        </View>
+      </NotchCard>
+
+      <NotchCard title={t('componentsCard.title')} hue={10} info={t('componentsCard.hint', { app: 'KnightLoader' })}>
+        {/* The app brings no program of its own, so GlimStone is its one row. */}
+        <View style={styles.versionRow}>
+          <View style={styles.versionName}>
+            <Text style={[styles.versionPart, { color: c.text }]}>GlimStone</Text>
+            <InfoTip text={t('componentsCard.design')} />
+          </View>
+          <VersionNumber version={GLIMSTONE_VERSION} repo={GLIMSTONE_REPO} ink={c.textSub} />
+        </View>
+      </NotchCard>
+
+      <NotchCard title={t('settings.help')} hue={2} info={t('settings.problemsHint')}>
+        <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutReport')}</Text>
+        <View style={styles.readmeRow}>
+          <ReadmeButton
+            brand="github"
+            label={t('settings.aboutGithub')}
+            mark={({ mark }) => <Github color={mark} />}
+            onPress={() => Linking.openURL(GITHUB_URL)}
+          />
+          <ReadmeButton
+            brand="discord"
+            label={t('settings.aboutDiscord')}
+            mark={({ mark }) => <Discord color={mark} />}
+            onPress={() => Linking.openURL(DISCORD_URL)}
+          />
+        </View>
+        <View style={[styles.report, styles.afterControls, { backgroundColor: c.surface2, ...corners.control }]}>
           <Text style={[styles.reportText, { color: c.textSub }]} selectable>
             {report}
           </Text>
@@ -952,9 +1023,8 @@ export default function SettingsScreen({
             clipboard is that target. The extension has copied since it shipped,
             so the three surfaces agree on the verb, the label and the glyph.
 
-            The About card below carries both routes to reporting, so a third
-            door here hard-wired to one of them would be a second answer to a
-            question that card answers. What this card is for is the report.
+            GitHub and Discord stand above, so a third door here hard-wired to
+            one of them would be a second answer to the same question.
 
             GlimStone's copy glyph, two sheets, as on the web's copy buttons:
             the clipboard means the opposite direction and stays with the relay
@@ -987,16 +1057,15 @@ export default function SettingsScreen({
         </View>
       </NotchCard>
 
-      {/* The About card carries the versions and the ways to report something.
-          It is the one card in the family whose body is prose rather than an
-          info bubble, because it has no control to explain and the sentence is
-          the content; GlimStone 1.7.0 names it as an exception. */}
+      {/* The About card says who made the app and offers the ways to give. It
+          is the one card in the family whose body is prose rather than an info
+          bubble, because it has no control to explain and the sentence is the
+          content; GlimStone 1.7.0 names it as an exception. */}
       <NotchCard title={t('settings.about')} hue={3}>
         <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutBody')}</Text>
-        {/* Three sentences, each with the thing it asks for under it: what this
-            is, then the coffee, then the way to report something. A sentence
-            with its own button beneath it reads as one offer, while three
-            sentences over one row of buttons read as a form. */}
+        {/* Each sentence with the thing it asks for under it: what this is,
+            then the coffee. A sentence with its own button beneath it reads as
+            one offer, while sentences over one row of buttons read as a form. */}
         <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutCoffee')}</Text>
         {/* The give buttons, hosted pages first as on every card in the
             family, all in the one row under the one sentence that asks: a
@@ -1032,53 +1101,9 @@ export default function SettingsScreen({
             onPress={() => setDonating(true)}
           />
         </View>
-        <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutReport')}</Text>
-        <View style={styles.readmeRow}>
-          <ReadmeButton
-            brand="github"
-            label={t('settings.aboutGithub')}
-            mark={({ mark }) => <Github color={mark} />}
-            onPress={() => Linking.openURL(GITHUB_URL)}
-          />
-          <ReadmeButton
-            brand="discord"
-            label={t('settings.aboutDiscord')}
-            mark={({ mark }) => <Discord color={mark} />}
-            onPress={() => Linking.openURL(DISCORD_URL)}
-          />
-        </View>
-        {/* Last line in the card, under the buttons, as in the web interface
-            and the extension. Each sentence above has its own button under it,
-            and a build number between the body and the coffee line would cut
-            that pairing in half.
-
-            Both numbers link to their own release page, because the question
-            straight after "which build is this" is "and what changed". The
-            links are built from the version rather than from a hand-kept list,
-            which is wrong the first time somebody forgets it.
-
-            It follows controls, so it takes the extra step of space a line
-            after a row of buttons gets. */}
-        <Text style={[styles.aboutVersions, styles.afterControls, { color: c.textMuted }]}>
-          {`${t('settings.aboutVersion')} `}
-          <Text
-            style={{ color: accentInk }}
-            onPress={() => Linking.openURL(`${REPO_URL}/releases/tag/v${Constants.expoConfig?.version ?? ''}`)}
-          >
-            {Constants.expoConfig?.version ?? '-'}
-          </Text>
-          {' · GlimStone '}
-          <Text
-            style={{ color: accentInk }}
-            onPress={() => Linking.openURL(GLIMSTONE_RELEASE_URL)}
-          >
-            {GLIMSTONE_VERSION}
-          </Text>
-        </Text>
-        {/* A line of its own: beside the two numbers it wraps on a narrow phone
-            in the languages with a long word for it. */}
+        {/* The privacy policy under the give row, as a line of its own. */}
         <Text
-          style={[styles.aboutVersions, styles.privacy, { color: accentInk }]}
+          style={[styles.aboutVersions, styles.afterControls, styles.privacy, { color: accentInk }]}
           accessibilityRole="link"
           onPress={() => Linking.openURL(PRIVACY_URL)}
         >
@@ -1194,10 +1219,19 @@ const styles = StyleSheet.create({
    * The card's own padding is still the space under the last line, which is why
    * nothing here adds a bottom margin. */
   afterControls: { marginTop: 10 },
-  // Tabular numerals, which the About card's own rule asks for by name: two
-  // version numbers on one line, each of them a number that changes with every
-  // release, so proportional digits make the middle dot wander between builds.
-  aboutVersions: { fontSize: TYPE.meta, fontVariant: ['tabular-nums'] },
+  aboutVersions: { fontSize: TYPE.meta },
+  // The Version and Components cards: a name at the start and its number at
+  // the end, and on the Version card a last row with where updates come from
+  // and What's new, which drops under the words on a narrow phone.
+  versionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 },
+  versionApp: { flexShrink: 1, fontSize: TYPE.body, fontWeight: '600' },
+  versionFoot: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 16 },
+  versionLine: { flexGrow: 1, flexShrink: 1, flexBasis: 128, fontSize: TYPE.body, lineHeight: 20 },
+  versionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
+  versionName: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+  versionPart: { fontSize: TYPE.body },
+  // Tabular numerals, so a number that changes with every release keeps its width.
+  versionNumber: { fontSize: TYPE.body, fontVariant: ['tabular-nums'] },
   privacy: { marginTop: 6, alignSelf: 'flex-start' },
   language: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, paddingHorizontal: 14 },
   // The size and column the language page's own flags take, so the two read

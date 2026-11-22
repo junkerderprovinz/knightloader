@@ -1645,6 +1645,13 @@ body {
   height: 100%;
 }
 
+/* A mark is cropped to its drawing, and a tile's middle rarely falls on a
+   whole pixel, so the SVG's own clip would shave the soft edge of a shape
+   that reaches the box, such as a filled circle's bottom. */
+.glim-readme-btn-mark svg {
+  overflow: visible;
+}
+
 .glim-readme-btn-mark svg:not(.glim-mark-hover),
 .glim-readme-btn-art svg {
   display: block;
@@ -2127,4 +2134,86 @@ body {
       glim-tab-slide var(--motion-tab-dur) var(--motion-page-ease) both,
       glim-fade-in var(--motion-tab-dur) ease-out both;
   }
+}
+
+
+/* The Version and Components cards (GlimStone's tokens.css): a number reads
+   as plain text that opens its release, and the Version card ends in one row,
+   where the updates stand at its start and the buttons at its end. */
+.glim-version-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.glim-version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.glim-version-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.glim-version-part {
+  font-size: var(--text-body);
+  line-height: 1.25rem;
+  color: var(--carbon-text);
+}
+.glim-version-number {
+  flex-shrink: 0;
+  font-size: var(--text-body);
+  line-height: 1.25rem;
+  color: var(--carbon-text-sub);
+  text-decoration: none;
+}
+/* No frame, no fill and no underline, so it never reads as a button. */
+a.glim-version-number:focus-visible { color: var(--accent-ink); }
+@media (hover: hover) {
+  a.glim-version-number:hover { color: var(--accent-ink); }
+}
+.glim-version-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.glim-version-app {
+  min-width: 0;
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--carbon-text);
+}
+.glim-version-head .glim-version-number { color: var(--carbon-text); }
+.glim-version-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-top: 16px;
+}
+.glim-version-state {
+  display: flex;
+  flex: 1 1 8rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.25rem;
+  color: var(--carbon-text-sub);
+}
+.glim-version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-inline-start: auto;
 }

@@ -25,7 +25,8 @@ const sources = import.meta.glob(['../components/**/*.tsx', '../pages/**/*.tsx',
 }) as Record<string, string>;
 
 const marked = new Set(
-  Object.values(sources).flatMap((text) => [...text.matchAll(/data-new="([^"]+)"/g)].map((m) => m[1])),
+  // A marker stands on an element, or on the row data a card draws it from.
+  Object.values(sources).flatMap((text) => [...text.matchAll(/data-new(?:="|': ')([^"']+)/g)].map((m) => m[1])),
 );
 
 const ids = (version: string) => CHANGES.filter((c) => c.since === version).map((c) => c.id);

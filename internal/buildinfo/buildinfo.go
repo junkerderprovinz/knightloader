@@ -14,6 +14,12 @@ var Version = "dev"
 // Revision.
 var Commit = ""
 
+// Installer is the PommelPorter release desktop/installer is built against,
+// stamped by scripts/desktop.mjs from desktop/installer/go.mod. The installer
+// is a program of its own, so this binary cannot read it from its build info.
+// Empty for the container and the Flatpak, which ship without one.
+var Installer = ""
+
 // Revision is the commit this build came from, or "" when nothing knows it.
 //
 // The ldflags stamp comes first because the container build excludes .git

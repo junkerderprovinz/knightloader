@@ -3188,10 +3188,11 @@ body {
   height: 2.5rem;
 }
 /* A wordmark is the name written out, which a square would shrink to a
-   sliver, so it takes the tile's width less a margin on each side. */
+   sliver, so it takes the tile's width less a margin on each side, and the
+   height of a name rather than of a symbol. */
 .glim-connection-mark--wordmark {
   width: calc(100% - 1rem);
-  height: 2.5rem;
+  height: 1.5rem;
 }
 .glim-connection-mark :is(svg, .glim-logo) {
   width: 100%;
@@ -3243,22 +3244,19 @@ body {
 }
 /* The state washes are measured over the card, and the well's darker ground
    takes their text under 4.5:1, so a badge here lays its wash over the card's
-   surface. A neutral one steps up a surface, or it vanishes into the well. */
+   surface. A neutral one stands halfway between the well and the buttons'
+   surface. */
 .glim-connection-badges .bg-statusOkBg { background: linear-gradient(var(--status-ok-bg), var(--status-ok-bg)) var(--carbon-surface); }
 .glim-connection-badges .bg-statusFailBg { background: linear-gradient(var(--status-fail-bg), var(--status-fail-bg)) var(--carbon-surface); }
 .glim-connection-badges .bg-statusWarnBg { background: linear-gradient(var(--status-warn-bg), var(--status-warn-bg)) var(--carbon-surface); }
-/* A neutral badge keeps the well's ground inside a ring of the step above,
-   with no hover, so it does not pass for one of the row's buttons. */
 .glim-connection-badges .bg-carbon-surface2 {
-  background-color: var(--carbon-surface2);
-  box-shadow: inset 0 0 0 1px var(--carbon-surface3);
+  background-color: color-mix(in srgb, var(--carbon-surface2), var(--carbon-surface3));
 }
-/* A badge here stands as tall as the buttons and in their type, so the row's
-   labels and its buttons read as one size. */
+/* A badge stays a size below the buttons, so it reads as a state and not as
+   one more thing to press. */
 .glim-connection-badges .glim-badge {
-  height: var(--btn-h);
-  padding-inline: 0.875rem;
-  font-size: var(--text-body);
+  height: 1.5rem;
+  padding-inline: 0.625rem;
 }
 /* The row is the well's surface2, which a quiet button wears too, so its
    buttons step one surface up and hover to the accent's --hover, as on a
@@ -3418,6 +3416,13 @@ body {
   height: 100%;
 }
 
+/* A mark is cropped to its drawing, and a tile's middle rarely falls on a
+   whole pixel, so the SVG's own clip would shave the soft edge of a shape
+   that reaches the box, such as a filled circle's bottom. */
+.glim-readme-btn-mark svg {
+  overflow: visible;
+}
+
 .glim-readme-btn-mark svg:not(.glim-mark-hover),
 .glim-readme-btn-art svg {
   display: block;
@@ -3521,40 +3526,40 @@ body {
   opacity: 0.45;
 }
 
-/* A wordmark already says the name, so it spans the button in the name's
-   place, and the SVG centres it on its own aspect. A long one is held to a
-   width that keeps its letters near the size of a name, and a short one
+/* A wordmark already says the name, so it stands in the name's place,
+   starting where a symbol would. It keeps its own aspect: a long one is held
+   to a width that keeps its letters near the size of a name, and a short one
    grows to the full height. The hidden name still holds the second line
    where it stands on every tile, and when that line comes in the wordmark
-   rises and shrinks onto the name's line. */
+   rises and shrinks onto the name's line from its start. */
 .glim-readme-btn-mark--wordmark {
   inset-inline: 0.875rem;
   width: auto;
   height: 1.625rem;
-  justify-content: center;
+  justify-content: flex-start;
+  transform-origin: left center;
   transition:
     translate calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease),
     scale calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease);
 }
 
+[dir="rtl"] .glim-readme-btn-mark--wordmark { transform-origin: right center; }
+
 .glim-readme-btn-mark--wordmark svg {
-  max-width: 6rem;
+  width: auto;
+  max-width: 7rem;
 }
 
 .glim-readme-btn-mark--wordmark ~ .glim-readme-btn-text {
   inset-inline: 0.875rem;
-  align-items: center;
-  text-align: center;
 }
 
 .glim-readme-btn-mark--wordmark ~ .glim-readme-btn-text > .glim-readme-btn-name {
   visibility: hidden;
 }
 
-/* The (i) at the end takes the same room off both sides, so the wordmark
-   stays in the middle of the tile. */
 .glim-readme-btn-unit:has(.glim-readme-btn-hint) :is(.glim-readme-btn-mark--wordmark, .glim-readme-btn-mark--wordmark ~ .glim-readme-btn-text) {
-  inset-inline: 1.75rem;
+  inset-inline-end: 1.75rem;
 }
 
 .glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon)
@@ -4340,4 +4345,135 @@ body {
 .glim-signin-log-code::placeholder {
   text-transform: uppercase;
   letter-spacing: 0.2em;
+}
+
+/* The Info tile's Version and Components cards (GlimStone's tokens.css). A
+   number reads as plain text that opens its release, and the Version card
+   ends in one row: where the updates stand at its start, the buttons at its
+   end, which drop under the words when the row is narrow. */
+.glim-version-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.glim-version-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  min-height: 2rem;
+}
+.glim-version-name {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.glim-version-part {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--carbon-text);
+}
+.glim-version-number {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--carbon-text-sub);
+  text-decoration: none;
+}
+/* No frame, no fill and no underline, so it never reads as a button. */
+a.glim-version-number:focus-visible { color: var(--accent-ink); }
+@media (hover: hover) {
+  a.glim-version-number:hover { color: var(--accent-ink); }
+}
+.glim-version-actions,
+.glim-version-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.glim-version-row-actions { gap: 0.5rem; }
+.glim-version-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.glim-version-app {
+  min-width: 0;
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--carbon-text);
+}
+.glim-version-head .glim-version-number {
+  font-size: var(--text-body);
+  color: var(--carbon-text);
+}
+.glim-version-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+.glim-version-foot .glim-version-actions { margin-inline-start: auto; }
+.glim-version-state {
+  display: flex;
+  flex: 1 1 8rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--carbon-text-sub);
+}
+.glim-version-state[data-tone="ok"] .glim-version-line { color: var(--status-ok-text); }
+.glim-version-state[data-tone="warn"] .glim-version-line { color: var(--status-warn-text); }
+.glim-version-state[data-tone="fail"] .glim-version-line { color: var(--status-fail-text); }
+.glim-version-note { color: var(--carbon-text-muted); }
+.glim-version-progress {
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--carbon-surface3);
+}
+.glim-version-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--motion-control-dur, 0ms) ease-out;
+}
+.glim-version-status {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: auto;
+  font-size: var(--text-meta);
+  color: var(--carbon-text-sub);
+}
+.glim-version-status[data-tone="ok"] { color: var(--status-ok-text); }
+.glim-version-status[data-tone="warn"] { color: var(--status-warn-text); }
+.glim-version-status[data-tone="fail"] { color: var(--status-fail-text); }
+.glim-version-status + .glim-version-row-actions,
+.glim-version-status + .glim-version-number { margin-inline-start: 0; }
+.glim-version-name + .glim-version-row-actions { margin-inline-start: auto; }
+
+/* The dot before "What's new": green while something is unseen, grey once nothing is. */
+.glim-version-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--carbon-text-muted);
+}
+.glim-version-dot[data-unseen] {
+  background: var(--status-ok-solid);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-ok-solid) 25%, transparent);
 }

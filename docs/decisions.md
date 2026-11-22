@@ -171,7 +171,7 @@ current by one switch, **Update components automatically**, which ships on.
 While it is on, the app asks after yt-dlp once a day and after the others once
 a week, and downloads only a version newer than the one in use. Every fetch
 verifies its checksum, proves the program RUNS on this machine, and only then
-swaps it in. **Update now** on the Components card runs the same updates at
+swaps it in. **Update components** on the Components card runs the same updates at
 once, whatever the switch says. When each component was last asked after is
 kept in `tools/checks.json` in the data folder, so a restart does not ask again
 before one is due.
@@ -239,17 +239,19 @@ built for musl on both architectures, where the official builds need glibc.
 The self-test does not take a Deno on disk as proof: it asks yt-dlp, whose
 `-v` header names the runtimes it found, and warns on `JS runtimes: none`.
 
-## The desktop update: on the next start, checked by its checksum
+## The desktop update: on the next start or a restart asked for, checked by its checksum
 
 **Built:** a desktop app that downloads a newer release in the background once
 a day, checks it against the release's `checksums.txt` and puts it in place of
-the program for the next start. The switch is on from the start.
+the program for the next start. The switch is on from the start. Once a new
+version is in place, **Restart for** on the Version card ends the program and
+starts the new one.
 
-**Not built:** an Install now button that restarts into the new version, and a
-code signature check.
+**Not built:** a restart nobody asked for, and a code signature check.
 
-A restart in the middle of the day would cut off whatever is downloading, and
-the next start comes soon enough for a download manager that runs all day. The
+A restart in the middle of the day would cut off whatever is downloading, so
+the program never restarts on its own: the new version waits for the next
+start, or for the person who presses the button and knows what runs. The
 checksum proves the file is the one the release workflow published, not that
 the workflow was trustworthy, since both come out of the same job. Only a
 signature tied to a key outside the build would close that gap, and the

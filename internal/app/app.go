@@ -192,6 +192,10 @@ type App struct {
 	// UpdateProgress says how far it has come.
 	InstallUpdate  func() error
 	UpdateProgress func() update.Progress
+	// RestartIntoUpdate, set on the desktop build only, ends the program and
+	// starts the version UpdateReady names. It returns false when a shutdown
+	// is already under way.
+	RestartIntoUpdate func() bool
 	// RetryJDSetup, set on the desktop build only, sets up its own
 	// JDownloader again after a try that failed.
 	RetryJDSetup func() error

@@ -12,13 +12,9 @@
  * claim a release the files are not from. Bump it in the change that lifts the
  * ports.
  */
-const GLIMSTONE_VERSION = '4.8.0';
+const GLIMSTONE_VERSION = '4.8.2';
 
 const GLIMSTONE_REPO = 'https://github.com/junkerderprovinz/glimstone';
-
-// GlimStone's patch tags fold into the next minor and vanish, the newest
-// release stays.
-const GLIMSTONE_RELEASE_URL = `${GLIMSTONE_REPO}/releases/latest`;
 
 /** The shapes the picker shows. `leaf` is a real shape (see
  *  `data-shape="leaf"` in glimstone.css) that no picker offers; leafTap

@@ -38,6 +38,14 @@ read it, as an octal mask such as `000`, `002` or `022`. With `--user` the
 container starts as that account straight away, and `PUID` and `PGID` are not
 read. Settings, Health & diagnostics shows which user and mask are in force.
 
+### Updating the container
+
+A container does not update itself. The Version card under Settings, Info
+tells you when a newer release exists, and **How to update** leads here: pull
+the new image the way you deployed this one, with `docker pull` and a new
+container, an update in Unraid's Docker tab, or Watchtower. Settings, accounts
+and downloads live in `/data` and stay.
+
 <!-- The Security page of an installed release links to the old name. -->
 <a id="app-key"></a>
 
@@ -228,7 +236,7 @@ on GitHub, checks it against the SHA-256 that KnightLoader carries for this
 version and unpacks it into the `jre` folder of its data folder
 (`%APPDATA%\KnightLoader\jre`, `~/Library/Application Support/KnightLoader/jre`,
 `~/.config/KnightLoader/jre`). That takes a few minutes, which the
-JDownloader row on the Updates card shows; a failed download says why there
+JDownloader row on the Components card shows; a failed download says why there
 and offers to try again. A KnightLoader update that pins a newer runtime
 replaces it at its next start. In between, the app asks Adoptium once a week
 for a newer Temurin 21, fetches it, checks it against Adoptium's SHA-256 and
@@ -284,8 +292,9 @@ an override first:
 flatpak override --user --filesystem=/srv/downloads io.github.junkerderprovinz.knightloader
 ```
 
-The Flatpak never replaces itself, so **Update automatically** stays off there:
-install the newer bundle to update it. It is built from the same sources as the
+The Flatpak never replaces itself, so its switch on the Version card is
+**Check for updates automatically**, which only looks: install the newer
+bundle to update it. It is built from the same sources as the
 other downloads but without the DLC service key, so a `.dlc` file goes to
 JDownloader. It keeps the computer awake through the desktop's Inhibit portal,
 but cannot put it to sleep once the queue is done, so the Idle card does not
@@ -318,10 +327,11 @@ downloads the zip for your system, or the AppImage, in the background and checks
 release's `checksums.txt`. The new version starts the next time you open
 KnightLoader, so nothing changes while it runs, and a note in the corner of the
 window says when it is ready. Pre-releases are never installed. **Update
-automatically** on the **General** page of Settings turns this off; it is on
-from the start. When **Check for updates** on the Updates card finds a newer
-release, **Install now** fetches it at once instead of waiting for the next
-daily check.
+automatically** on the Version card under Settings, Info turns this off; it is
+on from the start. When **Check for updates** there finds a newer release,
+**Update now** fetches it at once instead of waiting for the next daily check.
+Once a new version is in place, **Restart for** on the same card closes
+KnightLoader and opens the new one, so you need not wait for the next start.
 
 **The installed copy** on Windows cannot replace itself, since no user may
 write to its folder. A scheduled task named **KnightLoader Update** does it instead,
@@ -332,7 +342,7 @@ of installed apps and writes what it did, or why it did not, to
 switch applies to everyone on the computer: it lives in
 `%ProgramData%\KnightLoader\settings.json`, which every user may change, and the
 task skips its run while it is off. An open window notices within ten minutes
-when the task has put a new version in place and shows the note. **Install
+when the task has put a new version in place and shows the note. **Update
 now** does not wait for the task: it downloads the installer of the new
 release, checks it against `checksums.txt` and starts it. Windows asks for an
 administrator, the installer closes KnightLoader and opens the new version when
@@ -379,9 +389,6 @@ well. Every user's settings, accounts and private JDownloader in
 `%APPDATA%\KnightLoader` stay, so a later install picks them up, and so do the
 files you downloaded.
 
-A container does not update itself. The same page tells you when a newer
-release exists; pull the new image the way you deployed this one.
-
 ### Keeping the components current
 
 KnightLoader itself updates as described above, and through a new image in a
@@ -398,8 +405,9 @@ qBittorrent is left out of both: private trackers let in only the versions
 on their list, so it stays at the version picked on its row until you pick
 another.
 
-**Update now** at the foot of the card does all of this at once, whatever the
-switch says, and asks after a newer KnightLoader too. An ffmpeg or Deno that
+**Update components** at the foot of the card does all of this at once,
+whatever the switch says. KnightLoader itself is checked on the Version card
+above it. An ffmpeg or Deno that
 was on the computer already, or that came with the container image, is never
 replaced. UnRAR ships inside KnightLoader: a weekly check in the repository
 looks for a newer one, and each release brings it along.

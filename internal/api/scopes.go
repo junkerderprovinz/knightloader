@@ -297,6 +297,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/system/update-check":    apitoken.ScopeAdmin,
 	"GET /api/system/update-install":  apitoken.ScopeAdmin,
 	"POST /api/system/update-install": apitoken.ScopeAdmin,
+	"POST /api/system/update-restart": apitoken.ScopeAdmin,
 
 	// Asking which backends could take a selection, or what removing it with
 	// its files would erase, changes nothing, POST or not. Streaming a

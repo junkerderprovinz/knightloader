@@ -205,6 +205,7 @@ var groupRefused = []string{
 	"GET /api/system/update-check",
 	"GET /api/system/update-install",
 	"POST /api/system/update-install",
+	"POST /api/system/update-restart",
 	"GET /api/diagnostics",
 	"GET /api/diagnostics/log",
 	"GET /api/diagnostics/logfile",

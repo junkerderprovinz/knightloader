@@ -271,7 +271,8 @@
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "componentsCard.title"
     ],
     "cs": [
       "addDownload.placeholder",

@@ -3714,6 +3714,11 @@ export async function fetchUpdateProgress(): Promise<UpdateProgress> {
   return json(await fetch('/api/system/update-install'));
 }
 
+/** Ends the desktop build and starts the version an update put in place. */
+export async function restartIntoUpdate(): Promise<void> {
+  await json(await fetch('/api/system/update-restart', { method: 'POST' }));
+}
+
 /** Starts installing the newest release on the desktop build; the answer is where it starts. */
 export async function installUpdate(): Promise<UpdateProgress> {
   return json(await fetch('/api/system/update-install', { method: 'POST' }));
@@ -4235,6 +4240,8 @@ export interface DeploymentInfo {
   updatesFromStore?: boolean;
   /** The libraries the Updates card lists beside the programs, null when the build carries none of them. */
   engines: BuiltModule[] | null;
+  /** The PommelPorter version the desktop build's installer carries, absent elsewhere. */
+  installer?: string;
 }
 
 export async function fetchDeploymentInfo(): Promise<DeploymentInfo> {

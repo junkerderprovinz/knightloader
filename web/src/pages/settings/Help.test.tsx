@@ -99,10 +99,10 @@ const button = (within: HTMLElement, words: string) =>
   [...within.querySelectorAll('button')].find((b) => b.textContent?.includes(words))!;
 
 describe('the Info tile', () => {
-  it('holds three cards: Components, then Help, then About', async () => {
+  it('holds the four cards in their order: Version, Components, Help and About', async () => {
     await draw();
     const titles = [...host.querySelectorAll('.glim-section-badge')].map((b) => b.textContent);
-    expect(titles).toEqual(['Components', 'Help', 'About KnightLoader']);
+    expect(titles).toEqual(['Version', 'Components', 'Help', 'About']);
   });
 
   /** Draws the page with a probe on whether the window is open, and returns a reader for it. */
@@ -133,33 +133,27 @@ describe('the Info tile', () => {
       unseen: Array.from({ length: unseen }, (_, i) => ({ id: `c${i}` })),
     }) as unknown as WhatsNew;
 
-  it('has one button for what the updates brought, counting what is still unseen', async () => {
+  it("has one What's new on the Version card, counting what is still unseen", async () => {
     record.news = news(5, 2);
     const open = await drawWithProbe();
-    const components = card('Components');
-    const labels = [...components.querySelectorAll('button')].map((b) => b.textContent).filter((w) => /New|Release notes/.test(w ?? ''));
-    expect(labels).toEqual(['New · 2']);
-    await act(async () => button(components, 'New · 2').click());
+    const labels = [...host.querySelectorAll('button')].map((b) => b.textContent).filter((w) => /What's new|New ·|Release notes/.test(w ?? ''));
+    expect(labels).toEqual(["What's new · 2"]);
+    expect(card('Version').querySelector('.glim-version-dot')!.hasAttribute('data-unseen')).toBe(true);
+    await act(async () => button(card('Version'), "What's new").click());
     expect(open()).toBe(true);
     act(() => closeWhatsNew());
     record.news = null;
   });
 
-  it('counts every listed change once all are seen', async () => {
+  it("drops the count and greys the dot once every change is seen", async () => {
     record.news = news(5, 0);
     const open = await drawWithProbe();
-    await act(async () => button(card('Components'), 'New · 5').click());
+    expect(button(card('Version'), "What's new").textContent).toBe("What's new");
+    expect(card('Version').querySelector('.glim-version-dot')!.hasAttribute('data-unseen')).toBe(false);
+    await act(async () => button(card('Version'), "What's new").click());
     expect(open()).toBe(true);
     act(() => closeWhatsNew());
     record.news = null;
-  });
-
-  it('offers the release notes where the window lists no change', async () => {
-    const open = await drawWithProbe();
-    expect(open()).toBe(false);
-    await act(async () => button(card('Components'), 'Release notes').click());
-    expect(open()).toBe(true);
-    act(() => closeWhatsNew());
   });
 
   it('offers the manual as a link to the documentation', async () => {
