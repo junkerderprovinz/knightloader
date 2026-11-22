@@ -1,0 +1,1 @@
+Die Einstellungen verraten jetzt, über welchen Store deine Updates kommen (Google Play, F-Droid oder GitHub). So weißt du immer, wem du die Schuld gibst. Neue Karten für Version und Komponenten zeigen, was bei dir läuft und wofür jeder Teil gut ist.

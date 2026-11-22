@@ -36,6 +36,48 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.9.5] - 2026-11-22
+
+### Added
+
+- **The Version card shows where updates stand.** Under Settings, Info it shows
+  KnightLoader's version, checks for a newer release and opens What's new in
+  the app. On the desktop, Update now downloads the update with a progress bar,
+  and once it is in place, the Restart button, which names the new version,
+  closes KnightLoader and opens it. A container and the Flatpak link to the
+  guide on how to update them.
+- **The phone app and the extension say which store brings their updates.**
+  The phone app names Google Play, F-Droid or GitHub Releases, depending on
+  where it was installed from, and the extension names its browser's add-on
+  store.
+
+### Design
+
+- **KnightLoader follows GlimStone 4.8.2.** Settings, Info holds the same four
+  cards in the web interface, the phone app and the extension: Version,
+  Components, Help and About. Badges in connection rows are smaller, and the
+  AllDebrid mark stays visible on a dark background.
+- **The Components card says what each program does** in its (i). On the
+  desktop it ends with the PommelPorter release the installer was built with.
+
+### Improved
+
+- **Fresh building blocks.** Deno 2.9.8. The container takes it from Deno's
+  own releases and checks it against their checksum, since Alpine's package
+  trails them by months.
+- **Security fixes in the container image.** The build installs every Alpine
+  update published after the base image, which brings the fixed OpenSSL and
+  zlib. yt-dlp comes without the desktop keyring support KnightLoader never
+  uses, so py3-cryptography is gone from the image.
+- **The published images get OS updates every week.** Between releases, the
+  KnightLoader and relay images tagged `latest` take Alpine's pending updates
+  once a week and are left alone when no package has an update.
+
+### Translations
+
+- **Every new text is in all 42 languages** of the web interface, the phone
+  app and the extension. About no longer repeats the app's name.
+
 ## [2.9.4] - 2026-11-20
 
 ### Design

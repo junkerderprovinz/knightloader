@@ -1,0 +1,1 @@
+Settings now names the store your updates come from (Google Play, F-Droid or GitHub), so you always know who to blame. New Version and Components cards show what you run and what each part of it does.
