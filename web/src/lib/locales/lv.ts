@@ -3129,7 +3129,7 @@ export const lv: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} dienas vecs.',
   'settings.selftest.ytdlp.aging': '{version} ir {days} dienas vecs.',
   'settings.selftest.ytdlp.old': '{version} ir {days} dienas vecs. Lielās video vietnes to parasti salauž dažu nedēļu laikā.',
-  'settings.selftest.ytdlp.oldAdvice': 'Konteinerā yt-dlp nāk no Alpine pakotnes, kas bija aktuāla attēla būvēšanas brīdī, un tas nekad neatjauninās pats. Paņem jaunāku attēlu, vai piemontē konteinerā savu yt-dlp un norādi uz to ar KL_YTDLP.',
+  'settings.selftest.ytdlp.oldAdvice': '“Atjaunināt tagad” sadaļā “Komponenti” lapā “Informācija” ielādē jaunāko yt-dlp, un “Atjaunināt komponentus automātiski” pēc tam to uztur aktuālu. Konteinerā jaunāks attēls atnes arī jaunāku yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Nav atrasts, tāpēc mediju lapas neizdodas ar paša hostera kļūdu.',
   'settings.selftest.ytdlp.missingAdvice': 'Norādi ar KL_YTDLP uz izpildāmo failu, vai noliec yt-dlp uz PATH. Tas tiek meklēts vienreiz startējot, tāpēc tagad uzstādīts tiks izmantots tikai pēc restartēšanas.',
   'settings.selftest.ytdlp.undated': '{version} neizskatās pēc datuma, tāpēc vecumu novērtēt nevar.',

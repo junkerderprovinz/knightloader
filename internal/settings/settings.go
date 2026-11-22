@@ -423,9 +423,9 @@ type Settings struct {
 	// JDownloader current on its own: it asks after yt-dlp once a day and
 	// after the others once a week, and fetches only what is newer, through
 	// the same checks as the Components card's button. On by default: the
-	// container's yt-dlp package lags weeks behind, a site that changed its
-	// page breaks every download from it until yt-dlp catches up, and a stale
-	// JDownloader loses hosters as they change.
+	// container's yt-dlp is the release that was current when the image was
+	// built, a site that changed its page breaks every download from it until
+	// yt-dlp catches up, and a stale JDownloader loses hosters as they change.
 	ComponentsAutoUpdate bool `json:"componentsAutoUpdate"`
 
 	// Packagizer names packages, picks folders and sets download options as

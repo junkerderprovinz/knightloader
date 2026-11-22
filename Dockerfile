@@ -93,28 +93,66 @@ RUN --mount=type=bind,from=glibc,source=/usr/lib,target=/glibc \
     && install -Dm755 /tmp/deno /usr/local/bin/deno \
     && deno --version
 
+# yt-dlp from its own releases, because Alpine's package trails the fixes the
+# big video sites keep forcing. The musl builds run on Alpine without python3
+# and carry yt-dlp's YouTube solver scripts (yt-dlp-ejs).
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS ytdlp
+# renovate: datasource=github-releases depName=yt-dlp/yt-dlp versioning=loose extractVersion=^(?<version>.+)$
+ARG YTDLP_VERSION=2026.10.26
+ARG TARGETARCH
+# The sums are signed with yt-dlp's release key, the same file and fingerprint
+# the app checks its own yt-dlp updates with (internal/mediatools/signature.go).
+ARG YTDLP_SIGNER=AC0CBBE6848D6A873464AF4E57CF65933B5A7581
+COPY internal/mediatools/ytdlp-signing-key.asc /tmp/
+RUN apk add --no-cache gpg gpgv \
+    && case "${TARGETARCH}" in \
+      amd64) asset=yt-dlp_musllinux ;; \
+      arm64) asset=yt-dlp_musllinux_aarch64 ;; \
+      *) echo "yt-dlp publishes no musl build for ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && base="https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}" \
+    && cd /tmp \
+    && wget -qO SHA2-256SUMS "${base}/SHA2-256SUMS" \
+    && wget -qO SHA2-256SUMS.sig "${base}/SHA2-256SUMS.sig" \
+    && gpg --batch --dearmor -o ytdlp.gpg ytdlp-signing-key.asc \
+    && gpgv --status-fd 1 --keyring ./ytdlp.gpg SHA2-256SUMS.sig SHA2-256SUMS \
+      | grep -q "^\[GNUPG:\] VALIDSIG .* ${YTDLP_SIGNER}\$" \
+    && wget -qO "${asset}" "${base}/${asset}" \
+    && sum=$(grep -x "[0-9a-f]\{64\}  ${asset}" SHA2-256SUMS) \
+    && echo "${sum}" | sha256sum -c - \
+    && install -Dm755 "${asset}" /out/yt-dlp \
+    && [ "$(/out/yt-dlp --version)" = "${YTDLP_VERSION}" ]
+
 FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need. tini is PID 1 so the
-# ffmpeg left behind when a yt-dlp download is stopped gets reaped. yt-dlp is
-# Alpine's yt-dlp package without py3-secretstorage, which only opens a desktop
-# keyring for --cookies-from-browser and brings py3-cryptography with it.
-# yt-dlp-ejs, the YouTube solver, wants a JavaScript runtime from apk, and
-# QuickJS is the smallest; yt-dlp runs the Deno above, which it is handed with
-# --js-runtimes. Chromium is the sign-in browser (internal/signinbrowser),
-# started only while somebody signs in to a site from the web interface; Noto
-# covers the scripts a login page falls back to where its own web fonts do not.
-# apk upgrade takes the fixes Alpine published after the base image was built.
+# ffmpeg left behind when a yt-dlp download is stopped gets reaped. yt-dlp
+# runs its YouTube solver in the Deno above, which it is handed with
+# --js-runtimes (KL_DENO). Chromium is the sign-in browser
+# (internal/signinbrowser), started only while somebody signs in to a site from
+# the web interface; Noto covers the scripts a login page falls back to where
+# its own web fonts do not. apk upgrade takes the fixes Alpine published after
+# the base image was built.
 RUN apk add --no-cache ca-certificates ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
-      yt-dlp-core attr py3-brotli py3-mutagen py3-pycryptodomex py3-websockets \
-      yt-dlp-ejs yt-dlp-ejs-rt-quickjs chromium font-noto \
+      chromium font-noto \
     && apk upgrade --no-cache \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
+COPY --from=ytdlp /out/yt-dlp /usr/bin/yt-dlp
 COPY --from=unrar /out/unrar /usr/local/bin/unrar
 COPY --from=unrar /out/license.txt /usr/share/licenses/unrar/license.txt
 COPY --from=deno /usr/local/lib/glibc /usr/local/lib/glibc
 COPY --from=deno /usr/local/bin/deno /usr/local/bin/deno
+
+# Dashboards that read container labels list KnightLoader with these. The
+# address depends on the host, so the template sets homepage.href.
+LABEL homepage.group="Downloads" \
+      homepage.name="KnightLoader" \
+      homepage.icon="https://raw.githubusercontent.com/junkerderprovinz/unraid-apps/main/knightloader/icon.png?v=4" \
+      homepage.description="Download manager for hosters, torrents and Usenet" \
+      glance.name="KnightLoader" \
+      glance.icon="https://raw.githubusercontent.com/junkerderprovinz/unraid-apps/main/knightloader/icon.png?v=4" \
+      glance.description="Download manager for hosters, torrents and Usenet"
 
 # Data (SQLite, settings, encrypted accounts) and downloads live on volumes.
 ENV KL_DATA=/data \

@@ -209,7 +209,7 @@ from the zip. Make the downloaded file executable first
 (`chmod +x knightloader-linux-amd64-installer`).
 
 The desktop app fetches yt-dlp for video sites into its data folder, checked
-against the release's `SHA2-256SUMS`: the installer does it on Windows and
+against the release's `SHA2-256SUMS` and yt-dlp's signature on them: the installer does it on Windows and
 Linux, and the macOS app, a copy from the zip, the AppImage and the Flatpak do
 it at their first start. From then on KnightLoader keeps it current, see
 [Keeping the components current](#keeping-the-components-current).

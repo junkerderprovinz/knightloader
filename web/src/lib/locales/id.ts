@@ -3138,7 +3138,7 @@ export const id: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, berumur {days} hari.',
   'settings.selftest.ytdlp.aging': '{version} berumur {days} hari.',
   'settings.selftest.ytdlp.old': '{version} berumur {days} hari. Situs video besar biasanya merusaknya dalam hitungan minggu.',
-  'settings.selftest.ytdlp.oldAdvice': 'Di dalam kontainer, yt-dlp berasal dari paket Alpine yang masih terbaru saat imagenya dibangun, dan ia tidak pernah memperbarui diri. Tarik image yang lebih baru, atau pasang yt-dlp milikmu sendiri ke dalam kontainernya dan arahkan KL_YTDLP ke sana.',
+  'settings.selftest.ytdlp.oldAdvice': '“Perbarui sekarang” di bagian “Komponen” pada halaman “Info” mengambil yt-dlp terbaru, dan “Perbarui komponen secara otomatis” menjaganya tetap terbaru setelah itu. Di dalam kontainer, image yang lebih baru juga membawa yt-dlp yang lebih baru.',
   'settings.selftest.ytdlp.missing': 'Tidak ditemukan, jadi halaman media gagal dengan pesan kesalahan milik hosternya sendiri.',
   'settings.selftest.ytdlp.missingAdvice': 'Arahkan KL_YTDLP ke berkas programnya, atau taruh yt-dlp di PATH. Ia hanya dicari satu kali saat menyala, jadi yang dipasang sekarang baru dipakai setelah mulai ulang.',
   'settings.selftest.ytdlp.undated': '{version} tidak terlihat seperti tanggal, jadi umurnya tidak bisa dinilai.',

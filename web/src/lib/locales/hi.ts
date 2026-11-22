@@ -3139,7 +3139,7 @@ export const hi: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} दिन पुराना।',
   'settings.selftest.ytdlp.aging': '{version} {days} दिन पुराना है।',
   'settings.selftest.ytdlp.old': '{version} {days} दिन पुराना है। बड़ी वीडियो साइटें उसे आम तौर पर कुछ ही हफ़्तों में बेकार कर देती हैं।',
-  'settings.selftest.ytdlp.oldAdvice': 'कंटेनर में yt-dlp उस Alpine पैकेज से आता है जो इमेज बनते समय चालू था, और वह खुद को कभी अपडेट नहीं करता। नई इमेज लें, या अपना कोई yt-dlp कंटेनर में माउंट करें और KL_YTDLP को उस पर लगाएँ।',
+  'settings.selftest.ytdlp.oldAdvice': '“जानकारी” पेज पर “घटक” के नीचे “अभी अपडेट करें” सबसे नया yt-dlp ले आता है, और “घटकों को अपने-आप अपडेट करें” उसके बाद उसे अपडेट रखता है। कंटेनर में नई इमेज के साथ नया yt-dlp भी आता है।',
   'settings.selftest.ytdlp.missing': 'नहीं मिला, इसलिए मीडिया पन्ने उसकी जगह होस्टर की अपनी त्रुटि के साथ विफल होते हैं।',
   'settings.selftest.ytdlp.missingAdvice': 'KL_YTDLP को उस फ़ाइल पर लगाएँ, या yt-dlp को PATH पर रखें। उसे शुरू होते समय एक ही बार ढूँढ़ा जाता है, इसलिए अभी इंस्टॉल किया हुआ पुनः आरंभ के बाद ही काम आता है।',
   'settings.selftest.ytdlp.undated': '{version} किसी तारीख़ जैसा नहीं लगता, इसलिए उसकी उम्र आँकी नहीं जा सकती।',

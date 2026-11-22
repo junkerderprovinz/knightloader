@@ -3138,7 +3138,7 @@ export const hu: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} napos.',
   'settings.selftest.ytdlp.aging': 'A(z) {version} {days} napos.',
   'settings.selftest.ytdlp.old': 'A(z) {version} {days} napos. A nagy videóoldalak általában heteken belül elrontják.',
-  'settings.selftest.ytdlp.oldAdvice': 'A konténerben a yt-dlp abból az Alpine-csomagból jön, amelyik a konténerkép építésekor aktuális volt, és soha nem frissíti magát. Húzz le újabb konténerképet, vagy csatolj be a konténerbe egy saját yt-dlp példányt, és mutass rá a KL_YTDLP változóval.',
+  'settings.selftest.ytdlp.oldAdvice': 'Az „Infó” oldal „Összetevők” részén a „Frissítés most” letölti a legújabb yt-dlp-t, az „Összetevők automatikus frissítése” pedig utána naprakészen tartja. A konténerben egy újabb konténerkép újabb yt-dlp-t is hoz.',
   'settings.selftest.ytdlp.missing': 'Nincs meg, ezért a médiaoldalak helyette a tárhely saját hibájával hiúsulnak meg.',
   'settings.selftest.ytdlp.missingAdvice': 'Mutass a KL_YTDLP változóval a futtatható fájlra, vagy tedd a yt-dlp-t a PATH-ra. Csak egyszer, induláskor keressük, a most telepített tehát csak újraindítás után kerül használatba.',
   'settings.selftest.ytdlp.undated': 'A(z) {version} nem néz ki dátumnak, a korát tehát nem lehet megítélni.',

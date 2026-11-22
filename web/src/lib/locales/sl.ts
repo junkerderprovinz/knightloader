@@ -3137,7 +3137,7 @@ export const sl: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, star {days} dni.',
   'settings.selftest.ytdlp.aging': '{version} je star {days} dni.',
   'settings.selftest.ytdlp.old': '{version} je star {days} dni. Velike videostrani ga navadno v nekaj tednih pokvarijo.',
-  'settings.selftest.ytdlp.oldAdvice': 'V vsebniku pride yt-dlp iz paketa Alpine, ki je bil aktualen ob izdelavi slike, in se nikoli ne posodobi sam. Vzemi novejšo sliko, ali pa v vsebnik priklopi svoj lastni yt-dlp in naj KL_YTDLP kaže nanj.',
+  'settings.selftest.ytdlp.oldAdvice': '»Posodobi zdaj« pod »Sestavni deli« na strani »Informacije« prenese najnovejši yt-dlp, »Samodejno posodabljaj komponente« pa ga potem sproti posodablja. V vsebniku novejša slika prinese tudi novejši yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Ni najden, zato medijske strani namesto tega spodletijo s sporočilom o napaki hosterja.',
   'settings.selftest.ytdlp.missingAdvice': 'Naj KL_YTDLP kaže na izvršljivo datoteko, ali pa položi yt-dlp na PATH. Išče se enkrat med zagonom, tako da se tisti, ki ga namestiš zdaj, uporabi šele po ponovnem zagonu.',
   'settings.selftest.ytdlp.undated': '{version} ni videti kot datum, zato starosti ni mogoče presoditi.',

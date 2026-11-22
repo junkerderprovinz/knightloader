@@ -62,16 +62,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   The phone app names Google Play, F-Droid or GitHub Releases, depending on
   where it was installed from, and the extension names its browser's add-on
   store.
+- **yt-dlp is current in the container too.** The image ships yt-dlp
+  2026.10.26 from yt-dlp's own releases, so it no longer waits for Alpine's
+  package to catch up. The image and the app also check yt-dlp's signature on
+  every release they fetch.
 - **Fresh building blocks.** Deno 2.9.8. The container takes it from Deno's
   own releases and checks it against their checksum, since Alpine's package
   trails them by months.
 - **Security fixes in the container image.** The build installs every Alpine
   update published after the base image, which brings the fixed OpenSSL and
-  zlib. yt-dlp comes without the desktop keyring support KnightLoader never
-  uses, so py3-cryptography is gone from the image.
+  zlib. Python is gone from the image, and py3-cryptography with it.
 - **The published images get OS updates every week.** Between releases, the
   KnightLoader and relay images tagged `latest` take Alpine's pending updates
   once a week and are left alone when no package has an update.
+- **Dashboard labels.** Dashboards that read container labels list
+  KnightLoader with its name, logo and description on their own. Put the
+  address in the template's Dashboard Link field to make the entry a link.
 
 ### Translations
 

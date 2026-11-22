@@ -3152,7 +3152,7 @@ export const sr: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, старо {days} дана.',
   'settings.selftest.ytdlp.aging': '{version} је старо {days} дана.',
   'settings.selftest.ytdlp.old': '{version} је старо {days} дана. Велики видео сајтови га обично покваре у року од неколико недеља.',
-  'settings.selftest.ytdlp.oldAdvice': 'У контејнеру yt-dlp долази из Alpine пакета који је био актуелан када је слика грађена, и никада се сам не ажурира. Довуци новију слику, или монтирај сопствени yt-dlp у контејнер и нека KL_YTDLP показује на њега.',
+  'settings.selftest.ytdlp.oldAdvice': '„Ажурирај сада” у одељку „Компоненте” на страници „Информације” преузима најновији yt-dlp, а „Аутоматски ажурирај компоненте” га после тога држи ажурним. У контејнеру новија слика доноси и новији yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Није нађен, зато медијске странице падају са сопственом грешком хостера.',
   'settings.selftest.ytdlp.missingAdvice': 'Нека KL_YTDLP показује на извршну датотеку, или стави yt-dlp у PATH. Тражи се једном при подизању, па се онај који сада инсталираш користи тек после поновног покретања.',
   'settings.selftest.ytdlp.undated': '{version} не изгледа као датум, па се старост не може проценити.',

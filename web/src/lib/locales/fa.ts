@@ -3127,7 +3127,7 @@ export const fa: Dict = {
   'settings.selftest.ytdlp.ok': '{version}، {days} روز عمر دارد.',
   'settings.selftest.ytdlp.aging': 'نسخهٔ {version} {days} روز عمر دارد.',
   'settings.selftest.ytdlp.old': 'نسخهٔ {version} {days} روز عمر دارد. سایت‌های بزرگ ویدیو معمولاً ظرف چند هفته خرابش می‌کنند.',
-  'settings.selftest.ytdlp.oldAdvice': 'در کانتینر، yt-dlp از همان بستهٔ Alpine می‌آید که هنگام ساخته شدن ایمیج روز بود، و هرگز خودش را به‌روز نمی‌کند. ایمیج تازه‌تری بگیر، یا yt-dlp خودت را در کانتینر سوار کن و KL_YTDLP را روی آن بگذار.',
+  'settings.selftest.ytdlp.oldAdvice': '«همین حالا به‌روز کن» در بخش «اجزا» صفحهٔ «اطلاعات» تازه‌ترین yt-dlp را می‌گیرد، و «به‌روزرسانی خودکار مؤلفه‌ها» از آن به بعد آن را به‌روز نگه می‌دارد. در کانتینر، ایمیج تازه‌تر هم yt-dlp تازه‌تری می‌آورد.',
   'settings.selftest.ytdlp.missing': 'پیدا نشد، پس صفحه‌های رسانه به‌جایش با خطای خودِ هاستر شکست می‌خورند.',
   'settings.selftest.ytdlp.missingAdvice': 'KL_YTDLP را روی همان فایل اجرایی بگذار، یا yt-dlp را روی PATH بگذار. فقط یک بار هنگام بالا آمدن دنبالش گشته می‌شود، پس آنچه همین حالا نصب کنی تنها پس از یک راه‌اندازی مجدد به کار می‌رود.',
   'settings.selftest.ytdlp.undated': '{version} به تاریخ نمی‌ماند، پس سنش را نمی‌شود سنجید.',

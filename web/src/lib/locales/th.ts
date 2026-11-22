@@ -3137,7 +3137,7 @@ export const th: Dict = {
   'settings.selftest.ytdlp.ok': '{version} อายุ {days} วัน',
   'settings.selftest.ytdlp.aging': '{version} อายุ {days} วันแล้ว',
   'settings.selftest.ytdlp.old': '{version} อายุ {days} วันแล้ว เว็บวิดีโอใหญ่ ๆ มักทำให้มันใช้ไม่ได้ภายในไม่กี่สัปดาห์',
-  'settings.selftest.ytdlp.oldAdvice': 'ในคอนเทนเนอร์ yt-dlp มาจากแพ็กเกจ Alpine ที่เป็นรุ่นปัจจุบันตอนที่อิมเมจถูกสร้าง และมันไม่เคยอัปเดตตัวเอง ไปเอาอิมเมจที่ใหม่กว่า หรือเมาต์ yt-dlp ของคุณเองเข้ามาในคอนเทนเนอร์แล้วให้ KL_YTDLP ชี้ไปที่มัน',
+  'settings.selftest.ytdlp.oldAdvice': '“อัปเดตเลย” ใต้ “ส่วนประกอบ” ในหน้า “ข้อมูล” จะดึง yt-dlp รุ่นล่าสุดมาให้ และ “อัปเดตส่วนประกอบโดยอัตโนมัติ” จะคอยอัปเดตให้ต่อจากนั้น ในคอนเทนเนอร์ อิมเมจที่ใหม่กว่าก็มาพร้อม yt-dlp ที่ใหม่กว่าด้วย',
   'settings.selftest.ytdlp.missing': 'ไม่พบ หน้าสื่อจึงล้มเหลวด้วยข้อความผิดพลาดของโฮสเตอร์เองแทน',
   'settings.selftest.ytdlp.missingAdvice': 'ให้ KL_YTDLP ชี้ไปที่ไฟล์โปรแกรม หรือวาง yt-dlp ไว้ใน PATH มันถูกค้นหาเพียงครั้งเดียวตอนบูต ตัวที่ติดตั้งตอนนี้จึงถูกใช้หลังรีสตาร์ทเท่านั้น',
   'settings.selftest.ytdlp.undated': '{version} ไม่ได้ดูเหมือนวันที่ จึงตัดสินอายุของมันไม่ได้',

@@ -3133,7 +3133,7 @@ export const eu: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} egunekoa.',
   'settings.selftest.ytdlp.aging': '{version} bertsioak {days} egun ditu.',
   'settings.selftest.ytdlp.old': '{version} bertsioak {days} egun ditu. Bideo-gune handiek aste gutxitan hondatzen dute normalean.',
-  'settings.selftest.ytdlp.oldAdvice': 'Edukiontzian, yt-dlp irudia eraiki zenean indarrean zegoen Alpine paketetik dator, eta ez da inoiz bere kabuz eguneratzen. Ekarri irudi berriago bat, edo muntatu zure yt-dlp bat edukiontzian eta seinalatu KL_YTDLP hara.',
+  'settings.selftest.ytdlp.oldAdvice': '«Informazioa» orriko «Osagaiak» ataleko «Eguneratu orain» botoiak yt-dlp berriena ekartzen du, eta «Eguneratu osagaiak automatikoki» aukerak eguneratuta mantentzen du handik aurrera. Edukiontzian, irudi berriago batek yt-dlp berriagoa ere badakar.',
   'settings.selftest.ytdlp.missing': 'Ez da aurkitu, beraz multimedia-orriek ostalariaren beraren errorearekin huts egiten dute.',
   'settings.selftest.ytdlp.missingAdvice': 'Seinalatu KL_YTDLP fitxategi bitarrera, edo jarri yt-dlp PATHean. Behin bakarrik bilatzen da abiatzean, beraz orain instalatutako bat berrabiarazi ondoren bakarrik erabiltzen da.',
   'settings.selftest.ytdlp.undated': '{version} ez da data baten itxurakoa, beraz ezin da haren adina epaitu.',

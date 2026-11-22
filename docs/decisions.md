@@ -185,8 +185,9 @@ none.
 
 yt-dlp does ship regressions, and a new one changes what downloads produce.
 The switch is on anyway because the other failure is the common one: the
-container carries Alpine's yt-dlp package, which lags weeks behind, and a site
-that changed its page breaks every download from it until yt-dlp catches up. A
+container ships the yt-dlp release that was current when the image was built,
+and a site that changed its page breaks every download from it until yt-dlp
+catches up. A
 new release that fails its checksum or does not start here replaces nothing.
 yt-dlp is asked after daily for the same reason, and the others weekly because
 they move slower. ffmpeg's rolling build changes every night, so its weekly
@@ -203,7 +204,7 @@ component, because a video link that no yt-dlp reads falls through to
 JDownloader and lands as one plain row, and the copy the app keeps current is
 the fetched one anyway: the program's folder is read-only to the app. The
 installer on Windows and Linux fetches it into the data folder, checked against
-the release's `SHA2-256SUMS`, as the last step of the install. The macOS app, a
+the release's signed `SHA2-256SUMS`, as the last step of the install. The macOS app, a
 copy from the zip, the Flatpak and a silent install fetch it at the first
 start, where the app finds none. The Windows and Linux zips stay the program
 alone, because every installed copy updates itself from them and refuses a zip

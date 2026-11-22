@@ -3148,7 +3148,7 @@ export const sk: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, starý {days} dní.',
   'settings.selftest.ytdlp.aging': '{version} je starý {days} dní.',
   'settings.selftest.ytdlp.old': '{version} je starý {days} dní. Veľké videostránky ho väčšinou do niekoľkých týždňov pokazia.',
-  'settings.selftest.ytdlp.oldAdvice': 'V kontajneri prichádza yt-dlp z balíka Alpine, ktorý bol aktuálny pri stavbe obrazu, a nikdy sa neaktualizuje samo. Vezmi si novší obraz, alebo pripoj do kontajnera vlastné yt-dlp a nechaj KL_YTDLP ukázať naň.',
+  'settings.selftest.ytdlp.oldAdvice': '„Aktualizovať teraz“ v časti „Súčasti“ na stránke „Info“ stiahne najnovšie yt-dlp a „Aktualizovať komponenty automaticky“ ho potom udržiava aktuálne. V kontajneri prinesie novší obraz aj novšie yt-dlp.',
   'settings.selftest.ytdlp.missing': 'Nenájdené, mediálne stránky preto zlyhajú s vlastnou chybovou správou hostera.',
   'settings.selftest.ytdlp.missingAdvice': 'Nechaj KL_YTDLP ukázať na ten súbor, alebo dostaň yt-dlp do PATH. Hľadá sa raz pri nabiehaní, teraz nainštalované sa teda použije až po reštarte.',
   'settings.selftest.ytdlp.undated': '{version} nevyzerá ako dátum, vek sa teda posúdiť nedá.',

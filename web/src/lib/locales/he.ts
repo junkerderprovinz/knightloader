@@ -3156,7 +3156,7 @@ export const he: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, בן {days} ימים.',
   'settings.selftest.ytdlp.aging': '{version} בן {days} ימים.',
   'settings.selftest.ytdlp.old': '{version} בן {days} ימים. אתרי הווידאו הגדולים בדרך כלל שוברים אותו תוך שבועות.',
-  'settings.selftest.ytdlp.oldAdvice': 'בקונטיינר yt-dlp מגיע מחבילת Alpine שהייתה עדכנית כשהאימג׳ נבנה, והוא לעולם לא מעדכן את עצמו. משוך אימג׳ חדש יותר, או עגן yt-dlp משלך לתוך הקונטיינר והצבע עליו עם KL_YTDLP.',
+  'settings.selftest.ytdlp.oldAdvice': '„עדכן עכשיו” תחת „רכיבים” בעמוד „מידע” מביא את yt-dlp החדש ביותר, ו„עדכון רכיבים אוטומטי” שומר אותו עדכני מאז. בקונטיינר, אימג׳ חדש יותר מביא גם yt-dlp חדש יותר.',
   'settings.selftest.ytdlp.missing': 'לא נמצא, ולכן עמודי מדיה נכשלים במקום זה עם הודעת השגיאה של המארח.',
   'settings.selftest.ytdlp.missingAdvice': 'הצבע עם KL_YTDLP על הקובץ, או שים את yt-dlp ב-PATH. מחפשים אותו פעם אחת בזמן העלייה, ולכן אחד שיותקן עכשיו ייכנס לשימוש רק אחרי הפעלה מחדש.',
   'settings.selftest.ytdlp.undated': '{version} לא נראה כמו תאריך, ולכן אי אפשר לשפוט את הגיל שלו.',

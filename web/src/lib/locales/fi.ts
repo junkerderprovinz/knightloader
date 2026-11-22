@@ -3139,7 +3139,7 @@ export const fi: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} päivää vanha.',
   'settings.selftest.ytdlp.aging': '{version} on {days} päivää vanha.',
   'settings.selftest.ytdlp.old': '{version} on {days} päivää vanha. Suuret videosivustot rikkovat sen yleensä viikoissa.',
-  'settings.selftest.ytdlp.oldAdvice': 'Kontissa yt-dlp tulee siitä Alpine-paketista, joka oli ajan tasalla imagea rakennettaessa, eikä se päivitä koskaan itseään. Hae uudempi image, tai liitä konttiin oma yt-dlp ja osoita KL_YTDLP siihen.',
+  'settings.selftest.ytdlp.oldAdvice': '”Päivitä nyt” kohdassa ”Osat” sivulla ”Tiedot” hakee uusimman yt-dlp:n, ja ”Päivitä komponentit automaattisesti” pitää sen sen jälkeen ajan tasalla. Kontissa uudempi image tuo myös uudemman yt-dlp:n.',
   'settings.selftest.ytdlp.missing': 'Ei löytynyt, joten mediasivut kaatuvat sen sijaan hosterin omaan virheeseen.',
   'settings.selftest.ytdlp.missingAdvice': 'Osoita KL_YTDLP tiedostoon, tai laita yt-dlp PATH-polulle. Sitä etsitään vain kerran käynnistyksen yhteydessä, joten nyt asennettu otetaan käyttöön vasta uudelleenkäynnistyksen jälkeen.',
   'settings.selftest.ytdlp.undated': '{version} ei näytä päiväykseltä, joten sen ikää ei voi arvioida.',

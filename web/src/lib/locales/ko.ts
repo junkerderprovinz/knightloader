@@ -3129,7 +3129,7 @@ export const ko: Dict = {
   'settings.selftest.ytdlp.ok': '{version} 버전이며 나온 지 {days}일 되었습니다.',
   'settings.selftest.ytdlp.aging': '{version} 버전은 나온 지 {days}일 되었습니다.',
   'settings.selftest.ytdlp.old': '{version} 버전은 나온 지 {days}일 되었습니다. 큰 동영상 사이트들은 보통 몇 주 안에 그것을 망가뜨립니다.',
-  'settings.selftest.ytdlp.oldAdvice': '컨테이너에서 yt-dlp는 이미지를 만들 때 최신이던 Alpine 패키지에서 오며, 스스로 업데이트하는 일은 없습니다. 더 새로운 이미지를 받거나, 당신 자신의 yt-dlp를 컨테이너 안에 마운트하고 KL_YTDLP가 그것을 가리키게 하세요.',
+  'settings.selftest.ytdlp.oldAdvice': '“정보” 페이지의 “구성 요소”에 있는 “지금 업데이트”로 최신 yt-dlp를 받을 수 있고, “구성 요소 자동 업데이트”가 그 뒤로도 최신으로 유지합니다. 컨테이너에서는 더 새로운 이미지에 더 새로운 yt-dlp도 들어 있습니다.',
   'settings.selftest.ytdlp.missing': '찾지 못했습니다. 그래서 미디어 페이지는 내려받히는 대신 호스터 자신의 오류와 함께 실패합니다.',
   'settings.selftest.ytdlp.missingAdvice': 'KL_YTDLP가 실행 파일을 가리키게 하거나, yt-dlp를 PATH에 두세요. 시작할 때 한 번만 찾으므로, 지금 설치한 것은 다시 시작한 뒤에야 쓰입니다.',
   'settings.selftest.ytdlp.undated': '{version} 버전은 날짜처럼 보이지 않아서 얼마나 오래되었는지 판단할 수 없습니다.',

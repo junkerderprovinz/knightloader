@@ -3137,7 +3137,7 @@ export const tr: Dict = {
   'settings.selftest.ytdlp.ok': '{version}, {days} gün eski.',
   'settings.selftest.ytdlp.aging': '{version} sürümü {days} gün eski.',
   'settings.selftest.ytdlp.old': '{version} sürümü {days} gün eski. Büyük video siteleri onu genelde haftalar içinde bozar.',
-  'settings.selftest.ytdlp.oldAdvice': 'Konteynerde yt-dlp, imaj derlendiğinde güncel olan Alpine paketinden gelir ve kendini hiç güncellemez. Daha yeni bir imaj çek, ya da konteynere kendi yt-dlp kopyanı bağla ve KL_YTDLP değerini ona yönlendir.',
+  'settings.selftest.ytdlp.oldAdvice': '“Bilgi” sayfasında “Bileşenler” altındaki “Şimdi güncelle” en yeni yt-dlp sürümünü getirir, “Bileşenleri otomatik güncelle” ise onu sonrasında güncel tutar. Konteynerde daha yeni bir imaj, daha yeni bir yt-dlp de getirir.',
   'settings.selftest.ytdlp.missing': 'Bulunamadı, bu yüzden medya sayfaları onun yerine hosterin kendi hata iletisiyle başarısız olur.',
   'settings.selftest.ytdlp.missingAdvice': 'KL_YTDLP değerini o dosyaya yönlendir, ya da yt-dlp dosyasını PATH üzerine koy. Arama yalnızca bir kez, açılış sırasında yapılır, yani şimdi kurulan bir tanesi ancak bir yeniden başlatmadan sonra kullanılır.',
   'settings.selftest.ytdlp.undated': '{version} bir tarihe benzemiyor, bu yüzden yaşı değerlendirilemiyor.',

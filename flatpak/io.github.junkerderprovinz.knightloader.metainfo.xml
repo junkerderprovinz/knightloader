@@ -81,7 +81,7 @@
   <releases>
     <release version="2.9.5" date="2026-11-22">
       <description>
-        <p>The Version card shows where updates stand and restarts the desktop app into a downloaded update, the Components card says what each program does, and the container image takes Deno from its own releases with current security fixes.</p>
+        <p>The Version card shows where updates stand and restarts the desktop app into a downloaded update, the Components card says what each program does, and every yt-dlp update is checked against its signature.</p>
       </description>
       <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.9.5</url>
     </release>

@@ -16,8 +16,8 @@
 //     short cache so the settings page and the diagnostics bundle can both
 //     read it on every load without turning into a process fountain.
 //   - fetch.go: downloading a yt-dlp release from GitHub, verifying it against
-//     the release's own SHA2-256SUMS, proving it runs on this machine, and
-//     only then putting it where the resolver will start it.
+//     the release's own signed SHA2-256SUMS, proving it runs on this
+//     machine, and only then putting it where the resolver will start it.
 //   - ffmpeg.go: the same for ffmpeg and ffprobe, from an LGPL build, for a
 //     desktop that has none on PATH.
 //   - deno.go: the same for Deno, from its own releases.
