@@ -49,7 +49,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Design
 
-- **KnightLoader follows GlimStone 4.8.3.** Settings, Info holds the same four
+- **KnightLoader follows GlimStone 4.8.4.** Settings, Info holds the same four
   cards in the web interface, the phone app and the extension: Version,
   Components, Help and About. Badges in connection rows are smaller, and the
   AllDebrid mark stays visible on a dark background.
