@@ -1114,8 +1114,17 @@ func (a *App) dispatchLocked() {
 			if later != nil {
 				seq = a.beginPreflightLocked(id)
 			}
+			// Tracked so Close waits for a preflight in flight, which would
+			// otherwise report or start the job after the store is gone.
+			tracked := a.track()
 			go func() {
+				if tracked {
+					defer a.wg.Done()
+				}
 				defer a.endHandover(id)
+				if !tracked {
+					return
+				}
 				if later != nil && !a.preflight(&job, later, seq) {
 					return
 				}
