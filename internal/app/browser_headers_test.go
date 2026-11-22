@@ -124,21 +124,23 @@ func TestBrowserHeadersStayOffOtherOrigins(t *testing.T) {
 }
 
 func TestASlowPreflightDoesNotHoldTheAppLock(t *testing.T) {
-	release := make(chan struct{})
+	// The server holds the preflight until the test ends, so whatever waits
+	// for it under the app lock does not return. A failed wait lets the server
+	// go, or the cleanup's Close would be stuck behind the same lock.
+	hold := make(chan struct{})
+	var once sync.Once
+	release := func() { once.Do(func() { close(hold) }) }
 	probed := make(chan struct{}, 1)
 	slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		select {
 		case probed <- struct{}{}:
 		default:
 		}
-		select {
-		case <-release:
-		case <-time.After(3 * time.Second):
-		}
+		<-hold
 		_, _ = w.Write([]byte("x"))
 	}))
 	t.Cleanup(slow.Close)
-	t.Cleanup(func() { close(release) })
+	t.Cleanup(release)
 
 	a := newQueueApp(t)
 	link := slow.URL + "/members/file.zip"
@@ -152,23 +154,79 @@ func TestASlowPreflightDoesNotHoldTheAppLock(t *testing.T) {
 	a.mu.Unlock()
 	a.keepBrowserHeaders(set, []string{task.ID})
 
-	began := time.Now()
+	await := func(done <-chan struct{}, failure string) {
+		t.Helper()
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			release()
+			t.Fatal(failure)
+		}
+	}
+	dispatched := make(chan struct{})
+	go func() {
+		a.mu.Lock()
+		a.queue = append(a.queue, task.ID)
+		a.dispatchLocked()
+		a.mu.Unlock()
+		close(dispatched)
+	}()
+	await(dispatched, "starting the task held the app lock while its server was slow")
+	await(probed, "the preflight never reached the server")
+	listed := make(chan struct{})
+	go func() {
+		_ = a.Tasks()
+		close(listed)
+	}()
+	await(listed, "listing the tasks waited for the preflight")
+}
+
+func TestClosingDuringAPreflightStartsNothing(t *testing.T) {
+	release := make(chan struct{})
+	probed := make(chan struct{}, 1)
+	var mu sync.Mutex
+	asked := 0
+	slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		asked++
+		mu.Unlock()
+		select {
+		case probed <- struct{}{}:
+		default:
+		}
+		<-release
+		_, _ = w.Write([]byte("x"))
+	}))
+	t.Cleanup(slow.Close)
+	t.Cleanup(func() { close(release) })
+
+	a := newQueueApp(t)
+	link := slow.URL + "/members/file.zip"
+	set, err := BrowserHeaders(link, map[string]string{"Cookie": browserCookie})
+	if err != nil {
+		t.Fatal(err)
+	}
+	task := &core.Task{ID: "closing", URL: link, Status: core.StatusQueued, Enabled: true}
+	a.mu.Lock()
+	a.tasks[task.ID] = task
+	a.mu.Unlock()
+	a.keepBrowserHeaders(set, []string{task.ID})
 	a.mu.Lock()
 	a.queue = append(a.queue, task.ID)
 	a.dispatchLocked()
 	a.mu.Unlock()
-	if d := time.Since(began); d > time.Second {
-		t.Fatalf("starting the task held the app lock for %v while its server was slow", d)
+	<-probed
+
+	a.Close()
+	mu.Lock()
+	defer mu.Unlock()
+	if asked != 1 {
+		t.Errorf("the server was asked %d times, want the preflight alone", asked)
 	}
-	select {
-	case <-probed:
-	case <-time.After(2 * time.Second):
-		t.Fatal("the preflight never reached the server")
-	}
-	began = time.Now()
-	_ = a.Tasks()
-	if d := time.Since(began); d > time.Second {
-		t.Errorf("listing the tasks waited %v for the preflight", d)
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if task.Status == core.StatusError {
+		t.Errorf("the task failed with %q", task.Error)
 	}
 }
 
