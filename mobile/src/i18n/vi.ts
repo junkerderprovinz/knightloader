@@ -433,4 +433,6 @@ export const vi: Dict = {
   'componentsCard.hint': 'Mọi thứ tạo nên {app} hoặc đi kèm, cùng phiên bản của chúng.',
   'componentsCard.design': 'Hệ thống thiết kế',
   'settings.help': 'Trợ giúp',
+  'versionCard.anyStore': 'Bản cập nhật đến qua cửa hàng nơi bạn tải ứng dụng.',
+  'versionCard.direct': 'Phiên bản mới có trên trang phát hành để tải xuống.',
 };

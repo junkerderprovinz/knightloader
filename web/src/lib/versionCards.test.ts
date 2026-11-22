@@ -16,6 +16,9 @@ const T = {
   current: 'Up to date',
   checked: () => 'Last checked now',
   checking: 'Checking …',
+  unchecked: 'Not checked yet',
+  anyStore: 'Updates come through the store you got the app from.',
+  direct: 'New versions come as a download on the release page.',
   available: (v: string) => `Update to ${v} available`,
   failed: 'Check failed',
   downloading: (p: number) => `Downloading … ${p}%`,
@@ -43,9 +46,16 @@ describe('the Version card logic', () => {
     expect(checkButton('store', { kind: 'current' })).toBeNull();
   });
 
-  it('says nothing before the first check', () => {
-    expect(updateLine({ kind: 'unchecked' }, T).line).toBe('');
+  it('says it has not looked yet until a check found something', () => {
+    expect(updateLine({ kind: 'unchecked' }, T).line).toBe('Not checked yet');
+    expect(updateLine({ kind: 'current' }, T)).toEqual({ line: 'Not checked yet', tone: 'neutral' });
     expect(updateLine({ kind: 'failed', reason: 'offline' }, T)).toEqual({ line: 'Check failed', tone: 'fail', note: 'offline' });
+  });
+
+  it('names the store an app came from, any store, or the release page', () => {
+    expect(updateLine({ kind: 'store', store: 'F-Droid' }, T).line).toBe('Updates come through F-Droid.');
+    expect(updateLine({ kind: 'store' }, T).line).toBe('Updates come through the store you got the app from.');
+    expect(updateLine({ kind: 'direct' }, T).line).toBe('New versions come as a download on the release page.');
   });
 
   it('counts the unseen changes after the word', () => {

@@ -4224,4 +4224,7 @@ export const hr: Dict = {
   'componentsCard.about.jd': 'Preuzima sa servisa za dijeljenje datoteka',
   'componentsCard.about.qbit': 'Preuzima torrente',
   'versionCard.restart': 'Ponovno pokreni za {version}',
+  'versionCard.unchecked': 'Još nije provjereno',
+  'versionCard.anyStore': 'Ažuriranja stižu preko trgovine iz koje imaš aplikaciju.',
+  'versionCard.direct': 'Nove verzije preuzimaju se sa stranice izdanja.',
 };

@@ -4211,4 +4211,7 @@ export const hu: Dict = {
   'componentsCard.about.jd': 'Fájltárhelyekről tölt le',
   'componentsCard.about.qbit': 'Torrenteket tölt le',
   'versionCard.restart': 'Újraindítás a(z) {version} miatt',
+  'versionCard.unchecked': 'Még nincs ellenőrizve',
+  'versionCard.anyStore': 'A frissítések abból az áruházból jönnek, ahonnan az alkalmazást szerezted.',
+  'versionCard.direct': 'Az új verziók a kiadások oldaláról tölthetők le.',
 };

@@ -433,4 +433,6 @@ export const tr: Dict = {
   'componentsCard.hint': '{app} uygulamasının oluştuğu ya da beraberinde getirdiği her şey, sürümüyle.',
   'componentsCard.design': 'Tasarım sistemi',
   'settings.help': 'Yardım',
+  'versionCard.anyStore': 'Güncellemeler uygulamayı aldığın mağazadan gelir.',
+  'versionCard.direct': 'Yeni sürümler sürüm sayfasından indirilir.',
 };

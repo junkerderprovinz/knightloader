@@ -432,4 +432,6 @@ export const ko: Dict = {
   'componentsCard.hint': '{app}을(를) 이루거나 함께 제공되는 모든 것과 그 버전.',
   'componentsCard.design': '디자인 시스템',
   'settings.help': '도움말',
+  'versionCard.anyStore': '업데이트는 앱을 받은 스토어에서 받습니다.',
+  'versionCard.direct': '새 버전은 릴리스 페이지에서 다운로드할 수 있습니다.',
 };

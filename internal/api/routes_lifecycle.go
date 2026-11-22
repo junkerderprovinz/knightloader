@@ -71,7 +71,12 @@ func registerLifecycle(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/system/update-check",
 		"whether a newer release exists on GitHub than this build's own version, and on desktop which one waits for the next start",
 		func(w http.ResponseWriter, r *http.Request) {
-			info := update.Check(r.Context(), buildinfo.Version)
+			var info update.Info
+			if a.UpdateCheck != nil {
+				info = a.UpdateCheck(r.Context())
+			} else {
+				info = update.Check(r.Context(), buildinfo.Version)
+			}
 			if a.UpdateReady != nil {
 				info.Ready = a.UpdateReady()
 			}

@@ -4211,4 +4211,7 @@ export const bg: Dict = {
   'componentsCard.about.jd': 'Изтегля от файлови хостинги',
   'componentsCard.about.qbit': 'Изтегля торенти',
   'versionCard.restart': 'Рестартирай за {version}',
+  'versionCard.unchecked': 'Още не е проверено',
+  'versionCard.anyStore': 'Обновленията идват през магазина, от който имаш приложението.',
+  'versionCard.direct': 'Новите версии се изтеглят от страницата с изданията.',
 };

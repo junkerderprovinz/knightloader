@@ -16,11 +16,11 @@ import (
 // Credential Manager, the macOS Keychain, the Secret Service on Linux) under
 // this service and account, since a desktop has no template to pass
 // KL_APP_KEY in. The variable still wins when it is set, which is how the
-// data folder is opened on another machine.
-const (
-	keyringService = "KnightLoader"
-	keyringUser    = "app-key"
-)
+// data folder is opened on another machine. The test build names the service
+// after its own product, so it never opens a real installation's data.
+var keyringService = "KnightLoader"
+
+const keyringUser = "app-key"
 
 // keyStore is the part of go-keyring loadAppKey uses, so a test can stand in
 // for the operating system's store.

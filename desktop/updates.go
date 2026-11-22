@@ -81,6 +81,14 @@ func newUpdater(logf func(format string, args ...any), announce func(version str
 	return up
 }
 
+// check asks the source the updates come from whether a newer release is out,
+// so the Version card and Update now never disagree about it.
+func (up *updater) check(ctx context.Context) update.Info {
+	u := *up.u
+	u.Client = &http.Client{Timeout: 10 * time.Second}
+	return u.Info(ctx)
+}
+
 // run removes what the last update left and then checks for updates until ctx
 // ends, whenever autoUpdate allows. A dev build never checks, since it has no
 // version to compare, and a Flatpak leaves updates to Flatpak, which owns its

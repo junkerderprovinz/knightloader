@@ -4195,4 +4195,7 @@ export const pl: Dict = {
   'componentsCard.about.jd': 'Pobiera z hostingów plików',
   'componentsCard.about.qbit': 'Pobiera torrenty',
   'versionCard.restart': 'Uruchom ponownie dla {version}',
+  'versionCard.unchecked': 'Jeszcze nie sprawdzono',
+  'versionCard.anyStore': 'Aktualizacje przychodzą przez sklep, z którego masz aplikację.',
+  'versionCard.direct': 'Nowe wersje można pobrać ze strony wydań.',
 };

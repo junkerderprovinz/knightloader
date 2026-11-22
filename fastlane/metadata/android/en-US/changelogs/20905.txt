@@ -1,1 +1,1 @@
-Settings now names the store your updates come from (Google Play, F-Droid or GitHub), so you always know who to blame. New Version and Components cards show what you run and what each part of it does.
+Settings now names the store your updates come from (Google Play or F-Droid), so you always know who to blame, and an APK you installed by hand points you to the release page. New Version and Components cards show what you run and what each part of it does.

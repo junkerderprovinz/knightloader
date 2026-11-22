@@ -4220,4 +4220,7 @@ export const cs: Dict = {
   'componentsCard.about.jd': 'Stahuje z úložišť souborů',
   'componentsCard.about.qbit': 'Stahuje torrenty',
   'versionCard.restart': 'Restartovat kvůli {version}',
+  'versionCard.unchecked': 'Zatím nezkontrolováno',
+  'versionCard.anyStore': 'Aktualizace přicházejí přes obchod, ze kterého aplikaci máš.',
+  'versionCard.direct': 'Nové verze jsou ke stažení na stránce vydání.',
 };

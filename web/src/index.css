@@ -4359,13 +4359,29 @@ body {
   padding: 0;
   list-style: none;
 }
+/* On a narrow card a row breaks before its end, which moves under the name
+   whole. Inside it the controls and the number keep one line, and a status
+   that leaves them no room takes a line of its own above them. */
 .glim-version-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
+  gap: 0.25rem 1rem;
   min-height: 2rem;
+}
+.glim-version-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem 0.75rem;
+  margin-inline-start: auto;
+}
+.glim-version-tail {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 .glim-version-name {
   display: flex;
@@ -4387,23 +4403,33 @@ body {
 }
 /* No frame, no fill and no underline, so it never reads as a button. */
 a.glim-version-number:focus-visible { color: var(--accent-ink); }
+/* A 24px target for a finger, given back by the margin so the line keeps its height. */
+a.glim-version-number {
+  padding-block: 2px;
+  margin-block: -2px;
+}
 @media (hover: hover) {
   a.glim-version-number:hover { color: var(--accent-ink); }
 }
-.glim-version-actions,
-.glim-version-row-actions {
+.glim-version-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
 }
-.glim-version-row-actions { gap: 0.5rem; }
+.glim-version-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* A long build number, such as a branch build's, drops under the name on a phone. */
 .glim-version-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.25rem 1rem;
 }
 .glim-version-app {
   min-width: 0;
@@ -4412,6 +4438,9 @@ a.glim-version-number:focus-visible { color: var(--accent-ink); }
   color: var(--carbon-text);
 }
 .glim-version-head .glim-version-number {
+  min-width: 0;
+  margin-inline-start: auto;
+  overflow-wrap: anywhere;
   font-size: var(--text-body);
   color: var(--carbon-text);
 }
@@ -4453,16 +4482,13 @@ a.glim-version-number:focus-visible { color: var(--accent-ink); }
 .glim-version-status {
   display: inline-flex;
   align-items: center;
-  margin-inline-start: auto;
   font-size: var(--text-meta);
+  white-space: nowrap;
   color: var(--carbon-text-sub);
 }
 .glim-version-status[data-tone="ok"] { color: var(--status-ok-text); }
 .glim-version-status[data-tone="warn"] { color: var(--status-warn-text); }
 .glim-version-status[data-tone="fail"] { color: var(--status-fail-text); }
-.glim-version-status + .glim-version-row-actions,
-.glim-version-status + .glim-version-number { margin-inline-start: 0; }
-.glim-version-name + .glim-version-row-actions { margin-inline-start: auto; }
 
 /* The dot before "What's new": green while something is unseen, grey once nothing is. */
 .glim-version-dot {

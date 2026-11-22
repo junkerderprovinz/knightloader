@@ -4201,4 +4201,7 @@ export const et: Dict = {
   'componentsCard.about.jd': 'Laadib failimajutusteenustest alla',
   'componentsCard.about.qbit': 'Laadib torrenteid alla',
   'versionCard.restart': 'Taaskäivita versiooni {version} jaoks',
+  'versionCard.unchecked': 'Pole veel kontrollitud',
+  'versionCard.anyStore': 'Uuendused tulevad poe kaudu, kust rakenduse said.',
+  'versionCard.direct': 'Uued versioonid saab alla laadida väljalasete lehelt.',
 };

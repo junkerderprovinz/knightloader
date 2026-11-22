@@ -4210,4 +4210,7 @@ export const vi: Dict = {
   'componentsCard.about.jd': 'Tải từ các dịch vụ lưu trữ tệp',
   'componentsCard.about.qbit': 'Tải torrent',
   'versionCard.restart': 'Khởi động lại để dùng {version}',
+  'versionCard.unchecked': 'Chưa kiểm tra',
+  'versionCard.anyStore': 'Bản cập nhật đến qua cửa hàng nơi bạn tải ứng dụng.',
+  'versionCard.direct': 'Phiên bản mới có trên trang phát hành để tải xuống.',
 };

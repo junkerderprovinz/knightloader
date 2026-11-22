@@ -4451,6 +4451,9 @@ export const en = {
   'componentsCard.about.jd': 'Downloads from file hosters',
   'componentsCard.about.qbit': 'Downloads torrents',
   'versionCard.restart': 'Restart for {version}',
+  'versionCard.unchecked': 'Not checked yet',
+  'versionCard.anyStore': 'Updates come through the store you got the app from.',
+  'versionCard.direct': 'New versions come as a download on the release page.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

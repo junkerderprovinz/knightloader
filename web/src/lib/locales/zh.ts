@@ -4194,4 +4194,7 @@ export const zh: Dict = {
   'componentsCard.about.jd': '从网盘下载',
   'componentsCard.about.qbit': '下载种子',
   'versionCard.restart': '重启以使用 {version}',
+  'versionCard.unchecked': '尚未检查',
+  'versionCard.anyStore': '更新通过你获取此应用的商店提供。',
+  'versionCard.direct': '新版本可在发布页面下载。',
 };

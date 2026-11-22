@@ -433,4 +433,6 @@ export const ru: Dict = {
   'componentsCard.hint': 'Всё, из чего состоит {app} или что приносит с собой, с версией.',
   'componentsCard.design': 'Дизайн-система',
   'settings.help': 'Справка',
+  'versionCard.anyStore': 'Обновления приходят через магазин, из которого у тебя приложение.',
+  'versionCard.direct': 'Новые версии можно скачать на странице релизов.',
 };

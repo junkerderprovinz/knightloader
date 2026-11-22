@@ -4206,4 +4206,7 @@ export const is: Dict = {
   'componentsCard.about.jd': 'Sækir af skráahýsingum',
   'componentsCard.about.qbit': 'Sækir torrent-skrár',
   'versionCard.restart': 'Endurræsa fyrir {version}',
+  'versionCard.unchecked': 'Ekki athugað enn',
+  'versionCard.anyStore': 'Uppfærslur berast í gegnum verslunina sem þú fékkst appið úr.',
+  'versionCard.direct': 'Nýjar útgáfur eru sóttar á útgáfusíðunni.',
 };

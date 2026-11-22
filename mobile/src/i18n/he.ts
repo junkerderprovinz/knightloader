@@ -433,4 +433,6 @@ export const he: Dict = {
   'componentsCard.hint': 'כל מה ש-{app} עשוי ממנו או מביא איתו, עם הגרסה שלו.',
   'componentsCard.design': 'מערכת עיצוב',
   'settings.help': 'עזרה',
+  'versionCard.anyStore': 'העדכונים מגיעים מהחנות שממנה התקנת את האפליקציה.',
+  'versionCard.direct': 'גרסאות חדשות זמינות להורדה בדף הגרסאות.',
 };

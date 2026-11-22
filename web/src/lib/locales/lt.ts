@@ -4212,4 +4212,7 @@ export const lt: Dict = {
   'componentsCard.about.jd': 'Atsisiunčia iš failų talpinimo paslaugų',
   'componentsCard.about.qbit': 'Atsisiunčia torrentus',
   'versionCard.restart': 'Paleisti iš naujo dėl {version}',
+  'versionCard.unchecked': 'Dar netikrinta',
+  'versionCard.anyStore': 'Atnaujinimai ateina per parduotuvę, iš kurios gavai programą.',
+  'versionCard.direct': 'Naujas versijas galima atsisiųsti iš leidimų puslapio.',
 };

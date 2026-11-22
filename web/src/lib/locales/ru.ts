@@ -4190,4 +4190,7 @@ export const ru: Dict = {
   'componentsCard.about.jd': 'Скачивает с файлообменников',
   'componentsCard.about.qbit': 'Скачивает торренты',
   'versionCard.restart': 'Перезапустить для {version}',
+  'versionCard.unchecked': 'Ещё не проверено',
+  'versionCard.anyStore': 'Обновления приходят через магазин, из которого у тебя приложение.',
+  'versionCard.direct': 'Новые версии можно скачать на странице релизов.',
 };

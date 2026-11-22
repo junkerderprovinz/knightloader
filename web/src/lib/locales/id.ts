@@ -4210,4 +4210,7 @@ export const id: Dict = {
   'componentsCard.about.jd': 'Mengunduh dari layanan hosting file',
   'componentsCard.about.qbit': 'Mengunduh torrent',
   'versionCard.restart': 'Mulai ulang untuk {version}',
+  'versionCard.unchecked': 'Belum diperiksa',
+  'versionCard.anyStore': 'Pembaruan datang lewat toko tempat kamu mendapatkan aplikasi ini.',
+  'versionCard.direct': 'Versi baru tersedia untuk diunduh di halaman rilis.',
 };

@@ -433,4 +433,6 @@ export const fa: Dict = {
   'componentsCard.hint': 'هر آنچه {app} از آن ساخته شده یا همراه دارد، با نسخه‌اش.',
   'componentsCard.design': 'سامانهٔ طراحی',
   'settings.help': 'راهنما',
+  'versionCard.anyStore': 'به‌روزرسانی‌ها از فروشگاهی می‌آیند که برنامه را از آن گرفته‌ای.',
+  'versionCard.direct': 'نسخه‌های تازه در صفحهٔ انتشارها برای بارگیری هستند.',
 };

@@ -433,4 +433,6 @@ export const id: Dict = {
   'componentsCard.hint': 'Semua yang membentuk {app} atau yang dibawanya, beserta versinya.',
   'componentsCard.design': 'Sistem desain',
   'settings.help': 'Bantuan',
+  'versionCard.anyStore': 'Pembaruan datang lewat toko tempat kamu mendapatkan aplikasi ini.',
+  'versionCard.direct': 'Versi baru tersedia untuk diunduh di halaman rilis.',
 };

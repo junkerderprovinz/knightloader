@@ -433,4 +433,6 @@ export const is: Dict = {
   'componentsCard.hint': 'Allt sem {app} er gert úr eða hefur með sér, með útgáfu.',
   'componentsCard.design': 'Hönnunarkerfi',
   'settings.help': 'Hjálp',
+  'versionCard.anyStore': 'Uppfærslur berast í gegnum verslunina sem þú fékkst appið úr.',
+  'versionCard.direct': 'Nýjar útgáfur eru sóttar á útgáfusíðunni.',
 };

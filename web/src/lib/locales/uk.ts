@@ -4211,4 +4211,7 @@ export const uk: Dict = {
   'componentsCard.about.jd': 'Завантажує з файлообмінників',
   'componentsCard.about.qbit': 'Завантажує торенти',
   'versionCard.restart': 'Перезапустити для {version}',
+  'versionCard.unchecked': 'Ще не перевірено',
+  'versionCard.anyStore': 'Оновлення надходять через магазин, з якого в тебе застосунок.',
+  'versionCard.direct': 'Нові версії можна завантажити на сторінці релізів.',
 };

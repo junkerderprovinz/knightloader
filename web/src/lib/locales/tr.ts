@@ -4209,4 +4209,7 @@ export const tr: Dict = {
   'componentsCard.about.jd': 'Dosya barındırma servislerinden indirir',
   'componentsCard.about.qbit': 'Torrent indirir',
   'versionCard.restart': '{version} için yeniden başlat',
+  'versionCard.unchecked': 'Henüz denetlenmedi',
+  'versionCard.anyStore': 'Güncellemeler uygulamayı aldığın mağazadan gelir.',
+  'versionCard.direct': 'Yeni sürümler sürüm sayfasından indirilir.',
 };

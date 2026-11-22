@@ -4224,4 +4224,7 @@ export const sr: Dict = {
   'componentsCard.about.jd': 'Преузима са сервиса за дељење датотека',
   'componentsCard.about.qbit': 'Преузима торенте',
   'versionCard.restart': 'Поново покрени за {version}',
+  'versionCard.unchecked': 'Још није проверено',
+  'versionCard.anyStore': 'Ажурирања стижу преко продавнице из које имаш апликацију.',
+  'versionCard.direct': 'Нове верзије се преузимају са странице издања.',
 };

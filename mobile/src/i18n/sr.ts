@@ -433,4 +433,6 @@ export const sr: Dict = {
   'componentsCard.hint': 'Све од чега се {app} састоји или што доноси са собом, са верзијом.',
   'componentsCard.design': 'Систем дизајна',
   'settings.help': 'Помоћ',
+  'versionCard.anyStore': 'Ажурирања стижу преко продавнице из које имаш апликацију.',
+  'versionCard.direct': 'Нове верзије се преузимају са странице издања.',
 };

@@ -433,4 +433,6 @@ export const fi: Dict = {
   'componentsCard.hint': 'Kaikki, mistä {app} koostuu tai mitä se tuo mukanaan, versioineen.',
   'componentsCard.design': 'Suunnittelujärjestelmä',
   'settings.help': 'Ohje',
+  'versionCard.anyStore': 'Päivitykset tulevat kaupasta, josta sait sovelluksen.',
+  'versionCard.direct': 'Uudet versiot ladataan julkaisusivulta.',
 };

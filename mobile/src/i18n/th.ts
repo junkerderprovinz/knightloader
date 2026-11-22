@@ -433,4 +433,6 @@ export const th: Dict = {
   'componentsCard.hint': 'ทุกอย่างที่ {app} ประกอบขึ้นหรือนำมาด้วย พร้อมเวอร์ชัน',
   'componentsCard.design': 'ระบบดีไซน์',
   'settings.help': 'วิธีใช้',
+  'versionCard.anyStore': 'อัปเดตมาจากสโตร์ที่คุณติดตั้งแอปนี้',
+  'versionCard.direct': 'เวอร์ชันใหม่ดาวน์โหลดได้ที่หน้ารีลีส',
 };

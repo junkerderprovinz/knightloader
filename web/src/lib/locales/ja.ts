@@ -4207,4 +4207,7 @@ export const ja: Dict = {
   'componentsCard.about.jd': 'ファイルホスティングからダウンロード',
   'componentsCard.about.qbit': 'トレントをダウンロード',
   'versionCard.restart': '{version} のために再起動',
+  'versionCard.unchecked': 'まだ確認していません',
+  'versionCard.anyStore': 'アップデートはアプリを入手したストアから届きます。',
+  'versionCard.direct': '新しいバージョンはリリースページからダウンロードできます。',
 };

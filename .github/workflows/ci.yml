@@ -787,7 +787,7 @@ jobs:
         run: go test -tags gtk3 ./... -count=1
 
       - name: Test the test build
-        run: go test -tags gtk3,updatetest . -count=1 -run Sample
+        run: go test -tags gtk3,updatetest . -count=1 -run 'Sample|TheTestBuild'
 
       # desktop.yml cross-builds the Windows arm64 bundle without cgo, so a
       # dependency that starts to need it fails here rather than at a release.

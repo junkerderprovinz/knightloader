@@ -4200,4 +4200,7 @@ export const pt: Dict = {
   'componentsCard.about.jd': 'Baixa de serviços de hospedagem de arquivos',
   'componentsCard.about.qbit': 'Baixa torrents',
   'versionCard.restart': 'Reiniciar para a {version}',
+  'versionCard.unchecked': 'Ainda não verificado',
+  'versionCard.anyStore': 'As atualizações chegam pela loja de onde tens a app.',
+  'versionCard.direct': 'As versões novas transferem-se da página de lançamentos.',
 };

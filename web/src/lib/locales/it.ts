@@ -4194,4 +4194,7 @@ export const it: Dict = {
   'componentsCard.about.jd': 'Scarica dai servizi di file hosting',
   'componentsCard.about.qbit': 'Scarica i torrent',
   'versionCard.restart': 'Riavvia per la {version}',
+  'versionCard.unchecked': 'Non ancora controllato',
+  'versionCard.anyStore': 'Gli aggiornamenti arrivano dallo store da cui hai preso l\'app.',
+  'versionCard.direct': 'Le nuove versioni si scaricano dalla pagina delle release.',
 };

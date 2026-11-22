@@ -4227,4 +4227,7 @@ export const he: Dict = {
   'componentsCard.about.jd': 'מוריד מאתרי אחסון קבצים',
   'componentsCard.about.qbit': 'מוריד טורנטים',
   'versionCard.restart': 'הפעלה מחדש לגרסה {version}',
+  'versionCard.unchecked': 'עוד לא נבדק',
+  'versionCard.anyStore': 'העדכונים מגיעים מהחנות שממנה התקנת את האפליקציה.',
+  'versionCard.direct': 'גרסאות חדשות זמינות להורדה בדף הגרסאות.',
 };

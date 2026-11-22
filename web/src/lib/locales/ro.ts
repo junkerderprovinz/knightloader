@@ -4219,4 +4219,7 @@ export const ro: Dict = {
   'componentsCard.about.jd': 'Descarcă de pe serviciile de găzduire de fișiere',
   'componentsCard.about.qbit': 'Descarcă torente',
   'versionCard.restart': 'Repornește pentru {version}',
+  'versionCard.unchecked': 'Încă neverificat',
+  'versionCard.anyStore': 'Actualizările vin prin magazinul din care ai aplicația.',
+  'versionCard.direct': 'Versiunile noi se descarcă de pe pagina de lansări.',
 };

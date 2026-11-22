@@ -49,19 +49,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Design
 
-- **KnightLoader follows GlimStone 4.8.2.** Settings, Info holds the same four
+- **KnightLoader follows GlimStone 4.8.3.** Settings, Info holds the same four
   cards in the web interface, the phone app and the extension: Version,
   Components, Help and About. Badges in connection rows are smaller, and the
   AllDebrid mark stays visible on a dark background.
 - **The Components card says what each program does** in its (i). On the
   desktop it ends with the PommelPorter release the installer was built with.
+  On a narrow screen a long version number moves below the name.
 
 ### Improved
 
 - **The phone app and the extension say which store brings their updates.**
-  The phone app names Google Play, F-Droid or GitHub Releases, depending on
-  where it was installed from, and the extension names its browser's add-on
-  store.
+  The phone app names Google Play or F-Droid, and an APK installed by hand
+  points to the release page for new versions. The extension names its
+  browser's add-on store.
 - **yt-dlp is current in the container too.** The image ships yt-dlp
   2026.10.26 from yt-dlp's own releases, so it no longer waits for Alpine's
   package to catch up. The image and the app also check yt-dlp's signature on
@@ -78,6 +79,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Dashboard labels.** Dashboards that read container labels list
   KnightLoader with its name, logo and description on their own. Put the
   address in the template's Dashboard Link field to make the entry a link.
+
+### Fixed
+
+- **Downloads pick up again once a used-up volume is back.** Downloads that ran
+  into a used-up download volume, such as Debrid-Link's daily traffic for one
+  hoster, gave up after three quick retries and never started again. They now
+  wait until the volume is back and pick up by themselves.
 
 ### Translations
 

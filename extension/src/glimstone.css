@@ -2174,14 +2174,21 @@ body {
 }
 /* No frame, no fill and no underline, so it never reads as a button. */
 a.glim-version-number:focus-visible { color: var(--accent-ink); }
+/* A 24px target for a finger, given back by the margin so the line keeps its height. */
+a.glim-version-number {
+  padding-block: 2px;
+  margin-block: -2px;
+}
 @media (hover: hover) {
   a.glim-version-number:hover { color: var(--accent-ink); }
 }
+/* A long build number drops under the name in a narrow window. */
 .glim-version-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
+  gap: 4px 16px;
 }
 .glim-version-app {
   min-width: 0;
@@ -2189,7 +2196,12 @@ a.glim-version-number:focus-visible { color: var(--accent-ink); }
   font-weight: 600;
   color: var(--carbon-text);
 }
-.glim-version-head .glim-version-number { color: var(--carbon-text); }
+.glim-version-head .glim-version-number {
+  min-width: 0;
+  margin-inline-start: auto;
+  overflow-wrap: anywhere;
+  color: var(--carbon-text);
+}
 .glim-version-foot {
   display: flex;
   flex-wrap: wrap;

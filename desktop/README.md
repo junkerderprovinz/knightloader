@@ -80,11 +80,14 @@ GET for the progress and for any error.
 To try the whole path locally, build with `-tags updatetest`. That build reads
 `KL_UPDATE_API` (a stand-in for `https://api.github.com` that serves
 `/repos/junkerderprovinz/knightloader/releases/latest`) and `KL_UPDATE_DELAY`
-(how long to wait before the first check, such as `15s`). Release builds leave
-the tag out, so no environment variable can change where an update comes from.
+(how long to wait before the first check, such as `15s`). Without a stand-in
+it asks a host that never resolves, never GitHub, so neither Check for updates
+nor Update now can reach a real release. Release builds leave the tag out, so
+no environment variable can change where an update comes from.
 
 The same build installs as **KnightLoader Test**, beside a real installation,
-with a task and a folder under ProgramData of that name:
+with a task, a folder under ProgramData and an app key in the credential store
+of that name:
 
 ```sh
 KL_VERSION=v1.2.1 node scripts/desktop.mjs --installer --updatetest

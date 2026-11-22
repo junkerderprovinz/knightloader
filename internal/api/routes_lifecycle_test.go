@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -179,6 +180,21 @@ func TestUpdateInstallIsRefusedWhereNothingInstallsItself(t *testing.T) {
 	}
 	if code := getJSON(t, srv.URL+"/api/system/update-install", nil); code != http.StatusNotImplemented {
 		t.Fatalf("GET update-install = %d, want %d", code, http.StatusNotImplemented)
+	}
+}
+
+func TestUpdateCheckAsksTheDesktopsOwnSource(t *testing.T) {
+	a, srv := lifecycleServer(t)
+	a.UpdateCheck = func(context.Context) update.Info {
+		return update.Info{Checked: true, Available: true, Current: "v2.9.4", Latest: "v2.9.5"}
+	}
+	a.UpdateReady = func() string { return "v2.9.5" }
+	var info update.Info
+	if code := getJSON(t, srv.URL+"/api/system/update-check", &info); code != http.StatusOK {
+		t.Fatalf("GET update-check = %d", code)
+	}
+	if info.Latest != "v2.9.5" || info.Ready != "v2.9.5" {
+		t.Errorf("update-check answered %+v, want the desktop's own source with the waiting version", info)
 	}
 }
 

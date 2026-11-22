@@ -433,4 +433,6 @@ export const lt: Dict = {
   'componentsCard.hint': 'Viskas, iš ko sudaryta {app} ar ką atsineša, su versija.',
   'componentsCard.design': 'Dizaino sistema',
   'settings.help': 'Pagalba',
+  'versionCard.anyStore': 'Atnaujinimai ateina per parduotuvę, iš kurios gavai programą.',
+  'versionCard.direct': 'Naujas versijas galima atsisiųsti iš leidimų puslapio.',
 };

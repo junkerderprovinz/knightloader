@@ -433,4 +433,6 @@ export const hi: Dict = {
   'componentsCard.hint': 'वह सब कुछ जिससे {app} बना है या जो वह साथ लाता है, उसके संस्करण के साथ।',
   'componentsCard.design': 'डिज़ाइन सिस्टम',
   'settings.help': 'सहायता',
+  'versionCard.anyStore': 'अपडेट उसी स्टोर से आते हैं जहाँ से आपने ऐप लिया है।',
+  'versionCard.direct': 'नए संस्करण रिलीज़ पेज पर डाउनलोड के लिए आते हैं।',
 };

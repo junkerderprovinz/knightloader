@@ -432,4 +432,6 @@ export const ja: Dict = {
   'componentsCard.hint': '{app} を構成するもの、または同梱されているもののすべてとそのバージョン。',
   'componentsCard.design': 'デザインシステム',
   'settings.help': 'ヘルプ',
+  'versionCard.anyStore': 'アップデートはアプリを入手したストアから届きます。',
+  'versionCard.direct': '新しいバージョンはリリースページからダウンロードできます。',
 };
