@@ -1719,6 +1719,17 @@ func (a *App) onUpdate(id string, u core.Update) {
 			// bot check, further requests only strengthen the block.
 			t.GaveUp = true
 			t.NextTry = time.Time{}
+		case t.ErrorCode == core.CodeQuotaUsed:
+			// A spent volume comes back by itself, so waiting for it never
+			// runs out of tries. Without a reset time it is looked at again
+			// when a volume bench would be.
+			t.Retries++
+			t.MaxTries = 0
+			retryIn = u.Retry
+			if retryIn <= 0 {
+				retryIn = volumeRecheck
+			}
+			t.NextTry = time.Now().Add(retryIn)
 		case t.Retries < plan.Tries:
 			t.Retries++
 			// Recorded here, the only place the merged plan is known.
