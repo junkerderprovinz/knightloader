@@ -4,6 +4,6 @@
  * describes so the Components card cannot drift from them; bump it in the change
  * that lifts them.
  */
-export const GLIMSTONE_VERSION = '4.8.4';
+export const GLIMSTONE_VERSION = '4.8.5';
 
 export const GLIMSTONE_REPO = 'https://github.com/junkerderprovinz/glimstone';
