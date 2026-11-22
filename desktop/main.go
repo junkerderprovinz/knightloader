@@ -142,6 +142,7 @@ func main() {
 	updateCtx, stopUpdates := context.WithCancel(context.Background())
 	a.InstallUpdate = func() error { return up.install(updateCtx, installed) }
 	a.UpdateProgress = up.currentProgress
+	a.UpdateCheck = up.check
 	var restarting atomic.Bool
 	if installed {
 		go up.follow(updateCtx)
