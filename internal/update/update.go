@@ -56,13 +56,6 @@ var AppImages = map[string]string{
 	"linux/arm64": "knightloader-linux-arm64.AppImage",
 }
 
-// Installers names the Windows installer of each architecture, which the copy
-// installed for all users runs to update, since it cannot replace itself.
-var Installers = map[string]string{
-	"windows/amd64": "knightloader-windows-amd64-installer.exe",
-	"windows/arm64": "knightloader-windows-arm64-installer.exe",
-}
-
 // Updater holds what an update needs to know about the program. API, Client
 // and Path fall back to GitHub, http.DefaultClient and the running program.
 type Updater struct {
@@ -242,13 +235,10 @@ type Progress struct {
 	Error string `json:"error,omitempty"`
 }
 
-// The states of Progress. An installed copy goes from downloading to starting
-// the installer, which takes over from there; any other copy ends ready, with
-// the new version waiting for its next start.
+// The states of Progress. An update goes from downloading to ready, with the
+// new version waiting for the next start, or to failed.
 const (
 	Downloading = "downloading"
-	Starting    = "starting"
-	Started     = "started"
 	Ready       = "ready"
 	Failed      = "failed"
 )

@@ -274,7 +274,7 @@ describe('updating the desktop build from the Version card', () => {
     expect(button(card('Version'), 'Update now').className).toContain('bg-accent');
   });
 
-  it('shows the download with its bar, then the installer taking over', async () => {
+  it('shows the download with its bar, then the restart into it', async () => {
     await draw({}, DESKTOP);
     await checkNow();
     answers['/api/system/update-install'] = { state: 'downloading', version: '1.9.0', done: 40, total: 100 };
@@ -283,9 +283,10 @@ describe('updating the desktop build from the Version card', () => {
     expect(card('Version').querySelector('[role="progressbar"]')!.getAttribute('aria-valuenow')).toBe('40');
     expect(button(card('Version'), 'Update now')).toBeUndefined();
 
-    answers['/api/system/update-install'] = { state: 'started', version: '1.9.0' };
+    answers['/api/system/update-install'] = { state: 'ready', version: '1.9.0' };
     await wait(600);
-    expect(line()).toBe('Downloading … 100%');
+    expect(line()).toBe('1.9.0 is ready');
+    expect(buttons(card('Version'))).toEqual(["What's new", 'Restart for 1.9.0']);
   });
 
   it('offers to restart into a downloaded version', async () => {

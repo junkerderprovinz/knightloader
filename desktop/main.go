@@ -35,10 +35,11 @@ import (
 
 func main() {
 	// The installer's scheduled task starts the program this way as the system
-	// account. It must not provision JDownloader, listen for Click'n'Load or
-	// open a window, so it runs before any of that.
-	if len(os.Args) == 2 && os.Args[1] == "--update" {
-		if err := updateInstalled(); err != nil {
+	// account, and Update now as an administrator with nowFlag. It must not
+	// provision JDownloader, listen for Click'n'Load or open a window, so it
+	// runs before any of that.
+	if args := os.Args[1:]; len(args) > 0 && args[0] == updateFlag && (len(args) == 1 || len(args) == 2 && args[1] == nowFlag) {
+		if err := updateInstalled(len(args) == 2); err != nil {
 			os.Exit(1)
 		}
 		return

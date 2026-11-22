@@ -3702,7 +3702,7 @@ export async function fetchUpdateCheck(): Promise<UpdateCheck> {
 
 /** How far an update the desktop build was asked to install has come. */
 export interface UpdateProgress {
-  state: '' | 'downloading' | 'starting' | 'started' | 'ready' | 'failed';
+  state: '' | 'downloading' | 'ready' | 'failed';
   version?: string;
   done?: number;
   /** -1 while the size is unknown. */

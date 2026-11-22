@@ -343,10 +343,10 @@ switch applies to everyone on the computer: it lives in
 `%ProgramData%\KnightLoader\settings.json`, which every user may change, and the
 task skips its run while it is off. An open window notices within ten minutes
 when the task has put a new version in place and shows the note. **Update
-now** does not wait for the task: it downloads the installer of the new
-release, checks it against `checksums.txt` and starts it. Windows asks for an
-administrator, the installer closes KnightLoader and opens the new version when
-it is done. The replaced
+now** does not wait for the task. Windows asks for an administrator, and
+KnightLoader then does at once what the task does, whatever the switch says: it
+downloads the release, checks it against `checksums.txt` and replaces
+`KnightLoader.exe`. **Restart for** then opens the new version. The replaced
 program waits beside the new one as `KnightLoader.exe.old` until a later run
 removes it.
 

@@ -29,7 +29,7 @@ export function routeOf(d: Pick<DeploymentInfo, 'deployment' | 'updatesFromStore
   return d.deployment === 'desktop' && !d.updatesFromStore ? 'install' : 'guide';
 }
 
-const installing = (p: UpdateProgress | null) => p?.state === 'downloading' || p?.state === 'starting';
+const installing = (p: UpdateProgress | null) => p?.state === 'downloading';
 
 /** How often the card asks how far an update it started has come. */
 const INSTALL_POLL = 500;
@@ -53,8 +53,6 @@ export function stateOf(s: {
     const percent = p.total && p.total > 0 ? Math.floor(((p.done ?? 0) * 100) / p.total) : 0;
     return { kind: 'downloading', percent };
   }
-  // The installed copy's installer has the file and closes KnightLoader.
-  if (p?.state === 'starting' || p?.state === 'started') return { kind: 'downloading', percent: 100 };
   // A downloaded version outranks the offer of it: it only waits for the next start.
   if (s.ready) return { kind: 'ready', version: shownVersion(s.ready) };
   if (!s.check) return { kind: 'unchecked' };
@@ -67,9 +65,9 @@ export function stateOf(s: {
  * VersionCard is KnightLoader with its version and where its updates stand.
  * While the switch is on, opening the page asks GitHub once; the desktop
  * build also says there whether a downloaded version waits for its next
- * start. Update now on the desktop build fetches the new version at once: the
- * copy installed for all users starts the new installer, any other copy puts
- * it in place, and Restart for it then starts it.
+ * start. Update now on the desktop build fetches the new version at once and
+ * puts it in place, the copy installed for all users once Windows has asked
+ * for an administrator, and Restart for it then starts it.
  */
 export function VersionCard({ deployment, hue }: { deployment: DeploymentInfo; hue: number }) {
   const { t, lang } = useT();
@@ -105,8 +103,8 @@ export function VersionCard({ deployment, hue }: { deployment: DeploymentInfo; h
     setChecking(false);
   }, []);
 
-  // Follows an update until it is past downloading. The installer closes the
-  // program, so a poll that finds nobody keeps the last answer.
+  // Follows an update until it is past downloading. A poll that gets no
+  // answer keeps the last one.
   const follow = useCallback(async (first: UpdateProgress) => {
     let p = first;
     setProgress(p);

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -32,8 +33,27 @@ const checkEvery = 24 * time.Hour
 // open window can say so.
 const updateReadyEvent = "updateReady"
 
-// launchInstaller starts a downloaded installer; the tests stand in for it.
-var launchInstaller = startInstaller
+// updateElevated runs Update now for the copy installed for all users in a
+// process that may replace it, and passes on how far that run has come. The
+// tests stand in for it, and for installedVersion.
+var (
+	updateElevated   = runElevatedUpdate
+	installedVersion = func() string { return update.InstalledVersion(product) }
+)
+
+// progressFile, in the installation's folder under ProgramData, is where the
+// elevated run of Update now records how far it has come and how it ended.
+const progressFile = "update-progress.json"
+
+// The scheduled task starts the program with updateFlag, Update now with
+// nowFlag after it.
+const (
+	updateFlag = "--update"
+	nowFlag    = "--now"
+)
+
+// progressEvery spaces out the elevated run's records while it downloads.
+const progressEvery = 200 * time.Millisecond
 
 var (
 	errUpdating         = errors.New("an update is already under way")
@@ -121,7 +141,8 @@ func (up *updater) run(ctx context.Context, autoUpdate func() bool) {
 // for the scheduled task to record a newer version in the uninstall entry and
 // says once that it starts next time.
 func (up *updater) follow(ctx context.Context) {
-	os.RemoveAll(installerDir())
+	// Update now in 2.9.4 and earlier left the installer it ran here.
+	os.RemoveAll(filepath.Join(os.TempDir(), product+" update"))
 	tick := time.NewTicker(followEvery)
 	defer tick.Stop()
 	for {
@@ -130,7 +151,7 @@ func (up *updater) follow(ctx context.Context) {
 			return
 		case <-tick.C:
 		}
-		if v := update.InstalledVersion(product); update.Newer(v, buildinfo.Version) {
+		if v := installedVersion(); update.Newer(v, buildinfo.Version) {
 			up.ready.Store(&v)
 			up.announce(v)
 			return
@@ -179,11 +200,10 @@ func (up *updater) swap(ctx context.Context) (string, error) {
 }
 
 // install is the Updates card's Install button: it fetches the newest release
-// in the background and reports how far it has come through progress. The
-// copy installed for all users cannot replace itself, so it downloads the
-// installer and starts it, which asks Windows for permission, closes this
-// program and opens the new version. Any other copy puts the new version in
-// place for its next start, as the daily check does.
+// in the background and reports how far it has come through progress, and
+// puts it in place for the next start or Restart, as the daily check does.
+// The copy installed for all users cannot write to its folder, so it asks
+// Windows for an administrator and does that in a process of its own.
 func (up *updater) install(ctx context.Context, installed bool) error {
 	if flatpak.ID() != "" {
 		return errUpdatesFromStore
@@ -220,38 +240,71 @@ func (up *updater) installNow(ctx context.Context, installed bool) (update.Progr
 		return update.Progress{State: update.Ready, Version: v}, err
 	}
 
-	dir := installerDir()
-	os.RemoveAll(dir)
-	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return update.Progress{}, err
-	}
-	u := *up.u
-	u.Assets = update.Installers
-	u.Dir = dir
-	rel, err := u.Check(ctx)
+	err := updateElevated(ctx, func(p update.Progress) {
+		if p.State == update.Downloading {
+			up.setProgress(p)
+		}
+	})
 	if err != nil {
 		return update.Progress{}, err
 	}
-	if rel == nil {
+	v := installedVersion()
+	if !update.Newer(v, up.u.Version) {
 		return update.Progress{}, errNothingNewer
 	}
-	up.nameDownload(rel.Version)
-	file, err := u.Fetch(ctx, rel)
-	if err != nil {
-		return update.Progress{}, fmt.Errorf("downloading the installer of %s: %w", rel.Version, err)
-	}
-	up.setProgress(update.Progress{State: update.Starting, Version: rel.Version})
-	if err := launchInstaller(file); err != nil {
-		return update.Progress{}, fmt.Errorf("starting the installer of %s: %w", rel.Version, err)
-	}
-	up.logf("update: the installer of %s is running", rel.Version)
-	return update.Progress{State: update.Started, Version: rel.Version}, nil
+	up.logf("update: %s is in place and starts next time", v)
+	up.ready.Store(&v)
+	up.announce(v)
+	return update.Progress{State: update.Ready, Version: v}, nil
 }
 
-// installerDir holds the installer an update starts. The installer closes this
-// program, so the folder is cleared on the next start rather than afterwards.
-func installerDir() string {
-	return filepath.Join(os.TempDir(), product+" update")
+// updateNow is the elevated run of Update now: it puts the newest release in
+// place of the copy installed for all users, whatever the switch says, and
+// keeps the record at path telling the window how far it has come.
+func (up *updater) updateNow(ctx context.Context, path string) error {
+	var last time.Time
+	up.setProgress(update.Progress{State: update.Downloading})
+	writeProgress(path, up.currentProgress())
+	up.u.Progress = func(done, total int64) {
+		up.downloaded(done, total)
+		if time.Since(last) >= progressEvery {
+			last = time.Now()
+			writeProgress(path, up.currentProgress())
+		}
+	}
+	v, err := up.swap(ctx)
+	if err == nil && v == "" {
+		err = errNothingNewer
+	}
+	if err != nil {
+		up.logf("update: %v", err)
+		writeProgress(path, update.Progress{State: update.Failed, Error: err.Error()})
+		return err
+	}
+	return writeProgress(path, update.Progress{State: update.Ready, Version: v})
+}
+
+// writeProgress replaces the record at path in one step, so the window never
+// reads half of it. The tests watch it.
+var writeProgress = func(path string, p update.Progress) error {
+	data, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func readProgress(path string) (update.Progress, error) {
+	var p update.Progress
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return p, err
+	}
+	return p, json.Unmarshal(data, &p)
 }
 
 func (up *updater) setProgress(p update.Progress) {

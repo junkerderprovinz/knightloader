@@ -112,7 +112,7 @@ func registerLifecycle(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/system/update-install",
-		"desktop: download the newest release now and install it, or have it start next time where the program cannot replace itself while running",
+		"desktop: download the newest release now and put it in place for the next start or a restart",
 		func(w http.ResponseWriter, r *http.Request) {
 			if a.InstallUpdate == nil {
 				http.Error(w, "only the desktop build installs its own updates", http.StatusNotImplemented)

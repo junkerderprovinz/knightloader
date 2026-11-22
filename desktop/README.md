@@ -70,11 +70,12 @@ The installed app keeps the switch in that file too and only watches the entry's
 updates itself.
 
 The Updates card's **Install now** (`POST /api/system/update-install`) does not
-wait for either. The installed copy downloads the release's
-`knightloader-windows-<arch>-installer.exe` into `%TEMP%KnightLoader update`,
-checks it against `checksums.txt` and starts it with `runas`, so Windows asks
-for an administrator and the installer takes it from there. A portable copy
-runs the daily download and swap at once. The card polls the same route with
+wait for either. The installed copy starts `KnightLoader.exe --update --now`
+with `runas`, so Windows asks for an administrator, and that run does what the
+task does, whatever the switch says. It records how far it has come in
+`update-progress.json` beside `update.log`, which the window follows, and once
+the entry's `DisplayVersion` is newer the card offers the restart. A portable
+copy runs the daily download and swap at once. The card polls the same route with
 GET for the progress and for any error.
 
 To try the whole path locally, build with `-tags updatetest`. That build reads
