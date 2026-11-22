@@ -278,7 +278,6 @@ export const ca: Dict = {
   'pairing.fortressDeviceName': 'Nom del servidor',
   'pairing.fortressDeviceHint': 'El nom amb què les altres aplicacions mostren aquest KnightLoader. Posa-li el que vulguis, o deixa-ho buit per fer servir {name}.',
   'pairing.fortressDeviceTooLong': 'El nom ha de cabre en una línia, fins a 64 caràcters.',
-  'pairing.fortressOpenNeedsPassword': 'Primer posa una contrasenya a KnightLoader, i després podrà obrir les altres aplicacions.',
   'pairing.fortressPhraseWhere': 'Qualsevol app de la fortalesa et pot mostrar la frase. Enganxa-la al primer camp i omplirà la resta.',
   'pairing.fortressChangePhraseAbout': 'Crea una frase nova per a totes les apps de la fortalesa, perquè un dispositiu que has tret es quedi fora.',
   'pairing.fortressChangeBody': 'Totes les apps a què pots arribar ara passen a una frase nova, i l\'antiga ja no deixa entrar ningú de nou.',

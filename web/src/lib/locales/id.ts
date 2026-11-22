@@ -278,7 +278,6 @@ export const id: Dict = {
   'pairing.fortressDeviceName': 'Nama server',
   'pairing.fortressDeviceHint': 'Nama yang dipakai aplikasi lain untuk menampilkan KnightLoader ini. Beri nama apa saja, atau biarkan kosong untuk memakai {name}.',
   'pairing.fortressDeviceTooLong': 'Nama harus muat dalam satu baris, paling banyak 64 karakter.',
-  'pairing.fortressOpenNeedsPassword': 'Beri KnightLoader kata sandi dulu, lalu ia bisa membuka aplikasi lain.',
   'pairing.fortressPhraseWhere': 'Setiap aplikasi di benteng bisa menunjukkan frasanya. Tempel di kolom pertama, lalu kolom lain ikut terisi.',
   'pairing.fortressChangePhraseAbout': 'Membuat frasa baru untuk semua aplikasi di benteng, jadi perangkat yang sudah kamu hapus tetap di luar.',
   'pairing.fortressChangeBody': 'Semua aplikasi yang bisa dijangkau sekarang pindah ke frasa baru, dan frasa lama tidak lagi bisa memasukkan siapa pun yang baru.',

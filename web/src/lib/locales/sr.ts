@@ -278,7 +278,6 @@ export const sr: Dict = {
   'pairing.fortressDeviceName': 'Назив сервера',
   'pairing.fortressDeviceHint': 'Назив под којим остале апликације приказују овај KnightLoader. Изабери који год желиш или остави празно да се користи {name}.',
   'pairing.fortressDeviceTooLong': 'Назив мора да стане у један ред, највише 64 знака.',
-  'pairing.fortressOpenNeedsPassword': 'Прво постави лозинку за KnightLoader, па ће моћи да отвара остале апликације.',
   'pairing.fortressPhraseWhere': 'Фразу може да ти покаже свака апликација у тврђави. Налепи је у прво поље и попуниће остала.',
   'pairing.fortressChangePhraseAbout': 'Прави нову фразу за сваку апликацију у тврђави, да уклоњени уређај остане напољу.',
   'pairing.fortressChangeBody': 'Свака апликација која је сада доступна прелази на нову фразу, а са старом више не улази нико нов.',

@@ -26,6 +26,7 @@ const (
 // openingPair is two KnightLoaders in one fortress on a relay of their own:
 // the opener, where the browser signs in with the password, and the member
 // it opens, which asks for a password of its own when withPassword is set.
+// openingTwoWith also leaves the opener without a password.
 type openingPair struct {
 	opener, member *httptest.Server
 	a, b           *app.App
@@ -34,6 +35,11 @@ type openingPair struct {
 }
 
 func openingTwo(t *testing.T, withPassword bool) *openingPair {
+	t.Helper()
+	return openingTwoWith(t, true, withPassword)
+}
+
+func openingTwoWith(t *testing.T, openerHasPassword, memberHasPassword bool) *openingPair {
 	t.Helper()
 	p := &openingPair{}
 	p.opener, p.a = testServer(t)
@@ -59,15 +65,18 @@ func openingTwo(t *testing.T, withPassword bool) *openingPair {
 		}
 		return false
 	})
-	if err := p.a.Auth.SetPassword("", openerPassword); err != nil {
-		t.Fatal(err)
-	}
-	if withPassword {
+	if memberHasPassword {
 		if err := p.b.Auth.SetPassword("", memberPassword); err != nil {
 			t.Fatal(err)
 		}
 	}
 	p.browser = &http.Client{Jar: newJar(t), CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	if !openerHasPassword {
+		return p
+	}
+	if err := p.a.Auth.SetPassword("", openerPassword); err != nil {
+		t.Fatal(err)
+	}
 	if code := login(t, p.browser, p.opener.URL, openerPassword); code != http.StatusOK {
 		t.Fatalf("signing in at the opener answered %d", code)
 	}
@@ -181,6 +190,43 @@ func TestAMemberWithoutAPasswordOpensWithItsOwnDoorsShut(t *testing.T) {
 	}
 	if p.b.Auth.Enabled() {
 		t.Error("a page opened through the fortress gave the member its first password")
+	}
+}
+
+func TestAKnightLoaderWithoutAPasswordOpensAnotherApp(t *testing.T) {
+	t.Parallel()
+	p := openingTwoWith(t, false, true)
+	tab := p.tab(t)
+
+	res, err := p.browser.Get(tab)
+	if err != nil {
+		t.Fatal(err)
+	}
+	shell, _ := io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode != http.StatusOK || !strings.Contains(string(shell), "<iframe") {
+		t.Fatalf("the tab answered %d %s", res.StatusCode, shell)
+	}
+	if code, _ := inTab(t, http.MethodGet, tab+"/api/tasks", ""); code != http.StatusUnauthorized {
+		t.Errorf("the member's list answered %d before its own sign-in, want 401", code)
+	}
+
+	codeAt := func(c *http.Client) int {
+		res, err := c.Get(tab)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		return res.StatusCode
+	}
+	if code := codeAt(&http.Client{CheckRedirect: p.browser.CheckRedirect}); code == http.StatusOK {
+		t.Error("another browser got the tab")
+	}
+	if err := p.a.Auth.SetPassword("", openerPassword); err != nil {
+		t.Fatal(err)
+	}
+	if code := codeAt(p.browser); code == http.StatusOK {
+		t.Error("the tab stayed open after a password was set here")
 	}
 }
 

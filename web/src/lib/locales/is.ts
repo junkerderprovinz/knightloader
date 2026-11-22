@@ -278,7 +278,6 @@ export const is: Dict = {
   'pairing.fortressDeviceName': 'Heiti þjóns',
   'pairing.fortressDeviceHint': 'Heitið sem hin forritin sýna þennan KnightLoader undir. Veldu hvaða heiti sem þú vilt, eða skildu reitinn eftir auðan til að nota {name}.',
   'pairing.fortressDeviceTooLong': 'Heitið þarf að komast fyrir í einni línu, mest 64 stafir.',
-  'pairing.fortressOpenNeedsPassword': 'Settu fyrst lykilorð á KnightLoader, þá getur það opnað hin forritin.',
   'pairing.fortressPhraseWhere': 'Öll forrit í víginu geta sýnt þér setninguna. Límdu hana í fyrsta reitinn og hún fyllir hina.',
   'pairing.fortressChangePhraseAbout': 'Býr til nýja setningu fyrir öll forrit í víginu, svo tæki sem þú fjarlægðir haldist úti.',
   'pairing.fortressChangeBody': 'Öll forrit sem þú nærð í núna skipta yfir í nýja setningu, og gamla setningin hleypir engum nýjum inn.',

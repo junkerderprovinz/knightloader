@@ -278,7 +278,6 @@ export const th: Dict = {
   'pairing.fortressDeviceName': 'ชื่อเซิร์ฟเวอร์',
   'pairing.fortressDeviceHint': 'ชื่อที่แอปอื่นๆ ใช้แสดง KnightLoader ตัวนี้ ตั้งชื่ออะไรก็ได้ตามใจ หรือปล่อยว่างไว้เพื่อใช้ {name}',
   'pairing.fortressDeviceTooLong': 'ชื่อต้องอยู่ในบรรทัดเดียว ไม่เกิน 64 ตัวอักษร',
-  'pairing.fortressOpenNeedsPassword': 'ตั้งรหัสผ่านให้ KnightLoader ก่อน แล้วจึงจะเปิดแอปอื่นๆ ได้',
   'pairing.fortressPhraseWhere': 'ทุกแอปในป้อมปราการแสดงวลีให้คุณดูได้ วางวลีในช่องแรก แล้วช่องที่เหลือจะถูกเติมให้',
   'pairing.fortressChangePhraseAbout': 'สร้างวลีใหม่ให้ทุกแอปในป้อมปราการ อุปกรณ์ที่คุณนำออกไปจึงยังอยู่ข้างนอก',
   'pairing.fortressChangeBody': 'ทุกแอปที่ติดต่อได้ตอนนี้จะย้ายไปใช้วลีใหม่ และวลีเดิมจะไม่ให้ใครใหม่เข้ามาได้อีก',

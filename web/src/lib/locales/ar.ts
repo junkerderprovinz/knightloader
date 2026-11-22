@@ -280,7 +280,6 @@ export const ar: Dict = {
   'pairing.fortressDeviceName': 'اسم الخادم',
   'pairing.fortressDeviceHint': 'الاسم الذي تعرض به التطبيقات الأخرى KnightLoader هذا. اختر ما يعجبك، أو اتركه فارغًا لاستخدام {name}.',
   'pairing.fortressDeviceTooLong': 'يجب أن يكون الاسم في سطر واحد، بحد أقصى 64 حرفًا.',
-  'pairing.fortressOpenNeedsPassword': 'عيّن كلمة مرور لـ KnightLoader أولًا، وبعدها يستطيع فتح التطبيقات الأخرى.',
   'pairing.fortressPhraseWhere': 'يمكن لكل تطبيق في الحصن أن يعرض لك العبارة. الصقها في الحقل الأول فتملأ بقية الحقول.',
   'pairing.fortressChangePhraseAbout': 'ينشئ عبارة جديدة لكل تطبيق في الحصن، فيبقى الجهاز الذي أزلته خارجًا.',
   'pairing.fortressChangeBody': 'ينتقل كل تطبيق يمكنك الوصول إليه الآن إلى عبارة جديدة، ولا تُدخل العبارة القديمة أحدًا جديدًا بعد ذلك.',

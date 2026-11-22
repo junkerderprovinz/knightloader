@@ -278,7 +278,6 @@ export const et: Dict = {
   'pairing.fortressDeviceName': 'Serveri nimi',
   'pairing.fortressDeviceHint': 'Nimi, millega teised rakendused seda KnightLoaderit näitavad. Pane nimi, mis meeldib, või jäta väli tühjaks, et kasutada nime {name}.',
   'pairing.fortressDeviceTooLong': 'Nimi peab mahtuma ühele reale, kuni 64 märki.',
-  'pairing.fortressOpenNeedsPassword': 'Anna KnightLoaderile kõigepealt parool, siis saab see teisi rakendusi avada.',
   'pairing.fortressPhraseWhere': 'Iga rakendus kindluses saab sulle fraasi näidata. Kleebi see esimesse välja, siis täidab see ka ülejäänud.',
   'pairing.fortressChangePhraseAbout': 'Loob uue fraasi igale kindluse rakendusele, et eemaldatud seade jääks välja.',
   'pairing.fortressChangeBody': 'Iga rakendus, milleni praegu ulatud, läheb üle uuele fraasile ja vanaga ei pääse enam keegi uus sisse.',

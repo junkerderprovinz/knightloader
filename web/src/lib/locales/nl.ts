@@ -272,7 +272,6 @@ export const nl: Dict = {
   'pairing.fortressDeviceName': 'Servernaam',
   'pairing.fortressDeviceHint': 'De naam waaronder de andere apps deze KnightLoader tonen. Kies wat je wilt, of laat het leeg om {name} te gebruiken.',
   'pairing.fortressDeviceTooLong': 'De naam moet op één regel passen, hoogstens 64 tekens.',
-  'pairing.fortressOpenNeedsPassword': 'Geef KnightLoader eerst een wachtwoord, dan kan hij de andere apps openen.',
   'pairing.fortressPhraseWhere': 'Elke app in de vesting kan je de frase tonen. Plak hem in het eerste veld, dan vult hij de rest.',
   'pairing.fortressChangePhraseAbout': 'Maakt een nieuwe frase voor elke app in de vesting, zodat een apparaat dat je hebt verwijderd buiten blijft.',
   'pairing.fortressChangeBody': 'Elke app die je nu kunt bereiken, gaat over op een nieuwe frase, en met de oude komt niemand nieuw meer binnen.',

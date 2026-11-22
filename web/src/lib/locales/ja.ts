@@ -278,7 +278,6 @@ export const ja: Dict = {
   'pairing.fortressDeviceName': 'サーバー名',
   'pairing.fortressDeviceHint': 'ほかのアプリがこの KnightLoader を表示するときの名前です。好きな名前を付けられます。空のままにすると {name} が使われます。',
   'pairing.fortressDeviceTooLong': '名前は 1 行、64 文字以内にしてください。',
-  'pairing.fortressOpenNeedsPassword': 'まず KnightLoader にパスワードを設定してください。そのあとでほかのアプリを開けるようになります。',
   'pairing.fortressPhraseWhere': '要塞内のどのアプリでもフレーズを表示できます。最初の欄に貼り付けると、残りの欄も埋まります。',
   'pairing.fortressChangePhraseAbout': '要塞内のすべてのアプリに新しいフレーズを作るので、削除したデバイスは外れたままになります。',
   'pairing.fortressChangeBody': '今つながっているアプリは、すべて新しいフレーズに切り替わります。古いフレーズでは、もう誰も新しく参加できません。',

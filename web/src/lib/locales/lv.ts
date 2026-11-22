@@ -278,7 +278,6 @@ export const lv: Dict = {
   'pairing.fortressDeviceName': 'Servera nosaukums',
   'pairing.fortressDeviceHint': 'Nosaukums, ar kādu citas lietotnes rāda šo KnightLoader. Izvēlieties jebkuru vai atstājiet tukšu, lai izmantotu {name}.',
   'pairing.fortressDeviceTooLong': 'Nosaukumam jāietilpst vienā rindā, ne vairāk kā 64 rakstzīmes.',
-  'pairing.fortressOpenNeedsPassword': 'Vispirms iestatiet KnightLoader paroli, tad tas varēs atvērt citas lietotnes.',
   'pairing.fortressPhraseWhere': 'Frāzi jums var parādīt jebkura cietokšņa lietotne. Ielīmējiet to pirmajā laukā, un tā aizpildīs pārējos.',
   'pairing.fortressChangePhraseAbout': 'Izveido jaunu frāzi katrai cietokšņa lietotnei, lai noņemta ierīce paliktu ārā.',
   'pairing.fortressChangeBody': 'Katra lietotne, kas tagad ir sasniedzama, pāriet uz jaunu frāzi, un ar veco vairs neviens jauns netiek iekšā.',

@@ -278,7 +278,6 @@ export const vi: Dict = {
   'pairing.fortressDeviceName': 'Tên máy chủ',
   'pairing.fortressDeviceHint': 'Tên mà các ứng dụng khác dùng để hiển thị KnightLoader này. Bạn đặt tên gì cũng được, hoặc để trống để dùng {name}.',
   'pairing.fortressDeviceTooLong': 'Tên phải nằm trên một dòng, tối đa 64 ký tự.',
-  'pairing.fortressOpenNeedsPassword': 'Hãy đặt mật khẩu cho KnightLoader trước, sau đó nó mới mở được các ứng dụng khác.',
   'pairing.fortressPhraseWhere': 'Mọi ứng dụng trong pháo đài đều có thể cho bạn xem cụm từ. Dán vào ô đầu tiên, các ô còn lại sẽ tự điền.',
   'pairing.fortressChangePhraseAbout': 'Tạo cụm từ mới cho mọi ứng dụng trong pháo đài, để thiết bị bạn đã xóa vẫn ở bên ngoài.',
   'pairing.fortressChangeBody': 'Mọi ứng dụng bạn kết nối được lúc này sẽ chuyển sang cụm từ mới, và cụm từ cũ không cho thêm ai mới vào nữa.',

@@ -154,10 +154,6 @@ export function FortressSection({
       void showStatus(app, instance);
       return;
     }
-    if (!view.passwordSet) {
-      toast(t('pairing.fortressOpenNeedsPassword'), 'info');
-      return;
-    }
     openFortressMember(instance.id).then(
       (path) => void window.open(new URL(path.slice(1), document.baseURI).href, '_blank', 'noopener'),
       (e: unknown) => toast(openRefusalText(text, refusalCode(e)), 'fail'),

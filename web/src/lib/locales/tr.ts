@@ -278,7 +278,6 @@ export const tr: Dict = {
   'pairing.fortressDeviceName': 'Sunucu adı',
   'pairing.fortressDeviceHint': "Diğer uygulamaların bu KnightLoader'ı gösterdiği ad. İstediğin adı verebilir ya da {name} kullanılsın diye boş bırakabilirsin.",
   'pairing.fortressDeviceTooLong': 'Ad tek satıra sığmalı, en fazla 64 karakter.',
-  'pairing.fortressOpenNeedsPassword': "Önce KnightLoader'a bir parola ver, sonra diğer uygulamaları açabilir.",
   'pairing.fortressPhraseWhere': 'Kaledeki her uygulama ifadeyi sana gösterebilir. İlk alana yapıştır, gerisini o doldurur.',
   'pairing.fortressChangePhraseAbout': 'Kaledeki her uygulama için yeni bir ifade oluşturur, böylece kaldırdığın bir cihaz dışarıda kalır.',
   'pairing.fortressChangeBody': 'Şu anda ulaşabildiğin her uygulama yeni bir ifadeye geçer ve eski ifadeyle artık yeni kimse giremez.',

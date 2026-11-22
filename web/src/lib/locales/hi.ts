@@ -278,7 +278,6 @@ export const hi: Dict = {
   'pairing.fortressDeviceName': 'सर्वर का नाम',
   'pairing.fortressDeviceHint': 'वह नाम जिससे दूसरे ऐप इस KnightLoader को दिखाते हैं। जो नाम पसंद हो रखें, या {name} इस्तेमाल करने के लिए इसे खाली छोड़ दें।',
   'pairing.fortressDeviceTooLong': 'नाम एक पंक्ति में आना चाहिए, अधिकतम 64 अक्षर।',
-  'pairing.fortressOpenNeedsPassword': 'पहले KnightLoader के लिए पासवर्ड सेट करें, फिर यह दूसरे ऐप खोल सकेगा।',
   'pairing.fortressPhraseWhere': 'किले का हर ऐप आपको वाक्यांश दिखा सकता है। इसे पहले फ़ील्ड में चिपकाएँ, बाकी फ़ील्ड अपने आप भर जाएँगे।',
   'pairing.fortressChangePhraseAbout': 'किले के हर ऐप के लिए नया वाक्यांश बनाता है, ताकि आपका हटाया हुआ डिवाइस बाहर ही रहे।',
   'pairing.fortressChangeBody': 'अभी जिन ऐप तक आप पहुँच सकते हैं, वे सब नए वाक्यांश पर चले जाते हैं, और पुराने वाक्यांश से अब कोई नया अंदर नहीं आ सकता।',

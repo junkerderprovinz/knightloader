@@ -278,7 +278,6 @@ export const zh: Dict = {
   'pairing.fortressDeviceName': '服务器名称',
   'pairing.fortressDeviceHint': '其他应用显示这个 KnightLoader 时用的名称，可以随意取。留空则使用 {name}。',
   'pairing.fortressDeviceTooLong': '名称必须在一行内，最多 64 个字符。',
-  'pairing.fortressOpenNeedsPassword': '请先给 KnightLoader 设置密码，之后它才能打开其他应用。',
   'pairing.fortressPhraseWhere': '堡垒中的任何应用都能向你显示口令。把它粘贴到第一个框中，其余的会自动填好。',
   'pairing.fortressChangePhraseAbout': '为堡垒中的每个应用生成新口令，让你移除的设备留在外面。',
   'pairing.fortressChangeBody': '当前能连接到的应用都会改用新口令，旧口令不再让任何新成员进来。',

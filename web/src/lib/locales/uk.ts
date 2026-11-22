@@ -278,7 +278,6 @@ export const uk: Dict = {
   'pairing.fortressDeviceName': 'Назва сервера',
   'pairing.fortressDeviceHint': 'Назва, під якою інші застосунки показують цей KnightLoader. Виберіть будь-яку або залиште поле порожнім, щоб використовувалася {name}.',
   'pairing.fortressDeviceTooLong': 'Назва має вміщатися в один рядок, не більше 64 символів.',
-  'pairing.fortressOpenNeedsPassword': 'Спершу встановіть пароль для KnightLoader, тоді він зможе відкривати інші застосунки.',
   'pairing.fortressPhraseWhere': 'Фразу може показати будь-який застосунок у фортеці. Вставте її в перше поле, і вона заповнить решту.',
   'pairing.fortressChangePhraseAbout': 'Створює нову фразу для кожного застосунку фортеці, щоб видалений пристрій залишився назовні.',
   'pairing.fortressChangeBody': 'Кожен застосунок, доступний зараз, перейде на нову фразу, а за старою вже ніхто новий не ввійде.',

@@ -278,7 +278,6 @@ export const hu: Dict = {
   'pairing.fortressDeviceName': 'Szerver neve',
   'pairing.fortressDeviceHint': 'A többi app ezen a néven mutatja ezt a KnightLoadert. Bármit választhatsz, vagy hagyd üresen, és a(z) {name} lesz érvényes.',
   'pairing.fortressDeviceTooLong': 'A névnek egy sorba kell férnie, legfeljebb 64 karakter.',
-  'pairing.fortressOpenNeedsPassword': 'Előbb adj jelszót a KnightLoadernek, utána meg tudja nyitni a többi appot.',
   'pairing.fortressPhraseWhere': 'Az erőd bármelyik alkalmazása megmutathatja a jelmondatot. Illeszd be az első mezőbe, és kitölti a többit.',
   'pairing.fortressChangePhraseAbout': 'Új jelmondatot készít az erőd minden alkalmazásának, így egy eltávolított eszköz kint marad.',
   'pairing.fortressChangeBody': 'Minden alkalmazás, amelyet most elérsz, új jelmondatra vált, a régivel pedig senki új nem jut be.',

@@ -278,7 +278,6 @@ export const cs: Dict = {
   'pairing.fortressDeviceName': 'Název serveru',
   'pairing.fortressDeviceHint': 'Název, pod kterým ostatní aplikace zobrazují tento KnightLoader. Zvolte si, jaký chcete. Pokud pole necháte prázdné, použije se {name}.',
   'pairing.fortressDeviceTooLong': 'Název se musí vejít na jeden řádek, nejvýš 64 znaků.',
-  'pairing.fortressOpenNeedsPassword': 'Nejdřív KnightLoaderu nastavte heslo, pak může otevírat ostatní aplikace.',
   'pairing.fortressPhraseWhere': 'Frázi vám může ukázat každá aplikace v pevnosti. Vložte ji do prvního pole a vyplní i ostatní.',
   'pairing.fortressChangePhraseAbout': 'Vytvoří novou frázi pro každou aplikaci v pevnosti, aby odebrané zařízení zůstalo venku.',
   'pairing.fortressChangeBody': 'Každá aplikace, která je teď dostupná, přejde na novou frázi a se starou už nikdo nový nevstoupí.',

@@ -278,7 +278,6 @@ export const da: Dict = {
   'pairing.fortressDeviceName': 'Servernavn',
   'pairing.fortressDeviceHint': 'Navnet, som de andre apps viser denne KnightLoader under. Kald den, hvad du vil, eller lad feltet stå tomt for at bruge {name}.',
   'pairing.fortressDeviceTooLong': 'Navnet skal kunne stå på én linje, højst 64 tegn.',
-  'pairing.fortressOpenNeedsPassword': 'Giv KnightLoader en adgangskode først, så kan den åbne de andre apps.',
   'pairing.fortressPhraseWhere': 'Alle apps i fæstningen kan vise dig sætningen. Indsæt den i det første felt, så udfylder den resten.',
   'pairing.fortressChangePhraseAbout': 'Laver en ny sætning til alle apps i fæstningen, så en enhed, du har fjernet, bliver ude.',
   'pairing.fortressChangeBody': 'Alle apps, du kan nå lige nu, skifter til en ny sætning, og den gamle lukker ingen nye ind.',

@@ -278,7 +278,6 @@ export const fi: Dict = {
   'pairing.fortressDeviceName': 'Palvelimen nimi',
   'pairing.fortressDeviceHint': 'Nimi, jolla muut sovellukset näyttävät tämän KnightLoaderin. Anna mikä nimi tahansa, tai jätä kenttä tyhjäksi, niin käytetään nimeä {name}.',
   'pairing.fortressDeviceTooLong': 'Nimen täytyy mahtua yhdelle riville, enintään 64 merkkiä.',
-  'pairing.fortressOpenNeedsPassword': 'Anna KnightLoaderille ensin salasana, niin se voi avata muut sovellukset.',
   'pairing.fortressPhraseWhere': 'Jokainen linnoituksen sovellus voi näyttää sinulle lauseen. Liitä se ensimmäiseen kenttään, niin se täyttää loputkin.',
   'pairing.fortressChangePhraseAbout': 'Luo uuden lauseen jokaiselle linnoituksen sovellukselle, jotta poistamasi laite pysyy ulkona.',
   'pairing.fortressChangeBody': 'Jokainen sovellus, jonka tavoitat nyt, siirtyy uuteen lauseeseen, eikä vanhalla pääse sisään enää kukaan uusi.',

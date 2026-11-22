@@ -278,7 +278,6 @@ export const lt: Dict = {
   'pairing.fortressDeviceName': 'Serverio pavadinimas',
   'pairing.fortressDeviceHint': 'Pavadinimas, kuriuo kitos programėlės rodo šį KnightLoader. Pasirinkite, kokį norite, arba palikite tuščią, kad būtų naudojamas {name}.',
   'pairing.fortressDeviceTooLong': 'Pavadinimas turi tilpti į vieną eilutę, ne daugiau kaip 64 simboliai.',
-  'pairing.fortressOpenNeedsPassword': 'Pirmiausia nustatykite KnightLoader slaptažodį, tada jis galės atidaryti kitas programėles.',
   'pairing.fortressPhraseWhere': 'Frazę jums gali parodyti bet kuri tvirtovės programa. Įklijuokite ją į pirmą lauką ir ji užpildys likusius.',
   'pairing.fortressChangePhraseAbout': 'Sukuria naują frazę kiekvienai tvirtovės programėlei, kad pašalintas įrenginys liktų lauke.',
   'pairing.fortressChangeBody': 'Kiekviena programėlė, kurią dabar pasiekiate, pereina prie naujos frazės, o su senąja niekas naujas nebepateks.',

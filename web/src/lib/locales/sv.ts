@@ -278,7 +278,6 @@ export const sv: Dict = {
   'pairing.fortressDeviceName': 'Servernamn',
   'pairing.fortressDeviceHint': 'Namnet som de andra apparna visar den här KnightLoader under. Kalla den vad du vill, eller lämna tomt för att använda {name}.',
   'pairing.fortressDeviceTooLong': 'Namnet måste rymmas på en rad, högst 64 tecken.',
-  'pairing.fortressOpenNeedsPassword': 'Ge KnightLoader ett lösenord först, så kan den öppna de andra apparna.',
   'pairing.fortressPhraseWhere': 'Alla appar i fästningen kan visa dig frasen. Klistra in den i det första fältet så fyller den resten.',
   'pairing.fortressChangePhraseAbout': 'Skapar en ny fras för alla appar i fästningen, så att en enhet du har tagit bort stannar utanför.',
   'pairing.fortressChangeBody': 'Alla appar du når just nu byter till en ny fras, och den gamla släpper inte in någon ny.',

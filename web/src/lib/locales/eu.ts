@@ -278,7 +278,6 @@ export const eu: Dict = {
   'pairing.fortressDeviceName': 'Zerbitzariaren izena',
   'pairing.fortressDeviceHint': 'Beste aplikazioek KnightLoader hau erakusteko erabiltzen duten izena. Jarri nahi duzuna, edo utzi hutsik {name} erabiltzeko.',
   'pairing.fortressDeviceTooLong': 'Izenak lerro batean sartu behar du, gehienez 64 karaktere.',
-  'pairing.fortressOpenNeedsPassword': 'Eman pasahitz bat KnightLoader-i lehenik, eta orduan beste aplikazioak ireki ahal izango ditu.',
   'pairing.fortressPhraseWhere': 'Gotorlekuko edozein aplikaziok erakuts diezazuke esaldia. Itsatsi lehen eremuan eta gainerakoak beteko ditu.',
   'pairing.fortressChangePhraseAbout': 'Esaldi berri bat sortzen du gotorlekuko aplikazio guztientzat, kendu duzun gailua kanpoan gera dadin.',
   'pairing.fortressChangeBody': 'Une honetan eskura dituzun aplikazio guztiak esaldi berrira pasatzen dira, eta zaharrarekin ez da inor berririk sartuko.',

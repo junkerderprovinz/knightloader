@@ -403,12 +403,13 @@ describe('FortressSection', () => {
     expect(toasts).toEqual([fortressText('en').openRefused.ui_no_login]);
   });
 
-  it('asks for a password here before KnightLoader opens another app', async () => {
+  it('opens another app from a KnightLoader without a password', async () => {
+    vi.stubGlobal('open', vi.fn());
     await draw(joined({ passwordSet: false, members: [arrowLoop] }));
     await press('others');
     await press('open');
-    expect(server.calls).toEqual([]);
-    expect(toasts).toEqual([en['pairing.fortressOpenNeedsPassword']]);
+    expect(server.calls).toEqual(['open m1']);
+    expect(toasts).toEqual([]);
   });
 
   it('shows the status of a plugin, which has no pages to open', async () => {

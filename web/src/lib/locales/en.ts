@@ -324,7 +324,6 @@ export const en = {
   'pairing.fortressDeviceName': 'Server name',
   'pairing.fortressDeviceHint': 'The name the other apps show for this KnightLoader. Call it whatever you like, or leave it empty to use {name}.',
   'pairing.fortressDeviceTooLong': 'The name has to fit on one line, up to 64 characters.',
-  'pairing.fortressOpenNeedsPassword': 'Give KnightLoader a password first, then it can open the other apps.',
   'pairing.fortressPhraseWhere': 'Every app in the fortress can show you the phrase. Paste it into the first field and it fills the rest.',
   'pairing.fortressChangePhraseAbout': 'Makes a new phrase for every app in the fortress, so a device you removed stays out.',
   'pairing.fortressChangeBody': 'Every app you can reach right now moves to a new phrase, and the old one lets nobody new in.',

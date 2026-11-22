@@ -3,10 +3,11 @@ package api
 // Opening the web interface of another member of the fortress, and being
 // opened by one.
 //
-// Opening: a browser signed in here with the password asks for a tab on a
-// member. The kit hands out a ticket and serves the tab under
-// kitfortress.OpenPath, a bar naming the member above a sandboxed frame whose
-// every request travels sealed to the member. The tab sits in front of the
+// Opening: a browser asks for a tab on a member, signed in here where there
+// is a password and with a visitor cookie where there is none. The kit hands
+// out a ticket and serves the tab under kitfortress.OpenPath, a bar naming
+// the member above a sandboxed frame whose every request travels sealed to
+// the member. The tab sits in front of the
 // guard and the origin and host checks, which would turn away the frame's
 // requests from an origin of their own; the ticket is what lets them in.
 //
@@ -17,6 +18,7 @@ package api
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -65,15 +67,27 @@ func openedBy(a *app.App, from kitfortress.Caller) {
 	a.FortressLog.Opened(name, from.Device, print)
 }
 
-// passwordSession is the session token of r when it is a browser signed in
-// with the password: no API token, no member of the group, no page opened
-// through the fortress.
-func passwordSession(a *app.App, r *http.Request) (string, bool) {
-	if !a.Auth.Enabled() || fromGroup(r) {
+// visitorCookieName holds a random secret a browser gets where there is no
+// password, so that a tab opened there belongs to that browser alone, as it
+// belongs to a sign-in where there is one.
+const visitorCookieName = "kl_visitor"
+
+// openerSession is the secret of r's browser session: the sign-in where there
+// is a password, the visitor cookie where there is none. An API token, a
+// member of the group and a page opened through the fortress have none.
+func openerSession(a *app.App, r *http.Request) (string, bool) {
+	if tokenSecret(r) != "" || fromGroup(r) {
 		return "", false
 	}
 	if _, ok := kitfortress.Opened(r); ok {
 		return "", false
+	}
+	if !a.Auth.Enabled() {
+		c, err := r.Cookie(visitorCookieName)
+		if err != nil || c.Value == "" {
+			return "", false
+		}
+		return c.Value, true
 	}
 	c, err := r.Cookie(auth.CookieName)
 	if err != nil || !a.Auth.Valid(c.Value) {
@@ -93,8 +107,8 @@ func sessionName(token string) string {
 // one before end with it.
 func fortressTabs(a *app.App, next http.Handler) http.Handler {
 	session := func(r *http.Request) (string, bool) {
-		token, ok := passwordSession(a, r)
-		return sessionName(token), ok
+		secret, ok := openerSession(a, r)
+		return sessionName(secret), ok
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.HasPrefix(r.URL.Path, kitfortress.OpenPath) {
@@ -213,11 +227,19 @@ const statusLogLines = 10
 func registerFortressOpen(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/fortress/open/{id}",
 		"open the web interface of a member of the fortress in a new tab, behind that member's own sign-in where it has one; "+
-			"only for a browser signed in here with the password; answers the tab's path below the base path, or a refusal code",
+			"only for a browser, signed in here where there is a password; setting a password here closes the tab; "+
+			"answers the tab's path below the base path, or a refusal code",
 		func(w http.ResponseWriter, r *http.Request) {
-			token, ok := passwordSession(a, r)
+			secret, ok := openerSession(a, r)
+			valid := func() bool { return !a.Auth.Enabled() }
+			if a.Auth.Enabled() {
+				valid = func() bool { return a.Auth.Valid(secret) }
+			} else if !ok && tokenSecret(r) == "" && !fromGroup(r) {
+				secret, ok = rand.Text(), true
+				http.SetCookie(w, browserCookie(r, visitorCookieName, secret))
+			}
 			if !ok {
-				writeRefusal(w, http.StatusForbidden, "passwordSession", "only a browser signed in with the password opens another app", nil)
+				writeRefusal(w, http.StatusForbidden, "noBrowserSession", "only a browser opens another app", nil)
 				return
 			}
 			g := fortressOf(a)
@@ -227,8 +249,8 @@ func registerFortressOpen(reg *Registry, a *app.App) {
 			}
 			path, err := g.f.Open(r.Context(), kitfortress.Visit{
 				Member:  r.PathValue("id"),
-				Session: sessionName(token),
-				Valid:   func() bool { return a.Auth.Valid(token) },
+				Session: sessionName(secret),
+				Valid:   valid,
 				Back:    requestBasePath(r) + "/settings/pairing",
 			})
 			if err != nil {

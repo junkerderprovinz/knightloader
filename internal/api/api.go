@@ -136,15 +136,21 @@ func tokenSecret(r *http.Request) string {
 // that lies about it gains nothing: a Secure cookie only stays off plain HTTP,
 // and the cookie is its own.
 func setSession(w http.ResponseWriter, r *http.Request, token string) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     auth.CookieName,
-		Value:    token,
+	http.SetCookie(w, browserCookie(r, auth.CookieName, token))
+}
+
+// browserCookie is a cookie of the browser's session with this instance,
+// kept under the base path for as long as a sign-in lasts.
+func browserCookie(r *http.Request, name, value string) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
 		Path:     cookiePath(r),
 		HttpOnly: true,
 		Secure:   requestScheme(r) == "https",
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(auth.SessionTTL / time.Second),
-	})
+	}
 }
 
 func clearSession(w http.ResponseWriter, r *http.Request) {

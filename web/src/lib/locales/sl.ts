@@ -278,7 +278,6 @@ export const sl: Dict = {
   'pairing.fortressDeviceName': 'Ime strežnika',
   'pairing.fortressDeviceHint': 'Ime, pod katerim druge aplikacije prikazujejo ta KnightLoader. Izberi kakršno koli ime ali pusti prazno, da se uporabi {name}.',
   'pairing.fortressDeviceTooLong': 'Ime mora biti v eni vrstici, največ 64 znakov.',
-  'pairing.fortressOpenNeedsPassword': 'Najprej nastavi geslo za KnightLoader, potem bo lahko odpiral druge aplikacije.',
   'pairing.fortressPhraseWhere': 'Frazo ti lahko pokaže vsaka aplikacija v trdnjavi. Prilepi jo v prvo polje in izpolnila bo ostala.',
   'pairing.fortressChangePhraseAbout': 'Ustvari novo frazo za vsako aplikacijo v trdnjavi, da odstranjena naprava ostane zunaj.',
   'pairing.fortressChangeBody': 'Vsaka aplikacija, ki je zdaj dosegljiva, preide na novo frazo, s staro pa noter ne pride nihče nov več.',

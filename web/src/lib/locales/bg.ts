@@ -278,7 +278,6 @@ export const bg: Dict = {
   'pairing.fortressDeviceName': 'Име на сървъра',
   'pairing.fortressDeviceHint': 'Името, под което другите приложения показват този KnightLoader. Избери каквото ти харесва или остави полето празно, за да се ползва {name}.',
   'pairing.fortressDeviceTooLong': 'Името трябва да е на един ред и до 64 знака.',
-  'pairing.fortressOpenNeedsPassword': 'Първо задай парола на KnightLoader, после той може да отваря другите приложения.',
   'pairing.fortressPhraseWhere': 'Всяко приложение в крепостта може да ти покаже фразата. Постави я в първото поле и тя ще попълни останалите.',
   'pairing.fortressChangePhraseAbout': 'Създава нова фраза за всяко приложение в крепостта, така че устройство, което сте премахнали, остава навън.',
   'pairing.fortressChangeBody': 'Всяко приложение, което е достъпно в момента, преминава към нова фраза, а със старата вече не влиза никой нов.',

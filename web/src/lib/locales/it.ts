@@ -272,7 +272,6 @@ export const it: Dict = {
   'pairing.fortressDeviceName': 'Nome del server',
   'pairing.fortressDeviceHint': 'Il nome con cui le altre app mostrano questo KnightLoader. Dagli quello che vuoi, o lascialo vuoto per usare {name}.',
   'pairing.fortressDeviceTooLong': 'Il nome deve stare su una riga, al massimo 64 caratteri.',
-  'pairing.fortressOpenNeedsPassword': 'Dai prima una password a KnightLoader, poi potrà aprire le altre app.',
   'pairing.fortressPhraseWhere': 'Ogni app della fortezza può mostrarti la frase. Incollala nel primo campo e riempirà gli altri.',
   'pairing.fortressChangePhraseAbout': 'Crea una nuova frase per ogni app della fortezza, così un dispositivo che hai rimosso resta fuori.',
   'pairing.fortressChangeBody': 'Ogni app che raggiungi ora passa a una nuova frase, e con la vecchia non entra più nessuno di nuovo.',
