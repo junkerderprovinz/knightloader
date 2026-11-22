@@ -4200,4 +4200,7 @@ export const lv: Dict = {
   'componentsCard.about.jd': 'Lejupielādē no failu mitināšanas pakalpojumiem',
   'componentsCard.about.qbit': 'Lejupielādē torrentus',
   'versionCard.restart': 'Restartēt versijai {version}',
+  'versionCard.unchecked': 'Vēl nav pārbaudīts',
+  'versionCard.anyStore': 'Atjauninājumi nāk caur veikalu, no kura tev ir lietotne.',
+  'versionCard.direct': 'Jaunās versijas var lejupielādēt laidienu lapā.',
 };

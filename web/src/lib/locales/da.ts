@@ -4195,4 +4195,7 @@ export const da: Dict = {
   'componentsCard.about.jd': 'Henter fra filhostingtjenester',
   'componentsCard.about.qbit': 'Henter torrents',
   'versionCard.restart': 'Genstart for {version}',
+  'versionCard.unchecked': 'Ikke kontrolleret endnu',
+  'versionCard.anyStore': 'Opdateringer kommer via den butik, du har appen fra.',
+  'versionCard.direct': 'Nye versioner kan hentes på udgivelsessiden.',
 };

@@ -4198,4 +4198,7 @@ export const fr: Dict = {
   'componentsCard.about.jd': 'Télécharge depuis les hébergeurs de fichiers',
   'componentsCard.about.qbit': 'Télécharge les torrents',
   'versionCard.restart': 'Redémarrer pour {version}',
+  'versionCard.unchecked': 'Pas encore vérifié',
+  'versionCard.anyStore': 'Les mises à jour arrivent par le store d\'où vient l\'app.',
+  'versionCard.direct': 'Les nouvelles versions se téléchargent sur la page des versions.',
 };

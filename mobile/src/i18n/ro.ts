@@ -433,4 +433,6 @@ export const ro: Dict = {
   'componentsCard.hint': 'Tot ce alcătuiește {app} sau aduce cu el, cu versiunea sa.',
   'componentsCard.design': 'Sistem de design',
   'settings.help': 'Ajutor',
+  'versionCard.anyStore': 'Actualizările vin prin magazinul din care ai aplicația.',
+  'versionCard.direct': 'Versiunile noi se descarcă de pe pagina de lansări.',
 };

@@ -433,4 +433,6 @@ export const ms: Dict = {
   'componentsCard.hint': 'Semua yang membentuk {app} atau yang dibawanya, dengan versinya.',
   'componentsCard.design': 'Sistem reka bentuk',
   'settings.help': 'Bantuan',
+  'versionCard.anyStore': 'Kemas kini datang melalui kedai tempat anda mendapatkan apl ini.',
+  'versionCard.direct': 'Versi baharu boleh dimuat turun di halaman keluaran.',
 };

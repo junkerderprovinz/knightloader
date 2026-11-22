@@ -433,4 +433,6 @@ export const gl: Dict = {
   'componentsCard.hint': 'Todo aquilo de que está feito {app} ou que trae consigo, coa súa versión.',
   'componentsCard.design': 'Sistema de deseño',
   'settings.help': 'Axuda',
+  'versionCard.anyStore': 'As actualizacións chegan pola tenda da que tes a app.',
+  'versionCard.direct': 'As versións novas descárganse da páxina de versións.',
 };

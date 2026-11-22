@@ -433,4 +433,6 @@ export const sl: Dict = {
   'componentsCard.hint': 'Vse, iz česar je {app} sestavljena ali kar prinaša s seboj, z različico.',
   'componentsCard.design': 'Oblikovalski sistem',
   'settings.help': 'Pomoč',
+  'versionCard.anyStore': 'Posodobitve prihajajo prek trgovine, iz katere imaš aplikacijo.',
+  'versionCard.direct': 'Nove različice so za prenos na strani izdaj.',
 };

@@ -433,4 +433,6 @@ export const lv: Dict = {
   'componentsCard.hint': 'Viss, no kā sastāv {app} vai ko tā nes līdzi, ar versiju.',
   'componentsCard.design': 'Dizaina sistēma',
   'settings.help': 'Palīdzība',
+  'versionCard.anyStore': 'Atjauninājumi nāk caur veikalu, no kura tev ir lietotne.',
+  'versionCard.direct': 'Jaunās versijas var lejupielādēt laidienu lapā.',
 };

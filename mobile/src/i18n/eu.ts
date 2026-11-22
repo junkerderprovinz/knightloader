@@ -433,4 +433,6 @@ export const eu: Dict = {
   'componentsCard.hint': '{app} osatzen duen edo berarekin dakarren guztia, bere bertsioarekin.',
   'componentsCard.design': 'Diseinu-sistema',
   'settings.help': 'Laguntza',
+  'versionCard.anyStore': 'Eguneraketak aplikazioa lortu zenuen dendatik datoz.',
+  'versionCard.direct': 'Bertsio berriak argitalpenen orrian deskargatzen dira.',
 };

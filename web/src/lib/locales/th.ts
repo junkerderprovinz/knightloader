@@ -4208,4 +4208,7 @@ export const th: Dict = {
   'componentsCard.about.jd': 'ดาวน์โหลดจากบริการฝากไฟล์',
   'componentsCard.about.qbit': 'ดาวน์โหลดทอร์เรนต์',
   'versionCard.restart': 'รีสตาร์ตเพื่อใช้ {version}',
+  'versionCard.unchecked': 'ยังไม่ได้ตรวจ',
+  'versionCard.anyStore': 'อัปเดตมาจากสโตร์ที่คุณติดตั้งแอปนี้',
+  'versionCard.direct': 'เวอร์ชันใหม่ดาวน์โหลดได้ที่หน้ารีลีส',
 };

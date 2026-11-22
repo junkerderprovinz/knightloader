@@ -4192,4 +4192,7 @@ export const nl: Dict = {
   'componentsCard.about.jd': 'Downloadt van filehosters',
   'componentsCard.about.qbit': 'Downloadt torrents',
   'versionCard.restart': 'Herstarten voor {version}',
+  'versionCard.unchecked': 'Nog niet gecontroleerd',
+  'versionCard.anyStore': 'Updates komen via de store waar je de app vandaan hebt.',
+  'versionCard.direct': 'Nieuwe versies download je op de releasepagina.',
 };

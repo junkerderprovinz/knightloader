@@ -15,7 +15,7 @@ import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
 import { ACCENTS, SHAPES, SHAPES_STORED, accentSlot, discoTap, leafTap, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GLIMSTONE_REPO, GLIMSTONE_VERSION } from '../theme/version';
-import { installStore } from '../installStore';
+import { installSource } from '../installStore';
 import {
   CardButton,
   GlimButton,
@@ -973,7 +973,11 @@ export default function SettingsScreen({
           <VersionNumber version={appVersion} repo={REPO_URL} ink={c.text} />
         </View>
         <View style={styles.versionFoot}>
-          <Text style={[styles.versionLine, { color: c.textSub }]}>{t('versionCard.store', { store: installStore })}</Text>
+          <Text style={[styles.versionLine, { color: c.textSub }]}>{installSource.kind === 'direct'
+              ? t('versionCard.direct')
+              : installSource.store
+                ? t('versionCard.store', { store: installSource.store })
+                : t('versionCard.anyStore')}</Text>
           {/* The app keeps no window of changes, so this version's notes
               open on its release page. */}
           <GlimButton
@@ -1223,15 +1227,16 @@ const styles = StyleSheet.create({
   // The Version and Components cards: a name at the start and its number at
   // the end, and on the Version card a last row with where updates come from
   // and What's new, which drops under the words on a narrow phone.
-  versionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 },
+  versionHead: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', columnGap: 16, rowGap: 4 },
   versionApp: { flexShrink: 1, fontSize: TYPE.body, fontWeight: '600' },
   versionFoot: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 16 },
   versionLine: { flexGrow: 1, flexShrink: 1, flexBasis: 128, fontSize: TYPE.body, lineHeight: 20 },
-  versionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
+  versionRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 16, rowGap: 4 },
   versionName: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
   versionPart: { fontSize: TYPE.body },
-  // Tabular numerals, so a number that changes with every release keeps its width.
-  versionNumber: { fontSize: TYPE.body, fontVariant: ['tabular-nums'] },
+  // Tabular numerals, so a number that changes with every release keeps its
+  // width, and 2px more above and below for a finger, given back by the margin.
+  versionNumber: { fontSize: TYPE.body, fontVariant: ['tabular-nums'], paddingVertical: 2, marginVertical: -2 },
   privacy: { marginTop: 6, alignSelf: 'flex-start' },
   language: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, paddingHorizontal: 14 },
   // The size and column the language page's own flags take, so the two read

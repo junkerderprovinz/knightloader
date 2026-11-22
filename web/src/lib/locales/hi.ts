@@ -4210,4 +4210,7 @@ export const hi: Dict = {
   'componentsCard.about.jd': 'फ़ाइल होस्टरों से डाउनलोड करता है',
   'componentsCard.about.qbit': 'टॉरेंट डाउनलोड करता है',
   'versionCard.restart': '{version} के लिए फिर से शुरू करें',
+  'versionCard.unchecked': 'अभी जाँच नहीं हुई',
+  'versionCard.anyStore': 'अपडेट उसी स्टोर से आते हैं जहाँ से आपने ऐप लिया है।',
+  'versionCard.direct': 'नए संस्करण रिलीज़ पेज पर डाउनलोड के लिए आते हैं।',
 };

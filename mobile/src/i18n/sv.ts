@@ -433,4 +433,6 @@ export const sv: Dict = {
   'componentsCard.hint': 'Allt som {app} består av eller har med sig, med version.',
   'componentsCard.design': 'Designsystem',
   'settings.help': 'Hjälp',
+  'versionCard.anyStore': 'Uppdateringar kommer via butiken du fick appen från.',
+  'versionCard.direct': 'Nya versioner hämtas från utgivningssidan.',
 };

@@ -4208,4 +4208,7 @@ export const sl: Dict = {
   'componentsCard.about.jd': 'Prenaša s storitev za gostovanje datotek',
   'componentsCard.about.qbit': 'Prenaša torrente',
   'versionCard.restart': 'Znova zaženi za {version}',
+  'versionCard.unchecked': 'Še ni preverjeno',
+  'versionCard.anyStore': 'Posodobitve prihajajo prek trgovine, iz katere imaš aplikacijo.',
+  'versionCard.direct': 'Nove različice so za prenos na strani izdaj.',
 };

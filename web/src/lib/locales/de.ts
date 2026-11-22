@@ -4210,4 +4210,7 @@ export const de: Dict = {
   'componentsCard.about.jd': 'Lädt von Filehostern',
   'componentsCard.about.qbit': 'Lädt Torrents',
   'versionCard.restart': 'Neu starten für {version}',
+  'versionCard.unchecked': 'Noch nicht geprüft',
+  'versionCard.anyStore': 'Updates kommen über den Store, aus dem du die App hast.',
+  'versionCard.direct': 'Neue Versionen gibt es als Download auf der Release-Seite.',
 };

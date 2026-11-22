@@ -433,4 +433,6 @@ export const bg: Dict = {
   'componentsCard.hint': 'Всичко, от което се състои {app} или което носи със себе си, с версията му.',
   'componentsCard.design': 'Дизайн система',
   'settings.help': 'Помощ',
+  'versionCard.anyStore': 'Обновленията идват през магазина, от който имаш приложението.',
+  'versionCard.direct': 'Новите версии се изтеглят от страницата с изданията.',
 };

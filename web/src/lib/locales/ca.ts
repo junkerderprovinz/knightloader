@@ -4196,4 +4196,7 @@ export const ca: Dict = {
   'componentsCard.about.jd': 'Baixa de serveis d\'allotjament de fitxers',
   'componentsCard.about.qbit': 'Baixa torrents',
   'versionCard.restart': 'Reinicia per a la {version}',
+  'versionCard.unchecked': 'Encara no s\'ha comprovat',
+  'versionCard.anyStore': 'Les actualitzacions arriben per la botiga d\'on tens l\'app.',
+  'versionCard.direct': 'Les versions noves es baixen de la pàgina de llançaments.',
 };

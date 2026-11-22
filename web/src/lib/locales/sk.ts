@@ -4219,4 +4219,7 @@ export const sk: Dict = {
   'componentsCard.about.jd': 'Sťahuje z úložísk súborov',
   'componentsCard.about.qbit': 'Sťahuje torrenty',
   'versionCard.restart': 'Reštartovať kvôli {version}',
+  'versionCard.unchecked': 'Zatiaľ neskontrolované',
+  'versionCard.anyStore': 'Aktualizácie prichádzajú cez obchod, z ktorého máš aplikáciu.',
+  'versionCard.direct': 'Nové verzie sú na stiahnutie na stránke vydaní.',
 };

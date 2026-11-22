@@ -4197,4 +4197,7 @@ export const ko: Dict = {
   'componentsCard.about.jd': '파일 호스팅에서 다운로드',
   'componentsCard.about.qbit': '토렌트 다운로드',
   'versionCard.restart': '{version}을(를) 위해 다시 시작',
+  'versionCard.unchecked': '아직 확인하지 않음',
+  'versionCard.anyStore': '업데이트는 앱을 받은 스토어에서 받습니다.',
+  'versionCard.direct': '새 버전은 릴리스 페이지에서 다운로드할 수 있습니다.',
 };

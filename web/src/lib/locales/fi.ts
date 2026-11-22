@@ -4210,4 +4210,7 @@ export const fi: Dict = {
   'componentsCard.about.jd': 'Lataa tiedostopalveluista',
   'componentsCard.about.qbit': 'Lataa torrentteja',
   'versionCard.restart': 'Käynnistä uudelleen versiota {version} varten',
+  'versionCard.unchecked': 'Ei vielä tarkistettu',
+  'versionCard.anyStore': 'Päivitykset tulevat kaupasta, josta sait sovelluksen.',
+  'versionCard.direct': 'Uudet versiot ladataan julkaisusivulta.',
 };

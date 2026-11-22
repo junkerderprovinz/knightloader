@@ -433,4 +433,6 @@ export const el: Dict = {
   'componentsCard.hint': 'Ό,τι αποτελεί το {app} ή φέρνει μαζί του, με την έκδοσή του.',
   'componentsCard.design': 'Σύστημα σχεδίασης',
   'settings.help': 'Βοήθεια',
+  'versionCard.anyStore': 'Οι ενημερώσεις έρχονται από το κατάστημα από όπου πήρες την εφαρμογή.',
+  'versionCard.direct': 'Οι νέες εκδόσεις διατίθενται για λήψη στη σελίδα εκδόσεων.',
 };

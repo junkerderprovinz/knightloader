@@ -4209,4 +4209,7 @@ export const sv: Dict = {
   'componentsCard.about.jd': 'Laddar ner från fildelningstjänster',
   'componentsCard.about.qbit': 'Laddar ner torrenter',
   'versionCard.restart': 'Starta om för {version}',
+  'versionCard.unchecked': 'Inte kontrollerad än',
+  'versionCard.anyStore': 'Uppdateringar kommer via butiken du fick appen från.',
+  'versionCard.direct': 'Nya versioner hämtas från utgivningssidan.',
 };

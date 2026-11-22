@@ -4210,4 +4210,7 @@ export const el: Dict = {
   'componentsCard.about.jd': 'Κατεβάζει από υπηρεσίες φιλοξενίας αρχείων',
   'componentsCard.about.qbit': 'Κατεβάζει torrent',
   'versionCard.restart': 'Επανεκκίνηση για την {version}',
+  'versionCard.unchecked': 'Δεν έχει ελεγχθεί ακόμα',
+  'versionCard.anyStore': 'Οι ενημερώσεις έρχονται από το κατάστημα από όπου πήρες την εφαρμογή.',
+  'versionCard.direct': 'Οι νέες εκδόσεις διατίθενται για λήψη στη σελίδα εκδόσεων.',
 };

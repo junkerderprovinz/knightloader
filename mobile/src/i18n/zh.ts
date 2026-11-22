@@ -432,4 +432,6 @@ export const zh: Dict = {
   'componentsCard.hint': '{app} 由哪些部分组成或附带了什么，以及它们的版本。',
   'componentsCard.design': '设计系统',
   'settings.help': '帮助',
+  'versionCard.anyStore': '更新通过你获取此应用的商店提供。',
+  'versionCard.direct': '新版本可在发布页面下载。',
 };

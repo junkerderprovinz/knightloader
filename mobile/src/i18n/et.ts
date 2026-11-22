@@ -433,4 +433,6 @@ export const et: Dict = {
   'componentsCard.hint': 'Kõik, millest {app} koosneb või mida kaasa toob, koos versiooniga.',
   'componentsCard.design': 'Disainisüsteem',
   'settings.help': 'Abi',
+  'versionCard.anyStore': 'Uuendused tulevad poe kaudu, kust rakenduse said.',
+  'versionCard.direct': 'Uued versioonid saab alla laadida väljalasete lehelt.',
 };

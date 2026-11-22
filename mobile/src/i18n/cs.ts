@@ -433,4 +433,6 @@ export const cs: Dict = {
   'componentsCard.hint': 'Vše, z čeho se {app} skládá nebo co přináší, s verzí.',
   'componentsCard.design': 'Designový systém',
   'settings.help': 'Nápověda',
+  'versionCard.anyStore': 'Aktualizace přicházejí přes obchod, ze kterého aplikaci máš.',
+  'versionCard.direct': 'Nové verze jsou ke stažení na stránce vydání.',
 };

@@ -4205,4 +4205,7 @@ export const eu: Dict = {
   'componentsCard.about.jd': 'Fitxategi-ostatuetatik deskargatzen du',
   'componentsCard.about.qbit': 'Torrentak deskargatzen ditu',
   'versionCard.restart': 'Berrabiarazi {version} bertsiorako',
+  'versionCard.unchecked': 'Oraindik egiaztatu gabe',
+  'versionCard.anyStore': 'Eguneraketak aplikazioa lortu zenuen dendatik datoz.',
+  'versionCard.direct': 'Bertsio berriak argitalpenen orrian deskargatzen dira.',
 };

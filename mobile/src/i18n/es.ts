@@ -433,4 +433,6 @@ export const es: Dict = {
   'componentsCard.hint': 'Todo aquello de lo que está hecho {app} o que trae consigo, con su versión.',
   'componentsCard.design': 'Sistema de diseño',
   'settings.help': 'Ayuda',
+  'versionCard.anyStore': 'Las actualizaciones llegan por la tienda de la que tienes la app.',
+  'versionCard.direct': 'Las versiones nuevas se descargan de la página de versiones.',
 };

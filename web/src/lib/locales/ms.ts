@@ -4209,4 +4209,7 @@ export const ms: Dict = {
   'componentsCard.about.jd': 'Memuat turun dari perkhidmatan hos fail',
   'componentsCard.about.qbit': 'Memuat turun torrent',
   'versionCard.restart': 'Mulakan semula untuk {version}',
+  'versionCard.unchecked': 'Belum disemak',
+  'versionCard.anyStore': 'Kemas kini datang melalui kedai tempat anda mendapatkan apl ini.',
+  'versionCard.direct': 'Versi baharu boleh dimuat turun di halaman keluaran.',
 };

@@ -4212,4 +4212,7 @@ export const no: Dict = {
   'componentsCard.about.jd': 'Laster ned fra fildelingstjenester',
   'componentsCard.about.qbit': 'Laster ned torrenter',
   'versionCard.restart': 'Start på nytt for {version}',
+  'versionCard.unchecked': 'Ikke sjekket ennå',
+  'versionCard.anyStore': 'Oppdateringer kommer via butikken du fikk appen fra.',
+  'versionCard.direct': 'Nye versjoner lastes ned fra utgivelsessiden.',
 };

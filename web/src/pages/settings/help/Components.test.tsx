@@ -190,7 +190,7 @@ describe('the Version card', () => {
   it('asks nobody on opening while its switch is off, and once while it is on', async () => {
     await draw();
     expect(asked).not.toContain('GET /api/system/update-check');
-    expect(line()).toBe('');
+    expect(line()).toBe('Not checked yet');
     expect(buttons(card('Version'))).toEqual(["What's new", 'Check for updates']);
 
     act(() => root.unmount());

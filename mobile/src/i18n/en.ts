@@ -432,6 +432,8 @@ export const en = {
   'componentsCard.hint': 'Everything {app} is made of or brings along, with its version.',
   'componentsCard.design': 'Design system',
   'settings.help': 'Help',
+  'versionCard.anyStore': 'Updates come through the store you got the app from.',
+  'versionCard.direct': 'New versions come as a download on the release page.',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

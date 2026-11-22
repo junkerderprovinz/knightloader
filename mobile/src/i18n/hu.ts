@@ -433,4 +433,6 @@ export const hu: Dict = {
   'componentsCard.hint': 'Minden, amiből a(z) {app} áll, vagy amit magával hoz, a verziójával.',
   'componentsCard.design': 'Dizájnrendszer',
   'settings.help': 'Súgó',
+  'versionCard.anyStore': 'A frissítések abból az áruházból jönnek, ahonnan az alkalmazást szerezted.',
+  'versionCard.direct': 'Az új verziók a kiadások oldaláról tölthetők le.',
 };

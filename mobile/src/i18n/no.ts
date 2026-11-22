@@ -433,4 +433,6 @@ export const no: Dict = {
   'componentsCard.hint': 'Alt {app} består av eller har med seg, med versjon.',
   'componentsCard.design': 'Designsystem',
   'settings.help': 'Hjelp',
+  'versionCard.anyStore': 'Oppdateringer kommer via butikken du fikk appen fra.',
+  'versionCard.direct': 'Nye versjoner lastes ned fra utgivelsessiden.',
 };

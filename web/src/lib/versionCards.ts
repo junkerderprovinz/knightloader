@@ -17,9 +17,9 @@ type Translate = (key: TranslationKey, vars?: Record<string, string | number>) =
 export type UpdateRoute = 'install' | 'guide' | 'store';
 
 /**
- * Where the updates stand. `unchecked` is this port's own: a container whose
- * switch is off asks GitHub nothing, and a line saying "Up to date" there
- * would claim a check that never ran.
+ * Where the updates stand. `store` names the store the app came from, and
+ * without a name the card points at whichever store that was; `direct` is an
+ * app installed from a file the user downloaded.
  */
 export type UpdateState =
   | { kind: 'unchecked' }
@@ -29,7 +29,8 @@ export type UpdateState =
   | { kind: 'downloading'; percent: number }
   | { kind: 'ready'; version: string }
   | { kind: 'failed'; reason?: string }
-  | { kind: 'store'; store: string };
+  | { kind: 'store'; store?: string }
+  | { kind: 'direct' };
 
 export type UpdateTone = 'neutral' | 'ok' | 'warn' | 'fail';
 
@@ -40,6 +41,7 @@ export interface VersionCardText {
   count: (n: number) => string;
   check: string;
   checking: string;
+  unchecked: string;
   current: string;
   checked: (at: Date, now?: Date) => string;
   available: (version: string) => string;
@@ -50,6 +52,9 @@ export interface VersionCardText {
   restart: (version: string) => string;
   guide: string;
   store: (store: string) => string;
+  /** The store sentence without a store's name. */
+  anyStore: string;
+  direct: string;
   auto: string;
   autoHint: string;
   autoCheck: string;
@@ -99,6 +104,7 @@ export function versionCardText(t: Translate, lang: string, autoCheckHint: strin
     count: (n) => n.toLocaleString(lang),
     check: t('versionCard.check'),
     checking: t('versionCard.checking'),
+    unchecked: t('versionCard.unchecked'),
     current: t('versionCard.current'),
     checked: (at, now) => t('versionCard.checked', { when: timeAgo(at, lang, now) }),
     available: (version) => t('versionCard.available', { version }),
@@ -110,6 +116,8 @@ export function versionCardText(t: Translate, lang: string, autoCheckHint: strin
     restart: (version) => t('versionCard.restart', { version }),
     guide: t('versionCard.guide'),
     store: (store) => t('versionCard.store', { store }),
+    anyStore: t('versionCard.anyStore'),
+    direct: t('versionCard.direct'),
     auto: t('versionCard.auto'),
     autoHint: t('versionCard.autoHint'),
     autoCheck: t('versionCard.autoCheck'),
@@ -141,9 +149,11 @@ export function withApp(sentence: string, app: string): string {
 export function updateLine(state: UpdateState, text: VersionCardText, now?: Date): { line: string; tone: UpdateTone; note?: string } {
   switch (state.kind) {
     case 'unchecked':
-      return { line: '', tone: 'neutral' };
+      return { line: text.unchecked, tone: 'neutral' };
     case 'current':
-      return { line: text.current, tone: 'ok', note: state.lastCheck && text.checked(state.lastCheck, now) };
+      // Up to date is a finding, so it needs a check behind it.
+      if (!state.lastCheck) return { line: text.unchecked, tone: 'neutral' };
+      return { line: text.current, tone: 'ok', note: text.checked(state.lastCheck, now) };
     case 'checking':
       return { line: text.checking, tone: 'neutral' };
     case 'available':
@@ -155,7 +165,9 @@ export function updateLine(state: UpdateState, text: VersionCardText, now?: Date
     case 'failed':
       return { line: text.failed, tone: 'fail', note: state.reason };
     case 'store':
-      return { line: text.store(state.store), tone: 'neutral' };
+      return { line: state.store ? text.store(state.store) : text.anyStore, tone: 'neutral' };
+    case 'direct':
+      return { line: text.direct, tone: 'neutral' };
   }
 }
 

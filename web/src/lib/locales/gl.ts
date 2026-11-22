@@ -4206,4 +4206,7 @@ export const gl: Dict = {
   'componentsCard.about.jd': 'Descarga de servizos de aloxamento de ficheiros',
   'componentsCard.about.qbit': 'Descarga torrents',
   'versionCard.restart': 'Reiniciar para {version}',
+  'versionCard.unchecked': 'Aínda sen comprobar',
+  'versionCard.anyStore': 'As actualizacións chegan pola tenda da que tes a app.',
+  'versionCard.direct': 'As versións novas descárganse da páxina de versións.',
 };

@@ -4207,4 +4207,7 @@ export const ar: Dict = {
   'componentsCard.about.jd': 'ينزّل من خدمات استضافة الملفات',
   'componentsCard.about.qbit': 'ينزّل ملفات التورنت',
   'versionCard.restart': 'أعد التشغيل للإصدار {version}',
+  'versionCard.unchecked': 'لم يُفحص بعد',
+  'versionCard.anyStore': 'تصل التحديثات عبر المتجر الذي حصلت منه على التطبيق.',
+  'versionCard.direct': 'تأتي الإصدارات الجديدة للتنزيل في صفحة الإصدارات.',
 };
