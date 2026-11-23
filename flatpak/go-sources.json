@@ -15,17 +15,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/!proton!mail/go-crypto/@v/v1.3.0.mod",
-        "sha256": "683c52764669bcc19eb8e7c9364bb2385b3339bca8f7c6717173f6a06feaf641",
+        "url": "https://proxy.golang.org/github.com/!proton!mail/go-crypto/@v/v1.5.2.mod",
+        "sha256": "ed1f85c71a923884ce7d473567633be6029daa68cc80f277ff15278756943635",
         "dest": "gomod/github.com/!proton!mail/go-crypto/@v",
-        "dest-filename": "v1.3.0.mod"
+        "dest-filename": "v1.5.2.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/!proton!mail/go-crypto/@v/v1.3.0.zip",
-        "sha256": "b909c7c3b5d0b7a0879e640bc01382dbc9166bbca6fbf53ee12f2c045b9c5028",
+        "url": "https://proxy.golang.org/github.com/!proton!mail/go-crypto/@v/v1.5.2.zip",
+        "sha256": "6ce5df4da97350b69637df5918fa1431816180ca1ab3a9850b3f69c14575a7e8",
         "dest": "gomod/github.com/!proton!mail/go-crypto/@v",
-        "dest-filename": "v1.3.0.zip"
+        "dest-filename": "v1.5.2.zip"
     },
     {
         "type": "file",
@@ -169,17 +169,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261118204651-8dfece3d1e1d.mod",
+        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261122185237-35fdc4b88e39.mod",
         "sha256": "eaeb1cec3b41e983fb874ef0730a898a708df31b4c31c3292fd5eeafba12a83d",
         "dest": "gomod/github.com/dop251/goja/@v",
-        "dest-filename": "v0.0.0-20261118204651-8dfece3d1e1d.mod"
+        "dest-filename": "v0.0.0-20261122185237-35fdc4b88e39.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261118204651-8dfece3d1e1d.zip",
-        "sha256": "ee5dad4d574d31607c974dc5cc72d4da57245923141663675c4b39ab4921fa29",
+        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261122185237-35fdc4b88e39.zip",
+        "sha256": "02f5516d4feae8a4b18959ce97aa2d05d64301baed8005340cdf43afc37f7bb9",
         "dest": "gomod/github.com/dop251/goja/@v",
-        "dest-filename": "v0.0.0-20261118204651-8dfece3d1e1d.zip"
+        "dest-filename": "v0.0.0-20261122185237-35fdc4b88e39.zip"
     },
     {
         "type": "file",
@@ -1345,17 +1345,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/modernc.org/sqlite/@v/v1.62.0.mod",
+        "url": "https://proxy.golang.org/modernc.org/sqlite/@v/v1.63.0.mod",
         "sha256": "5cf7829e7f99853166f87a3d69aa2a2e57828dd8ae98352f00fcbab9bed70ad7",
         "dest": "gomod/modernc.org/sqlite/@v",
-        "dest-filename": "v1.62.0.mod"
+        "dest-filename": "v1.63.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/modernc.org/sqlite/@v/v1.62.0.zip",
-        "sha256": "6cbc7a2a7713bac4ca9c02acea551ea20d07f0d7b6062ef448b086622889e3a4",
+        "url": "https://proxy.golang.org/modernc.org/sqlite/@v/v1.63.0.zip",
+        "sha256": "b94554cfb561da5f52102028c8589d5e75483cd0deaa75ee2195a119b825d412",
         "dest": "gomod/modernc.org/sqlite/@v",
-        "dest-filename": "v1.62.0.zip"
+        "dest-filename": "v1.63.0.zip"
     },
     {
         "type": "file",
