@@ -35,16 +35,16 @@ import (
 // Vendor and Version name the runtime, as the settings show it.
 const (
 	Vendor  = "Eclipse Temurin"
-	Version = "21.0.13+9"
+	Version = "21.0.13.1+2"
 )
 
 // ReleaseURL is the release the archives come from, which also links its
 // source code.
-const ReleaseURL = "https://github.com/adoptium/temurin21-binaries/releases/tag/jdk-21.0.13%2B9"
+const ReleaseURL = "https://github.com/adoptium/temurin21-binaries/releases/tag/jdk-21.0.13.1%2B2"
 
 // downloadBase is where the archives are fetched from; the tests point it at a
 // stand-in.
-var downloadBase = "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/"
+var downloadBase = "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13.1%2B2/"
 
 type archive struct {
 	name   string
@@ -55,12 +55,12 @@ type archive struct {
 // .sha256.txt files. Adoptium builds no JRE for Windows on Arm, where the x64
 // one runs under Windows' own emulation.
 var pinned = map[string]archive{
-	"windows/amd64": {"OpenJDK21U-jre_x64_windows_hotspot_21.0.13_9.zip", "2332c0b4cff6bed722da3567c91d5e47568bcba863fa4945d0a8d6fc76158628"},
-	"windows/arm64": {"OpenJDK21U-jre_x64_windows_hotspot_21.0.13_9.zip", "2332c0b4cff6bed722da3567c91d5e47568bcba863fa4945d0a8d6fc76158628"},
-	"linux/amd64":   {"OpenJDK21U-jre_x64_linux_hotspot_21.0.13_9.tar.gz", "a535a1df9c6284d9618872984e026ae0352d1f7e9e0605425c0e6114f47351dd"},
-	"linux/arm64":   {"OpenJDK21U-jre_aarch64_linux_hotspot_21.0.13_9.tar.gz", "b1734db7ade49c3f6acc6ae06233b8c2dd90e3e2f00f67000ae1c972aaa64d8c"},
-	"darwin/amd64":  {"OpenJDK21U-jre_x64_mac_hotspot_21.0.13_9.tar.gz", "c909674b1c10c261b9a3fb7e9c0efebd303e33f88a4fe84be7135b5e2d711f89"},
-	"darwin/arm64":  {"OpenJDK21U-jre_aarch64_mac_hotspot_21.0.13_9.tar.gz", "225bab0a09491ef06835488cd942f5d2befa9a0410a2484f0c8bbcf7506ec09a"},
+	"windows/amd64": {"OpenJDK21U-jre_x64_windows_hotspot_21.0.13.1_2.zip", "e15ee1e54a5a3b38027a09cedfa87bc3348d7dd3ce50866dd3d9671d7fffc6c1"},
+	"windows/arm64": {"OpenJDK21U-jre_x64_windows_hotspot_21.0.13.1_2.zip", "e15ee1e54a5a3b38027a09cedfa87bc3348d7dd3ce50866dd3d9671d7fffc6c1"},
+	"linux/amd64":   {"OpenJDK21U-jre_x64_linux_hotspot_21.0.13.1_2.tar.gz", "18f44fab9065217f3ba61d0eef8a7b5f3c3713aa7293001b0d4ac10ede3850f0"},
+	"linux/arm64":   {"OpenJDK21U-jre_aarch64_linux_hotspot_21.0.13.1_2.tar.gz", "52bc58323d9266538a6361a3cf8365fc1186dd9510d7f33f623681c4aabb7e72"},
+	"darwin/amd64":  {"OpenJDK21U-jre_x64_mac_hotspot_21.0.13.1_2.tar.gz", "10cee6ba4cd83fd4613a3f0bb3ef9dddd68c68d5f3ccfcc7e456707c9e1eafe0"},
+	"darwin/arm64":  {"OpenJDK21U-jre_aarch64_mac_hotspot_21.0.13.1_2.tar.gz", "848feb1906c7de79de4f8391636042193fbd46eff86e26299506c4656f62c260"},
 }
 
 // The archives are about 50 MB and unpack to about 130 MB. The caps are
