@@ -16,6 +16,9 @@
 // The pictures land in .github/assets/screenshots/, quantised with pngquant or
 // ImageMagick and recompressed with oxipng where those are on the PATH. The
 // Android picture comes from mobile/store/render.mjs.
+//
+// Captions are set in Bree Serif Light and Bree Light, read as TTF from
+// HOUSE_FONTS (default %LOCALAPPDATA%\halleluja-fonts). The window bars keep Lato.
 
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
@@ -374,15 +377,16 @@ async function extensionShots(browser) {
 }
 
 const dataUrl = (buf, type) => `data:${type};base64,${buf.toString('base64')}`;
-const bree = dataUrl(
-  await cached('BreeSerif-Regular.ttf', 'https://github.com/google/fonts/raw/main/ofl/breeserif/BreeSerif-Regular.ttf'),
-  'font/ttf',
-);
+// The house typeface is licensed, so it is read from a local folder and never committed.
+const fonts = process.env.HOUSE_FONTS ?? join(process.env.LOCALAPPDATA ?? tmpdir(), 'halleluja-fonts');
+const breeSerif = dataUrl(readFileSync(join(fonts, 'bree-serif-light.ttf')), 'font/ttf');
+const bree = dataUrl(readFileSync(join(fonts, 'bree-light.ttf')), 'font/ttf');
 const lato = dataUrl(await cached('Lato-Regular.ttf', 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'), 'font/ttf');
 const logo = dataUrl(readFileSync(join(root, 'docs', 'assets', 'logo.svg')), 'image/svg+xml');
 
 const STYLE = `
-@font-face { font-family: "Bree Serif"; src: url(${bree}); }
+@font-face { font-family: "Bree Serif"; font-weight: 300; src: url(${breeSerif}); }
+@font-face { font-family: Bree; font-weight: 300; src: url(${bree}); }
 @font-face { font-family: Lato; src: url(${lato}); }
 * { box-sizing: border-box; margin: 0; }
 body { position: relative; overflow: hidden; font-family: Lato, sans-serif; background: #0c0c0b; }
@@ -393,9 +397,9 @@ body { position: relative; overflow: hidden; font-family: Lato, sans-serif; back
   filter: grayscale(1) brightness(.36) contrast(1.2) drop-shadow(-2px -2px 0 rgba(255,255,255,.16)) drop-shadow(12px 18px 26px rgba(0,0,0,.85)); }
 .vignette { inset: 0; box-shadow: inset 0 0 200px rgba(0,0,0,.6); }
 .copy { position: absolute; display: flex; flex-direction: column; }
-h1 { font-family: "Bree Serif", serif; font-weight: 400; color: #f4f4f4; text-wrap: balance; }
+h1 { font-family: "Bree Serif", serif; font-weight: 300; color: #f4f4f4; text-wrap: balance; }
 h1 em { font-style: normal; color: #FCC419; }
-.sub { color: #9d9481; }
+.sub { font-family: Bree, sans-serif; font-weight: 300; color: #9d9481; }
 
 .stage { position: absolute; perspective: 2400px; }
 .floor { position: absolute; left: 6%; right: 6%; bottom: -34px; height: 60px; border-radius: 50%; background: rgba(0,0,0,.75); filter: blur(28px); }
@@ -482,7 +486,7 @@ ${windowed(content, frame)}
 async function render(browser, html, [width, height], file, half = false) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.setContent(html);
-  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => Promise.all(['300 1em "Bree Serif"', '300 1em Bree', '1em Lato'].map((f) => document.fonts.load(f))));
   await page.evaluate(() => Promise.all([...document.images].map((img) => img.decode())));
   if (!half) {
     await page.screenshot({ path: file });
