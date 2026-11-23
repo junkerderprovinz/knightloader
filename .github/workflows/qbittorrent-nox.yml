@@ -57,7 +57,7 @@ jobs:
       fail-fast: false
       matrix:
         pin: ${{ fromJSON(needs.versions.outputs.pins) }}
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -74,7 +74,10 @@ jobs:
         shell: pwsh
         run: |
           $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          & "$vs\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          Import-Module "$vs\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
+          # Boost 1.86 knows MSVC up to v143, which Visual Studio 2026 still
+          # installs beside its own.
+          Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation -DevCmdArguments '-arch=amd64 -host_arch=amd64 -vcvars_ver=14.44'
           Get-ChildItem env: | ForEach-Object { "$($_.Name)=$($_.Value)" } | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Dependencies
         shell: pwsh
@@ -90,7 +93,8 @@ jobs:
           if ((Get-FileHash boost.tar.gz -Algorithm SHA256).Hash -ne $env:BOOST_SHA256) { throw "boost.tar.gz does not match its checksum" }
           tar -xzf boost.tar.gz
           Push-Location $dir
-          .\bootstrap.bat
+          # Boost 1.86 predates Visual Studio 2026 and guesses no toolset for it.
+          .\bootstrap.bat vc143
           .\b2 --with-system toolset=msvc address-model=64 link=static runtime-link=shared variant=release install --prefix="$env:RUNNER_TEMP\boost"
           Pop-Location
       - name: libtorrent
