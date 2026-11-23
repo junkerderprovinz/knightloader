@@ -74,7 +74,9 @@ jobs:
         shell: pwsh
         run: |
           $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          & "$vs\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          # Boost 1.86 knows MSVC up to v143, which Visual Studio 2026 still
+          # installs beside its own.
+          & "$vs\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation -VsDevCmdArguments '-vcvars_ver=14.44'
           Get-ChildItem env: | ForEach-Object { "$($_.Name)=$($_.Value)" } | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Dependencies
         shell: pwsh
