@@ -932,35 +932,6 @@ export interface QueueState {
   uploadLimit?: number;
 }
 
-export interface AuthState {
-  enabled: boolean;
-  authenticated: boolean;
-  /** Absent for a caller without a session; the sign-in screen learns what it
-   *  needs from the login answer. */
-  twoFactor?: boolean;
-  recoveryLeft?: number;
-  /** Whether the server seals its secrets with KL_APP_KEY; absent like the
-   *  two above. */
-  appKey?: boolean;
-  /** When the copies of the files from before the encryption key are deleted, while
-   *  they are still in the data folder. */
-  appKeyCopiesUntil?: string;
-  /** Whether a request came through a reverse proxy lately, which is when
-   *  the trusted proxies field is worth showing. */
-  behindProxy?: boolean;
-}
-
-/**
- * The answer to POST /api/auth/login. `twoFactorRequired` alone means the
- * password was right and the code is still needed (answered with 200).
- * `codeRejected` beside it means the code was wrong, so the screen can tell a
- * typo from the first prompt.
- */
-export interface LoginResult extends AuthState {
-  twoFactorRequired?: boolean;
-  codeRejected?: boolean;
-}
-
 export interface Instance {
   /**
    * The key proxied calls are built from (`/api/instances/${name}`): the
@@ -1224,11 +1195,16 @@ export async function refusal(r: Response): Promise<ApiError> {
       code?: string;
       params?: Record<string, string | number>;
       field?: string;
+      // The kit's refusals, such as a change that wants a fresh sign-in.
+      detail?: string;
     };
     if (p && typeof p.error === 'string') {
       const e = new ApiError(p.error, p.code, p.params, r.status);
       e.field = p.field;
       return e;
+    }
+    if (p && typeof p.code === 'string' && typeof p.detail === 'string') {
+      return new ApiError(p.detail, p.code, p.params, r.status);
     }
   } catch {
     // Plain text.
@@ -3331,335 +3307,25 @@ export function captchaWidgetUrl(ch: CaptchaChallenge, lang: string): string {
   return withBase(`/api/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`);
 }
 
-export async function fetchAuth(): Promise<AuthState> {
-  return json<AuthState>(await fetch('/api/auth'));
+/** What guards the instance besides the sign-in, for the Security page. */
+export interface AccessState {
+  /** When the copies of the files from before the encryption key are deleted, while
+   *  they are still in the data folder. */
+  appKeyCopiesUntil?: string;
+  /** Whether a request came through a reverse proxy lately, which is when
+   *  the trusted proxies field is worth showing. */
+  behindProxy: boolean;
 }
 
-/**
- * login exchanges the password, and a code once a second factor is armed, for
- * a session cookie. A wrong password throws, and so do too many attempts, as
- * an ApiError with status 429; a request for a code or a rejected code are
- * returned, since the sign-in is still in progress.
- */
-export async function login(password: string, code = ''): Promise<LoginResult> {
-  const r = await post('/api/auth/login', { password, code });
-  if (r.ok) return json<LoginResult>(r);
-  const text = (await r.text()).trim();
-  try {
-    const parsed = JSON.parse(text) as LoginResult;
-    if (parsed && parsed.twoFactorRequired) return parsed;
-  } catch {
-    // A plain-text body, which is the wrong-password case.
-  }
-  // Not through refusal: a wrong password is no sign that a session ended.
-  throw new ApiError(text || String(r.status), undefined, undefined, r.status);
+export async function fetchAccess(): Promise<AccessState> {
+  return json<AccessState>(await fetch('/api/system/access'));
 }
-
-/**
- * Where the server wrote a password reset code (POST /api/auth/reset). The
- * code itself never comes back: reading it takes access to the machine.
- */
-export interface ResetCodePlace {
-  /** `container` and `process` are the server's own output, `file` a file in
-   *  its data folder. */
-  place: 'container' | 'process' | 'file';
-  file?: string;
-  /** The data folder, which only the desktop app names. */
-  dir?: string;
-}
-
-/**
- * askForResetCode has the server write a reset code. The answer is the same
- * whether this call wrote one or an earlier one still counts. A server that
- * could write nowhere refuses with the code `resetUnavailable`.
- */
-export async function askForResetCode(): Promise<ResetCodePlace> {
-  return json<ResetCodePlace>(await post('/api/auth/reset', {}));
-}
-
-/** What a password reset took away. Every other session ends as well. */
-export interface ResetRemoved {
-  twoFactor: boolean;
-  passkeys: number;
-  tokens: number;
-  /** The instance left its pairing group for a new one with new words. */
-  group: boolean;
-}
-
-/**
- * resetPassword sets a new password with the reset code and signs this
- * browser in. A code that is wrong, used up or too old is refused with the
- * code `codeRejected`, and too many attempts with status 429.
- */
-export async function resetPassword(
-  code: string,
-  password: string,
-): Promise<AuthState & { removed?: ResetRemoved }> {
-  return json<AuthState & { removed?: ResetRemoved }>(await post('/api/auth/reset/finish', { code, password }));
-}
-
-/** What POST /api/auth/2fa/begin hands back: shown once, armed by nothing. */
-export interface TOTPEnrolment {
-  /** The base32 secret, for somebody typing it in by hand. */
-  secret: string;
-  /** The otpauth:// URI behind the QR code. */
-  uri: string;
-  /** The same URI as a module grid for the QR code. Absent only if the encoder refused. */
-  qr?: QRMatrix;
-}
-
-/** setupTOTP starts an enrolment. Nothing is armed until confirmTOTP succeeds. */
-export async function setupTOTP(): Promise<TOTPEnrolment> {
-  return json<TOTPEnrolment>(await post('/api/auth/2fa/begin', {}));
-}
-
-/** confirmTOTP arms the factor and answers with the recovery codes. The server
- *  keeps only their hashes, so this is the one time they are shown. */
-export async function confirmTOTP(code: string): Promise<string[]> {
-  const r = await json<{ recoveryCodes: string[] }>(await post('/api/auth/2fa/confirm', { code }));
-  return r.recoveryCodes ?? [];
-}
-
-/** disableTOTP turns the factor off. It costs the same proof as using it. */
-export async function disableTOTP(code: string): Promise<void> {
-  await json<unknown>(await post('/api/auth/2fa/disable', { code }));
-}
-
-/** One registered credential, as the settings card lists it. */
-export interface PasskeyView {
-  id: string;
-  name: string;
-  /** The address this key is bound to. A key registered through a proxy does
-   *  not work over the LAN IP, so the row names it. */
-  rpId: string;
-  /** Whether it can answer on the address the browser has open right now. */
-  usableHere: boolean;
-  /** Whether the authenticator says the key is synced to a keychain. */
-  backedUp: boolean;
-  createdAt: number;
-  lastUsedAt: number;
-  transports: string;
-}
-
-export interface PasskeyStatus {
-  /**
-   * Whether this address can carry a passkey at all. The UI reads only this
-   * verdict; the server's English `reason` is for API callers and the log,
-   * and the card shows its own translated text (see check-passkey-reason.mjs).
-   */
-  supported: boolean;
-  /** The relying-party id this address resolves to, empty when it has none. */
-  rpId: string;
-  /** How many keys are registered in total, and how many for this address. */
-  total: number;
-  here: number;
-  /** Only present for a caller with a session. */
-  passkeys?: PasskeyView[];
-}
-
-export async function fetchPasskeys(): Promise<PasskeyStatus> {
-  return json<PasskeyStatus>(await fetch('/api/auth/passkeys'));
-}
-
-/** passkeysInBrowser reports whether this browser can do WebAuthn at all. */
-export function passkeysInBrowser(): boolean {
-  return typeof window !== 'undefined' && typeof window.PublicKeyCredential === 'function';
-}
-
-// The base64url of the WebAuthn JSON, written out to keep a dependency off the
-// sign-in path. The server omits padding, so it is added back before atob.
-function fromB64url(s: string): ArrayBuffer {
-  const padded = s.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - (s.length % 4)) % 4);
-  const raw = atob(padded);
-  // A plain ArrayBuffer, because WebAuthn wants a BufferSource that cannot be
-  // a SharedArrayBuffer, which `new Uint8Array(n)` is typed to allow.
-  const buf = new ArrayBuffer(raw.length);
-  const out = new Uint8Array(buf);
-  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-  return buf;
-}
-
-function toB64url(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
-  let raw = '';
-  for (const b of bytes) raw += String.fromCharCode(b);
-  return btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-/** The fields of the server's options that arrive as base64url and have to
- *  reach the browser as bytes. */
-type CreationOptions = {
-  challenge: string;
-  user: { id: string; name: string; displayName: string };
-  excludeCredentials?: { id: string; type: string; transports?: string[] }[];
-} & Record<string, unknown>;
-
-type RequestOptions = {
-  challenge: string;
-  allowCredentials?: { id: string; type: string; transports?: string[] }[];
-} & Record<string, unknown>;
-
-/**
- * registerPasskey runs a registration: a challenge from the server, the
- * browser's answer back to it. The browser's own refusals arrive as a
- * DOMException and are left to the caller, whose message is the useful one.
- */
-export async function registerPasskey(name: string): Promise<void> {
-  const begun = await json<{ ceremonyId: string; options: { publicKey?: CreationOptions } & CreationOptions }>(
-    await post('/api/auth/passkey/register/begin', {}),
-  );
-  const opts = (begun.options.publicKey ?? begun.options) as CreationOptions;
-  const cred = (await navigator.credentials.create({
-    publicKey: {
-      ...(opts as unknown as PublicKeyCredentialCreationOptions),
-      challenge: fromB64url(opts.challenge),
-      user: {
-        ...opts.user,
-        id: fromB64url(opts.user.id),
-      },
-      excludeCredentials: (opts.excludeCredentials ?? []).map((c) => ({
-        ...c,
-        id: fromB64url(c.id),
-        type: 'public-key' as const,
-        transports: c.transports as AuthenticatorTransport[] | undefined,
-      })),
-    },
-  })) as PublicKeyCredential | null;
-  if (!cred) throw new Error('no credential');
-  const response = cred.response as AuthenticatorAttestationResponse;
-  await json<unknown>(
-    await post('/api/auth/passkey/register/finish', {
-      ceremonyId: begun.ceremonyId,
-      name,
-      credential: {
-        id: cred.id,
-        rawId: toB64url(cred.rawId),
-        type: cred.type,
-        response: {
-          clientDataJSON: toB64url(response.clientDataJSON),
-          attestationObject: toB64url(response.attestationObject),
-        },
-        clientExtensionResults: cred.getClientExtensionResults(),
-      },
-    }),
-  );
-}
-
-/** signInWithPasskey is the other direction: a challenge, a signature, a
- *  session cookie. */
-export async function signInWithPasskey(): Promise<AuthState> {
-  const begun = await json<{ ceremonyId: string; options: { publicKey?: RequestOptions } & RequestOptions }>(
-    await post('/api/auth/passkey/login/begin', {}),
-  );
-  const opts = (begun.options.publicKey ?? begun.options) as RequestOptions;
-  const cred = (await navigator.credentials.get({
-    publicKey: {
-      ...(opts as unknown as PublicKeyCredentialRequestOptions),
-      challenge: fromB64url(opts.challenge),
-      allowCredentials: (opts.allowCredentials ?? []).map((c) => ({
-        ...c,
-        id: fromB64url(c.id),
-        type: 'public-key' as const,
-        transports: c.transports as AuthenticatorTransport[] | undefined,
-      })),
-    },
-  })) as PublicKeyCredential | null;
-  if (!cred) throw new Error('no credential');
-  const response = cred.response as AuthenticatorAssertionResponse;
-  return json<AuthState>(
-    await post('/api/auth/passkey/login/finish', {
-      ceremonyId: begun.ceremonyId,
-      credential: {
-        id: cred.id,
-        rawId: toB64url(cred.rawId),
-        type: cred.type,
-        response: {
-          clientDataJSON: toB64url(response.clientDataJSON),
-          authenticatorData: toB64url(response.authenticatorData),
-          signature: toB64url(response.signature),
-          userHandle: response.userHandle ? toB64url(response.userHandle) : null,
-        },
-        clientExtensionResults: cred.getClientExtensionResults(),
-      },
-    }),
-  );
-}
-
-export async function renamePasskey(id: string, name: string): Promise<void> {
-  await ok(
-    await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    }),
-  );
-}
-
-export async function removePasskey(id: string): Promise<void> {
-  await ok(await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' }));
-}
-
-// logout ends the current session. It throws on a non-2xx answer as well as
-// on a network failure, so callers can report a failed sign-out.
-export async function logout(): Promise<void> {
-  const r = await fetch('/api/auth/logout', { method: 'POST' });
-  if (!r.ok) throw new Error(await r.text());
-}
-
-// setPassword sets, changes or (with an empty next) removes the password lock.
-// A new password longer than 72 bytes is refused with the code passwordTooLong.
-export async function setPassword(current: string, next: string): Promise<AuthState> {
-  const r = await fetch('/api/auth/password', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ current, new: next }),
-  });
-  return json<AuthState>(r);
-}
-
-// API tokens are named, individually revocable credentials, so a lost device
-// costs one token rather than the shared password. Other clients present them
-// as "Authorization: Bearer <secret>"; this UI never does.
 
 /** One right a token can carry (apitoken.Scope). */
 export type TokenScope = 'read' | 'add' | 'control' | 'admin' | 'status';
 
 /** Every right, in the server's canonical order. */
 export const TOKEN_SCOPES: readonly TokenScope[] = ['read', 'add', 'control', 'admin', 'status'];
-
-/** One token's metadata. Never the secret. */
-export interface ApiToken {
-  id: string;
-  name: string;
-  /** What the token may do, in canonical order. */
-  scopes: TokenScope[];
-  createdAt: string;
-  /** Absent until this token's first successful use. */
-  lastUsed?: string;
-}
-
-/** What POST /api/tokens answers: the metadata plus the plaintext secret,
- *  which can never be shown again. */
-export interface NewApiToken extends ApiToken {
-  secret: string;
-}
-
-export async function fetchTokens(): Promise<ApiToken[]> {
-  return (await json<ApiToken[]>(await fetch('/api/tokens'))) ?? [];
-}
-
-export async function createToken(name: string, scopes: readonly TokenScope[]): Promise<NewApiToken> {
-  const r = await fetch('/api/tokens', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, scopes }),
-  });
-  return json<NewApiToken>(r);
-}
-
-/** revokeToken pulls one device's credential without touching the shared
- *  password or any other token. */
-export const revokeToken = (id: string) => fetch(`/api/tokens/${encodeURIComponent(id)}`, { method: 'DELETE' });
 
 /** One AI client set up for /mcp, with the token made for it. */
 export interface McpClientRow {

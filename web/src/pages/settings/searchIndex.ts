@@ -610,44 +610,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   access: [
+    // The sign-in tile above it is GlimStone's and draws its own cards.
     {
-      title: 'auth.password',
-      hint: 'settings.lockHint',
+      title: 'settings.appKeyTitle',
       rows: [
-        { key: 'settings.passwordCurrent' },
-        { key: 'settings.passwordNew', hint: 'settings.passwordHint' },
+        { key: 'settings.appKeyTitle', hint: 'settings.appKeyHint' },
         { key: 'settings.access.trustedProxies', hint: 'settings.access.trustedProxiesHint' },
+        { key: 'settings.module.downloadclient', hint: 'settings.modules.about.downloadclient' },
       ],
-      // The encryption key is a name with its (i), and no control.
-      also: ['settings.appKeyTitle'],
-      body: ['settings.appKeyHint'],
-    },
-    {
-      title: 'auth.twoFactor.title',
-      hint: 'auth.twoFactor.hint',
-      rows: [
-        { key: 'auth.twoFactor.confirmLabel' },
-        { key: 'auth.twoFactor.secretManual' },
-        { key: 'auth.twoFactor.disablePrompt' },
-      ],
-      also: ['auth.twoFactor.enable', 'auth.twoFactor.disable', 'auth.twoFactor.codesTitle'],
-      // The (i) inside the Set up button.
-      body: ['auth.twoFactor.beforeYouStart'],
-    },
-    {
-      title: 'auth.passkey.title',
-      hint: 'auth.passkey.hint',
-      rows: [{ key: 'auth.passkey.nameLabel', hint: 'auth.passkey.nameHint' }],
-      also: ['auth.passkey.add', 'auth.passkey.unavailableTitle', 'auth.passkey.rename'],
-    },
-    {
-      title: 'settings.access.tokens.title',
-      hint: 'settings.access.tokens.intro',
-      rows: [{ key: 'settings.module.downloadclient', hint: 'settings.modules.about.downloadclient' }],
-      // The name field and the rights picker in the window that creates a token.
-      also: ['settings.access.tokens.name', 'settings.access.tokens.rights'],
-      // The (i) of the window that shows a new token, and of the rights picker.
-      body: ['settings.access.tokens.howToUse', 'settings.access.tokens.rightsHint'],
     },
   ],
 

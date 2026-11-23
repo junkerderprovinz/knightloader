@@ -23,7 +23,8 @@ beforeEach(() => {
     'fetch',
     vi.fn((input: RequestInfo | URL) => {
       const path = String(input);
-      if (path === '/api/auth') return Promise.resolve(json({ enabled: passwordSet, authenticated: true }));
+      if (path === '/api/signin/v1/options')
+        return Promise.resolve(json({ open: !passwordSet, owner: true, minPassword: 12, signedIn: passwordSet, passkeys: false, services: [] }));
       return Promise.resolve(
         json({
           dir: '/data/backups',

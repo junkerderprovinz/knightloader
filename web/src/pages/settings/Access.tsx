@@ -1,62 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Button, Card, Field, FieldError, IconBadge, IconTile, LabelBadge, LinkBadge, Modal, PasswordInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
-import { Tabs } from '../../components/Tabs';
-import {
-  type ApiToken,
-  type AuthState,
-  type NewApiToken,
-  type TokenScope,
-  TOKEN_SCOPES,
-  createToken,
-  fetchAuth,
-  fetchRemoteAccess,
-  fetchTokens,
-  revokeToken,
-  setPassword,
-} from '../../lib/api';
-import { copyToClipboard } from '../../lib/clipboard';
+import { SignInTile } from '@glimstone/react';
+import { takeSignInCode, type ToastSeverity } from '@glimstone/core';
+import { IDENTITY_PROVIDERS } from '@glimstone/core/identityProviders';
+import { Card, Field, LinkBadge } from '../../components/ui';
+import { fetchAccess, type AccessState } from '../../lib/api';
+import { withBase } from '../../lib/basePath';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
-import {
-  IconAdd,
-  IconCheckDrawn,
-  IconClose,
-  IconConfirm,
-  IconCopy,
-  IconKey,
-  IconKeyRevoke,
-  IconTrash,
-} from '../../lib/icons';
-import { isShort, refusedTooLong, tooLong } from '../../lib/passwordLength';
-import { useToast } from '../../lib/toast';
+import { reauthClient } from '../../lib/signin/kit';
+import { addressPath } from '../../lib/signin/path';
+import { TOKEN_LEVELS, words } from '../../lib/signin/words';
+import { useToast, type ToastTone } from '../../lib/toast';
 import { unusedProxyRanges } from '../../lib/trustedProxies';
 import { useDraft } from './context';
 import { ListArea, RowRefusal, SettingRow } from './controls';
 import { ModuleToggle } from './ModuleToggle';
-import { PasskeyCard } from './access/PasskeyCard';
-import {
-  PRESET_LABEL,
-  PRESET_SCOPES,
-  SCOPE_HINT,
-  SCOPE_LABEL,
-  presetOf,
-  scopesLabel,
-  withScope,
-  type TokenPreset,
-} from './access/tokenScopes';
-import { TwoFactorCard } from './access/TwoFactorCard';
 
 // The manual's section on the encryption key, which says how to make one and move it.
 const APP_KEY_MANUAL = 'https://junkerderprovinz.github.io/knightloader/installing/#encryption-key';
 
+const TONE: Record<ToastSeverity, ToastTone> = { success: 'ok', warn: 'info', fail: 'fail' };
+
 export function Access() {
-  /**
-   * Bumped when anything changes the lock, so the password, second-factor and
-   * passkey cards agree: the password enables the other two and removing it
-   * takes the second factor with it.
-   */
-  const [authVersion, setAuthVersion] = useState(0);
+  const { t, lang } = useT();
+  const { toast } = useToast();
+  // A test sign-in comes back here with what the sign-in service said.
+  const [arrived] = useState(takeSignInCode);
+  const text = useMemo(() => words(t, lang).tileText(addressPath(t)), [t, lang]);
 
   // The pairing section lived on this page, so an old link to it lands
   // on the page it has moved to.
@@ -64,178 +35,61 @@ export function Access() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PasswordCard onAuthChanged={() => setAuthVersion((n) => n + 1)} />
-
-      {/* The second factor and passkeys, two cards because somebody can want
-          one without the other. */}
-      <SecondWaysIn version={authVersion} onChanged={() => setAuthVersion((n) => n + 1)} />
-
-      <TokensSection />
+      <SignInTile
+        api={reauthClient}
+        text={text}
+        lang={lang}
+        providers={IDENTITY_PROVIDERS}
+        scopes={[...TOKEN_LEVELS]}
+        notify={(message, severity) => toast(message, TONE[severity])}
+        returnTo={withBase('/settings/access')}
+        arrived={arrived}
+        time={(iso) => fmtDate(iso)}
+      />
+      <KeyAndProxies />
     </div>
   );
 }
 
-// PasswordCard owns the password lock. It saves on its own button and not
-// through PUT /api/settings.
-export function PasswordCard({
-  /** Called after the password changes, so the other cards re-read the lock. */
-  onAuthChanged,
-}: {
-  onAuthChanged: () => void;
-}) {
+/**
+ * KeyAndProxies holds what guards the instance besides the sign-in: the
+ * encryption key, the reverse proxies whose addresses count, and the door
+ * Sonarr and Radarr use with an API token.
+ */
+function KeyAndProxies() {
   const { t } = useT();
-  const { toast } = useToast();
-  const [auth, setAuth] = useState<AuthState | null>(null);
-  const [current, setCurrent] = useState('');
-  const [next, setNext] = useState('');
-  const [repeat, setRepeat] = useState('');
-  const [done, setDone] = useState(false);
-  // The failure counter of the apply button, so a repeated refusal shakes it again.
-  const [shake, setShake] = useState(0);
-  // Whether this instance is reachable from elsewhere, which turns "no password"
-  // into a problem (routes_remote.go's Exposed).
-  const [exposed, setExposed] = useState(false);
+  const [access, setAccess] = useState<AccessState | null>(null);
 
   useEffect(() => {
-    fetchAuth()
-      .then(setAuth)
-      .catch(() => setAuth(null));
-    fetchRemoteAccess()
-      .then((info) => setExposed(info.exposed))
-      .catch(() => setExposed(false));
+    fetchAccess()
+      .then(setAccess)
+      .catch(() => setAccess(null));
   }, []);
 
-  function refuse(text: string) {
-    // The reason goes to the toast and the button shakes.
-    toast(text, 'fail');
-    setShake((n) => n + 1);
-  }
-
-  async function onApply() {
-    if (tooLong(next)) return refuse(t('auth.passwordLong'));
-    try {
-      setAuth(await setPassword(current, next));
-      setCurrent('');
-      setNext('');
-      setRepeat('');
-      setDone(true);
-      setTimeout(() => setDone(false), 1800);
-      onAuthChanged();
-    } catch (e) {
-      refuse(refusedTooLong(e) ? t('auth.passwordLong') : String(e).replace(/^Error:\s*/, ''));
-    }
-  }
-
-  const locked = auth?.enabled ?? false;
-  // A repetition that differs says so; one still being typed is not wrong yet.
-  const mismatch = next !== '' && repeat !== '' && repeat !== next;
-  const short = isShort(next);
-  // Emptying the first field takes the second away, and with it what was in it.
-  if (next === '' && repeat !== '') setRepeat('');
-
   return (
-      <Card hue={0} className="flex flex-col gap-5">
-        {/* The status stays visible; why a password matters is in the title's hint. */}
-        <SectionTitle hint={t('settings.lockHint')}>
-          {t('auth.password')}
-        </SectionTitle>
-        {locked && (
-          <SettingRow control="long" label={t('settings.passwordCurrent')}>
-            <PasswordInput
-              value={current}
-              onChange={setCurrent}
-              autoComplete="current-password"
-              showLabel={t('common.showPassword')}
-              hideLabel={t('common.hidePassword')}
-            />
-          </SettingRow>
-        )}
-        <SettingRow control="long" label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
-          <span className="flex flex-col">
-            <PasswordInput
-              value={next}
-              onChange={setNext}
-              autoComplete="new-password"
-              describedBy={short ? 'password-short' : undefined}
-              showLabel={t('common.showPassword')}
-              hideLabel={t('common.hidePassword')}
-            />
-            {/* A word about the length, never a refusal: how strong the lock is, is the owner's call. */}
-            <span aria-live="polite">
-              {short && (
-                <span id="password-short" className="mt-1.5 block text-xs text-carbon-textSub">
-                  {t('auth.passwordShortHint')}
-                </span>
-              )}
-            </span>
-          </span>
+    <Card hue={5} className="flex flex-col gap-5">
+      {/* Everything works without an encryption key, so it is a name with its
+          explanation behind the (i) rather than a warning or a state. */}
+      <div data-testid="app-key">
+        <SettingRow label={t('settings.appKeyTitle')} hint={t('settings.appKeyHint')}>
+          <LinkBadge href={APP_KEY_MANUAL} title={t('settings.appKeyManual')} />
         </SettingRow>
-        {/* A new password is typed twice, so a slip of the finger never
-            becomes the one nobody can sign in with. The second field comes
-            once the first holds something. */}
-        {next !== '' && (
-          <SettingRow control="long" label={t('auth.reset.repeat')}>
-            <span className="flex flex-col">
-              <PasswordInput
-                value={repeat}
-                onChange={setRepeat}
-                autoComplete="new-password"
-                invalid={mismatch}
-                describedBy={mismatch ? 'password-mismatch' : undefined}
-                showLabel={t('common.showPassword')}
-                hideLabel={t('common.hidePassword')}
-              />
-              <span aria-live="polite">
-                {mismatch && (
-                  <FieldError id="password-mismatch" className="mt-1.5">
-                    {t('auth.reset.mismatch')}
-                  </FieldError>
-                )}
-              </span>
-            </span>
-          </SettingRow>
-        )}
-        {/* The state stands just before the button that changes it, both at
-            the end of the row. It takes the warning hue only when this
-            instance is reachable from elsewhere. */}
-        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
-          {done && <span className="text-sm text-statusOk">{t('settings.passwordSaved')}</span>}
-          <p
-            className={`min-w-0 text-end text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
-          >
-            {locked ? t('settings.lockOn') : t('settings.lockOff')}
-          </p>
-          <Button
-            icon={next === '' && locked ? <IconKeyRevoke /> : <IconKey />}
-            shake={shake}
-            kind="secondary"
-            onClick={onApply}
-            disabled={(locked && current === '') || (next === '' ? !locked : repeat !== next)}
-          >
-            {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
-          </Button>
-        </div>
-        {/* Everything works without an encryption key, so it is a name with its
-            explanation behind the (i) rather than a warning or a state. */}
-        <div data-testid="app-key">
-          <SettingRow label={t('settings.appKeyTitle')} hint={t('settings.appKeyHint')}>
-            <LinkBadge href={APP_KEY_MANUAL} title={t('settings.appKeyManual')} />
-          </SettingRow>
-        </div>
-        {auth?.appKeyCopiesUntil && (
-          <span className="text-sm text-carbon-textSub">
-            {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}
-          </span>
-        )}
-        <TrustedProxiesField behindProxy={auth?.behindProxy ?? false} />
-      </Card>
+      </div>
+      {access?.appKeyCopiesUntil && (
+        <span className="text-sm text-carbon-textSub">
+          {t('settings.appKeyCopies', { date: fmtDate(access.appKeyCopiesUntil) })}
+        </span>
+      )}
+      <TrustedProxiesField behindProxy={access?.behindProxy ?? false} />
+      <ModuleToggle id="downloadclient" hue={5} hint={t('settings.modules.about.downloadclient')} />
+    </Card>
   );
 }
 
 /**
  * TrustedProxiesField names the reverse proxies whose X-Forwarded-For the
- * sign-in throttle reads. It saves with the settings, not with the password's
- * button, and shows only once a proxy is in front or the list has entries.
+ * sign-in reads for the client address. It saves with the settings, and shows
+ * only once a proxy is in front or the list has entries.
  */
 function TrustedProxiesField({ behindProxy }: { behindProxy: boolean }) {
   const { t } = useT();
@@ -249,12 +103,7 @@ function TrustedProxiesField({ behindProxy }: { behindProxy: boolean }) {
   return (
     <div className="flex flex-col gap-1.5">
       <Field label={t('settings.access.trustedProxies')} hint={t('settings.access.trustedProxiesHint')}>
-        <ListArea
-          rows={3}
-          dir="ltr"
-          lines={cfg.trustedProxies}
-          onLines={(trustedProxies) => patch({ trustedProxies })}
-        />
+        <ListArea rows={3} dir="ltr" lines={cfg.trustedProxies} onLines={(trustedProxies) => patch({ trustedProxies })} />
       </Field>
       {unused.length > 0 && (
         <p className="text-xs text-statusWarn">
@@ -262,297 +111,6 @@ function TrustedProxiesField({ behindProxy }: { behindProxy: boolean }) {
         </p>
       )}
       <RowRefusal field="trustedProxies" className="pb-0" />
-    </div>
-  );
-}
-
-/**
- * SecondWaysIn reads /api/auth once for the second-factor and passkey cards, so
- * they cannot disagree, and renders nothing until it answers, since a guessed
- * "no password" would offer a setup the server refuses.
- */
-function SecondWaysIn({ version, onChanged }: { version: number; onChanged: () => void }) {
-  const [auth, setAuth] = useState<AuthState | null>(null);
-
-  useEffect(() => {
-    fetchAuth()
-      .then(setAuth)
-      .catch(() => setAuth(null));
-  }, [version]);
-
-  if (!auth) return null;
-  return (
-    <>
-      <TwoFactorCard
-        hue={4}
-        passwordSet={auth.enabled}
-        enabled={auth.twoFactor === true}
-        recoveryLeft={auth.recoveryLeft}
-        onChanged={onChanged}
-      />
-      <PasskeyCard hue={6} passwordSet={auth.enabled} />
-    </>
-  );
-}
-
-export function TokensSection() {
-  const { t } = useT();
-  const { toast } = useToast();
-  const [tokens, setTokens] = useState<ApiToken[]>([]);
-  const [showCreate, setShowCreate] = useState(false);
-  const [name, setName] = useState('');
-  const [creating, setCreating] = useState(false);
-  // The failure counter of the create button, so a repeated refusal shakes it again.
-  const [createShake, setCreateShake] = useState(0);
-  const [created, setCreated] = useState<NewApiToken | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [copies, setCopies] = useState(0);
-  const [revoking, setRevoking] = useState<string | null>(null);
-  // Full access to start with, as for a token created without naming its rights.
-  const [scopes, setScopes] = useState<TokenScope[]>([...TOKEN_SCOPES]);
-
-  const load = () => fetchTokens().then(setTokens).catch(() => {});
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function onCreate() {
-    setCreating(true);
-    try {
-      const tok = await createToken(name.trim(), scopes);
-      setCreated(tok);
-      setName('');
-      setScopes([...TOKEN_SCOPES]);
-      await load();
-    } catch (e) {
-      // The window stays open with the typed name; the reason goes to the toast.
-      toast(t('settings.access.tokens.createFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
-      setCreateShake((n) => n + 1);
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function onRevoke(id: string) {
-    setRevoking(id);
-    try {
-      await revokeToken(id);
-      await load();
-    } finally {
-      setRevoking(null);
-    }
-  }
-
-  function closeCreate() {
-    setShowCreate(false);
-    setCreated(null);
-    setCopied(false);
-    setScopes([...TOKEN_SCOPES]);
-  }
-
-  const canCreate = !creating && name.trim() !== '' && scopes.length > 0;
-
-  return (
-    <>
-      <Card hue={5} className="flex flex-col gap-3">
-        <SectionTitle
-          hint={t('settings.access.tokens.intro')}
-          right={
-            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setShowCreate(true)}>
-              {t('settings.access.tokens.new')}
-            </Button>
-          }
-        >
-          {t('settings.access.tokens.title')}
-        </SectionTitle>
-        <ModuleToggle id="downloadclient" hue={5} hint={t('settings.modules.about.downloadclient')} />
-        {tokens.length === 0 ? (
-          <p className="text-sm text-carbon-textMuted">{t('settings.access.tokens.empty')}</p>
-        ) : (
-          <div className="flex flex-col divide-y divide-carbon-border/40">
-            {tokens.map((tok) => (
-              <div key={tok.id} className="glim-row flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 first:pt-0 last:pb-0">
-                {/* An inert tile marking the row, not a control. */}
-                <IconTile icon={<IconKey width={16} height={16} />} hue={5} />
-                <div className="min-w-[10rem] flex-1">
-                  <div className="truncate text-sm text-carbon-text">{tok.name}</div>
-                  <div className="text-meta text-carbon-textMuted">
-                    {t('settings.access.tokens.created')} {fmtDate(tok.createdAt)}
-                    {' · '}
-                    {t('settings.access.tokens.lastUsed')}{' '}
-                    {tok.lastUsed ? fmtDate(tok.lastUsed) : t('settings.access.tokens.neverUsed')}
-                  </div>
-                </div>
-                {/* The rights and the revoke button go under the name on a
-                    narrow screen rather than squeezing it. */}
-                <div className="ms-auto flex shrink-0 items-center gap-3">
-                  <LabelBadge label={scopesLabel(t, tok.scopes)} hue={5} />
-                  {/* `labelled`, so the action follows the Beschriftung setting. */}
-                  <IconBadge
-                    labelled
-                    hue={5}
-                    icon={<IconTrash width={16} height={16} />}
-                    disabled={revoking === tok.id}
-                    title={t('settings.access.tokens.revoke')}
-                    aria-label={t('settings.access.tokens.revoke')}
-                    onClick={() => void onRevoke(tok.id)}
-                    className="shrink-0"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {showCreate && !created && (
-        <Modal
-          title={t('settings.access.tokens.new')}
-          widest
-          closeOnBackdrop={false}
-          onClose={() => (creating ? undefined : closeCreate())}
-          footer={
-            <>
-              <span className="flex-1" />
-              <Button
-                kind="secondary"
-                labelled
-                icon={<IconClose />}
-                title={t('settings.access.tokens.cancel')}
-                onClick={closeCreate}
-                disabled={creating}
-              />
-              <Button
-                icon={<IconAdd />}
-                shake={createShake}
-                kind="primary"
-                onClick={() => void onCreate()}
-                disabled={!canCreate}
-              >
-                {creating ? t('settings.access.tokens.creating') : t('settings.access.tokens.create')}
-              </Button>
-            </>
-          }
-        >
-          <div className="flex flex-col gap-4">
-            <SettingRow control="long" label={t('settings.access.tokens.name')}>
-              <TextInput
-                autoFocus
-                placeholder={t('settings.access.tokens.namePlaceholder')}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && canCreate) void onCreate();
-                }}
-              />
-            </SettingRow>
-            <TokenScopePicker scopes={scopes} onChange={setScopes} />
-          </div>
-        </Modal>
-      )}
-
-      {created && (
-        <Modal
-          title={t('settings.access.tokens.secretTitle')}
-          hint={t('settings.access.tokens.howToUse')}
-          onClose={closeCreate}
-          footer={
-            <>
-              <span className="flex-1" />
-              {/* The one way out, and it acknowledges the secret rather than
-                  dismissing it, so it wears Confirm. */}
-              <Button
-                kind="primary"
-                labelled
-                icon={<IconConfirm />}
-                title={t('settings.access.tokens.done')}
-                onClick={closeCreate}
-              />
-            </>
-          }
-        >
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-statusFail">{t('settings.access.tokens.secretWarning')}</p>
-            <div className="flex items-center gap-2">
-              <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-                <code className="glim-num block overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
-                  {created.secret}
-                </code>
-              </div>
-              {/* `labelled`, so the action follows the Beschriftung setting. */}
-              <IconBadge
-                labelled
-                hue={5}
-                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
-                title={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
-                aria-label={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
-                confirm={copies}
-                onClick={async () => {
-                  if (await copyToClipboard(created.secret)) {
-                    setCopied(true);
-                    setCopies((n) => n + 1);
-                    setTimeout(() => setCopied(false), 1800);
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </Modal>
-      )}
-    </>
-  );
-}
-
-const PRESETS: TokenPreset[] = ['full', 'addRead', 'read', 'status', 'custom'];
-
-/**
- * TokenScopePicker chooses what a new token may do: a preset, or the four
- * rights one by one under "custom". The preset is kept apart from the rights,
- * so choosing "custom" opens the switches on the rights already chosen instead
- * of snapping back to the preset they happen to match.
- */
-function TokenScopePicker({
-  scopes,
-  onChange,
-}: {
-  scopes: readonly TokenScope[];
-  onChange: (scopes: TokenScope[]) => void;
-}) {
-  const { t } = useT();
-  const [preset, setPreset] = useState<TokenPreset>(() => presetOf(scopes));
-
-  return (
-    <div className="flex flex-col gap-3">
-      <SettingRow label={t('settings.access.tokens.rights')} hint={t('settings.access.tokens.rightsHint')}>
-        <Tabs
-          variant="well"
-          size="sm"
-          inline
-          hug
-          label={t('settings.access.tokens.rights')}
-          active={preset}
-          onSelect={(id) => {
-            const next = id as TokenPreset;
-            setPreset(next);
-            if (next !== 'custom') onChange([...PRESET_SCOPES[next]]);
-          }}
-          items={PRESETS.map((id) => ({ id, label: t(PRESET_LABEL[id]) }))}
-        />
-      </SettingRow>
-      {preset === 'custom' && (
-        <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
-          {TOKEN_SCOPES.map((s, i) => (
-            <ToggleRow
-              key={s}
-              hue={i}
-              label={t(SCOPE_LABEL[s])}
-              hint={t(SCOPE_HINT[s])}
-              checked={scopes.includes(s)}
-              onChange={(on) => onChange(withScope(scopes, s, on))}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

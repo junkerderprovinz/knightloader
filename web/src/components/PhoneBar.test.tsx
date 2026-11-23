@@ -44,7 +44,7 @@ beforeEach(() => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string) => {
-      if (url === '/api/auth') return reply({ enabled: locked });
+      if (url === '/api/signin/v1/options') return reply({ open: !locked, owner: true, minPassword: 12, signedIn: locked, passkeys: false, services: [] });
       if (url === '/api/settings')
         return reply({
           hideAccountsFromSidebar: hide.accounts,

@@ -17,7 +17,9 @@ import { seedLabelModes, useLabelMode, type LabelMode } from '../lib/labelModes'
 import { Button, IconTile, Modal, useTooltip } from './ui';
 import { useNarrowBar, usePhoneLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
-import { fetchAuth, fetchSettings, logout } from '../lib/api';
+import { fetchSettings } from '../lib/api';
+import { signOut } from '../lib/signin/note';
+import { signIn } from '../lib/signin/kit';
 import { useTasks } from '../lib/useTasks';
 import { countTasks, openDownloads } from '../lib/needs';
 import { useNeeds } from '../lib/useNeeds';
@@ -220,10 +222,8 @@ export function Sidebar() {
   const [locked, setLocked] = useState(false);
 
   useEffect(() => {
-    // Sign-out is offered only when auth is enabled.
-    fetchAuth()
-      .then((a) => setLocked(a.enabled))
-      .catch(() => {});
+    // Sign-out is offered only to a browser that signed in.
+    void signIn.options().then((r) => setLocked(r.ok && !r.value.open && r.value.signedIn));
   }, []);
 
   // Live stores that the settings tabs update directly; the fetch below only
@@ -347,15 +347,6 @@ export function Sidebar() {
       </div>
     </aside>
   );
-}
-
-async function signOut(): Promise<void> {
-  try {
-    await logout();
-    location.reload();
-  } catch {
-    // The sidebar has nowhere to show the error.
-  }
 }
 
 // A segment of the phone's bar, shared with EventBell's. flex-1 and min-w-0

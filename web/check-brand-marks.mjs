@@ -9,7 +9,9 @@
 // Checks:
 //   gone        the brand button classes GlimStone dropped, `.glim-brand-btn`
 //               and its `.glim-brand-<name>` blocks, are in no stylesheet rule
-//               and no source; `.glim-brand-tile` is the tile and stays.
+//               and no source; `.glim-brand-tile` is the tile and
+//               `.glim-brand-svg` the box BrandMark draws a mark in, and both
+//               stay.
 //   defined     every `markClass` names a class index.css defines as a colour.
 //   own ground  a button with a `markClass` holds a mark that paints in
 //               currentColor, followed through components and the markup
@@ -115,7 +117,7 @@ if (defined.size < 5) {
   console.error(`check-brand-marks: only ${defined.size} mark class(es) found in src/index.css: the stylesheet scanner went blind.`);
   process.exit(1);
 }
-const leftover = [...css.matchAll(/\.glim-brand-(?!tile\b)[a-z0-9-]+/g)];
+const leftover = [...css.matchAll(/\.glim-brand-(?!(?:tile|svg)\b)[a-z0-9-]+/g)];
 
 function sources(dir) {
   const found = [];
@@ -255,7 +257,7 @@ let classed = 0;
 
 for (const [path, body] of text) {
   const where = (at) => `${show(path)}:${lineOf(body, at)}`;
-  for (const m of body.matchAll(/\bglim-brand-(?!tile\b)[a-z0-9-]+/g)) {
+  for (const m of body.matchAll(/\bglim-brand-(?!(?:tile|svg)\b)[a-z0-9-]+/g)) {
     problems.push(`${where(m.index)} -> ${m[0]}: the brand button classes are gone, a README button names its brand instead`);
   }
   for (const { at, tag } of readmeButtons(body)) {
