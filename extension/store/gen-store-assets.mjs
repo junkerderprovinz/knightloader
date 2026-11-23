@@ -11,9 +11,9 @@
  * to the edge. A store renders its own card around the icon and asks for 16px of
  * transparent padding instead.
  *
- * Bree Serif for the name and Lato for the line under it are fetched to the
- * temp dir and handed to resvg, so no installed font is needed. opentype.js only
- * measures the text for the layout.
+ * Bree Serif Light for the name and Bree Light for the line under it are read
+ * as TTF from HOUSE_FONTS (default %LOCALAPPDATA%\halleluja-fonts) and handed to
+ * resvg, so no installed font is needed. opentype.js only measures the text.
  *
  * The text is SVG <text> set by resvg rather than glyph outlines as in
  * .github/assets/gen-banner.mjs, because outlines drew broken letters at some
@@ -26,7 +26,7 @@
  * Deps (global): opentype.js, @resvg/resvg-js.
  * Run: node extension/store/gen-store-assets.mjs
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -44,20 +44,13 @@ const NAME = "KnightLoader";
 const LINE = "Send links to your own download manager";
 const BG = "#0d1117", NAME_FILL = "#e6edf3", LINE_FILL = "#9aa4ad";
 
-async function fontFile(file, url) {
-  const path = join(tmpdir(), file);
-  if (!existsSync(path)) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`${file}: font fetch ${res.status}`);
-    writeFileSync(path, Buffer.from(await res.arrayBuffer()));
-  }
-  return path;
-}
-const nameFile = await fontFile("KnightLoader-BreeSerif-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/breeserif/BreeSerif-Regular.ttf");
-const lineFile = await fontFile("KnightLoader-Lato-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf");
-const nameFont = opentype.parse(readFileSync(nameFile));
-const lineFont = opentype.parse(readFileSync(lineFile));
-const FONTS = { fontFiles: [nameFile, lineFile], loadSystemFonts: false, defaultFontFamily: "Lato" };
+// The house typeface is licensed, so it is read from a local folder and never committed.
+const fonts = process.env.HOUSE_FONTS ?? join(process.env.LOCALAPPDATA ?? tmpdir(), "halleluja-fonts");
+const nameFile = join(fonts, "bree-serif-light.ttf");
+const lineFile = join(fonts, "bree-light.ttf");
+const nameFont = opentype.parse(readFileSync(nameFile).buffer);
+const lineFont = opentype.parse(readFileSync(lineFile).buffer);
+const FONTS = { fontFiles: [nameFile, lineFile], loadSystemFonts: false, defaultFontFamily: "Bree" };
 
 const logoRaw = readFileSync(LOGO, "utf8").replace(/<\?xml[^>]*\?>\s*/, "");
 const [, , , vbW, vbH] = logoRaw.match(/viewBox="([\d.\-]+)\s+([\d.\-]+)\s+([\d.]+)\s+([\d.]+)"/).map(Number);
@@ -88,18 +81,19 @@ function tile(file, w, h, logoH, nameSize, lineSize, gap) {
   const groupW = logoW + gap + Math.max(nameW, lineW);
   const x0 = (w - groupW) / 2;
   const textX = x0 + logoW + gap;
-  const nameAsc = nameFont.ascender * (nameSize / nameFont.unitsPerEm);
+  // Centred on the cap height, since Bree Serif Light's ascender sits far above its capitals.
+  const nameCap = nameFont.tables.os2.sCapHeight * (nameSize / nameFont.unitsPerEm);
   const nameDesc = -nameFont.descender * (nameSize / nameFont.unitsPerEm);
   const lineAsc = lineFont.ascender * (lineSize / lineFont.unitsPerEm);
   const lineGap = lineSize * 0.35;
-  const blockH = nameAsc + nameDesc + lineGap + lineAsc;
-  const nameBase = h / 2 - blockH / 2 + nameAsc;
+  const blockH = nameCap + nameDesc + lineGap + lineAsc;
+  const nameBase = h / 2 - blockH / 2 + nameCap;
   const lineBase = nameBase + nameDesc + lineGap + lineAsc;
   if (groupW > w * 0.94) throw new Error(`${file}: text does not fit (${groupW.toFixed(0)} of ${w})`);
   emit(file, w, h, `<rect width="${w}" height="${h}" fill="${BG}"/>
     ${logo(x0, (h - logoH) / 2, logoW, logoH)}
-    <text x="${textX.toFixed(2)}" y="${nameBase.toFixed(2)}" font-family="Bree Serif" font-size="${nameSize}" fill="${NAME_FILL}">${NAME}</text>
-    <text x="${textX.toFixed(2)}" y="${lineBase.toFixed(2)}" font-family="Lato" font-size="${lineSize}" fill="${LINE_FILL}">${LINE}</text>`, BG);
+    <text x="${textX.toFixed(2)}" y="${nameBase.toFixed(2)}" font-family="Bree Serif" font-weight="300" font-size="${nameSize}" fill="${NAME_FILL}">${NAME}</text>
+    <text x="${textX.toFixed(2)}" y="${lineBase.toFixed(2)}" font-family="Bree" font-weight="300" font-size="${lineSize}" fill="${LINE_FILL}">${LINE}</text>`, BG);
 }
 
 emit("store-icon-128.png", 128, 128, logo(16, 16, 96, 96));
