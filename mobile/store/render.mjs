@@ -150,7 +150,6 @@ const logo = dataUrl(readFileSync(join(root, 'docs', 'assets', 'logo.svg')), 'im
 const STYLE = `
 @font-face { font-family: "Bree Serif"; font-weight: 300; src: url(${font('bree-serif-light.ttf')}); }
 @font-face { font-family: Bree; font-weight: 300; src: url(${font('bree-light.ttf')}); }
-@font-face { font-family: Bree; font-weight: 400; src: url(${font('bree-regular.ttf')}); }
 @font-face { font-family: Lato; src: url(${lato}); }
 * { box-sizing: border-box; margin: 0; }
 body { position: relative; overflow: hidden; font-family: Lato, sans-serif; background: #0c0c0b; }
@@ -283,7 +282,7 @@ body { width: 1920px; height: 640px; }
 .copy { position: absolute; left: 96px; top: 0; bottom: 0; width: 1100px; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
 .head { display: flex; align-items: center; gap: 22px; }
 .head img { width: 64px; }
-.label { padding: 8px 18px; border-radius: 8px; background: #FCC419; color: #141414; font: 400 22px/1 Bree, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.label { padding: 8px 18px; border-radius: 8px; background: #FCC419; color: #141414; font: 300 22px/1 Bree, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
 h1 { font-size: 84px; line-height: 1.05; }
 .sub { font-size: 30px; line-height: 1.35; }
 .steps { display: flex; gap: 44px; margin-top: 10px; }
@@ -291,7 +290,7 @@ h1 { font-size: 84px; line-height: 1.05; }
 .qr { width: 196px; height: 196px; padding: 14px; border-radius: 16px; background: #fff;
   box-shadow: 0 0 0 6px rgba(252,196,25,.22), 0 18px 40px rgba(0,0,0,.5); }
 .qr svg { display: block; width: 100%; height: 100%; }
-.what { display: flex; flex-direction: column; gap: 10px; color: #f4f4f4; font: 400 28px/1.2 Bree, sans-serif; }
+.what { display: flex; flex-direction: column; gap: 10px; color: #f4f4f4; font: 300 28px/1.2 Bree, sans-serif; }
 .what b { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #FCC419; color: #141414; font-size: 26px; }
 .what small { color: #9d9481; font: 300 22px/1.3 Bree, sans-serif; }
 </style></head><body>
@@ -365,7 +364,7 @@ ${phone(middle, { x: 1040, y: 150, sw: 380, lift })}
 async function render(browser, html, width, height, file) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.setContent(html);
-  await page.evaluate(() => Promise.all(['300 1em "Bree Serif"', '300 1em Bree', '400 1em Bree', '700 1em Lato'].map((f) => document.fonts.load(f))));
+  await page.evaluate(() => Promise.all(['300 1em "Bree Serif"', '300 1em Bree', '700 1em Lato'].map((f) => document.fonts.load(f))));
   // A name too long for its tile shrinks until it fits.
   await page.evaluate(() => {
     for (const el of document.querySelectorAll('[data-fit]')) {
