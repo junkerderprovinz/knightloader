@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Modal, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { ApiError, captchaWidgetSource, fetchCaptchaWidgetPage } from '../api/client';
+import { ApiError, fetchCaptchaWidgetPage } from '../api/client';
 import { WIDGET_BRIDGE, widgetFailure, widgetMessage } from '../api/captcha';
-import {
-  isRelayConnection,
-  type CaptchaChallenge,
-  type CaptchaWidgetPayload,
-  type ServerConnection,
-} from '../api/types';
+import type { CaptchaChallenge, CaptchaWidgetPayload, ServerConnection } from '../api/types';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
@@ -21,8 +16,6 @@ import { NoArrival } from './Moving';
 import { Text } from './Text';
 
 type Status = 'loading' | 'ready' | 'expired' | 'error' | 'unsolvable';
-
-type PageSource = { html: string; baseUrl: string } | { uri: string; headers: Record<string, string> };
 
 // Why the widget page gave up before loading any vendor script.
 const UNSOLVABLE_WHY: Partial<Record<string, TranslationKey>> = {
@@ -62,7 +55,7 @@ export function CaptchaWidget({
   const [detail, setDetail] = useState<string | null>(null);
   // Set when the instance answered the page itself with an error status.
   const [httpStatus, setHttpStatus] = useState<number | null>(null);
-  const [source, setSource] = useState<PageSource | null>(null);
+  const [source, setSource] = useState<{ html: string; baseUrl: string } | null>(null);
   // Bumped by Refresh, which fetches the page again and mounts a fresh WebView
   // rather than reloading the old one, so a vendor script that wedged the page
   // goes with it.
@@ -87,9 +80,6 @@ export function CaptchaWidget({
           // Answered or dropped meanwhile; the list says which.
           onClose();
           void reload();
-        } else if (refused?.status === 404 && !isRelayConnection(conn)) {
-          // An instance from before the phone's page has only the web UI's.
-          setSource(captchaWidgetSource(conn, challenge, lang));
         } else {
           setHttpStatus(refused ? refused.status : null);
           fail('error', null);
@@ -120,7 +110,7 @@ export function CaptchaWidget({
   };
 
   const why = status === 'unsolvable' && detail ? UNSOLVABLE_WHY[detail] : undefined;
-  const failure = widgetFailure(httpStatus, detail, isRelayConnection(conn));
+  const failure = widgetFailure(httpStatus, detail);
   const failureText =
     failure.by === 'instance'
       ? t('captcha.widgetPageRefused', { code: failure.status })

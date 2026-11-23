@@ -103,6 +103,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/clipboard-watchers/{id}/stop": apitoken.ScopeControl,
 
 	"DELETE /api/connect":                    apitoken.ScopeAdmin,
+	"DELETE /api/connect/dropped-instances":  apitoken.ScopeAdmin,
 	"DELETE /api/connect/apps/{id}":          apitoken.ScopeAdmin,
 	"DELETE /api/connect/members/{id}":       apitoken.ScopeAdmin,
 	"POST /api/connect/devices/{id}/approve": apitoken.ScopeAdmin,
@@ -124,7 +125,6 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/diagnostics/logfile/{gen}": apitoken.ScopeAdmin,
 	"POST /api/diagnostics/startup":      apitoken.ScopeAdmin,
 	"GET /api/diagnostics/task/{id}":     apitoken.ScopeAdmin,
-	"GET /api/discovery":                 apitoken.ScopeAdmin,
 	"GET /api/diskspace":                 apitoken.ScopeRead,
 
 	// An event program is code this instance runs, as a script is.
@@ -189,20 +189,32 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/jdimport/read":  apitoken.ScopeAdmin,
 
 	// Listing the peers is what a client needs to show their downloads.
-	"GET /api/instances":           apitoken.ScopeRead,
-	"POST /api/instances":          apitoken.ScopeAdmin,
-	"DELETE /api/instances/{name}": apitoken.ScopeAdmin,
+	"GET /api/instances": apitoken.ScopeRead,
 
 	"POST /api/links": apitoken.ScopeAdd,
 
-	"GET /api/mediahooks":               apitoken.ScopeAdmin,
-	"POST /api/mediahooks":              apitoken.ScopeAdmin,
-	"DELETE /api/mediahooks/{id}":       apitoken.ScopeAdmin,
-	"POST /api/mediahooks/{id}/test":    apitoken.ScopeAdmin,
-	"GET /api/mediatools":               apitoken.ScopeAdmin,
-	"GET /api/mediatools/ytdlp/latest":  apitoken.ScopeAdmin,
-	"POST /api/mediatools/ytdlp/update": apitoken.ScopeAdmin,
-	"GET /api/metrics":                  apitoken.ScopeRead,
+	"GET /api/fortress":                           apitoken.ScopeAdmin,
+	"POST /api/fortress/join":                     apitoken.ScopeAdmin,
+	"POST /api/fortress/phrase/show":              apitoken.ScopeAdmin,
+	"POST /api/fortress/phrase":                   apitoken.ScopeAdmin,
+	"PUT /api/fortress/device":                    apitoken.ScopeAdmin,
+	"PUT /api/fortress/permissions":               apitoken.ScopeAdmin,
+	"DELETE /api/fortress":                        apitoken.ScopeAdmin,
+	"POST /api/fortress/open/{id}":                apitoken.ScopeAdmin,
+	"GET /api/fortress/members/{id}/status":       apitoken.ScopeAdmin,
+	"DELETE /api/fortress/members/{id}":           apitoken.ScopeAdmin,
+	"GET /api/group/peer/moved":                   apitoken.ScopeAdmin,
+	"GET /api/afterdownload":                      apitoken.ScopeAdmin,
+	"GET /api/afterdownload/engines/{id}/targets": apitoken.ScopeAdmin,
+	"POST /api/afterdownload/jobs":                apitoken.ScopeAdmin,
+	"GET /api/mediahooks":                         apitoken.ScopeAdmin,
+	"POST /api/mediahooks":                        apitoken.ScopeAdmin,
+	"DELETE /api/mediahooks/{id}":                 apitoken.ScopeAdmin,
+	"POST /api/mediahooks/{id}/test":              apitoken.ScopeAdmin,
+	"GET /api/mediatools":                         apitoken.ScopeAdmin,
+	"GET /api/mediatools/ytdlp/latest":            apitoken.ScopeAdmin,
+	"POST /api/mediatools/ytdlp/update":           apitoken.ScopeAdmin,
+	"GET /api/metrics":                            apitoken.ScopeRead,
 
 	// Setting a client up issues a token, as POST /api/tokens does.
 	"GET /api/mcp":                 apitoken.ScopeAdmin,
@@ -329,6 +341,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/tasks/{id}/pause":         apitoken.ScopeControl,
 	"GET /api/tasks/{id}/pieces":         apitoken.ScopeRead,
 	"POST /api/tasks/{id}/play":          apitoken.ScopeRead,
+	"GET /api/tasks/{id}/range":          apitoken.ScopeRead,
 	"POST /api/tasks/{id}/resume":        apitoken.ScopeControl,
 	"GET /api/tasks/{id}/torrent-files":  apitoken.ScopeRead,
 	"POST /api/tasks/{id}/torrent-files": apitoken.ScopeControl,
@@ -537,7 +550,7 @@ func narrowToken(r *http.Request) bool {
 // task or a peer carries. A token that may not administer and a member of the
 // group get them redacted.
 func seesCredentials(r *http.Request) bool {
-	return !narrowToken(r) && !fromRelayGroup(r)
+	return !narrowToken(r) && !fromGroup(r)
 }
 
 // shownTasks is tasks as the caller of r may see them.

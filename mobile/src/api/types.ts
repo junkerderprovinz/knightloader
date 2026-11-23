@@ -145,39 +145,18 @@ export interface TorrentFileView {
   done?: number;
 }
 
-export interface AuthState {
-  enabled: boolean;
-  authenticated: boolean;
-}
-
-// A saved connection is one KnightLoader this phone talks to, over one of two
-// transports. Every screen and every call in api/client.ts takes a
-// ServerConnection without asking which kind it got; request() is the single
-// place that branches.
-
-/** Reached by opening an HTTP connection straight to it. */
-export interface DirectConnection {
-  // Absent on every connection saved before relay support existed. Those are
-  // all direct ones, so a missing kind reads as direct and the stored list
-  // needs no migration; see isRelayConnection.
-  kind?: 'direct';
-  id: string; // stable local id, so a rename doesn't orphan the "last active" pointer
-  baseUrl: string; // e.g. "https://192.168.10.10:1234", no trailing slash
-  token: string; // the API token secret, sent as "Authorization: Bearer <token>"
-  name: string; // whatever the user called this connection, e.g. "Home KL"
-}
-
 /**
- * Reached through a relay both ends dial out to, for the case where nothing on
- * this phone's network can open a connection to the instance.
+ * A saved connection is one KnightLoader this phone reaches through the relay
+ * of its group, which both ends dial out to, so nothing on this phone's
+ * network has to open a connection to the instance.
  *
  * It carries no token: the phone's member key signs every call, and the
  * instance takes it as a member's, held to the routes a member may reach
  * (groupRoutes in internal/api/group_routes.go).
  */
-export interface RelayConnection {
+export interface ServerConnection {
   kind: 'relay';
-  id: string;
+  id: string; // stable local id, so a rename doesn't orphan the "last active" pointer
   name: string;
   relayUrl: string; // the relay's address, as typed - normalised when dialled
   relayKey: string; // the relay's only credential, shared with the instances
@@ -195,45 +174,36 @@ export interface RelayConnection {
    * needsAddingAgain.
    */
   relayFrameKey?: string;
+  /**
+   * Hex of the key a direct call on the local network is tagged with,
+   * seedphrase.ts's derivePeerAuth. Absent on a connection paired before the
+   * phone kept it, which then plays files through the relay alone.
+   */
+  peerAuthKey?: string;
   instanceId: string; // which sibling on that key this connection is for
 }
 
-export type ServerConnection = DirectConnection | RelayConnection;
-
-export function isRelayConnection(c: ServerConnection): c is RelayConnection {
-  return c.kind === 'relay';
-}
-
 /**
- * needsAddingAgain is true for a saved connection this build cannot use: a
- * relay one from before frames were sealed, or a direct one to an http://
- * address, which Android refuses since the app permits no cleartext traffic.
- * Either is made again from the phrase.
+ * needsAddingAgain is true for a saved connection this build cannot use, one
+ * from before frames were sealed. It is made again from the phrase.
  */
 export function needsAddingAgain(c: ServerConnection): boolean {
-  return isRelayConnection(c) ? !c.relayFrameKey : /^http:/i.test(c.baseUrl);
+  return !c.relayFrameKey;
 }
 
-// Mirrors internal/federation.Instance, a peer the connected server knows
-// about. A peer has no separate token: /api/instances/{name}/* on the connected
-// server proxies task, link and queue requests to it with that server's own
-// credentials, so the app needs the peer's registered name and nothing else.
-// Reaching a relay-visible peer needs no relay wire protocol here either, since
-// the one server this app is connected to proxies those like stored peers, as
-// the web UI's Instances and Dashboard pages do.
+// Mirrors internal/federation.Instance, another instance of the connected
+// server's group. It has no separate token: /api/instances/{name}/* on the
+// connected server proxies task, link and queue requests to it, so the app
+// needs its name and nothing else.
 export interface Instance {
-  // The address every proxied call is built from. For a relay peer this is its
-  // InstanceID rather than the name it announced, so it does not change when
-  // something else about the peer list does (see
-  // federation.Manager.reachable). Render displayName instead of this one.
+  // The address every proxied call is built from: the member's stable id
+  // rather than the name it announced (see federation.Manager.reachable).
+  // Render displayName instead of this one.
   name: string;
-  url: string;
-  // What a relay peer calls itself, present only when it differs from `name`.
-  // A label; nothing addresses a peer by it. Falls back to `name`.
+  // What the member calls itself, present only when it differs from `name`.
+  // A label; nothing addresses a member by it. Falls back to `name`.
   displayName?: string;
-  // Set only for a peer reached through the relay right now; a stored peer
-  // carries none. `url` is empty for one of these, which is why
-  // InstancesScreen shows a "connected via relay" line instead.
+  // The member's id, the same as `name`.
   relayId?: string;
 }
 

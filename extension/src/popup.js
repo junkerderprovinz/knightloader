@@ -136,7 +136,7 @@ function paintHues() {
   // For an ordinary click the target line would only repeat the button.
   targetEl.hidden = true;
 
-  if (!(await readPhrase())) {
+  if (!(await inGroup())) {
     showPairHint();
     return;
   }

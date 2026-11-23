@@ -141,15 +141,15 @@ func TestAWebSocketOpensUnderTheBasePath(t *testing.T) {
 
 func TestARelayServedUnderTheBasePathIsReachedAtTheInstanceAddress(t *testing.T) {
 	servedUnder(t, "/kl")
-	srv, _ := testServer(t)
+	srv, a := testServer(t)
 	defer srv.Close()
 
 	address := srv.URL + "/kl"
-	const key = "a-relay-served-under-a-base-path"
-	if code, put := putRelayConfig(t, address, `{"relayUrl":"`+address+`","key":"`+key+`","serve":true}`); code != http.StatusOK || !put.Serve {
+	secret := phraseGroup(t, a)
+	if code, put := putRelayConfig(t, address, `{"relayUrl":"`+address+`","mode":"own","serve":true}`); code != http.StatusOK || !put.Serve {
 		t.Fatalf("PUT /kl/api/relay/config = %d %+v, want serve=true", code, put)
 	}
-	fixedSibling(t, address, key, "sibling-1")
+	fixedSibling(t, address, secret, "sibling-1")
 
 	deadline := time.Now().Add(5 * time.Second)
 	for {

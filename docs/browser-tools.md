@@ -76,7 +76,7 @@ anyone can build it from a checkout and compare.
 ### Setup is one connection phrase
 
 The options page asks for the same twelve words the instances themselves are
-paired with (`docs/connecting.md`, `internal/seedphrase`) and for nothing
+paired with (`docs/connecting.md`, `kit/phrase`) and for nothing
 else: no name, no address, no password. `extension/src/phrase.js` is a
 WebCrypto port of the Go derivation, so the browser derives the identical two
 keys: one that joins the relay group, one that encrypts the frames.
@@ -130,8 +130,8 @@ extension's, renews a three-minute lease with the instance it sends to
 (`PUT /api/clipboard-watchers/{id}`, `internal/clipwatch`). A page whose links go
 to a peer of the instance serving it renews there, through
 `/api/instances/{name}/clipboard-watchers/{id}`. Switching a watch on asks for
-the group's list (`GET /api/clipboard-watchers`, which asks every member and
-every instance added by address for its own), and when another device already
+the group's list (`GET /api/clipboard-watchers`, which asks every member for
+its own), and when another device already
 watches, a window names it and offers to switch it off there
 (`POST /api/clipboard-watchers/{id}/stop`, sent to all of them at once) or keep
 both. A stopped watcher hears it on its next renewal, even if its instance

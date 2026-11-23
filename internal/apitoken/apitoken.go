@@ -42,12 +42,15 @@ const (
 	// ScopeAdmin reads and changes configuration and secrets: settings,
 	// accounts, tokens, instances, logs and the system itself.
 	ScopeAdmin Scope = "admin"
+	// ScopeStatus reads the fortress status and log and nothing else, for a
+	// dashboard that should not see the download list.
+	ScopeStatus Scope = "status"
 )
 
 // AllScopes is every scope in its canonical order. A token stored before
 // tokens had scopes holds all of them, since that is what it could do.
 func AllScopes() []Scope {
-	return []Scope{ScopeRead, ScopeAdd, ScopeControl, ScopeAdmin}
+	return []Scope{ScopeRead, ScopeAdd, ScopeControl, ScopeAdmin, ScopeStatus}
 }
 
 // Normalize returns scopes without duplicates and in canonical order. It

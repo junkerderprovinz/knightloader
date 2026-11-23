@@ -9,16 +9,20 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
+
+	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
@@ -154,6 +158,94 @@ func (a *App) WriteBackup(w io.Writer, parts BackupParts) error {
 		return fmt.Errorf("could not encrypt the backup: %w", err)
 	}
 	_, err = w.Write(sealed)
+	return err
+}
+
+// FortressExport hands the archive Download backup sends to an app of the
+// fortress that keeps backups, for fortress.Config.Export. It is staged next to
+// the snapshot because the kit needs its length before it streams; without an
+// app key it holds every secret in the clear, which is why the kit sends it
+// only on the local network.
+func (a *App) FortressExport(ctx context.Context, from kitfortress.Caller) (io.ReadCloser, int64, error) {
+	parts, err := a.PrepareBackup()
+	if err != nil {
+		return nil, 0, err
+	}
+	f, err := os.Create(filepath.Join(filepath.Dir(parts.DBPath), "export"))
+	if err != nil {
+		parts.Discard()
+		return nil, 0, fmt.Errorf("could not stage the backup: %w", err)
+	}
+	export := &stagedExport{File: f, parts: parts}
+	if err := a.WriteBackup(f, parts); err != nil {
+		export.Close()
+		return nil, 0, fmt.Errorf("could not build the backup: %w", err)
+	}
+	n, err := f.Seek(0, io.SeekCurrent)
+	if err == nil {
+		_, err = f.Seek(0, io.SeekStart)
+	}
+	if err == nil {
+		err = ctx.Err()
+	}
+	if err != nil {
+		export.Close()
+		return nil, 0, err
+	}
+	log.Printf("backup: handing a backup of %d bytes to %s on %s", n, from.App, from.Device)
+	return export, n, nil
+}
+
+// FortressImport takes a backup an app of the fortress hands back, for
+// fortress.Config.Import, the way an uploaded restore is taken: it is read to
+// the end before anything happens, so a stream that breaks on the way leaves
+// the instance as it was, then checked and staged for the next start.
+func (a *App) FortressImport(ctx context.Context, from kitfortress.Caller, r io.Reader, n int64) error {
+	if n > backup.MaxUploadBytes {
+		return &kitfortress.Refusal{Status: http.StatusRequestEntityTooLarge, Code: "too_large"}
+	}
+	data, err := io.ReadAll(io.LimitReader(r, backup.MaxUploadBytes+1))
+	if err != nil {
+		return err
+	}
+	if len(data) > backup.MaxUploadBytes {
+		return &kitfortress.Refusal{Status: http.StatusRequestEntityTooLarge, Code: "too_large"}
+	}
+	data, err = backup.Unseal(data, a.AppKey)
+	switch {
+	case errors.Is(err, backup.ErrNeedsKey):
+		return &kitfortress.Refusal{Status: http.StatusBadRequest, Code: "needs_app_key"}
+	case errors.Is(err, backup.ErrWrongKey):
+		return &kitfortress.Refusal{Status: http.StatusBadRequest, Code: "wrong_app_key"}
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := backup.Stage(a.DataDir, data, buildinfo.Version, a.AppKey); err != nil {
+		code := "invalid_backup"
+		if errors.Is(err, store.ErrNewerSchema) {
+			code = "newer_schema"
+		}
+		log.Printf("backup: refused the backup %s on %s handed back: %v", from.App, from.Device, err)
+		return &kitfortress.Refusal{Status: http.StatusBadRequest, Code: code}
+	}
+	log.Printf("backup: %s on %s handed back a backup of %d bytes, which applies at the next start", from.App, from.Device, len(data))
+	if a.RequestExit != nil {
+		a.RequestExit(true)
+	}
+	return nil
+}
+
+// stagedExport is a staged backup that takes its snapshot folder with it when
+// it is closed.
+type stagedExport struct {
+	*os.File
+	parts BackupParts
+}
+
+func (e *stagedExport) Close() error {
+	err := e.File.Close()
+	e.parts.Discard()
 	return err
 }
 

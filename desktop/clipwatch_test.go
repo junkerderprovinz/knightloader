@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,13 +10,15 @@ import (
 	"net/http/httptest"
 	"os"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/store"
+	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 func TestClipboardLinksMatchThePage(t *testing.T) {
@@ -433,14 +436,12 @@ func TestClipWatchLeasesWithThePeerItSendsTo(t *testing.T) {
 	}))
 	defer peer.Close()
 	a := newClipApp(t)
-	if err := a.Federation.Add(federation.Instance{Name: "nas", URL: peer.URL}); err != nil {
-		t.Fatal(err)
-	}
+	a.Federation.SetGroup(servedMember{url: peer.URL})
 
-	if !leaseClip(context.Background(), a, "nas") {
+	if !leaseClip(context.Background(), a, nasID) {
 		t.Fatal("the peer's stop did not come through")
 	}
-	leaveClip(context.Background(), a, "nas")
+	leaveClip(context.Background(), a, nasID)
 	path := "/api/clipboard-watchers/" + clipWatcher(a).ID
 	mu.Lock()
 	defer mu.Unlock()
@@ -510,4 +511,30 @@ func TestDeliverLinksRefusesAnUnknownPeer(t *testing.T) {
 	if _, err := deliverLinks(context.Background(), a, "nowhere", []string{"https://host.example/a"}); err == nil {
 		t.Fatal("an unknown peer took the links")
 	}
+}
+
+// nasID is the member id of the instance servedMember stands for.
+var nasID = strings.Repeat("d", 40)
+
+// servedMember is a group whose one member is the instance at url, called
+// over plain HTTP the way kit/group calls it sealed.
+type servedMember struct{ url string }
+
+func (servedMember) Members() []group.Member {
+	return []group.Member{{ID: nasID, Kind: member.KindInstance, Name: "nas", Relay: true}}
+}
+func (servedMember) RelayConnected() bool { return true }
+func (servedMember) Close() error         { return nil }
+func (m servedMember) Call(ctx context.Context, _, method, path string, body []byte) (int, []byte, error) {
+	req, err := http.NewRequestWithContext(ctx, method, m.url+path, bytes.NewReader(body))
+	if err != nil {
+		return 0, nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer resp.Body.Close()
+	out, err := io.ReadAll(resp.Body)
+	return resp.StatusCode, out, err
 }

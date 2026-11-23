@@ -21,9 +21,8 @@ import (
 // script was saved would otherwise post its stale copy back and delete it.
 const scriptsFile = "scripts.json"
 
-// store is the on-disk half of a Host, shaped like
-// internal/federation.Manager: an id-keyed map under one mutex, with the
-// whole list written on every change.
+// store is the on-disk half of a Host: an id-keyed map under one mutex, with
+// the whole list written on every change.
 type store struct {
 	path string
 
@@ -89,8 +88,7 @@ func (st *store) save(s Script) (Script, error) {
 	case ok:
 		s.CreatedAt = existing.CreatedAt
 	default:
-		// An unknown non-empty ID becomes a new row under that ID, as in
-		// federation.Manager.Add.
+		// An unknown non-empty ID becomes a new row under that ID.
 		s.CreatedAt = now
 	}
 	s.UpdatedAt = now

@@ -1,17 +1,18 @@
 /**
  * The group this browser belongs to.
  *
- * Only the phrase is stored. The keys are cheap to derive again, and a stored
- * copy could go stale if the derivation changed; who is online comes from the
- * relay on every connect.
+ * The phrase is stored and the keys are derived from it again on every
+ * connect; who is online comes from the relay. A group that moved into a
+ * fortress hands the browser the keys of the pairing there instead, which
+ * take the place of the words: the fortress phrase opens every app of the
+ * household, so it never reaches a browser.
  *
- * The phrase lives in the extension's own IndexedDB rather than in
- * storage.local, which the Click'n'Load content scripts on every site can read.
- * Only the extension's pages and its background share that origin. A browser
- * that refuses the extension IndexedDB, as Firefox does when it always browses
- * privately, or lets it be read but not written, keeps the phrase and the
- * member key in storage.local after all, since a group that cannot be joined
- * is worse.
+ * Both live in the extension's own IndexedDB rather than in storage.local,
+ * which the Click'n'Load content scripts on every site can read. Only the
+ * extension's pages and its background share that origin. A browser that
+ * refuses the extension IndexedDB, as Firefox does when it always browses
+ * privately, or lets it be read but not written, keeps them and the member key
+ * in storage.local after all, since a group that cannot be joined is worse.
  *
  * `defaultInstance` holds a relay instance id, so renaming a member keeps the
  * choice on the same machine.
@@ -85,20 +86,139 @@ async function writePhrase(phrase) {
   const normalised = String(phrase).trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
   await decodePhrase(normalised);
   try {
-    await secretStore('readwrite', (s) => s.put(normalised, 'phrase'));
+    await secretStore('readwrite', (s) => {
+      s.delete('keys');
+      return s.put(normalised, 'phrase');
+    });
   } catch {
     await chrome.storage.local.set({ phrase: normalised });
+    await chrome.storage.local.remove('keys');
   }
   return normalised;
 }
 
-/** Leaves the group, dropping the phrase, the member key, and with it the member id, and the default target. */
+/** Leaves the group, dropping the phrase or the keys handed over, the member key, and with it the member id, and the default target. */
 async function forgetGroup() {
   await secretStore('readwrite', (s) => {
     s.delete('memberKey');
+    s.delete('keys');
     return s.delete('phrase');
   }).catch(() => {});
-  await chrome.storage.local.remove(['phrase', 'memberKey', 'defaultInstance']);
+  await chrome.storage.local.remove(['phrase', 'keys', 'memberKey', 'defaultInstance']);
+}
+
+/**
+ * Where an instance whose group moved into a fortress hands a phone or browser
+ * of the group the keys of the pairing there (kit/fortress's Moved).
+ */
+const MOVED_PATH = '/kit/fortress/v1/moved';
+
+/** How long a page waits before it asks again whether its group moved. */
+const MOVED_CHECK_MS = 5 * 60 * 1000;
+let movedAskedAt = 0;
+
+const HEX_KEY = /^[0-9a-f]{64}$/;
+
+/** movedKeys is the three keys of a pairing in o, or null for anything else. */
+function movedKeys(o) {
+  const { groupKey, frameKey, peerAuthKey } = o ?? {};
+  if (![groupKey, frameKey, peerAuthKey].every((k) => typeof k === 'string' && HEX_KEY.test(k))) return null;
+  return { groupKey, frameKey, peerAuthKey };
+}
+
+function bytesOfHex(hex) {
+  return new Uint8Array(hex.match(/../g).map((b) => parseInt(b, 16)));
+}
+
+/** hexOfBase64 is b64, a []byte as Go marshals it, in hex, or '' where it is no base64. */
+function hexOfBase64(b64) {
+  try {
+    return [...atob(b64)].map((c) => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+  } catch {
+    return '';
+  }
+}
+
+/** handedKeys is the keys a kit/fortress Moved answer o holds, as this browser keeps them, or null. */
+function handedKeys(o) {
+  const { group, frame, peerAuth } = o ?? {};
+  if (typeof frame !== 'string' || typeof peerAuth !== 'string') return null;
+  return movedKeys({ groupKey: group, frameKey: hexOfBase64(frame), peerAuthKey: hexOfBase64(peerAuth) });
+}
+
+/** The keys handed over when the group moved into a fortress, or null. */
+async function readMovedKeys() {
+  try {
+    return movedKeys(await secretStore('readonly', (s) => s.get('keys')));
+  } catch {
+    return movedKeys((await chrome.storage.local.get('keys')).keys);
+  }
+}
+
+/** Whether this browser is in a group, by its words or by the keys it followed a move with. */
+async function inGroup() {
+  return (await readPhrase()) !== '' || (await readMovedKeys()) !== null;
+}
+
+/**
+ * Whether this browser followed its group into a fortress, so it holds the
+ * keys of the pairing there and no words to show.
+ */
+async function followedIntoFortress() {
+  return (await readPhrase()) === '' && (await readMovedKeys()) !== null;
+}
+
+/**
+ * readGroupKeys is what this browser dials its group with: the relay key, the
+ * frame key, and the phrase or relay key they came from, which followMove
+ * compares before it replaces them. null without a group.
+ */
+async function readGroupKeys() {
+  const phrase = await readPhrase();
+  if (phrase) return { ...(await keysFromPhrase(phrase)), phrase, movedKey: '' };
+  const moved = await readMovedKeys();
+  if (!moved) return null;
+  return { key: moved.groupKey, frameKey: bytesOfHex(moved.frameKey), phrase: '', movedKey: moved.groupKey };
+}
+
+/**
+ * followMove asks the instance this browser sends to whether the group moved
+ * into a fortress, and follows it there with the keys it hands over, in place
+ * of what `held` dialled with. The answer is signed by that instance's key,
+ * so holding the old words is not enough to send the browser elsewhere.
+ */
+async function followMove({ siblings, call }, held) {
+  const target = defaultOf(siblings, await readDefaultTarget());
+  if (!target || Date.now() - movedAskedAt < MOVED_CHECK_MS) return;
+  movedAskedAt = Date.now();
+  const res = await call(target, 'GET', MOVED_PATH).catch(() => null);
+  if (res?.status !== 200) return;
+  let keys = null;
+  try {
+    keys = handedKeys(JSON.parse(res.body));
+  } catch {
+    return;
+  }
+  if (!keys || keys.groupKey === held.key) return;
+  // Words entered on another page while this session ran win.
+  const stillHeld = (phrase, kept) => (phrase ?? '') === held.phrase && (kept?.groupKey ?? '') === held.movedKey;
+  try {
+    await secretStore('readwrite', (s) => {
+      const phrase = s.get('phrase');
+      const kept = s.get('keys');
+      kept.onsuccess = () => {
+        if (!stillHeld(phrase.result, kept.result)) return;
+        s.delete('phrase');
+        s.put(keys, 'keys');
+      };
+      return kept;
+    });
+  } catch {
+    const local = await chrome.storage.local.get(['phrase', 'keys']);
+    if (!stillHeld(local.phrase, local.keys)) return;
+    await chrome.storage.local.set({ keys });
+    await chrome.storage.local.remove('phrase');
+  }
 }
 
 /** The relay instance id this browser sends to when it is not asked. */
@@ -259,24 +379,24 @@ async function localMember() {
 }
 
 /**
- * withGroup opens a relay session for the stored phrase and hands it to `work`,
- * like relaySession. Without a phrase it throws an Error with code 'no-phrase'
- * for callers to translate.
+ * withGroup opens a relay session for the group and hands it to `work`, like
+ * relaySession, asking alongside whether the group moved into a fortress.
+ * Without a group it throws an Error with code 'no-phrase' for callers to
+ * translate.
  */
 async function withGroup(work) {
-  const phrase = await readPhrase();
-  if (!phrase) {
+  const held = await readGroupKeys();
+  if (!held) {
     const err = new Error('no-phrase');
     err.code = 'no-phrase';
     throw err;
   }
-  const { key, frameKey } = await keysFromPhrase(phrase);
   const member = await readMember();
   return relaySession(
     {
       url: DEFAULT_RELAY_URL,
-      key,
-      frameKey,
+      key: held.key,
+      frameKey: held.frameKey,
       selfId: sessionInstanceId(),
       memberId: member?.id,
       memberKey: member?.key,
@@ -285,7 +405,10 @@ async function withGroup(work) {
       // fresh install: the phrase entered again joins it as a new member.
       onRemoved: forgetGroup,
     },
-    work,
+    async (session) => {
+      const [done] = await Promise.all([work(session), followMove(session, held).catch(() => {})]);
+      return done;
+    },
   );
 }
 
@@ -309,17 +432,18 @@ async function groupStatus() {
 }
 
 /**
- * groupView is groupStatus with the group's phones and browsers and the
- * instances that are away, asked in the same session of the default instance,
- * or of the first that answered when the default did not.
+ * groupView is groupStatus with the group's phones and browsers, the
+ * instances that are away and the devices left behind on the old phrase when
+ * the group moved into a fortress, asked in the same session of the default
+ * instance, or of the first that answered when the default did not.
  */
 async function groupView(defaultTarget) {
   return withGroup(async ({ siblings, call }) => {
     const instances = await statusOf(siblings, call);
     const live = instances.filter((s) => s.status !== null);
     const ask = defaultOf(live, defaultTarget);
-    const roster = ask ? await groupRoster(call, ask) : { apps: [], away: [] };
-    return { instances, apps: roster.apps, away: awayFrom(roster.away, siblings) };
+    const roster = ask ? await groupRoster(call, ask) : { apps: [], away: [], behind: [] };
+    return { instances, apps: roster.apps, away: awayFrom(roster.away, siblings, roster.behind), behind: roster.behind };
   });
 }
 
@@ -356,25 +480,26 @@ function statusOf(siblings, call) {
 }
 
 /**
- * groupRoster is the group's phones and browsers, and the instances approved
- * in the group that are not there now, as `instanceId` lists them. An instance
- * from before either list, or one that keeps them from this browser, answers
- * with none.
+ * groupRoster is the group's phones and browsers, the instances approved in
+ * the group that are not there now, and the devices that did not follow it
+ * into a fortress, as `instanceId` lists them. An instance from before a list,
+ * or one that keeps them from this browser, answers with none.
  */
 async function groupRoster(call, instanceId) {
   const r = await readJSON(call, instanceId, '/api/group/apps');
   const listed = (list) => (Array.isArray(list) ? list.filter((a) => a && typeof a.id === 'string') : []);
-  return { apps: listed(r?.apps), away: listed(r?.away) };
+  return { apps: listed(r?.apps), away: listed(r?.away), behind: listed(r?.behind) };
 }
 
 /**
  * awayFrom leaves out of `away` every instance the relay shows now, since the
  * instance asked may not have seen one come back yet, and one that is back
- * has its own card.
+ * has its own card. One left behind on the old phrase is listed only as that,
+ * should an answer have it in both.
  */
-function awayFrom(away, siblings) {
-  const here = new Set(siblings.map((s) => s.instanceId));
-  return away.filter((m) => !here.has(m.id));
+function awayFrom(away, siblings, behind) {
+  const shown = new Set([...siblings.map((s) => s.instanceId), ...behind.map((b) => b.id)]);
+  return away.filter((m) => !shown.has(m.id));
 }
 
 /**

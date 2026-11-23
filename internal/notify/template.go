@@ -31,7 +31,6 @@ package notify
 
 import (
 	"encoding/json"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -294,6 +293,17 @@ func btoa(v bool) string {
 	return "false"
 }
 
+// Fields is every placeholder this build knows with its value for one event,
+// for a channel's webhook template. A name whose payload this event does not
+// carry is empty.
+func Fields(f script.Firing, instanceName string) map[string]string {
+	out := make(map[string]string, len(table))
+	for _, e := range table {
+		out[e.Name] = e.value(f, instanceName)
+	}
+	return out
+}
+
 // byName is the lookup Expand uses, built once. Its keys are what "known"
 // means: a name in here expands, to empty if this firing has no payload for it,
 // and a name not in here is left standing.
@@ -305,7 +315,7 @@ var byName = func() map[string]entry {
 	return m
 }()
 
-// Placeholders is the picker's list, served by GET /api/eventtargets/placeholders.
+// Placeholders is the picker's list, served by GET /api/notify/placeholders.
 //
 // It reads the same table the expander does, so the picker cannot offer names
 // the server never fills in or omit ones it does, the argument
@@ -317,31 +327,6 @@ func Placeholders() []Placeholder {
 		out = append(out, e.Placeholder)
 	}
 	return out
-}
-
-// BodySlot decides how a body's placeholders are escaped, from the target's own
-// Content-Type header.
-//
-// From the header the operator wrote rather than a separate "format" field,
-// because those two can disagree and the header is the one the far end
-// believes. A row that declares nothing gets plain text, which is what ntfy's
-// message body is.
-func BodySlot(headers map[string]string) Slot {
-	ct := ""
-	for name, value := range headers {
-		if strings.EqualFold(strings.TrimSpace(name), "Content-Type") {
-			ct = strings.ToLower(value)
-			break
-		}
-	}
-	switch {
-	case strings.Contains(ct, "json"):
-		return SlotBodyJSON
-	case strings.Contains(ct, "x-www-form-urlencoded"):
-		return SlotBodyForm
-	default:
-		return SlotBodyPlain
-	}
 }
 
 // Expand replaces every %%name%% in s with the value this firing carries,
@@ -444,24 +429,6 @@ func jsonInner(v string) string {
 	return string(b[1 : len(b)-1])
 }
 
-// ExpandHeaders is every header value expanded for the header slot, with the
-// names left exactly as typed.
-//
-// The name is never expanded. A header called "X-%%task.status%%" would change
-// its spelling per message, which no far end can be configured against, and
-// leaving it alone keeps the name in the row the name on the wire, which is
-// what makes Merge's "same header name" rule mean anything.
-func ExpandHeaders(h map[string]string, f script.Firing, instanceName string) map[string]string {
-	if len(h) == 0 {
-		return nil
-	}
-	out := make(map[string]string, len(h))
-	for name, value := range h {
-		out[name] = Expand(value, SlotHeader, f, instanceName)
-	}
-	return out
-}
-
 // SampleFiring is the made-up event the test button sends.
 //
 // It fills every payload, which no real firing does, because the test is there
@@ -495,23 +462,4 @@ func SampleFiring(now time.Time) script.Firing {
 		Account:   &script.AccountView{Service: "example", Label: "Test account", Tier: "premium", Expiry: now.Format(time.RFC3339)},
 		Captcha:   &script.CaptchaView{ID: "test-captcha", Host: "example.invalid", Kind: "image", Prompt: "Type what you see"},
 	}
-}
-
-// ExpandURL is the address with its placeholders filled in. Send and any caller
-// that wants to show what would be sent need the identical string, and two call
-// sites building it separately is how the test panel ends up describing a
-// request the sender never made.
-func ExpandURL(t Target, f script.Firing, instanceName string) string {
-	return Expand(strings.TrimSpace(t.URL), SlotURL, f, instanceName)
-}
-
-// ExpandBody is the body with its placeholders filled in, escaped for whatever
-// the row's Content-Type says it is. Empty for a GET, since net/http would send
-// one and a body on a GET is a request most servers and every proxy in between
-// treat differently from the one the operator thinks they wrote.
-func ExpandBody(t Target, f script.Firing, instanceName string) string {
-	if normalizeMethod(t.Method) == http.MethodGet {
-		return ""
-	}
-	return Expand(t.Body, BodySlot(t.Headers), f, instanceName)
 }

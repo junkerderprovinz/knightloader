@@ -103,6 +103,32 @@ func TestEveryExceptionNamesARoute(t *testing.T) {
 			t.Errorf("otherBodies names %q, which is not a registered route", pattern)
 		}
 	}
+	for pattern := range alsoTakes {
+		if !known[pattern] {
+			t.Errorf("alsoTakes names %q, which is not a registered route", pattern)
+		}
+	}
+}
+
+func TestTheGroupCallRouteTakesTheKitUploadAndNoOtherRoute(t *testing.T) {
+	t.Parallel()
+	mux, _ := stubbedMux(t)
+	for _, c := range []struct {
+		path, contentType string
+		want              int
+	}{
+		{"/api/group/call", "application/x-kit-upload", 299},
+		{"/api/group/call", "application/octet-stream", http.StatusUnsupportedMediaType},
+		{"/api/links", "application/x-kit-upload", http.StatusUnsupportedMediaType},
+	} {
+		r := httptest.NewRequest(http.MethodPost, c.path, strings.NewReader("sealed pieces"))
+		r.Header.Set("Content-Type", c.contentType)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, r)
+		if rec.Code != c.want {
+			t.Errorf("POST %s with %q answered %d, want %d", c.path, c.contentType, rec.Code, c.want)
+		}
+	}
 }
 
 func TestABodylessPostNeedsNoContentType(t *testing.T) {

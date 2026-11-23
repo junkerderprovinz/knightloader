@@ -2,10 +2,10 @@
 // server checks them, and takes an instance's answer only as the server signs
 // it.
 //
-// src/api/memberKey.ts ports relay.MemberID, CallMessage, HelloMessage and
+// src/api/memberKey.ts ports member.ID, CallMessage, HelloMessage and
 // ResultMessage. When they disagree, every call the phone makes is refused or
 // every answer dropped. So the port runs the vectors of
-// internal/relay/member_test.go with their seed, and what it makes has to come
+// internal/federation/wire_test.go with their seed, and what it makes has to come
 // out as the Go tests pin it.
 //
 // Run by hand and by CI, from mobile/: `node check-member-key.mjs`
@@ -18,7 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const goTest = readFileSync(join(here, '..', 'internal', 'relay', 'member_test.go'), 'utf8');
+const goTest = readFileSync(join(here, '..', 'internal', 'federation', 'wire_test.go'), 'utf8');
 
 // The source runs as it ships, beside its own base64 and sha256 modules, with
 // the curve library taken from node_modules.
@@ -41,7 +41,7 @@ try {
 const want = (name) => goTest.match(new RegExp(`${name}\\s*=\\s*"([^"]+)"`))?.[1];
 const key = want('vectorKey');
 const sig = want('vectorSig');
-const call = goTest.match(/vectorCall\s*=\s*ProxyCall\{([\s\S]*?)\n\t\}/)?.[1];
+const call = goTest.match(/vectorCall\s*=\s*(?:relay\.)?ProxyCall\{([\s\S]*?)\n\t\}/)?.[1];
 if (!key || !sig || !call) {
   console.error('The vector was not found in member_test.go; the patterns in this check no longer match it');
   process.exit(1);

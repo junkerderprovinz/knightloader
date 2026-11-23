@@ -1,16 +1,14 @@
 package api
 
 import (
-	"context"
-	"crypto/ed25519"
 	"encoding/json"
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 const siteSecret = "YT-SESSION-4c1e-never-leaves-the-store"
@@ -140,29 +138,18 @@ func TestAnUnknownSiteIsNotFound(t *testing.T) {
 	}
 }
 
-// signedCall is signedMember with a body.
-func signedCall(t *testing.T, label, kind string, serve relay.ProxyHandler, approve func(id string, key ed25519.PublicKey)) func(method, path, body string) (int, []byte) {
+// signedCall is signedBody with the body as a string.
+func signedCall(t *testing.T, a *app.App, label string, kind member.Kind) func(method, path, body string) (int, []byte) {
 	t.Helper()
-	id, key := idAs(label, kind), keyOf(label)
-	approve(id, key.Public().(ed25519.PublicKey))
-	return func(method, path, body string) (int, []byte) {
-		return serve(context.Background(), stamped(relay.ProxyCall{Method: method, Path: path, Body: []byte(body)}, id, kind, key))
-	}
+	call := signedBody(t, a, label, kind)
+	return func(method, path, body string) (int, []byte) { return call(method, path, []byte(body)) }
 }
 
 func TestTheExtensionHandsASessionOverAndNoOtherMemberMay(t *testing.T) {
 	t.Parallel()
 	a, _, _, _, owner := groupServer(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	approve := func(kind string) func(string, ed25519.PublicKey) {
-		return func(id string, key ed25519.PublicKey) {
-			if _, _, err := a.Federation.Approve(id, key, kind); err != nil {
-				t.Fatal(err)
-			}
-		}
-	}
-	browser := signedCall(t, "browser-mine", relay.KindExtension, serve, approve(relay.KindExtension))
-	phone := signedCall(t, "phone-mine", relay.KindMobile, serve, approve(relay.KindMobile))
+	browser := signedCall(t, a, "browser-mine", member.KindExtension)
+	phone := signedCall(t, a, "phone-mine", member.KindMobile)
 
 	owner(http.MethodPost, "/api/sitelogins/youtube/begin", "")
 	status, body := browser(http.MethodGet, "/api/sitelogins/handover", "")
@@ -375,17 +362,9 @@ func handsOver(t *testing.T, owner func(method, path, body string) (int, []byte)
 func TestASiteHandsOverWhileAnExtensionOfTheGroupMayReadIt(t *testing.T) {
 	t.Parallel()
 	a, _, _, _, owner := groupServer(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	approve := func(kind string) func(string, ed25519.PublicKey) {
-		return func(id string, key ed25519.PublicKey) {
-			if _, _, err := a.Federation.Approve(id, key, kind); err != nil {
-				t.Fatal(err)
-			}
-		}
-	}
-	browser := signedCall(t, "browser-reads", relay.KindExtension, serve, approve(relay.KindExtension))
-	other := signedCall(t, "browser-other", relay.KindExtension, serve, approve(relay.KindExtension))
-	phone := signedCall(t, "phone-reads", relay.KindMobile, serve, approve(relay.KindMobile))
+	browser := signedCall(t, a, "browser-reads", member.KindExtension)
+	other := signedCall(t, a, "browser-other", member.KindExtension)
+	phone := signedCall(t, a, "phone-reads", member.KindMobile)
 
 	if got := handsOver(t, owner); got["patreon"] || got["youtube"] {
 		t.Fatalf("before any extension said so, the sites hand over %v", got)
@@ -414,7 +393,7 @@ func TestASiteHandsOverWhileAnExtensionOfTheGroupMayReadIt(t *testing.T) {
 	}
 
 	browser(http.MethodGet, "/api/sitelogins/handover?reads=patreon,youtube", "")
-	if err := a.Federation.RemoveApp(idAs("browser-reads", relay.KindExtension), time.Now()); err != nil {
+	if err := groupOf(t, a).Remove(idAs("browser-reads", member.KindExtension)); err != nil {
 		t.Fatal(err)
 	}
 	if got := handsOver(t, owner); got["patreon"] || got["youtube"] {

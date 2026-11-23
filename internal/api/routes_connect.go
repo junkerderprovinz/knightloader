@@ -2,17 +2,17 @@ package api
 
 // The connection phrase: generating one, showing it again, and joining a
 // group another instance already started. There is no account: the project
-// relay's address is compiled in (relay.DefaultRelayURL), an instance on its
+// relay's address is compiled in (relay.DefaultURL), an instance on its
 // own relay names that relay in the QR code beside the phrase, and holding the
 // secret is the whole authorization.
 //
 // The secret is stored and the phrase handed out; the relay only ever sees
-// relay.DeriveKey of the secret, so neither its operator nor its memory can
-// give back what a person would type.
+// federation.Domain.GroupKey of the secret, so neither its operator nor its
+// memory can give back what a person would type.
 
 import (
+	"bytes"
 	"context"
-	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -25,9 +25,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // ConnectInfo is what GET /api/connect answers with. It never carries the
@@ -54,14 +56,8 @@ type ConnectInfo struct {
 	// ProjectRelayURL is the compiled-in default in every mode, so the page
 	// can say where the project relay is before anybody switches to it.
 	ProjectRelayURL string `json:"projectRelayUrl"`
-	// Name is what the other instances of the group see this one as, and
-	// Address where they open it (groupAddress), "" when there is none.
-	Name    string `json:"name"`
-	Address string `json:"address"`
-	// NetworkAddress is where this instance found itself on its network
-	// (networkAddress), which Address leaves out once a known domain stands
-	// in for it. "" where nothing outside the machine can reach it.
-	NetworkAddress string `json:"networkAddress"`
+	// Name is what the other instances of the group see this one as.
+	Name string `json:"name"`
 	// Members is the other instances of the group reachable now, and Apps
 	// every phone that joined it with the phrase.
 	Members []groupMember `json:"members"`
@@ -69,6 +65,10 @@ type ConnectInfo struct {
 	// Away is every other instance approved in the group that is not
 	// reachable now, as it last announced itself.
 	Away []awayMember `json:"away"`
+	// Behind is every device that had not followed the pairing into the
+	// fortress when the group on the old phrase closed. Away and Apps leave
+	// them out.
+	Behind []behindDevice `json:"behind"`
 	// JoinedAgo is how many seconds ago this instance generated or entered
 	// its phrase, and MemberSeen whether another instance has shown up since.
 	// Together they tell a group waiting for its second instance from one
@@ -83,6 +83,13 @@ type ConnectInfo struct {
 	// Fingerprint is this instance's own key as the others list it while it
 	// waits for approval there, "" outside a group.
 	Fingerprint string `json:"fingerprint"`
+	// RelayKeyDropped is whether this instance was paired by a relay key
+	// typed in by hand, which the update took away, and has not paired with
+	// the phrase since.
+	RelayKeyDropped bool `json:"relayKeyDropped"`
+	// DroppedInstances names the instances that were added here by their
+	// address, which the update took away, until the owner puts the note away.
+	DroppedInstances []string `json:"droppedInstances"`
 }
 
 type pendingDevice struct {
@@ -122,55 +129,62 @@ type awayMember struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
 	Deployment string `json:"deployment"`
-	Address    string `json:"address"`
 	// LastSeen is Unix seconds.
 	LastSeen int64 `json:"lastSeen"`
 }
 
-// groupMembers is every other instance of the group this one reaches now,
-// directly or through the relay.
-func groupMembers(a *app.App) []groupMember {
-	peers := a.Federation.Members()
-	members := make([]groupMember, 0, len(peers))
-	for _, p := range peers {
+// groupView is the group as the Pairing card, the Instances page, the app and
+// the extension list it, from one look at the members.
+type groupView struct {
+	members []groupMember
+	apps    []groupApp
+	away    []awayMember
+	behind  []behindDevice
+	pending []pendingDevice
+	// awaiting is whether another instance said lately that this one waits
+	// for approval there.
+	awaiting bool
+}
+
+// viewOf lists the members of this instance's group.
+func viewOf(a *app.App) groupView {
+	v := groupView{members: []groupMember{}, apps: []groupApp{}, away: []awayMember{}, behind: behindOf(a), pending: []pendingDevice{}}
+	behind := map[string]bool{}
+	for _, d := range v.behind {
+		behind[d.ID] = true
+	}
+	for _, p := range a.Federation.List() {
 		name := p.DisplayName
 		if name == "" {
 			name = p.Name
 		}
-		members = append(members, groupMember{ID: p.RelayID, Name: name, Deployment: p.Deployment, Direct: p.Direct(), Relay: p.ViaRelay()})
+		v.members = append(v.members, groupMember{ID: p.RelayID, Name: name, Deployment: p.Deployment, Direct: p.Direct(), Relay: p.ViaRelay()})
 	}
-	return members
-}
-
-// awayMembers is every other instance approved in the group that is not
-// reachable at now, as the Instances page, the app and the extension list it.
-func awayMembers(a *app.App, now time.Time) []awayMember {
-	gone, err := a.Federation.AwayMembers(now)
-	if err != nil {
-		log.Printf("connect: could not record the instances of the group: %v", err)
+	for _, m := range a.Federation.GroupMembers() {
+		v.awaiting = v.awaiting || m.Awaiting
+		if m.State == group.StatePending {
+			v.pending = append(v.pending, pendingDevice{ID: m.ID, Name: m.Name, Kind: string(m.Kind), Fingerprint: member.Fingerprint(m.Key)})
+		}
+		switch {
+		case behind[m.ID]:
+		case m.Kind == member.KindMobile || m.Kind == member.KindExtension:
+			v.apps = append(v.apps, groupApp{ID: m.ID, Name: m.Name, Deployment: string(m.Kind), Connected: m.Online(),
+				Approved: m.State == group.StateApproved, LastSeen: m.LastSeen.Unix()})
+		case m.Kind == member.KindInstance && m.State == group.StateApproved && !m.Online():
+			v.away = append(v.away, awayMember{ID: m.ID, Name: m.Name, Deployment: m.Deployment, LastSeen: m.LastSeen.Unix()})
+		}
 	}
-	away := make([]awayMember, 0, len(gone))
-	for _, m := range gone {
-		away = append(away, awayMember{ID: m.ID, Name: m.Name, Deployment: m.Deployment, Address: m.Address,
-			LastSeen: m.LastSeen.Unix()})
-	}
-	return away
-}
-
-func groupApps(known []federation.App) []groupApp {
-	apps := make([]groupApp, 0, len(known))
-	for _, p := range known {
-		apps = append(apps, groupApp{ID: p.ID, Name: p.Name, Deployment: p.Deployment, Connected: p.Connected,
-			Approved: p.Approved, LastSeen: p.LastSeen.Unix()})
-	}
-	return apps
+	// Connected phones first, then by name, as the cards stand on the page.
+	sort.SliceStable(v.apps, func(i, j int) bool { return v.apps[i].Connected && !v.apps[j].Connected })
+	sort.Slice(v.pending, func(i, j int) bool { return v.pending[i].ID < v.pending[j].ID })
+	return v
 }
 
 func registerConnect(reg *Registry, a *app.App) {
 	// A stored secret without a joining time counts as joined at start, so
 	// the page waits a minute before it says nobody came.
-	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
-		if st, err := a.Federation.Group(false, time.Now()); err == nil && st.JoinedAt.IsZero() {
+	if secret, _ := a.Accounts.Get(federation.SeedAccount); secret != "" {
+		if st, err := a.Federation.Joined(false, time.Now()); err == nil && st.JoinedAt.IsZero() {
 			if err := a.Federation.SetJoined(time.Now()); err != nil {
 				log.Printf("connect: could not record when this instance joined its group: %v", err)
 			}
@@ -180,47 +194,44 @@ func registerConnect(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/connect",
 		"whether this instance has a connection phrase, who else is in its group, whether its relay socket is up, and which relay it uses",
 		func(w http.ResponseWriter, r *http.Request) {
-			// The Pairing card asks this while it is open, which is when the
-			// instances of a group have to meet to be approved on each other.
+			// The Pairing card asks this while it is open, which is when an
+			// instance on an older release shares what it decided.
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 				defer cancel()
-				a.Federation.Greet(ctx, time.Now())
-				syncGroupDevices(ctx, a)
+				a.Federation.SyncLegacy(ctx, time.Now())
 			}()
 			writeJSON(w, connectInfo(a))
 		})
 
-	reg.Add(http.MethodGet, "/api/group/roster",
-		"the phones and browser extensions this instance knows, with the key of every one approved here, and the ones taken out - for the other instances of the group, which take what they lack",
+	reg.Add(http.MethodGet, federation.LegacyRosterPath,
+		"the phones and browser extensions this instance knows, with the key of every one approved here, and the ones taken out - for instances of the group on an older release, which take what they lack",
 		func(w http.ResponseWriter, r *http.Request) {
-			if !fromRelayGroup(r) || !fromApprovedInstance(a, r) {
+			g := a.Federation.Group()
+			if g == nil || !fromApprovedInstance(a, r) {
 				writeRefusal(w, http.StatusForbidden, "rosterNotForInstance",
 					"only an approved instance of the group reads its roster", nil)
 				return
 			}
-			writeJSON(w, a.Federation.Roster())
+			writeJSON(w, federation.LegacyRosterOf(g.Roster()))
 		})
 
 	reg.Add(http.MethodGet, "/api/group/apps",
-		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen; the other instances of the group this one reaches now; and every other instance of the group that is away, as it last announced itself",
+		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen; the other instances of the group this one reaches now; every other instance of the group that is away, as it last announced itself; and the devices that did not follow the group into the fortress, by name and kind",
 		func(w http.ResponseWriter, r *http.Request) {
-			now := time.Now()
-			known, err := a.Federation.Apps(now)
-			if err != nil {
-				log.Printf("connect: could not record the phones of the group: %v", err)
-			}
+			v := viewOf(a)
 			writeJSON(w, struct {
-				Apps    []groupApp    `json:"apps"`
-				Members []groupMember `json:"members"`
-				Away    []awayMember  `json:"away"`
-			}{groupApps(known), groupMembers(a), awayMembers(a, now)})
+				Apps    []groupApp     `json:"apps"`
+				Members []groupMember  `json:"members"`
+				Away    []awayMember   `json:"away"`
+				Behind  []behindDevice `json:"behind"`
+			}{v.apps, v.members, v.away, v.behind})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/activate",
 		"generate a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password",
 		func(w http.ResponseWriter, r *http.Request) {
-			secret, phrase, err := seedphrase.New()
+			secret, words, err := phrase.New()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -229,7 +240,7 @@ func registerConnect(reg *Registry, a *app.App) {
 			err = a.Auth.Mint(stillAdmitted(a, r), func() error {
 				// Replacing an existing secret would orphan every instance
 				// joined to the old phrase; leaving is an explicit DELETE.
-				if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
+				if existing, err := a.Accounts.Get(federation.SeedAccount); err == nil && existing != "" {
 					exists = true
 					return nil
 				}
@@ -243,7 +254,7 @@ func registerConnect(reg *Registry, a *app.App) {
 			if refuseGroupChange(w, err) {
 				return
 			}
-			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase), "info": connectInfo(a)})
+			writeJSON(w, map[string]any{"phrase": words, "qr": phraseQR(a, words), "info": connectInfo(a)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/join",
@@ -255,11 +266,11 @@ func registerConnect(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			secret, err := seedphrase.Decode(body.Phrase)
+			secret, err := phrase.Decode(body.Phrase)
 			if err != nil {
 				// The reason and its details rather than a sentence, so the
 				// browser can explain the mistyped word in the user's language.
-				var de *seedphrase.DecodeError
+				var de *phrase.DecodeError
 				if errors.As(err, &de) {
 					w.WriteHeader(http.StatusBadRequest)
 					writeJSON(w, map[string]any{
@@ -306,7 +317,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				}
 				reg.passwordGate.pass(r)
 			}
-			secretHex, err := a.Accounts.Get(relay.SeedAccountService)
+			secretHex, err := a.Accounts.Get(federation.SeedAccount)
 			if err != nil || secretHex == "" {
 				http.Error(w, "this instance has no connection phrase", http.StatusNotFound)
 				return
@@ -316,39 +327,36 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, "the stored secret is unreadable", http.StatusInternalServerError)
 				return
 			}
-			phrase, err := seedphrase.Encode(secret)
+			words, err := phrase.Encode(secret)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			// The QR comes along, since the phrase is usually needed again to
 			// set up a phone.
-			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase)})
+			writeJSON(w, map[string]any{"phrase": words, "qr": phraseQR(a, words)})
 		})
 
 	// A removal starts at the owner's session and reaches the other instances
 	// the way an approval does. A phone holds the same words as the phone it
 	// would remove, so the group takes a removal only from an approved
-	// instance.
+	// instance. One that arrives from an instance is taken here alone, since
+	// the instance that passed it on tells the others itself.
 	reg.Add(http.MethodDelete, "/api/connect/apps/{id}",
 		"take a phone or browser extension out of the group on every instance of it - it drops every connection to the group and comes back as a new device, waiting for approval, when the phrase is entered again",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			if fromRelayGroup(r) && !fromApprovedInstance(a, r) {
-				refuseDecision(w)
+			if fromGroup(r) {
+				takePassedOn(w, r, a, id)
 				return
 			}
-			if err := a.Federation.RemoveApp(id, time.Now()); err != nil {
-				if errors.Is(err, federation.ErrIsInstance) {
-					writeRefusal(w, http.StatusConflict, "memberIsInstance",
-						"that id belongs to an instance of the group; take it out as an instance", nil)
-					return
-				}
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if kind := federation.KindOfID(id); kind != member.KindMobile && kind != member.KindExtension {
+				writeRefusal(w, http.StatusConflict, "memberIsInstance",
+					"that id belongs to an instance of the group; take it out as an instance", nil)
 				return
 			}
-			if !fromRelayGroup(r) {
-				go passOn(a, id, http.MethodDelete, "/api/connect/apps/"+url.PathEscape(id), nil)
+			if !removeHere(w, a, id) {
+				return
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -357,43 +365,21 @@ func registerConnect(reg *Registry, a *app.App) {
 		"take another instance out of the group on every instance of it - its key is revoked, it forgets the phrase, and it comes back as a new device, waiting for approval, when the phrase is entered there again",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			if fromRelayGroup(r) && !fromApprovedInstance(a, r) {
-				refuseDecision(w)
+			if fromGroup(r) {
+				takePassedOn(w, r, a, id)
 				return
 			}
 			if id == groupID(a) {
-				// The own page leaves through DELETE /api/connect.
-				if !fromRelayGroup(r) {
-					http.Error(w, "to leave the group, use DELETE /api/connect", http.StatusBadRequest)
-					return
-				}
-				// Answered before the relay socket closes under this request.
-				// The leaving runs under Mint, and only while the instance
-				// that asked is still approved here: a reset in between puts
-				// this instance in a group of its own, which nobody else may
-				// make it leave. Close waits for it, since it writes the
-				// phrase, the member key and the group file.
-				w.WriteHeader(http.StatusNoContent)
-				a.Go(func() {
-					err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil) })
-					if err != nil {
-						log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
-					}
-				})
+				http.Error(w, "to leave the group, use DELETE /api/connect", http.StatusBadRequest)
 				return
 			}
-			if err := a.Federation.RemoveMember(id, time.Now()); err != nil {
-				if errors.Is(err, federation.ErrNotInstance) {
-					writeRefusal(w, http.StatusConflict, "memberIsApp",
-						"that id belongs to a phone or a browser of the group; take it out as one", nil)
-					return
-				}
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if federation.KindOfID(id) != member.KindInstance {
+				writeRefusal(w, http.StatusConflict, "memberIsApp",
+					"that id belongs to a phone or a browser of the group; take it out as one", nil)
 				return
 			}
-			// The instance taken out hears it too, and leaves.
-			if !fromRelayGroup(r) {
-				go passOn(a, "", http.MethodDelete, "/api/connect/members/"+url.PathEscape(id), nil)
+			if !removeHere(w, a, id) {
+				return
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -402,8 +388,9 @@ func registerConnect(reg *Registry, a *app.App) {
 		"let a device that entered the words act in the group, on every instance of it - its key is refused until then",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			var passed deviceDecision
-			if fromRelayGroup(r) {
+			g := a.Federation.Group()
+			if fromGroup(r) {
+				var passed deviceDecision
 				if !fromApprovedInstance(a, r) {
 					refuseDecision(w)
 					return
@@ -411,28 +398,34 @@ func registerConnect(reg *Registry, a *app.App) {
 				if !decodeJSON(w, r, &passed) {
 					return
 				}
+				if err := g.Import(group.Roster{Members: []group.Member{{ID: id, Kind: passed.Kind, Key: passed.Key, State: group.StateApproved}}}); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				w.WriteHeader(http.StatusNoContent)
+				return
 			}
-			key, kind, err := a.Federation.Approve(id, passed.Key, passed.Kind)
-			switch {
-			case errors.Is(err, federation.ErrNoSuchPending):
+			if g == nil {
+				http.Error(w, "this instance is in no group", http.StatusNotFound)
+				return
+			}
+			to := olderInstances(a, id)
+			switch err := g.Approve(id); {
+			case errors.Is(err, group.ErrNoSuchMember):
 				http.Error(w, err.Error(), http.StatusNotFound)
 				return
-			case errors.Is(err, federation.ErrKindMismatch):
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			case errors.Is(err, federation.ErrGone):
+			case errors.Is(err, group.ErrRemoved):
 				http.Error(w, err.Error(), http.StatusGone)
-				return
-			case errors.Is(err, federation.ErrKeyMismatch):
-				http.Error(w, err.Error(), http.StatusConflict)
 				return
 			case err != nil:
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if !fromRelayGroup(r) {
-				body, _ := json.Marshal(deviceDecision{Key: key, Kind: kind})
-				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/approve", body)
+			for _, m := range g.Roster().Members {
+				if m.ID == id {
+					body, _ := json.Marshal(deviceDecision{Key: m.Key, Kind: m.Kind})
+					go passOn(a, to, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/approve", body)
+				}
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -441,22 +434,22 @@ func registerConnect(reg *Registry, a *app.App) {
 		"turn away a device that entered the words, on every instance of the group - its key is revoked",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			var passed deviceDecision
-			if fromRelayGroup(r) {
-				if !fromApprovedInstance(a, r) {
-					refuseDecision(w)
-					return
-				}
-				if !decodeJSON(w, r, &passed) {
-					return
-				}
-			}
-			if err := a.Federation.Refuse(id, time.Now()); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if fromGroup(r) {
+				takePassedOn(w, r, a, id)
 				return
 			}
-			if !fromRelayGroup(r) {
-				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/refuse", []byte("{}"))
+			if !removeHere(w, a, id) {
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
+	reg.Add(http.MethodDelete, "/api/connect/dropped-instances",
+		"put away the note naming the instances that were added by their address, which pair by the phrase now",
+		func(w http.ResponseWriter, r *http.Request) {
+			if err := a.Federation.PutAwayDroppedInstances(); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -474,8 +467,62 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 }
 
+// removeHere takes member id out of the group at the owner's word: kit/group
+// tells the instances on this release, and passOn the older ones, the member
+// itself included. It reports whether it answered nothing yet.
+func removeHere(w http.ResponseWriter, a *app.App, id string) bool {
+	g := a.Federation.Group()
+	if g == nil {
+		return true
+	}
+	to := olderInstances(a, "")
+	if err := g.Remove(id); err != nil && !errors.Is(err, group.ErrNoSuchMember) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return false
+	}
+	path := "/api/connect/apps/" + url.PathEscape(id)
+	switch federation.KindOfID(id) {
+	case member.KindInstance:
+		path = "/api/connect/members/" + url.PathEscape(id)
+	case "":
+		return true
+	}
+	go passOn(a, to, http.MethodDelete, path, nil)
+	return true
+}
+
+// takePassedOn takes a removal an instance on an older release passed on: of
+// this instance, which then leaves, or of another member, which is taken out
+// here alone.
+func takePassedOn(w http.ResponseWriter, r *http.Request, a *app.App, id string) {
+	g := a.Federation.Group()
+	if g == nil || !fromApprovedInstance(a, r) {
+		refuseDecision(w)
+		return
+	}
+	if id != groupID(a) {
+		if err := g.Import(group.Roster{Removed: map[string]time.Time{id: time.Now()}}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	// Answered before the group closes under this request. The leaving runs
+	// under Mint, and only while the instance that asked is still approved
+	// here: a reset in between puts this instance in a group of its own,
+	// which nobody else may make it leave.
+	w.WriteHeader(http.StatusNoContent)
+	go func() {
+		err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil) })
+		if err != nil {
+			log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
+		}
+	}()
+}
+
 // enterGroup stores secret as this instance's group, or leaves the group with
-// nil, and redials the relay. Either way the group starts over with nobody
+// nil, and opens the group again. Either way the group starts over with nobody
 // seen in it and nobody approved.
 func enterGroup(a *app.App, secret []byte) error {
 	stored := ""
@@ -484,19 +531,23 @@ func enterGroup(a *app.App, secret []byte) error {
 		stored = hex.EncodeToString(secret)
 		joined = time.Now()
 	}
-	if err := a.Accounts.Set(relay.SeedAccountService, stored); err != nil {
-		return err
-	}
-	// The member key belongs to one group, so a group entered again is
-	// entered under a new key, which the members pin as a new device.
-	if err := a.Accounts.Set(relay.MemberAccountService, ""); err != nil {
-		return err
-	}
-	// No relay mode is written: an unset mode already resolves to the
-	// project relay, and writing one would stop RelayModeOf from inferring
-	// "own" from a typed address.
-	applyRelay(a)
-	return a.Federation.SetJoined(joined)
+	return regroup(a, func() error {
+		if err := a.Accounts.Set(federation.SeedAccount, stored); err != nil {
+			return err
+		}
+		// The member key belongs to one group, so a group entered again is
+		// entered under a new key, which the members pin as a new device.
+		if err := a.Accounts.Set(federation.MemberAccount, ""); err != nil {
+			return err
+		}
+		if err := a.Accounts.Set(federation.GroupAccount, ""); err != nil {
+			return err
+		}
+		// No relay mode is written: an unset mode already resolves to the
+		// project relay, and writing one would stop RelayModeOf from
+		// inferring "own" from a typed address.
+		return a.Federation.SetJoined(joined)
+	})
 }
 
 // refuseGroupChange answers a failed join or activation and reports whether
@@ -514,25 +565,18 @@ func refuseGroupChange(w http.ResponseWriter, err error) bool {
 	return true
 }
 
-// renewGroup puts an instance that is in a pairing group, by phrase or by a
-// hand-entered relay key, into a new group of its own with a new phrase, so
-// every member and phone has to pair again, and tells them so for a while (see
-// retired_group.go). It reports whether there was a group to leave.
+// renewGroup puts an instance that is in a pairing group into a new group of
+// its own with a new phrase, so every member and phone has to pair again, and
+// tells them so for a while (see retired_group.go). It reports whether there
+// was a group to leave.
 func renewGroup(a *app.App) (bool, error) {
-	seed, _ := a.Accounts.Get(relay.SeedAccountService)
-	manual, _ := a.Accounts.Get(relay.AccountService)
-	if seed == "" && manual == "" {
+	if seed, _ := a.Accounts.Get(federation.SeedAccount); seed == "" {
 		return false, nil
 	}
 	if err := retireGroup(a, time.Now()); err != nil {
 		log.Printf("connect: the devices of the group left at the reset will not hear why: %v", err)
 	}
-	if manual != "" {
-		if err := a.Accounts.Set(relay.AccountService, ""); err != nil {
-			return true, err
-		}
-	}
-	secret, _, err := seedphrase.New()
+	secret, _, err := phrase.New()
 	if err != nil {
 		return true, err
 	}
@@ -541,43 +585,37 @@ func renewGroup(a *app.App) (bool, error) {
 
 // phraseQR is the QR code for the app, naming the relay this instance dials
 // when that is its own (relay.PairingCode).
-func phraseQR(a *app.App, phrase string) *QRMatrix {
+func phraseQR(a *app.App, words string) *QRMatrix {
 	cfg := a.Settings.Get()
 	own := ""
 	if cfg.RelayModeOf() == settings.RelayModeOwn {
 		own = cfg.RelayURL
 	}
-	return renderQR(relay.PairingCode(phrase, own))
+	return renderQR(relay.PairingCode(words, own))
 }
 
 func connectInfo(a *app.App) ConnectInfo {
-	secretHex, _ := a.Accounts.Get(relay.SeedAccountService)
+	secretHex, _ := a.Accounts.Get(federation.SeedAccount)
 	// Which relay this instance points at, answerable before anything is
-	// activated; relayTarget instead reports what to dial right now.
+	// activated; relayOf instead reports what the group dials right now.
 	cfg := a.Settings.Get()
 	mode := cfg.RelayModeOf()
 	url := cfg.RelayURL
 	selfHosted := mode == settings.RelayModeOwn
 	if !selfHosted {
-		url = relay.DefaultRelayURL
+		url = relay.DefaultURL
 	}
 	if mode == settings.RelayModeOff {
 		url = ""
 	}
 
 	now := time.Now()
-	members := groupMembers(a)
-	known, err := a.Federation.Apps(now)
-	if err != nil {
-		log.Printf("connect: could not record the phones of the group: %v", err)
-	}
-	apps := groupApps(known)
-	away := awayMembers(a, now)
+	v := viewOf(a)
 	appThere := false
-	for _, p := range apps {
+	for _, p := range v.apps {
 		appThere = appThere || p.Connected
 	}
-	st, err := a.Federation.Group(len(members) > 0 || appThere, now)
+	st, err := a.Federation.Joined(len(v.members) > 0 || appThere, now)
 	if err != nil {
 		log.Printf("connect: could not record the first member of the group: %v", err)
 	}
@@ -586,57 +624,51 @@ func connectInfo(a *app.App) ConnectInfo {
 		joinedAgo = max(int64(now.Sub(st.JoinedAt).Seconds()), 0)
 	}
 
-	names := map[string]string{}
-	for _, m := range members {
-		names[m.ID] = m.Name
-	}
-	for _, p := range apps {
-		names[p.ID] = p.Name
-	}
-	pending := []pendingDevice{}
-	for _, p := range a.Federation.PendingMembers() {
-		pending = append(pending, pendingDevice{ID: p.ID, Name: names[p.ID], Kind: p.Kind, Fingerprint: p.Fingerprint})
-	}
-	sort.Slice(pending, func(i, j int) bool { return pending[i].ID < pending[j].ID })
-
 	return ConnectInfo{
-		Active:          secretHex != "",
-		Connected:       a.Federation.RelayConnected(),
-		PasswordSet:     a.Auth.Enabled(),
-		RelayURL:        url,
-		SelfHosted:      selfHosted,
-		RelayMode:       mode,
-		ProjectRelayURL: relay.DefaultRelayURL,
-		Name:            instanceDisplayName(a),
-		Address:         groupAddress(a),
-		NetworkAddress:  networkAddress(),
-		Members:         members,
-		Apps:            apps,
-		Away:            away,
-		JoinedAgo:       joinedAgo,
-		MemberSeen:      !st.MemberSeenAt.IsZero(),
-		Pending:         pending,
-		Awaiting:        a.Federation.AwaitingApproval(now),
-		Fingerprint:     ownFingerprint(a),
+		Active:           secretHex != "",
+		Connected:        a.Federation.RelayConnected(),
+		PasswordSet:      a.Auth.Enabled(),
+		RelayURL:         url,
+		SelfHosted:       selfHosted,
+		RelayMode:        mode,
+		ProjectRelayURL:  relay.DefaultURL,
+		Name:             instanceDisplayName(a),
+		Members:          v.members,
+		Apps:             v.apps,
+		Away:             v.away,
+		Behind:           v.behind,
+		JoinedAgo:        joinedAgo,
+		MemberSeen:       !st.MemberSeenAt.IsZero(),
+		Pending:          v.pending,
+		Awaiting:         v.awaiting,
+		Fingerprint:      ownFingerprint(a),
+		RelayKeyDropped:  st.RelayKeyDropped,
+		DroppedInstances: append([]string{}, st.DroppedInstances...),
 	}
 }
 
 // deviceDecision is what an approval carries when it is passed on: the key
 // approved and the kind it signs as, so an instance the device has not called
-// yet pins it as approved. A refusal carries the kind alone, so an instance
-// that never saw the device knows whether to keep its id out for good.
+// yet pins it as approved.
 type deviceDecision struct {
-	Key  []byte `json:"key,omitempty"`
-	Kind string `json:"kind,omitempty"`
+	Key  []byte      `json:"key,omitempty"`
+	Kind member.Kind `json:"kind,omitempty"`
 }
 
 // fromApprovedInstance reports whether a call from the group came from an
-// instance whose key is pinned and approved here as an instance's. Only such
-// a call may decide who else is in the group; an unsigned one, or one from a
-// phone, may not.
+// instance this one still holds approved under the key that signed it. Only
+// such a call may decide who else is in the group; one from a phone may not.
 func fromApprovedInstance(a *app.App, r *http.Request) bool {
-	c, ok := federation.CallerOf(r.Context())
-	return ok && a.Federation.ApprovedInstance(c)
+	c, ok := memberOf(r)
+	if !ok || c.Kind != member.KindInstance {
+		return false
+	}
+	for _, m := range a.Federation.GroupMembers() {
+		if m.ID == c.ID {
+			return m.State == group.StateApproved && bytes.Equal(m.Key, c.Key)
+		}
+	}
+	return false
 }
 
 func refuseDecision(w http.ResponseWriter) {
@@ -644,38 +676,42 @@ func refuseDecision(w http.ResponseWriter) {
 		"only an approved instance of the group passes an approval, a refusal or a removal on", nil)
 }
 
-// passOn hands a decision about the group's members, made here by the owner,
-// to the other instances of the group, signed with this instance's key. skip
-// is a member that is not told. One that is away misses it: a device approved
-// here still waits there, and one removed here is still served there.
-func passOn(a *app.App, skip, method, path string, body []byte) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	for _, m := range a.Federation.Members() {
-		if skip != "" && m.RelayID == skip {
-			continue
-		}
-		if _, status, err := a.Federation.Proxy(ctx, m.Name, method, path, body); err != nil || status >= 300 {
-			log.Printf("connect: could not pass %s %s on to %s: status %d, %v", method, path, m.Name, status, err)
+// olderInstances lists the approved instances of the group reachable now but
+// for skip, which hear of a decision only on the routes of their release.
+// Instances on this release take the same call as a decision they already
+// have.
+func olderInstances(a *app.App, skip string) []string {
+	var out []string
+	for _, m := range a.Federation.GroupMembers() {
+		if m.ID != skip && m.Kind == member.KindInstance && m.State == group.StateApproved && m.Online() {
+			out = append(out, m.ID)
 		}
 	}
+	return out
 }
 
-// syncGroupDevices takes from the other instances of the group the phones and
-// browsers, approvals and removals missing here, and tells the open pages when
-// anything came.
-func syncGroupDevices(ctx context.Context, a *app.App) {
-	if a.Federation.SyncApps(ctx, time.Now()) {
-		a.Hub.Broadcast("group", nil)
+// passOn hands a decision about the group's members, made here by the owner,
+// to the instances in to, signed with this instance's key.
+func passOn(a *app.App, to []string, method, path string, body []byte) {
+	g := a.Federation.Group()
+	if g == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	for _, id := range to {
+		if status, _, err := g.Call(ctx, id, method, path, body); err != nil || status >= 300 {
+			log.Printf("connect: could not pass %s %s on to %s: status %d, %v", method, path, id, status, err)
+		}
 	}
 }
 
 // ownFingerprint is the fingerprint of the key this instance signs its calls
 // to the group with, "" outside a group.
 func ownFingerprint(a *app.App) string {
-	member := memberKey(a)
-	if member == nil {
+	identity := memberKey(a)
+	if identity == nil {
 		return ""
 	}
-	return relay.Fingerprint(member.Public().(ed25519.PublicKey))
+	return member.Fingerprint(identity.Public())
 }

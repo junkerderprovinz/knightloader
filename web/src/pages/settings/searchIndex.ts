@@ -530,8 +530,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     { title: 'settings.module.federation', rows: [], body: ['settings.modules.about.federation'] },
     // The page drawn below that card.
     {
-      title: 'instances.foundTitle',
-      hint: 'instances.foundHint',
+      title: 'instances.title',
       rows: [],
       // The page's floating action.
       also: ['pairing.title'],
@@ -558,12 +557,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // nobody has come to opens.
       body: ['pairing.lead', 'pairing.keyNote', 'pairing.wordsTip', 'pairing.twoBody'],
     },
+    // The card in the phrase card's place once the pairing is in a fortress.
+    { title: 'pairing.movedTitle', rows: [], body: ['pairing.moved'] },
     {
       title: 'instances.title',
       hint: 'pairing.groupHint',
       rows: [],
       // How a member of the group is reached, and the state of one that is away.
-      also: ['pairing.direct', 'pairing.byAddress', 'pairing.viaRelay', 'instances.inactive'],
+      also: ['pairing.direct', 'pairing.viaRelay', 'instances.notReachable'],
     },
     {
       title: 'settings.access.identity.title',
@@ -571,8 +572,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.access.identity.nameLabel', hint: 'settings.access.identity.nameHint' },
         { key: 'settings.access.identity.addressesLabel', hint: 'settings.access.identity.addressesHint' },
       ],
-      // What stands beside the address the instance found itself.
-      also: ['settings.access.identity.addressFound'],
     },
     {
       title: 'relay.title',
@@ -590,7 +589,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'relay.off',
         'relay.noGroup',
         'instances.connected',
-        'instances.notConnected',
+        'instances.notReachable',
         'relay.seesTitle',
         'relay.seesLabel',
         'relay.notSeesLabel',
@@ -599,6 +598,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // The rest of the card's (i), the (i) of serving the relay and the (i)
       // of what to check.
       body: ['relay.lead', 'relay.serveHint', 'pairing.relayCheckTip'],
+    },
+    // GlimStone's fortress below the relay, worded in its own texts but for
+    // these, which say where the phrase comes from.
+    { title: 'pairing.fortressTitle', rows: [], body: ['pairing.fortressOutHint', 'pairing.fortressPhraseWhere'] },
+    // The name of this server in the fortress, once KnightLoader is in one.
+    {
+      title: 'pairing.fortressDeviceTitle',
+      rows: [{ key: 'pairing.fortressDeviceName', hint: 'pairing.fortressDeviceHint' }],
     },
   ],
 
@@ -767,6 +774,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.categories.collision', hint: 'settings.categories.collisionHint' },
         { key: 'settings.categories.free', hint: 'settings.categories.freeHint' },
         { key: 'settings.categories.notify', hint: 'settings.categories.notifyHint' },
+        { key: 'settings.categories.afterDownload', hint: 'settings.categories.afterDownloadHint' },
+        { key: 'settings.categories.afterDownloadNew', hint: 'settings.categories.afterDownloadNewHint' },
         { key: 'settings.categories.torrentFiles', hint: 'settings.categories.torrentFilesHint' },
       ],
       also: ['settings.categories.notifyNone', 'settings.categories.torrentFilesOwn'],
@@ -1165,6 +1174,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.eventTargets.method', hint: 'settings.eventTargets.methodHint' },
         { key: 'settings.eventTargets.headers', hint: 'settings.eventTargets.headersHint' },
         { key: 'settings.eventTargets.body', hint: 'settings.eventTargets.bodyHint' },
+        { key: 'settings.eventTargets.on', hint: 'settings.eventTargets.onHint' },
+        { key: 'settings.eventTargets.token', hint: 'settings.eventTargets.ntfyTokenHint' },
+        { key: 'settings.eventTargets.homeserver', hint: 'settings.eventTargets.homeserverHint' },
+        { key: 'settings.eventTargets.room', hint: 'settings.eventTargets.roomHint' },
+        { key: 'settings.eventTargets.smtpHost', hint: 'settings.eventTargets.smtpHostHint' },
+        { key: 'settings.eventTargets.smtpTls', hint: 'settings.eventTargets.smtpTlsHint' },
+        { key: 'settings.eventTargets.smtpPort', hint: 'settings.eventTargets.smtpPortHint' },
+        { key: 'settings.eventTargets.smtpTo', hint: 'settings.eventTargets.smtpToHint' },
+        { key: 'settings.eventTargets.appriseUrls', hint: 'settings.eventTargets.appriseUrlsHint' },
+        { key: 'settings.eventTargets.appriseTags', hint: 'settings.eventTargets.appriseTagsHint' },
         { key: 'settings.eventTargets.events', hint: 'settings.eventTargets.eventsHint' },
         { key: 'settings.eventTargets.placeholders', hint: 'settings.eventTargets.placeholdersHint' },
         { key: 'settings.eventTargets.attempts', hint: 'settings.eventTargets.attemptsHint' },
@@ -1177,7 +1196,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.eventTargets.remove',
         'settings.eventTargets.test',
         'settings.eventTargets.testBusy',
-        'settings.eventTargets.testSent',
+        'settings.eventTargets.smtpUser',
+        'settings.eventTargets.smtpPassword',
+        'settings.eventTargets.smtpFrom',
+        'settings.eventTargets.smtpTls.none',
+        'settings.eventTargets.on.failure',
+        'settings.eventTargets.on.always',
+        'settings.eventTargets.kind.smtp',
         'settings.eventTargets.lastAttempt',
         'settings.eventTargets.lastOk',
         'settings.eventTargets.attemptsDefault',
@@ -1189,9 +1214,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.eventTargets.empty',
         'settings.eventTargets.emptyHint',
         'settings.eventTargets.pickHint',
-        'settings.eventTargets.discordNote',
         'settings.eventTargets.discordUrlHint',
-        'settings.eventTargets.eventsNone',
+        'settings.eventTargets.slackUrlHint',
+        'settings.eventTargets.gotifyUrlHint',
+        'settings.eventTargets.gotifyTokenHint',
+        'settings.eventTargets.ntfyUrlHint',
+        'settings.eventTargets.matrixTokenHint',
+        'settings.eventTargets.appriseUrlHint',
+        'settings.eventTargets.eventsAll',
         'settings.eventTargets.eventsBurst',
         'settings.eventTargets.replaysHint',
         'settings.eventTargets.placeholderUnused',
@@ -1201,9 +1231,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.eventTargets.sentCount',
         'settings.eventTargets.dropped',
         'settings.eventTargets.took',
-        'settings.eventTargets.testTruncated',
-        'settings.eventTargets.testEmptyBody',
-        'settings.eventTargets.testNoAnswer',
+        'settings.eventTargets.testOk',
       ],
     },
     {

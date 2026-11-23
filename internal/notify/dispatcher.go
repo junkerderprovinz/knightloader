@@ -1,107 +1,76 @@
+// Package notify tells the services the operator set up when something
+// happens here: a webhook of their own, Discord, Slack, Gotify, ntfy, Matrix,
+// mail or Apprise. Each channel is a parleyport kit channel; this package is
+// the subscriber on script's bus that turns a firing into the kit's event and
+// keeps each channel's queue and health.
+//
+// It is not web/src/lib/notify.ts, which routes an event to a toast inside one
+// browser tab and never leaves it, which is why the interface calls these
+// event targets.
+//
+// Nothing is spooled to disk. A message that cannot be delivered is tried as
+// often as its channel allows and then dropped: everything reported here is
+// about a moment that has passed.
 package notify
-
-// The bus subscriber, the queue behind it and the worker that empties it.
-//
-// script.Bus.Publish delivers synchronously, on the publisher's goroutine, and
-// the publishers are a download's update path, the collector's put, verifyTask,
-// settleExtraction and two poll loops. So On has to return promptly: an
-// http.Post written straight into it stalls the download that published for up
-// to the target's timeout, and for three times that with three targets
-// subscribed to task.done. On filters by trigger, drops the firing into a
-// bounded channel and returns, the shape script.Host.fire uses.
-//
-// One goroutine per target rather than a shared pool, for two reasons: a target
-// whose server takes ten seconds must not delay another target's message, and
-// one target's messages have to stay in the order they happened, which workers
-// pulling from one queue cannot promise. The cost is a goroutine per enabled
-// target, which for a hand-configured feature is a handful.
-//
-// Nothing is spooled to disk. A message that could not be delivered inside its
-// attempts, or that has been queued longer than maxMessageAge, is abandoned:
-// the operator watched the package finish and has moved on.
 
 import (
 	"context"
 	"log"
-	"strings"
+	"net/http"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	kit "github.com/junkerderprovinz/parleyport/kit/notify"
 
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
 const (
-	// queueDepth is per target. link.added fires once per link, so one paste of
-	// a two hundred link container is two hundred messages, and this decides
-	// whether a target that is not keeping up starts making the process buffer.
-	// Drops are counted, so the settings page can say the target is too slow
-	// for the events that were ticked.
+	// queueDepth is per channel. link.added fires once per link, so one paste
+	// of a two hundred link container is two hundred messages for a channel
+	// that takes them; what does not fit is dropped and counted.
 	queueDepth = 256
 
 	// maxMessageAge is how stale a queued message may be when its turn comes.
-	// Past this it is abandoned: a burst that took five minutes to work through
-	// is a target that is not keeping up, and the news at the back of that
-	// queue is no longer news.
+	// A burst that took five minutes to work through is news nobody waits for.
 	maxMessageAge = 5 * time.Minute
 )
 
-// backoffSteps is the wait between attempts, indexed by the attempt that just
-// failed. Short, then long: the failures worth repeating clear in seconds (a
-// push server restarting, one dropped packet), and anything still failing after
-// forty seconds is something to go and fix.
-var backoffSteps = []time.Duration{2 * time.Second, 8 * time.Second, 30 * time.Second}
-
-// Health is what one target has been doing since this process started.
-//
-// It is in memory, the same call feed.Health makes, so a zero LastAttempt means
-// "nothing since this process started" rather than "never". A target that has
-// been delivering for a year reads as silent for the seconds after a restart,
-// which the page has its own sentence for.
+// Health is what one channel has been doing since this process started. A
+// zero LastAttempt means nothing since then, not never.
 type Health struct {
-	TargetID string `json:"targetId"`
-	// LastAttempt is when a request was last made, whether it worked or not.
+	ChannelID   string    `json:"channelId"`
 	LastAttempt time.Time `json:"lastAttempt,omitzero"`
-	// LastOK is when one last arrived. The gap between the two is the story:
-	// both recent is a working target, LastAttempt recent and LastOK old is a
-	// target that has been failing since then.
-	LastOK time.Time `json:"lastOk,omitzero"`
-	// LastStatus is the status of the last attempt, 0 when nothing answered.
+	LastOK      time.Time `json:"lastOk,omitzero"`
+	// LastStatus is the HTTP status of the last failed attempt, 0 when nothing
+	// answered.
 	LastStatus int `json:"lastStatus"`
-	// LastError is the transport failure, redacted, empty when the far end
-	// answered at all. A refusal is in LastStatus and LastCode instead.
+	// LastError is the failure in English with every secret taken out, and
+	// LastCode the kit's code for it, which the page translates.
 	LastError string `json:"lastError,omitempty"`
-	// LastCode is a Problem code, so the page can say what to try in the
-	// reader's own language.
-	LastCode string `json:"lastCode,omitempty"`
-	// Attempts is how many requests this target has made, retries included, so
-	// that "12 attempts, 4 delivered" reads as the retry story it is.
+	LastCode  string `json:"lastCode,omitempty"`
+	// Attempts counts requests, retries included, Sent the messages that
+	// arrived and Dropped those the full queue turned away.
 	Attempts int `json:"attempts"`
-	// Sent is how many messages arrived.
-	Sent int `json:"sent"`
-	// Dropped is how many never left the queue because it was full, the number
-	// that says a target is too slow for the events it is subscribed to.
-	Dropped int `json:"dropped"`
+	Sent     int `json:"sent"`
+	Dropped  int `json:"dropped"`
 }
 
-// Options is what a Dispatcher needs from the app it runs inside.
+// Options is what a Dispatcher needs from the app.
 type Options struct {
-	// InstanceName is read at delivery time rather than captured once, since
-	// somebody can rename the instance while the app runs and a captured name
-	// would go on being sent for the life of the process. Nil expands
-	// %%instance%% to empty.
+	// InstanceName is read at delivery, since the instance can be renamed
+	// while it runs.
 	InstanceName func() string
+	// HTTP sends every request. Nil is the kit's own client.
+	HTTP *http.Client
 }
 
-// Dispatcher fans events out to the targets subscribed to them.
+// Dispatcher fans the bus out to the channels that take each event.
 type Dispatcher struct {
-	instanceName func() string
+	opt Options
 
-	// The closing flag and the wg.Add happen under one lock, as in
-	// script.Host's spawn and Close. Written as a context check followed by a
-	// bare Add, Close can land in the gap, reach wg.Wait with the counter at
-	// zero, and either return while a delivery is running or panic with
-	// "WaitGroup misuse".
 	ctx     context.Context
 	cancel  context.CancelFunc
 	closeMu sync.Mutex
@@ -115,71 +84,62 @@ type Dispatcher struct {
 	health   map[string]*Health
 }
 
-// New builds a dispatcher with no targets. It starts no goroutines until Set is
-// called, so an install that has never configured a target costs one struct.
+// New builds a dispatcher with no channels. It starts no goroutine until Set.
 func New(o Options) *Dispatcher {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Dispatcher{
-		instanceName: o.InstanceName,
-		ctx:          ctx,
-		cancel:       cancel,
-		workers:      map[string]*worker{},
-		health:       map[string]*Health{},
-	}
+	return &Dispatcher{opt: o, ctx: ctx, cancel: cancel, workers: map[string]*worker{}, health: map[string]*Health{}}
 }
 
-// worker is one target's queue and the goroutine draining it.
+// worker is one channel's queue and the goroutine draining it. One per
+// channel, so a slow server holds up only its own messages and each channel
+// gets them in the order they happened.
 type worker struct {
 	d      *Dispatcher
 	id     string
 	queue  chan job
 	ctx    context.Context
 	cancel context.CancelFunc
-	// cfg is replaced wholesale on a settings save rather than edited, so a
-	// delivery mid-flight reads one consistent Target and never a half-applied
-	// one, as script.Host.rebuildIndex does for its trigger index.
-	cfg atomic.Pointer[Target]
-	// quietUntil is when the far end said it will take the next request. Only
-	// the worker's own goroutine touches it.
-	quietUntil time.Time
+	// cfg is swapped whole on a save, so a delivery reads one consistent
+	// channel.
+	cfg atomic.Pointer[sender]
 }
 
-// job is one queued message: what happened, and when. The time is carried
-// rather than read at delivery, so maxMessageAge measures the age of the news
-// rather than of the attempt.
+// sender is a channel and the kit dispatcher that sends to it alone.
+type sender struct {
+	ch kit.Channel
+	d  *kit.Dispatcher
+}
+
 type job struct {
 	f  script.Firing
 	at time.Time
 }
 
-// Set makes the running workers match the configuration. It runs on every
-// settings save, so adding a target needs no restart.
-//
-// The live set is reconciled rather than rebuilt, as applyFeeds does with its
-// pollers: a worker carries a queue and a health row, so rebuilding on every
-// save would mean saving the speed limit throws away whatever was queued and
-// blanks the table the operator is looking at.
-//
-// A target that is switched off, has no address or has no event ticked gets no
-// worker. None of the three can produce a message, so the goroutine would only
-// select on a channel nothing writes to.
-func (d *Dispatcher) Set(targets []Target) {
+// Set makes the running workers match the channels. It runs on every settings
+// save and keeps the queue and health of a channel that stays. A channel that
+// is switched off, or that the kit refuses, gets no worker.
+func (d *Dispatcher) Set(channels []kit.Channel) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	keep := make(map[string]bool, len(targets))
-	for _, t := range targets {
-		if !t.Enabled || len(t.Triggers) == 0 || strings.TrimSpace(t.URL) == "" || t.ID == "" {
+	keep := make(map[string]bool, len(channels))
+	for _, c := range channels {
+		if !c.Enabled || c.On == kit.OnNever {
 			continue
 		}
-		keep[t.ID] = true
-		cfg := t
-		if w, ok := d.workers[t.ID]; ok {
-			w.cfg.Store(&cfg)
+		kd, err := kit.NewDispatcher([]kit.Channel{c}, kit.Options{Source: "KnightLoader", HTTP: d.opt.HTTP})
+		if err != nil {
+			log.Printf("notify: channel %s cannot send: %v", c.ID, err)
 			continue
 		}
-		if w := d.start(cfg); w != nil {
-			d.workers[t.ID] = w
+		keep[c.ID] = true
+		s := &sender{ch: c, d: kd}
+		if w, ok := d.workers[c.ID]; ok {
+			w.cfg.Store(s)
+			continue
+		}
+		if w := d.start(c.ID, s); w != nil {
+			d.workers[c.ID] = w
 		}
 	}
 	for id, w := range d.workers {
@@ -188,22 +148,22 @@ func (d *Dispatcher) Set(targets []Target) {
 		}
 		w.cancel()
 		delete(d.workers, id)
-		// The health row goes with the worker: "4 delivered" beside a switch
-		// that is off reads as a live target. feedState drops the record of an
-		// unconfigured subscription for the same reason.
 		d.forget(id)
 	}
 }
 
-// start launches one target's worker, or reports nil if Close has already
-// committed to shutting down.
-func (d *Dispatcher) start(t Target) *worker {
-	if !d.track() {
+func (d *Dispatcher) start(id string, s *sender) *worker {
+	d.closeMu.Lock()
+	if d.closing {
+		d.closeMu.Unlock()
 		return nil
 	}
+	d.wg.Add(1)
+	d.closeMu.Unlock()
+
 	ctx, cancel := context.WithCancel(d.ctx)
-	w := &worker{d: d, id: t.ID, queue: make(chan job, queueDepth), ctx: ctx, cancel: cancel}
-	w.cfg.Store(&t)
+	w := &worker{d: d, id: id, queue: make(chan job, queueDepth), ctx: ctx, cancel: cancel}
+	w.cfg.Store(s)
 	go func() {
 		defer d.wg.Done()
 		defer cancel()
@@ -212,29 +172,14 @@ func (d *Dispatcher) start(t Target) *worker {
 	return w
 }
 
-// track counts the caller in as work Close has to wait for, or reports false
-// once Close has committed. The check and the Add are one step under one lock;
-// script.Host.track explains why.
-func (d *Dispatcher) track() bool {
-	d.closeMu.Lock()
-	defer d.closeMu.Unlock()
-	if d.closing {
-		return false
-	}
-	d.wg.Add(1)
-	return true
-}
-
-// On is the bus subscription. Wire it with
-// bus.Subscribe("eventtargets", d.On).
-//
-// It filters, queues and returns. Nothing slower belongs here, since it runs on
-// the publisher's goroutine.
+// On is the bus subscription. It runs on the publisher's goroutine, so it
+// only filters and queues.
 func (d *Dispatcher) On(f script.Firing) {
+	sev := severity(f)
 	d.mu.Lock()
 	var want []*worker
 	for _, w := range d.workers {
-		if w.cfg.Load().Wants(f.Trigger) {
+		if takes(w.cfg.Load().ch, string(f.Trigger), sev) {
 			want = append(want, w)
 		}
 	}
@@ -248,18 +193,28 @@ func (d *Dispatcher) On(f script.Firing) {
 		select {
 		case w.queue <- job{f: f, at: at}:
 		default:
-			// Dropped rather than waited on, because waiting here is waiting
-			// on the download that published. Counted so the settings page can
-			// say so, and logged, since a target being outrun is a real
-			// configuration problem.
 			d.dropped(w.id)
-			log.Printf("notify: target %s is not keeping up, dropping this %s", w.id, f.Trigger)
+			log.Printf("notify: channel %s is not keeping up, dropping this %s", w.id, f.Trigger)
 		}
 	}
 }
 
-// Health is one row per target that has a worker, in no particular order. The
-// caller joins it onto the configured list, which decides the order on screen.
+// takes is the kit's own rule for whether a channel carries an event, asked
+// before queueing so a burst of events nobody wants never fills a queue.
+func takes(c kit.Channel, kind string, sev kit.Severity) bool {
+	if !c.Enabled || (len(c.Events) > 0 && !slices.Contains(c.Events, kind)) {
+		return false
+	}
+	switch c.On {
+	case kit.OnAlways:
+		return true
+	case kit.OnNever:
+		return false
+	}
+	return sev == kit.SeverityWarning || sev == kit.SeverityFailure || sev == kit.SeverityCritical
+}
+
+// Health is one row per channel with a worker, in no particular order.
 func (d *Dispatcher) Health() []Health {
 	d.healthMu.Lock()
 	defer d.healthMu.Unlock()
@@ -270,9 +225,8 @@ func (d *Dispatcher) Health() []Health {
 	return out
 }
 
-// Close stops accepting new work and waits for every in-flight delivery to
-// finish or be cancelled. Calling it twice is harmless: the flag and the cancel
-// are both idempotent and a second Wait on a drained WaitGroup returns at once.
+// Close stops taking work and waits for every delivery to end or be
+// cancelled. A second call does nothing.
 func (d *Dispatcher) Close() error {
 	d.closeMu.Lock()
 	d.closing = true
@@ -282,19 +236,17 @@ func (d *Dispatcher) Close() error {
 	return nil
 }
 
-// name is the instance name at this moment, or "".
 func (d *Dispatcher) name() string {
-	if d.instanceName == nil {
+	if d.opt.InstanceName == nil {
 		return ""
 	}
-	return d.instanceName()
+	return d.opt.InstanceName()
 }
 
-// entry is this target's health row, created on first use. Callers hold nothing.
 func (d *Dispatcher) entry(id string) *Health {
 	h, ok := d.health[id]
 	if !ok {
-		h = &Health{TargetID: id}
+		h = &Health{ChannelID: id}
 		d.health[id] = h
 	}
 	return h
@@ -312,24 +264,22 @@ func (d *Dispatcher) forget(id string) {
 	delete(d.health, id)
 }
 
-// record writes one attempt into the health row.
-func (d *Dispatcher) record(id string, att Attempt) {
+func (d *Dispatcher) record(id string, r kit.Result) {
 	now := time.Now()
 	d.healthMu.Lock()
 	defer d.healthMu.Unlock()
 	h := d.entry(id)
 	h.LastAttempt = now
-	h.Attempts++
-	h.LastStatus = att.Status
-	h.LastError = att.Err
-	h.LastCode = att.Code
-	if att.OK() {
-		h.LastOK = now
-		h.Sent++
+	h.Attempts += r.Attempts
+	h.LastStatus, h.LastCode, h.LastError = r.Status, r.Code, ""
+	if r.Err != nil {
+		h.LastError = r.Err.Error()
+		return
 	}
+	h.LastOK = now
+	h.Sent++
 }
 
-// run drains this target's queue for as long as the worker lives.
 func (w *worker) run() {
 	for {
 		select {
@@ -341,75 +291,18 @@ func (w *worker) run() {
 	}
 }
 
-// deliver sends one message, retrying as far as the row allows.
-//
-// The configuration is read once at the top and the whole delivery uses that
-// copy, so a save landing between two attempts takes effect on the next message
-// rather than the next attempt. A retry that went to a different address than
-// the try before it would make the health row impossible to read.
-//
-// A far end that names a wait, a 429's Retry-After or a rate limit bucket
-// that is used up, is given it in place of the backoff, and it holds every
-// message behind this one too. A wait that would carry the message past
-// maxMessageAge drops it now rather than parking the worker on news that
-// will be stale when it lands.
+// deliver sends one message. The kit retries inside the send, as often as the
+// channel allows.
 func (w *worker) deliver(j job) {
-	t := *w.cfg.Load()
-	attempts := t.ResolvedAttempts()
-	for n := 1; ; n++ {
+	if age := time.Since(j.at); age > maxMessageAge {
+		log.Printf("notify: channel %s dropping a %s that has been queued for %s", w.id, j.f.Trigger, age.Round(time.Second))
+		return
+	}
+	s := w.cfg.Load()
+	for _, r := range s.d.Send(w.ctx, Event(j.f, w.d.name())) {
 		if w.ctx.Err() != nil {
 			return
 		}
-		age, wait := time.Since(j.at), time.Until(w.quietUntil)
-		if age > maxMessageAge {
-			log.Printf("notify: target %s dropping a %s that has been queued for %s", w.id, j.f.Trigger, age.Round(time.Second))
-			return
-		}
-		if wait > 0 {
-			if age+wait > maxMessageAge {
-				log.Printf("notify: target %s dropping a %s, the far end asked to be left alone for %s", w.id, j.f.Trigger, wait.Round(time.Second))
-				return
-			}
-			if !sleep(w.ctx, wait) {
-				return
-			}
-		}
-		att := Send(w.ctx, t, j.f, w.d.name())
-		w.d.record(w.id, att)
-		if att.Wait > 0 {
-			w.quietUntil = time.Now().Add(att.Wait)
-		}
-		if att.OK() || !att.Retryable || n >= attempts {
-			return
-		}
-		if att.Wait == 0 && !sleep(w.ctx, backoffFor(n)) {
-			return
-		}
-	}
-}
-
-// backoffFor is the wait after the nth failed attempt, capped at the last step
-// so a row asking for five attempts does not need five numbers written down.
-func backoffFor(n int) time.Duration {
-	if n < 1 {
-		n = 1
-	}
-	if n > len(backoffSteps) {
-		n = len(backoffSteps)
-	}
-	return backoffSteps[n-1]
-}
-
-// sleep waits, and reports false if the wait was cut short by shutdown. A bare
-// time.Sleep here would make Close wait out a thirty second backoff on a target
-// that is already gone.
-func sleep(ctx context.Context, d time.Duration) bool {
-	t := time.NewTimer(d)
-	defer t.Stop()
-	select {
-	case <-ctx.Done():
-		return false
-	case <-t.C:
-		return true
+		w.d.record(w.id, r)
 	}
 }

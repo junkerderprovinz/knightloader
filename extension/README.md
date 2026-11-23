@@ -21,7 +21,7 @@ Chrome Web Store User Data Policy, including the Limited Use requirements.
 
 The options page asks for the twelve words your instances already share, and
 for nothing else: no name, no address, no password. `src/phrase.js` is a
-WebCrypto port of `internal/seedphrase`, so this browser derives the same two
+WebCrypto port of `kit/phrase`, so this browser derives the same two
 keys the instances do: one to join the relay group, one to encrypt the frames.
 The phrase itself never leaves the browser.
 

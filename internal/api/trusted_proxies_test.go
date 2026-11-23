@@ -13,7 +13,7 @@ import (
 	"github.com/coder/websocket"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 func TestTheThrottleKeyIsTheCallerBehindATrustedProxy(t *testing.T) {
@@ -133,7 +133,7 @@ func TestTheServedRelayBelievesOnlyTheTrustedProxies(t *testing.T) {
 	t.Parallel()
 	for _, trusted := range []bool{false, true} {
 		srv, a := testServer(t)
-		if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"a-key-long-enough-to-pass","serve":true}`); code != http.StatusOK || !put.Serve {
+		if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","serve":true}`); code != http.StatusOK || !put.Serve {
 			t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 		}
 		if trusted {

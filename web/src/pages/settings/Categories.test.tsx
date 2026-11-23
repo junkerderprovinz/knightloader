@@ -22,6 +22,7 @@ vi.mock('../../lib/api', async (actual) => ({
   ...(await actual<typeof import('../../lib/api')>()),
   fetchOptions: () => new Promise(() => {}),
   fetchMediaHooks: () => Promise.resolve([]),
+  fetchAfterDownload: () => new Promise(() => {}),
   priorityChoices: () => Promise.resolve([]),
 }));
 

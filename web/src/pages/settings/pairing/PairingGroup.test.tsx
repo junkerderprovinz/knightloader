@@ -4,8 +4,9 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ConnectInfo } from '../../../lib/api';
+import type { ConnectInfo, FortressState } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
+import { en } from '../../../lib/locales/en';
 import { PairingGroup } from './PairingGroup';
 
 // Nobody else reaches the desktop window, so it shows the words without the warning a browser gets.
@@ -43,8 +44,6 @@ const base: ConnectInfo = {
   relayMode: 'project',
   projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
-  address: '',
-  networkAddress: '',
   members: [],
   apps: [],
   away: [],
@@ -53,6 +52,9 @@ const base: ConnectInfo = {
   pending: [],
   awaiting: false,
   fingerprint: '',
+  relayKeyDropped: false,
+  droppedInstances: [],
+  behind: [],
 };
 
 function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}, onRefresh: () => void = () => {}) {
@@ -299,24 +301,24 @@ describe('PairingGroup', () => {
       'nasThis instancePaired',
       'officePaired·Via relayRemove',
       'Pixel 8Android appConnectedRemove',
-      'Old phoneAndroid appInactiveRemove',
+      'Old phoneAndroid appNot reachableRemove',
       'FirefoxBrowser extensionPairedRemove',
     ]);
     // The row without a button is as high as those with one.
     expect(rows().map((li) => li.classList.contains('min-h-11'))).toEqual([true, true, true, true, true]);
   });
 
-  it('lists an instance of the group that is away as inactive and dims its node', () => {
+  it('lists an instance of the group that is away as not reachable and dims its node', () => {
     draw({
       joinedAgo: 500,
       memberSeen: true,
       members: [{ id: 'b', name: 'office', direct: false, relay: true, deployment: 'container' }],
-      away: [{ id: 'z', name: 'Zathallia', deployment: 'desktop', address: '', lastSeen: 1 }],
+      away: [{ id: 'z', name: 'Zathallia', deployment: 'desktop', lastSeen: 1 }],
     });
     expect(rows().map((li) => li.textContent)).toEqual([
       'nasThis instancePaired',
       'officePaired·Via relayRemove',
-      'ZathalliaInactiveRemove',
+      'ZathalliaNot reachableRemove',
     ]);
     const spokes = [...net()!.querySelectorAll('svg.wide g[data-nk]')];
     expect(spokes.map((g) => g.getAttribute('data-nk'))).toEqual(['member:b', 'member:z', 'self']);
@@ -369,6 +371,29 @@ describe('PairingGroup', () => {
     await act(async () => confirm.click());
     expect(calls).toContain('DELETE /api/connect/apps/q');
     expect(dialog()).toBeNull();
+  });
+
+  it('names the devices that did not come along into the fortress by name and kind, and takes one out', async () => {
+    const calls = answer([]);
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      away: [{ id: 'z', name: 'Zathallia', deployment: 'desktop', lastSeen: 1 }],
+      behind: [
+        { id: 'a', name: 'Attic', kind: 'instance', deployment: 'container' },
+        { id: 'p', name: 'Old phone', kind: 'mobile', deployment: '' },
+      ],
+    });
+    const behind = host.querySelector('[data-testid="behind"]')!;
+    expect(behind.textContent).toContain("Didn't come along");
+    const lines = [...behind.querySelectorAll('li')].map((li) => li.textContent);
+    expect(lines).toEqual(['AtticContainerRemove', 'Old phoneAndroid appRemove']);
+    expect(rows().map((r) => r.textContent)).not.toContainEqual(expect.stringContaining('Attic'));
+
+    await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Remove Attic"]')!.click());
+    const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Remove')!;
+    await act(async () => confirm.click());
+    expect(calls).toContain('DELETE /api/connect/members/a');
   });
 
   it('takes another instance out of the group only after the window says it waits for approval to come back', async () => {
@@ -462,5 +487,52 @@ describe('PairingGroup', () => {
     expect(host.textContent).toContain('waiting for approval from the others in the group');
     draw({ joinedAgo: 500, memberSeen: true, awaiting: false });
     expect(host.textContent).not.toContain('waiting for approval from the others in the group');
+  });
+});
+
+describe('PairingGroup in a fortress', () => {
+  const fortress = (left: string[]): FortressState => ({
+    joined: true,
+    phrase: true,
+    device: 'nas',
+    defaultDevice: 'nas',
+    passwordSet: true,
+    members: [],
+    permissions: [],
+    pairedWith: ['attic'],
+    behind: [],
+    left,
+    removed: [],
+    removedHere: false,
+    phraseChanged: false,
+  });
+  const drawMoved = (group: Partial<ConnectInfo>, left: string[]) =>
+    act(() =>
+      root.render(
+        <MemoryRouter>
+          <I18nProvider>
+            <PairingGroup group={{ ...base, ...group }} fortress={fortress(left)} onGroup={() => {}} onRefresh={() => {}} />
+          </I18nProvider>
+        </MemoryRouter>,
+      ),
+    );
+
+  it('says the pairing runs on the fortress phrase, names who has not followed and offers no phrase of its own', () => {
+    drawMoved({}, ['attic', 'pixel']);
+    expect(host.textContent).toContain(en['pairing.movedTitle']);
+    expect(host.textContent).toContain(en['pairing.moved']);
+    expect(host.textContent).toContain(en['pairing.oldPhrase'].replace('{names}', 'attic and pixel'));
+    const words = [...host.querySelectorAll('button')].map((b) => b.textContent);
+    expect(words).not.toContain(en['pairing.show']);
+    expect(words).not.toContain(en['pairing.leave']);
+    expect(tiles()).toHaveLength(0);
+  });
+
+  it('says nothing about the old phrase once everybody followed, and still lists the group', () => {
+    drawMoved({ active: false, members: [{ id: 'm1', name: 'attic', deployment: 'container', direct: true, relay: false }] }, []);
+    expect(host.textContent).toContain(en['pairing.moved']);
+    expect(host.textContent).not.toContain('old phrase');
+    expect(tiles()).toHaveLength(0);
+    expect(host.textContent).toContain('attic');
   });
 });

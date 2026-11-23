@@ -2,7 +2,7 @@
 // they are named here rather than restated.
 import type { LabelMode } from './labelModes';
 import type { EventProgramRow } from './eventprograms';
-import type { EventTargetRow } from './eventtargets';
+import type { Channel } from './eventtargets';
 import type { Shape } from './appearance';
 import type { Theme } from './theme';
 import { socketURL, withBase } from './basePath';
@@ -421,6 +421,62 @@ export interface Category {
   /** This drawer's own torrent file selection, in place of the Torrents page's
    *  as a whole. Absent is no opinion. */
   torrentFiles?: TorrentFileRules;
+  /** The ArrowLoop job started once a package filed here has landed. */
+  afterDownload?: AfterDownloadPick;
+}
+
+/** settings.AfterDownload: one job on one ArrowLoop instance of the fortress.
+ *  device names the instance while it is away. */
+export interface AfterDownloadPick {
+  member: string;
+  device?: string;
+  job: string;
+}
+
+export type AfterDownloadMode = 'sync' | 'mirror' | 'move';
+export type AfterDownloadDirection = 'both' | 'leftToRight' | 'rightToLeft';
+
+/** A job as ArrowLoop's jobs.list describes it. */
+export interface AfterDownloadJob {
+  name: string;
+  direction: AfterDownloadDirection;
+  mode: AfterDownloadMode;
+  paused: boolean;
+  running: boolean;
+  /** outcome is done, quiet, left or failed. */
+  lastRun?: { at: string; outcome: string };
+}
+
+/** One ArrowLoop instance with its jobs, or the code of why they are missing. */
+export interface AfterDownloadEngine {
+  id: string;
+  device: string;
+  jobs: AfterDownloadJob[];
+  error?: string;
+}
+
+/** The last hand-over of one category: status when it went through, error
+ *  (a code of afterdownload.Code) when it did not. */
+export interface AfterDownloadResult {
+  at: string;
+  package: string;
+  job: string;
+  status?: 'started' | 'queued';
+  error?: string;
+}
+
+export interface AfterDownloadState {
+  fortress: boolean;
+  engines: AfterDownloadEngine[];
+  last: Record<string, AfterDownloadResult>;
+}
+
+/** A place ArrowLoop already knows and can copy to. kind is share, disk or remote. */
+export interface AfterDownloadDestination {
+  id: string;
+  name: string;
+  kind: string;
+  where: string;
 }
 
 /** settings.TorrentFileRules: the files a torrent fetches when nobody ticked
@@ -661,12 +717,12 @@ export interface Settings {
   /** The RSS and Atom subscriptions. `null` rather than an empty array when there are none. */
   feeds: FeedSubscription[] | null;
   /**
-   * Where this instance reports events. Optional as well as nullable, because
-   * a settings file written before the feature carries no key; read it with
-   * `?? []`. Header values arrive masked and are sent back untouched; the
-   * server merges the real ones in while the row keeps its address.
+   * The services this instance tells about events, read with `?? []`.
+   * Tokens, passwords and header values arrive masked and are sent back
+   * untouched; the server merges the real ones in while a channel keeps its
+   * destination.
    */
-  eventTargets?: EventTargetRow[] | null;
+  notifyChannels?: Channel[] | null;
   /**
    * What this instance starts on events, read with `?? []` for the same
    * reason. The program and its arguments arrive masked and are sent back
@@ -907,25 +963,20 @@ export interface LoginResult extends AuthState {
 
 export interface Instance {
   /**
-   * The key proxied calls are built from (`/api/instances/${name}`). For a
-   * relay peer it is the stable instance ID, so render displayName instead.
+   * The key proxied calls are built from (`/api/instances/${name}`): the
+   * member's stable id, so render displayName instead.
    */
   name: string;
-  url: string;
-  /** What a relay peer calls itself, when it differs from `name`. A label
-   *  only; two peers may share one. */
+  /** What the member calls itself, when it differs from `name`. A label
+   *  only; two members may share one. */
   displayName?: string;
-  /**
-   * The instance ID a relay peer is addressed by, set only while the relay
-   * reaches it. Stored peers never carry one, and a relay peer has an empty
-   * `url` because it has no address of its own.
-   */
-  relayId?: string;
-  /** Where a group member's web interface is, as it told the group: its
-   *  first known domain, else its address on its network. */
+  /** The member's id, the same as `name`. */
+  relayId: string;
+  /** Where the member's web interface is, as it told the group: its first
+   *  known domain, else its address on its network. */
   address?: string;
-  /** What a group member announced itself as, "container", "server" or
-   *  "desktop"; absent for a stored peer. */
+  /** What the member announced itself as, "container", "server" or
+   *  "desktop". */
   deployment?: string;
 }
 
@@ -2745,6 +2796,31 @@ export interface MediaHookSave {
 
 /** fetchMediaHooks is every stored address in stored order, which is the
  *  order the Categories picker offers. */
+/** fetchAfterDownload lists the ArrowLoop instances of the fortress with their
+ *  jobs and how each category's last hand-over went. */
+export async function fetchAfterDownload(): Promise<AfterDownloadState> {
+  return json<AfterDownloadState>(await fetch('/api/afterdownload'));
+}
+
+/** fetchAfterDownloadDestinations lists where one ArrowLoop instance can copy to. */
+export async function fetchAfterDownloadDestinations(member: string): Promise<AfterDownloadDestination[]> {
+  return (await json<AfterDownloadDestination[]>(
+    await fetch(`/api/afterdownload/engines/${encodeURIComponent(member)}/targets`),
+  )) ?? [];
+}
+
+/** createAfterDownloadJob makes a job in ArrowLoop that starts from the
+ *  category's folder, and answers its name. */
+export async function createAfterDownloadJob(req: {
+  category: string;
+  member: string;
+  name: string;
+  target: string;
+  mode: AfterDownloadMode;
+}): Promise<string> {
+  return (await json<{ job: string }>(await post('/api/afterdownload/jobs', req))).job;
+}
+
 export async function fetchMediaHooks(): Promise<MediaHook[]> {
   return (await json<MediaHook[]>(await fetch('/api/mediahooks'))) ?? [];
 }
@@ -3547,10 +3623,10 @@ export async function setPassword(current: string, next: string): Promise<AuthSt
 // as "Authorization: Bearer <secret>"; this UI never does.
 
 /** One right a token can carry (apitoken.Scope). */
-export type TokenScope = 'read' | 'add' | 'control' | 'admin';
+export type TokenScope = 'read' | 'add' | 'control' | 'admin' | 'status';
 
 /** Every right, in the server's canonical order. */
-export const TOKEN_SCOPES: readonly TokenScope[] = ['read', 'add', 'control', 'admin'];
+export const TOKEN_SCOPES: readonly TokenScope[] = ['read', 'add', 'control', 'admin', 'status'];
 
 /** One token's metadata. Never the secret. */
 export interface ApiToken {
@@ -4407,55 +4483,20 @@ export async function fetchInstances(): Promise<Instance[]> {
   return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
 }
 
-/**
- * An instance announcing itself on this network. Being on the same network is
- * not consent: adding it stores the address only, and a peer with a password
- * still refuses until the connection phrase is shared.
- */
-export interface DiscoveredInstance {
-  id: string;
-  name: string;
-  url: string;
-  deployment: string;
-  /** Already a stored or relay peer. Shown greyed rather than hidden. */
-  known: boolean;
-}
-
-export async function fetchDiscovered(): Promise<DiscoveredInstance[]> {
-  return (await json<DiscoveredInstance[]>(await fetch('/api/discovery'))) ?? [];
-}
-
-/**
- * addInstance registers a peer by address, without a credential. `refused`
- * tells a peer that said no, which needs the connection phrase, from one that
- * could not be reached.
- */
-export async function addInstance(
-  name: string,
-  url: string,
-): Promise<{ online: boolean; refused: boolean }> {
-  const r = await fetch('/api/instances', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, url }),
-  });
-  return json(r);
-}
-
-export const removeInstance = async (name: string) =>
-  ok(await fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' }));
+/** putAwayDroppedInstances puts away the note naming the instances that were
+ *  added by their address before the update. */
+export const putAwayDroppedInstances = async () =>
+  ok(await fetch('/api/connect/dropped-instances', { method: 'DELETE' }));
 
 /** Which relay an instance uses. 'off' suits instances that all sit on one
  *  network and find each other through local discovery. */
 export type RelayMode = 'project' | 'own' | 'off';
 
-/** GET and PUT /api/relay/config. The relay key is never in it, not even
- *  masked; `keySet` is all that is reported. */
+/** GET and PUT /api/relay/config. */
 export interface RelayConfig {
   /** Always one of the three; the server resolves an empty stored value. */
   mode: RelayMode;
   relayUrl: string;
-  keySet: boolean;
   /** Whether the socket to the relay is up right now, not merely configured. */
   connected: boolean;
   /** Whether this instance runs the relay itself, under /relay/connect. */
@@ -4470,21 +4511,14 @@ export async function fetchRelayConfig(): Promise<RelayConfig> {
 }
 
 /**
- * saveRelayConfig stores the address and answers with what is now stored.
- * `key` undefined keeps the stored key, '' clears it, anything else replaces
- * it. An unreachable relay is not a failure: the address is stored and the
- * client keeps dialling.
+ * saveRelayConfig stores the address and answers with what is now stored. An
+ * unreachable relay is not a failure: the address is stored and the group
+ * keeps dialling.
  */
-export async function saveRelayConfig(
-  relayUrl: string,
-  key?: string,
-  serve?: boolean,
-  mode?: RelayMode,
-): Promise<RelayConfig> {
+export async function saveRelayConfig(relayUrl: string, serve?: boolean, mode?: RelayMode): Promise<RelayConfig> {
   // Fields left undefined stay off the wire, so a save from one control does
   // not reset the others to what they were when its form was drawn.
   const body: Record<string, unknown> = { relayUrl };
-  if (key !== undefined) body.key = key;
   if (serve !== undefined) body.serve = serve;
   if (mode !== undefined) body.mode = mode;
   return json<RelayConfig>(
@@ -4520,12 +4554,6 @@ export interface ConnectInfo {
   projectRelayUrl: string;
   /** What the other instances of the group see this one as. */
   name: string;
-  /** Where they open it, '' when it has no address anybody else can reach. */
-  address: string;
-  /** Where this instance found itself on its network, which `address` leaves
-   *  out once a known domain stands in for it. '' when nothing outside the
-   *  machine reaches it. */
-  networkAddress: string;
   /** The other instances of the group reachable now. */
   members: GroupMember[];
   /** Every phone that joined the group with the phrase. */
@@ -4533,6 +4561,9 @@ export interface ConnectInfo {
   /** The other instances approved in the group that are not reachable now,
    *  such as a desktop app that was closed. */
   away: AwayMember[];
+  /** The devices that had not followed the pairing into the fortress when the
+   *  group on the old phrase closed. `away` and `apps` leave them out. */
+  behind: BehindDevice[];
   /** Seconds since this instance generated or entered its phrase, 0 outside
    *  a group. */
   joinedAgo: number;
@@ -4546,6 +4577,12 @@ export interface ConnectInfo {
   /** This instance's own key as the others list it while it waits for
    *  approval there, '' outside a group. */
   fingerprint: string;
+  /** Whether this instance was paired by a relay key typed in by hand, which
+   *  the update took away, and has not paired with the phrase since. */
+  relayKeyDropped: boolean;
+  /** The instances that were added here by their address, which the update
+   *  took away, until the owner puts the note away. */
+  droppedInstances: string[];
 }
 
 /** A device whose key is pinned here but nobody approved yet. */
@@ -4576,9 +4613,19 @@ export interface AwayMember {
   name: string;
   /** "container", "server" or "desktop", '' when it never said. */
   deployment: string;
-  address: string;
   /** Unix seconds. */
   lastSeen: number;
+}
+
+/** A device of the pairing that did not follow it into the fortress. It
+ *  carries no address: the owner knows it by its name. */
+export interface BehindDevice {
+  id: string;
+  name: string;
+  /** 'instance', 'mobile' or 'extension'. */
+  kind: string;
+  /** "container", "server" or "desktop" for an instance, '' when it never said. */
+  deployment: string;
 }
 
 /** A phone or browser extension of the group. */
@@ -4638,27 +4685,27 @@ export class PhraseRejected extends Error {
   }
 }
 
+/**
+ * phraseRefusal reads a refused join. A rejected phrase answers with a
+ * reason, a refusal such as a missing password with a code, and other
+ * failures (an expired session, a proxy) with text.
+ */
+async function phraseRefusal(r: Response): Promise<Error> {
+  const raw = await r.text();
+  let body: { error?: string; code?: string; reason?: string } | null = null;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return new Error(raw.trim() || `${r.status}`);
+  }
+  if (body?.reason) return new PhraseRejected(body);
+  return new ApiError(body?.error ?? `${r.status}`, body?.code, undefined, r.status);
+}
+
 /** joinConnect is the other half: every instance after the first. */
 export async function joinConnect(phrase: string): Promise<ConnectInfo> {
-  const r = await fetch('/api/connect/join', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phrase }),
-  });
-  if (!r.ok) {
-    const raw = await r.text();
-    // A rejected phrase answers with a reason, a refusal such as a missing
-    // password with a code, and other failures (an expired session, a proxy)
-    // with text.
-    let body: { error?: string; code?: string; reason?: string } | null = null;
-    try {
-      body = JSON.parse(raw);
-    } catch {
-      throw new Error(raw.trim() || `${r.status}`);
-    }
-    if (body?.reason) throw new PhraseRejected(body);
-    throw new ApiError(body?.error ?? `${r.status}`, body?.code, undefined, r.status);
-  }
+  const r = await post('/api/connect/join', { phrase });
+  if (!r.ok) throw await phraseRefusal(r);
   return json(r);
 }
 
@@ -4717,6 +4764,165 @@ export async function refuseDevice(id: string): Promise<void> {
 export async function leaveConnect(): Promise<void> {
   const r = await fetch('/api/connect', { method: 'DELETE' });
   if (!r.ok) throw new Error(await r.text());
+}
+
+/** Another instance of the fortress that said which app it runs. */
+export interface FortressMember {
+  id: string;
+  /** Empty, as name is, for a member that never said which app it runs. */
+  app: string;
+  name: string;
+  version: string;
+  device: string;
+  deployment: string;
+  /** "instance", "mobile" or "extension". */
+  kind: string;
+  online: boolean;
+  /** Reached through the relay alone. */
+  relay: boolean;
+  /** Unix seconds. */
+  lastSeen?: number;
+  /** The server it says it runs on. */
+  host?: string;
+  /** Its pages open through the fortress. */
+  open: boolean;
+}
+
+/** Whether one app of the fortress may run an action at another. */
+export interface FortressPermissionState {
+  from: string;
+  to: string;
+  action: string;
+  on: boolean;
+}
+
+/** What GET /api/fortress answers. It never carries the phrase. */
+export interface FortressState {
+  joined: boolean;
+  /** Whether the phrase can be shown and changed here. */
+  phrase: boolean;
+  /** The name the other members know this server by. */
+  device: string;
+  /** The name device falls back to when none is set. */
+  defaultDevice: string;
+  passwordSet: boolean;
+  members: FortressMember[];
+  /** The permissions that involve KnightLoader. */
+  permissions: FortressPermissionState[];
+  /** The devices of this instance's pairing, which moves into the fortress on
+   *  joining and ends on leaving. */
+  pairedWith: string[];
+  /** The members of the pairing that have not followed it into the fortress yet. */
+  left: string[];
+  /** The devices that had not followed it when the group on the old phrase closed. */
+  behind: BehindDevice[];
+  /** The members taken out here since the phrase last changed. Until it
+   *  changes, the fortress takes no new app. */
+  removed: FortressRemoved[];
+  /** Another member took this instance out. */
+  removedHere: boolean;
+  /** A member said the fortress has a new phrase, which nobody in reach
+   *  hands over, so the owner enters it here. */
+  phraseChanged: boolean;
+}
+
+/** A member taken out of the fortress, by its app and device. */
+export interface FortressRemoved {
+  app: string;
+  name: string;
+  device: string;
+}
+
+export async function fetchFortress(): Promise<FortressState> {
+  return json(await fetch('/api/fortress'));
+}
+
+/** joinFortress joins the fortress of a phrase, and the pairing moves along.
+ *  A phrase that does not decode throws PhraseRejected, as joinConnect does. */
+export async function joinFortress(phrase: string): Promise<FortressState> {
+  const r = await post('/api/fortress/join', { phrase });
+  if (!r.ok) throw await phraseRefusal(r);
+  return json(r);
+}
+
+/** showFortressPhrase shows the phrase again, for the login password where one is set. */
+export async function showFortressPhrase(password: string): Promise<{ phrase: string; qr?: QRMatrix }> {
+  return json(await post('/api/fortress/phrase/show', { password }));
+}
+
+/** A member the phrase change did not reach. `app` is empty for one that
+ *  never said which app it runs. */
+export interface FortressLeft {
+  app: string;
+  device: string;
+}
+
+/** changeFortressPhrase gives the fortress a new phrase. `left` names the
+ *  members out of reach, which still hold the old one. */
+export async function changeFortressPhrase(password: string): Promise<{ phrase: string; qr?: QRMatrix; left: FortressLeft[] }> {
+  return json(await post('/api/fortress/phrase', { password }));
+}
+
+/** setFortressDevice names this server for the other members; "" takes the one it finds. */
+export async function setFortressDevice(device: string): Promise<FortressState> {
+  return json(
+    await fetch('/api/fortress/device', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device }),
+    }),
+  );
+}
+
+export async function setFortressPermission(p: FortressPermissionState): Promise<FortressState> {
+  return json(
+    await fetch('/api/fortress/permissions', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(p),
+    }),
+  );
+}
+
+/** removeFortressMember takes another member out of the fortress. */
+export async function removeFortressMember(id: string): Promise<FortressState> {
+  return json(await fetch(`/api/fortress/members/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
+/** leaveFortress takes this instance out of the fortress; its pairing ends with it. */
+export async function leaveFortress(): Promise<FortressState> {
+  return json(await fetch('/api/fortress', { method: 'DELETE' }));
+}
+
+/** openFortressMember asks for a tab on a member's web interface and returns
+ *  its path below the base path. A refusal throws an ApiError whose code GlimStone's
+ *  openRefusalText has words for. */
+export async function openFortressMember(id: string): Promise<string> {
+  return (await json<{ path: string }>(await fetch(`/api/fortress/open/${encodeURIComponent(id)}`, { method: 'POST' }))).path;
+}
+
+/** A line of a member's log, as the status contract has it. */
+export interface FortressLogEntry {
+  at: string;
+  level: string;
+  text: string;
+}
+
+/** What a member of the fortress reports about itself, its texts in the asked language. */
+export interface FortressMemberStatus {
+  report: {
+    state: string;
+    needsYou: { severity: string; text: string }[] | null;
+    work: { title: string; progress?: number }[] | null;
+    next: { title: string; at: string }[] | null;
+  };
+  /** Newest first. */
+  log: FortressLogEntry[];
+}
+
+/** fetchFortressMemberStatus reads how a member is doing, for a member without pages of its own. */
+export async function fetchFortressMemberStatus(id: string, lang: string): Promise<FortressMemberStatus> {
+  return json(await fetch(`/api/fortress/members/${encodeURIComponent(id)}/status?lang=${encodeURIComponent(lang)}`));
 }
 
 /**

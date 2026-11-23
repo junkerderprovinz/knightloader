@@ -82,7 +82,7 @@ export default function CaptchasScreen({ conn, onBack }: { conn: ServerConnectio
         ListHeaderComponent={
           error || note ? (
             <Text style={[styles.error, { color: c.statusFailText }]}>
-              {error ? captchaErrorText(t, conn, error) : note}
+              {error ? captchaErrorText(t, error) : note}
             </Text>
           ) : undefined
         }

@@ -112,7 +112,7 @@ export function CaptchaCard({
       const said = testNotice(challenge, test);
       if (said) announce(said);
     } catch (e) {
-      setError(captchaErrorText(t, conn, e));
+      setError(captchaErrorText(t, e));
     } finally {
       setBusy(false);
     }
@@ -125,7 +125,7 @@ export function CaptchaCard({
       await settleHere(challenge.id, () => skipCaptcha(conn, challenge.id, scope));
       onSettled();
     } catch (e) {
-      setError(captchaErrorText(t, conn, e));
+      setError(captchaErrorText(t, e));
     } finally {
       setBusy(false);
     }

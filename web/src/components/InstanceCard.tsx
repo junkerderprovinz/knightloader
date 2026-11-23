@@ -50,7 +50,8 @@ interface Stats {
    * The peer answered with 401 or 403, typically because changing its password
    * revoked the pairing token. The fix is re-pairing, not checking cables.
    */
-  refused: boolean;
+  /** Whether the instance answered that it has not approved this one yet. */
+  waiting: boolean;
   active: number;
   total: number;
   speed: number;
@@ -67,10 +68,10 @@ export function usePeerStats(base: string): Stats | null {
         if (!alive) return;
         const running = list.filter((x) => x.status === 'running' || x.status === 'extracting').length;
         const speed = list.reduce((s, x) => s + (x.status === 'running' ? x.speed : 0), 0);
-        setStats({ online: true, refused: false, active: running, total: list.length, speed });
+        setStats({ online: true, waiting: false, active: running, total: list.length, speed });
       } catch (e) {
-        const refused = e instanceof ApiError && (e.status === 401 || e.status === 403);
-        if (alive) setStats({ online: false, refused, active: 0, total: 0, speed: 0 });
+        const waiting = e instanceof ApiError && e.code === 'memberPending';
+        if (alive) setStats({ online: false, waiting, active: 0, total: 0, speed: 0 });
       }
     };
     load();
@@ -100,24 +101,24 @@ export function InstanceRow({
   const { t } = useT();
   const stats = usePeerStats(base);
   const online = local || (stats?.online ?? false);
-  const refused = !local && (stats?.refused ?? false);
+  const waiting = !local && (stats?.waiting ?? false);
   const checking = !local && stats === null;
   const state = online
     ? t('instances.connected')
     : checking
       ? t('instances.checking')
-      : refused
-        ? t('instances.refused')
-        : t('instances.notConnected');
+      : waiting
+        ? t('instances.notApproved')
+        : t('instances.notReachable');
 
   const body = (
     <>
       <span className="min-w-0 flex-1 truncate text-[14px] text-carbon-text">{name}</span>
       <LabelBadge
         label={state}
-        tip={refused ? t('instances.refusedByPassword') : undefined}
-        tone={online ? 'ok' : checking || refused ? undefined : 'fail'}
-        hue={refused ? 3 : undefined}
+        tip={waiting ? t('instances.notApprovedTip') : undefined}
+        tone={online ? 'ok' : checking || waiting ? undefined : 'fail'}
+        hue={waiting ? 3 : undefined}
       />
     </>
   );
@@ -227,11 +228,11 @@ function CardLogo() {
 
 /** The state of an instance or a device that is in the group but not there
  *  now. It is grey rather than red, since being closed is no fault. */
-function InactiveState() {
+function NotReachableState() {
   const { t } = useT();
   return (
     <span data-new="inactive-state" className="inline-flex">
-      <StatePill label={t('instances.inactive')} tone="neutral" />
+      <StatePill label={t('instances.notReachable')} tone="neutral" />
     </span>
   );
 }
@@ -335,12 +336,11 @@ function DetailRow({ label, children }: { label: string; children: ReactNode }) 
   );
 }
 
-// InstanceCard shows one instance: its state, where and how it is reached, and
-// three live figures. What does not fit a compact card opens in a window.
+// InstanceCard shows one instance: its state, how it is reached, and three
+// live figures. What does not fit a compact card opens in a window.
 export function InstanceCard({
   entry,
   name,
-  address,
   route,
   base,
   onOpen,
@@ -358,10 +358,8 @@ export function InstanceCard({
   name: string;
   /** What the instance is, "container", "server" or "desktop", when it is known. */
   deployment?: string;
-  /** Where the instance is reached, empty when it has no address. */
-  address: string;
-  /** How this instance reaches it: directly, through the relay or by its
-   *  address. Empty on the card of the instance being viewed. */
+  /** How this instance reaches it, directly or through the relay. Empty on
+   *  the card of the instance being viewed. */
   route?: string;
   base: string;
   onOpen?: () => void;
@@ -384,22 +382,22 @@ export function InstanceCard({
   const stats = usePeerStats(base);
   const [details, setDetails] = useState(false);
   const online = local || (stats?.online ?? false);
-  const refused = !local && (stats?.refused ?? false);
+  const waiting = !local && (stats?.waiting ?? false);
   const answered = stats !== null;
   useEffect(() => {
     if (answered) onReach?.(online);
   }, [answered, online]);
 
-  // "Refused" is neither up nor down: the instance is there and wants pairing
-  // again, which the (i) says.
+  // "Not approved yet" is neither up nor down: the instance is there and waits
+  // for its owner, which the (i) says.
   const state = online ? (
     <StatePill label={t('instances.connected')} tone="ok" />
   ) : !answered ? (
     <CheckingState />
-  ) : refused ? (
-    <StatePill label={t('instances.refused')} tone="warn" tip={t('instances.refusedByPassword')} />
+  ) : waiting ? (
+    <StatePill label={t('instances.notApproved')} tone="warn" tip={t('instances.notApprovedTip')} />
   ) : (
-    <StatePill label={t('instances.notConnected')} tone="fail" />
+    <StatePill label={t('instances.notReachable')} tone="fail" />
   );
   const kind = deployment && KINDS[deployment] ? t(KINDS[deployment]) : '';
   const figures = (
@@ -424,7 +422,7 @@ export function InstanceCard({
             {state}
           </StateWithKind>
         }
-        facts={[address, kind, route ?? '']}
+        facts={[kind, route ?? '']}
         figures={figures}
         actions={
           <>
@@ -464,14 +462,9 @@ export function InstanceCard({
               <span className="inline-flex">{state}</span>
             </DetailRow>
             {kind && <DetailRow label={t('events.filterLabel')}>{kind}</DetailRow>}
-            {address && (
-              <DetailRow label={t('detail.address')}>
-                <span dir="ltr">{address}</span>
-              </DetailRow>
-            )}
             {route && <DetailRow label={t('columns.connection')}>{route}</DetailRow>}
           </dl>
-          {refused && <p className="text-sm text-carbon-textSub">{t('instances.refusedByPassword')}</p>}
+          {waiting && <p className="text-sm text-carbon-textSub">{t('instances.notApprovedTip')}</p>}
           <div className="flex flex-wrap items-baseline gap-x-7 gap-y-3 rounded-[var(--radius-control)] bg-carbon-surface2 px-4 py-3">
             {figures}
           </div>
@@ -518,7 +511,7 @@ export function AppCard({
   ) : pairedBetweenCalls({ deployment, connected, approved }) ? (
     <StatePill label={t('instances.paired')} tone="ok" tip={t('instances.extensionPairedTip')} />
   ) : (
-    <InactiveState />
+    <NotReachableState />
   );
   return (
     <Tile
@@ -555,7 +548,6 @@ export function AwayCard({
   entry,
   name,
   deployment,
-  address,
   lastSeen,
   onRemove,
   hot = false,
@@ -565,7 +557,6 @@ export function AwayCard({
   entry: string;
   name: string;
   deployment: string;
-  address: string;
   /** Unix seconds. */
   lastSeen: number;
   onRemove: () => void;
@@ -583,10 +574,10 @@ export function AwayCard({
       name={name}
       state={
         <StateWithKind kind={deployment}>
-          <InactiveState />
+          <NotReachableState />
         </StateWithKind>
       }
-      facts={[address, KINDS[deployment] ? t(KINDS[deployment]) : '', lastSeenOf(t, lastSeen)]}
+      facts={[KINDS[deployment] ? t(KINDS[deployment]) : '', lastSeenOf(t, lastSeen)]}
       actions={
         <Button
           kind="secondary"

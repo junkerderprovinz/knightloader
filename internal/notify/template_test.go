@@ -91,38 +91,6 @@ func TestExpandLeavesTheOperatorsOwnPunctuationAlone(t *testing.T) {
 	}
 }
 
-func TestBodySlotComesFromTheRowsOwnContentType(t *testing.T) {
-	for _, tc := range []struct {
-		headers map[string]string
-		want    Slot
-	}{
-		{nil, SlotBodyPlain},
-		{map[string]string{"content-type": "application/json"}, SlotBodyJSON},
-		{map[string]string{"Content-Type": "application/json; charset=utf-8"}, SlotBodyJSON},
-		{map[string]string{"Content-Type": "application/x-www-form-urlencoded"}, SlotBodyForm},
-		{map[string]string{"Content-Type": "text/plain"}, SlotBodyPlain},
-	} {
-		if got := BodySlot(tc.headers); got != tc.want {
-			t.Errorf("BodySlot(%v) = %v, want %v", tc.headers, got, tc.want)
-		}
-	}
-}
-
-func TestExpandBodyIsEmptyForAGet(t *testing.T) {
-	f := firingWithTask("x.mkv")
-	if got := ExpandBody(Target{Method: MethodGET, Body: "%%task.name%%"}, f, ""); got != "" {
-		t.Errorf("a GET carried a body: %q", got)
-	}
-}
-
-func TestExpandHeadersLeavesTheNameAlone(t *testing.T) {
-	f := firingWithTask("x.mkv")
-	out := ExpandHeaders(map[string]string{"X-%%task.name%%": "%%task.name%%"}, f, "")
-	if _, ok := out["X-%%task.name%%"]; !ok {
-		t.Errorf("the header name was expanded, so Merge's \"same header name\" rule means nothing: %v", out)
-	}
-}
-
 func TestPlaceholdersAndTheExpanderCannotDrift(t *testing.T) {
 	f := SampleFiring(time.Now())
 	for _, p := range Placeholders() {

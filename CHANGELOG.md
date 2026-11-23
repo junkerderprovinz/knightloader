@@ -37,6 +37,120 @@ release is a fixed download. Once a release is out and is the newest one,
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [2.9.5] - 2026-11-22
+## [Unreleased]
+
+### Added
+
+- **KnightLoader joins a fortress.** Enter the fortress's twelve words on the
+  Pairing page, and KnightLoader joins your other apps there. The instances,
+  phones and browser extensions it is paired with come along, and one that
+  was away follows once it is back.
+- **Devices that did not come along are named.** The old pairing stays open
+  until everyone has followed, for 30 days at most. A device still missing
+  after that shows up on the Pairing page by name, so you can bring it in
+  with the fortress phrase or remove it.
+- **KnightLoader shows up with its own logo** in your other apps, and they
+  find it on its server whatever name you give it there.
+- **Open your other apps from anywhere.** Open on an app's card on the
+  Pairing page shows that app in a new tab, behind its own password. At home
+  the pages come straight from it, on the road through the relay, and not a
+  single port has to be forwarded. Each app has its own switch for it. A
+  plugin shows how it is doing instead, and the app you opened writes each
+  visit to its log.
+- **Every permission between apps has its own switch.** The Pairing page
+  shows what the other apps of your fortress may do at KnightLoader and what
+  KnightLoader may do at them, each with a switch of its own.
+- **You can show and change the fortress phrase, or leave the fortress.**
+  The words appear once you enter your password. A new phrase reaches every
+  app and instance in reach, and any it missed are named, so you know where
+  to type the new words.
+- **A phrase change KnightLoader missed asks for the new words.** If every
+  app it still reaches has moved on and none can hand the new phrase over,
+  the Pairing page says so. Enter the new words there and KnightLoader stays
+  the member it was. An app that never said what it is shows up under its
+  device's name, and after a change every app still on the old phrase is
+  named with the device it runs on.
+- **You can take an app out of the fortress.** Remove on its card on the
+  Pairing page asks first. After that the fortress lets no new app join
+  until you change the phrase, so it offers a new phrase right away. Until
+  then, a short line names who is out, and an app that tries to join is
+  told why.
+- **An ArrowLoop job can follow a download.** Pick a job per category under
+  After download, and KnightLoader starts it once a package has landed and
+  left the working folder. You can also set up a new ArrowLoop job for the
+  category's folder right there.
+- **A backup app in your fortress can keep your settings.** It fetches
+  KnightLoader's backup and can hand it back later, and KnightLoader puts it
+  in place at the next start, just like a restore you upload.
+- **Status for dashboards.** Homepage, Homarr and the like read how
+  KnightLoader is doing and what happened at `/api/fortress/v1/status` and
+  `/api/fortress/v1/log`, with an API token that has the status right. That
+  token opens nothing else.
+- **More kinds of event targets.** Add target on the Automation page offers
+  Slack, Gotify, ntfy, Matrix, e-mail and Apprise next to Discord and your
+  own webhook. Your targets come over as they are.
+
+### Changed
+
+- **No network address on any page.** KnightLoader shows no address of an
+  instance any more. Every member reads Connected or Not reachable, in the
+  web interface, on the phone and in the browser extension.
+- **Pairing runs on the code your whole fortress shares.** The twelve words,
+  the device keys, the relay, the search on your network and the list of who
+  is in your group come from ParleyPort's kit, which the other apps of your
+  fortress use as well. Your group, its phones and browsers and every approval
+  come along with the update, and instances that are not updated yet still
+  talk to it, so you can update them one at a time.
+- **Answers over the relay may be up to 8 MiB again,** so a long download
+  list still reaches your phone away from home. This needs a ParleyPort relay
+  with 16 MiB frames, so the project relay is updated before this release goes
+  out. If you run your own ParleyPort, update it first too, since an older one
+  closes the connection when an answer is that large.
+
+- **The Android app's Play button plays through your group.** VLC or any
+  other player opens the file without an address of the instance: the app
+  hands the player a link on the phone itself and fetches what the player
+  reads through the group, in pieces, so seeking works too. At home it comes
+  straight from the instance, and away through the relay. A phone paired
+  before this release streams at home once you scan the phrase again, and
+  the app offers that once.
+
+### Removed
+
+- **Instances are no longer added by their address.** Every app pairs the
+  same simple way, with the twelve words. Instances you had added by address
+  are gone after the update, the Instances page names them once, and the
+  tokens kept for them are revoked. Enter your group's phrase on them, and
+  they are back.
+- **The Android app keeps only the connections made with the phrase.** A
+  connection an older build saved by its address leaves the list on the first
+  start after the update, and the app names it once. Scan your group's phrase,
+  and it is back.
+- **A relay key typed in by hand no longer pairs instances.** Older releases
+  let you pair instances with a relay key instead of the twelve words. The
+  relay could read along with such a key, so it is gone. An instance paired
+  that way stands on its own after the update, and Settings > Pairing tells
+  you so. Generate a phrase on one instance, enter it on the others, and they
+  are back together.
+- **The `knightloader-relay` image hands over to ParleyPort.** If you run
+  your own relay with it, switch the image to `junkerderprovinz/parleyport`.
+  ParleyPort reads the same `KL_RELAY_…` settings, so your configuration
+  carries over as it is, and it brings the 16 MiB frames this release needs.
+  Only the certificate folder moves to `/var/lib/parleyport/certs`, so mount
+  your volume there or let ParleyPort fetch a new certificate.
+
+## [2.7.5] - 2026-11-09
+
+### Fixed
+
+- **The browser extension reaches Firefox Add-ons again.** Firefox Add-ons
+  turned 2.7.4 away because its notes for the reviewers were one character
+  over the limit, so Firefox stayed on 2.7.3 without the video button.
+- **Uninstalling the desktop app on Windows leaves nothing behind,** and the
+  installer window shows KnightLoader's icon on Linux. The installer follows
+  PommelPorter 1.1.5.
+
+## [2.7.4] - 2026-11-09
 
 ### Added
 

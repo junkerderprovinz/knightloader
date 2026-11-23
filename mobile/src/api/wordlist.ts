@@ -1,4 +1,4 @@
-// The BIP39 English wordlist, generated from internal/seedphrase/english.txt
+// The BIP39 English wordlist, generated from kit/phrase's word list
 // so the phone and the server can never disagree about it. Do not hand-edit:
 // a single changed word shifts every index after it, and every phrase this
 // app decodes would silently derive a different key.

@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { expect, it, vi } from 'vitest';
 
-import type { ConnectInfo, RelayConfig } from '../../../lib/api';
+import type { ConnectInfo, FortressState, RelayConfig } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { PairingSection } from './PairingSection';
 
@@ -19,8 +19,6 @@ const alone: ConnectInfo = {
   relayMode: 'project',
   projectRelayUrl: '',
   name: 'nas',
-  address: '',
-  networkAddress: '',
   members: [],
   apps: [],
   away: [],
@@ -29,8 +27,26 @@ const alone: ConnectInfo = {
   pending: [],
   awaiting: false,
   fingerprint: '',
+  relayKeyDropped: false,
+  droppedInstances: [],
+  behind: [],
 };
-const relay: RelayConfig = { mode: 'project', relayUrl: '', keySet: false, connected: false, serve: false, serveClients: 0 };
+const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };
+const outside: FortressState = {
+  joined: false,
+  phrase: false,
+  device: 'nas',
+  defaultDevice: 'nas',
+  passwordSet: true,
+  members: [],
+  permissions: [],
+  pairedWith: [],
+  behind: [],
+  left: [],
+  removed: [],
+  removedHere: false,
+  phraseChanged: false,
+};
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
@@ -50,6 +66,7 @@ it('keeps words just created when a poll sent before them answers late', async (
     'fetch',
     vi.fn((url: string) => {
       if (url === '/api/relay/config') return Promise.resolve(json(relay));
+      if (url === '/api/fortress') return Promise.resolve(json(outside));
       if (url === '/api/connect/activate') return Promise.resolve(json({ phrase: WORDS, info: { ...alone, active: true } }));
       if (url === '/api/connect') {
         polls++;
@@ -66,7 +83,7 @@ it('keeps words just created when a poll sent before them answers late', async (
     root.render(
       <MemoryRouter>
         <I18nProvider>
-          <PairingSection identity={() => null} />
+          <PairingSection identity={null} />
         </I18nProvider>
       </MemoryRouter>,
     ),
@@ -88,4 +105,48 @@ it('keeps words just created when a poll sent before them answers late', async (
   host.remove();
   vi.unstubAllGlobals();
   vi.useRealTimers();
+});
+
+it('says why an instance paired by a relay key typed in by hand stands alone', async () => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
+  const notice = (dropped: boolean) =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        Promise.resolve(
+          json(url === '/api/relay/config' ? relay : url === '/api/fortress' ? outside : { ...alone, relayKeyDropped: dropped }),
+        ),
+      ),
+    );
+  const host = document.createElement('div');
+  document.body.append(host);
+  const root = createRoot(host);
+  const draw = () =>
+    act(async () =>
+      root.render(
+        <MemoryRouter>
+          <I18nProvider>
+            <PairingSection key={String(Math.random())} identity={null} />
+          </I18nProvider>
+        </MemoryRouter>,
+      ),
+    );
+
+  notice(true);
+  await draw();
+  expect(host.querySelector('[role="status"]')?.textContent).toContain('relay key you typed in by hand');
+
+  notice(false);
+  await draw();
+  expect(host.querySelector('[role="status"]')).toBeNull();
+
+  act(() => root.unmount());
+  host.remove();
+  vi.unstubAllGlobals();
 });

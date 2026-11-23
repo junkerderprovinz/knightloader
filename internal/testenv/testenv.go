@@ -36,7 +36,7 @@ const NetTestsEnv = "KNIGHTLOADER_NET_TESTS"
 //
 // Running them locally on purpose:
 //
-//	KNIGHTLOADER_NET_TESTS=1 go test ./internal/discovery/...
+//	KNIGHTLOADER_NET_TESTS=1 go test ./internal/engine/...
 func RequireWideListener(t *testing.T) {
 	t.Helper()
 	if !wideListenersWanted() {

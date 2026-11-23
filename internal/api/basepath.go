@@ -22,6 +22,8 @@ import (
 	"net/url"
 	"strings"
 
+	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
+
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
 
@@ -76,11 +78,13 @@ func forwardedBasePath(r *http.Request) string {
 }
 
 // withBasePath takes the base path off the request before the guard and the
-// routes see it, and keeps it on the context for whatever builds a link.
+// routes see it, and keeps it on the context for whatever builds a link. A
+// page another member opened through the fortress lives under the prefix the
+// kit gives it, whatever KL_BASE_PATH says.
 func withBasePath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		base := buildinfo.BasePath
-		if base == "" {
+		if _, opened := kitfortress.Opened(r); opened || base == "" {
 			base = forwardedBasePath(r)
 		}
 		if base == "" {

@@ -1,12 +1,11 @@
 import type { RelaySibling } from './relayClient';
-import type { RelayConnection, ServerConnection } from './types';
+import type { ServerConnection } from './types';
 
 /** An instance approved in the group that is not there now, as it last announced itself. */
 export interface AwayInstance {
   id: string;
   name: string;
   deployment: string;
-  address: string;
   /** Unix seconds. */
   lastSeen: number;
 }
@@ -15,6 +14,27 @@ export interface AwayInstance {
 export function awayList(raw: unknown): AwayInstance[] | null {
   if (!Array.isArray(raw)) return null;
   return raw.filter((m): m is AwayInstance => !!m && typeof m.id === 'string' && typeof m.lastSeen === 'number');
+}
+
+/** A device paired on the group's old phrase that did not follow it into the fortress. */
+export interface BehindDevice {
+  id: string;
+  name: string;
+  kind: 'instance' | 'mobile' | 'extension';
+  deployment: string;
+}
+
+/** behindList reads the devices an answer says were left behind, none from an instance from before the fortress. */
+export function behindList(raw: unknown): BehindDevice[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((m) => !!m && typeof m.id === 'string' && ['instance', 'mobile', 'extension'].includes(m.kind))
+    .map((m) => ({
+      id: m.id,
+      name: typeof m.name === 'string' ? m.name : '',
+      kind: m.kind,
+      deployment: typeof m.deployment === 'string' ? m.deployment : '',
+    }));
 }
 
 /** memberList reads the instances an answer says are there, null where it sends none. */
@@ -31,11 +51,10 @@ export function memberList(raw: unknown): RelaySibling[] | null {
 
 /**
  * awayFor is the group's entry for a saved connection that did not answer, so
- * its card says Inactive and when it was last seen rather than Not connected.
+ * its card says when it was last seen.
  * A connection the group does not list as away gets undefined.
  */
 export function awayFor(conn: ServerConnection, away: AwayInstance[]): AwayInstance | undefined {
-  if (conn.kind !== 'relay') return undefined;
   return away.find((m) => m.id === conn.instanceId);
 }
 
@@ -52,22 +71,27 @@ export interface GroupChange {
  * instance live on the relay or listed as away that is not saved yet is added,
  * unless it was removed on this phone. A saved one takes the name the group
  * gives it, the one it announces on the relay before the one it was last seen
- * with. A saved one that is neither live nor away goes, since it was taken out
- * of the group, but only once the relay has announced every sibling
- * (`settled`) and an instance of the group sent its away list (`away` not
- * null); until then a missing instance may only be late.
+ * with. An instance left behind on the old phrase is never added and never
+ * dropped, so its card can say it did not come along. Any other saved one that
+ * is neither live nor away goes, since it was taken out of the group, but only
+ * once the relay has announced every sibling (`settled`) and an instance of the
+ * group sent its away list (`away` not null); until then a missing instance may
+ * only be late.
  */
 export function followGroup({
   saved,
   live,
   away,
+  behind,
   answered,
   settled,
   dismissed,
 }: {
-  saved: RelayConnection[];
+  saved: ServerConnection[];
   live: RelaySibling[];
   away: AwayInstance[] | null;
+  /** The ids of the devices left behind when the group moved into a fortress. */
+  behind: string[];
   /** The instances that answered this round, which are there whatever the relay says. */
   answered: string[];
   settled: boolean;
@@ -81,7 +105,7 @@ export function followGroup({
     ...(away ?? []).map((m) => ({ instanceId: m.id, name: m.name || m.id })),
   ];
   for (const f of found) {
-    if (known.has(f.instanceId) || dismissed.includes(f.instanceId)) continue;
+    if (known.has(f.instanceId) || dismissed.includes(f.instanceId) || behind.includes(f.instanceId)) continue;
     known.add(f.instanceId);
     add.push(f);
   }
@@ -94,6 +118,6 @@ export function followGroup({
     return name && name !== c.name ? [{ id: c.id, name }] : [];
   });
   if (away === null || !settled) return { add, drop: [], rename };
-  const there = new Set([...live.map((s) => s.instanceId), ...away.map((m) => m.id), ...answered]);
+  const there = new Set([...live.map((s) => s.instanceId), ...away.map((m) => m.id), ...behind, ...answered]);
   return { add, drop: saved.filter((c) => !there.has(c.instanceId)).map((c) => c.id), rename };
 }

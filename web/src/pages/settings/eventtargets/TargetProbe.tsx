@@ -2,24 +2,17 @@ import { useState } from 'react';
 import { TestButton } from '../../../components/TestButton';
 import { FieldGroup, type ButtonVerdict } from '../../../components/ui';
 import { fmtUnit } from '../../../lib/format';
-import { useT, type TranslationKey } from '../../../lib/i18n';
-import {
-  MAX_RESPONSE_BODY,
-  testEventTarget,
-  usableAddress,
-  type EventTargetRow,
-  type EventTargetTest,
-} from '../../../lib/eventtargets';
+import { useT } from '../../../lib/i18n';
+import { testEventTarget, type Channel, type EventTargetTest } from '../../../lib/eventtargets';
 import { IconSendTest } from '../../../lib/icons';
+import { problemText } from './problems';
 
 /**
- * TargetProbe sends one made-up event to this target and shows the answer as it
- * came back. It works on an unsaved row: masked header values go over as stars
- * and the server merges the stored ones back by the save path's rule. A broken
- * row comes back as a 400 with a code, a refusal by the far end as a normal
- * result, and the two are shown differently.
+ * TargetProbe sends one made-up event to this channel and shows how it went.
+ * It works on an unsaved or switched-off channel: masked secrets go over as
+ * stars and the server merges the stored ones back by the save path's rule.
  */
-export function TargetProbe({ row }: { row: EventTargetRow }) {
+export function TargetProbe({ row }: { row: Channel }) {
   const { t } = useT();
   const [result, setResult] = useState<EventTargetTest | null>(null);
   const [refused, setRefused] = useState('');
@@ -30,7 +23,7 @@ export function TargetProbe({ row }: { row: EventTargetRow }) {
     try {
       const answer = await testEventTarget(row);
       setResult(answer);
-      return !answer.error && answer.status >= 200 && answer.status < 300 ? 'ok' : 'fail';
+      return answer.ok ? 'ok' : 'fail';
     } catch (e) {
       setRefused(String(e).replace(/^(Error|EventTargetApiError):\s*/, ''));
       return 'fail';
@@ -40,73 +33,32 @@ export function TargetProbe({ row }: { row: EventTargetRow }) {
   return (
     <FieldGroup label={t('settings.eventTargets.testResult')} hint={t('settings.eventTargets.testHint')}>
       <div className="flex flex-col gap-2">
-        {/* Why the row could not be sent at all, above the button until the next try. */}
         {refused && <p dir="auto" className="text-xs text-carbon-textSub">{refused}</p>}
-
         <div className="flex">
           <TestButton
             icon={<IconSendTest />}
             label={t('settings.eventTargets.test')}
             busyLabel={t('settings.eventTargets.testBusy')}
             words={{ ok: t('test.sent'), fail: t('test.failed') }}
-            disabled={!usableAddress(row.url)}
             run={run}
             resetKey={JSON.stringify(row)}
           />
         </div>
-
         {result && (
           <div className="glim-well flex flex-col gap-2 p-3 text-xs">
-            {/* What was sent comes first, since a refusal only reads against it. */}
-            <p className="text-carbon-textMuted">{t('settings.eventTargets.testSent')}</p>
-            <pre dir="ltr" className="overflow-x-auto whitespace-pre-wrap break-all text-carbon-textSub">
-              {`${result.sent.method} ${result.sent.url}\n${Object.keys(result.sent.headers)
-                .sort()
-                .map((k) => `${k}: ${result.sent.headers[k]}`)
-                .join('\n')}${result.sent.body ? `\n\n${result.sent.body}` : ''}`}
-            </pre>
-
-            {result.error ? (
-              // Nothing answered: the translated reason, then the transport's own words.
-              <>
-                <p className="text-statusWarn">
-                  {result.code ? problemText(t, result.code) : t('settings.eventTargets.testNoAnswer')}
-                </p>
-                <p className="text-carbon-textMuted">{result.error}</p>
-              </>
+            {result.ok ? (
+              <p className="text-carbon-textSub">{t('settings.eventTargets.testOk')}</p>
             ) : (
+              // The translated reason first, then the server's own words.
               <>
-                <p className={result.status >= 200 && result.status < 300 ? 'text-carbon-textSub' : 'text-statusWarn'}>
-                  {t('settings.eventTargets.testResult')}: {result.statusText || String(result.status)}
-                </p>
-                {result.code && <p className="text-statusWarn">{problemText(t, result.code)}</p>}
-                {result.body ? (
-                  <pre dir="ltr" className="overflow-x-auto whitespace-pre-wrap break-all text-carbon-textMuted">
-                    {result.body}
-                  </pre>
-                ) : (
-                  <p className="text-carbon-textMuted">{t('settings.eventTargets.testEmptyBody')}</p>
-                )}
-                {result.truncated && (
-                  <p className="text-carbon-textMuted">
-                    {t('settings.eventTargets.testTruncated', { n: MAX_RESPONSE_BODY })}
-                  </p>
-                )}
+                <p className="text-statusWarn">{problemText(t, result.code ?? 'invalid')}</p>
+                {result.error && <p className="text-carbon-textMuted">{result.error}</p>}
               </>
             )}
-            <p className="text-carbon-textMuted">
-              {t('settings.eventTargets.took', { duration: fmtUnit(result.durationMs, 'ms') })}
-            </p>
+            <p className="text-carbon-textMuted">{t('settings.eventTargets.took', { duration: fmtUnit(result.durationMs, 'ms') })}</p>
           </div>
         )}
       </div>
     </FieldGroup>
   );
-}
-
-/** problemText returns the sentence for a notify.Problem code, or the code itself. */
-function problemText(t: (key: TranslationKey) => string, code: string): string {
-  const key = `settings.eventTargets.problem.${code}` as TranslationKey;
-  const text = t(key) as string | undefined;
-  return text && text !== key ? text : code;
 }

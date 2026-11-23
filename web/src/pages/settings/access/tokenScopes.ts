@@ -1,20 +1,22 @@
 import { TOKEN_SCOPES, type TokenScope } from '../../../lib/api';
 import type { TranslationKey } from '../../../lib/i18n';
 
-/** The rights a new token can start from; "custom" is the four switches. */
-export type TokenPreset = 'full' | 'addRead' | 'read' | 'custom';
+/** The rights a new token can start from; "custom" is a switch per right. */
+export type TokenPreset = 'full' | 'addRead' | 'read' | 'status' | 'custom';
 
 /** What each preset grants, in the server's canonical order. */
 export const PRESET_SCOPES: Record<Exclude<TokenPreset, 'custom'>, readonly TokenScope[]> = {
   full: TOKEN_SCOPES,
   addRead: ['read', 'add'],
   read: ['read'],
+  status: ['status'],
 };
 
 export const PRESET_LABEL: Record<TokenPreset, TranslationKey> = {
   full: 'settings.access.tokens.preset.full',
   addRead: 'settings.access.tokens.preset.addRead',
   read: 'settings.access.tokens.preset.read',
+  status: 'settings.access.tokens.preset.status',
   custom: 'settings.access.tokens.preset.custom',
 };
 
@@ -23,6 +25,7 @@ export const SCOPE_LABEL: Record<TokenScope, TranslationKey> = {
   add: 'settings.access.tokens.scope.add',
   control: 'settings.access.tokens.scope.control',
   admin: 'settings.access.tokens.scope.admin',
+  status: 'settings.access.tokens.scope.status',
 };
 
 export const SCOPE_HINT: Record<TokenScope, TranslationKey> = {
@@ -30,6 +33,7 @@ export const SCOPE_HINT: Record<TokenScope, TranslationKey> = {
   add: 'settings.access.tokens.scope.addHint',
   control: 'settings.access.tokens.scope.controlHint',
   admin: 'settings.access.tokens.scope.adminHint',
+  status: 'settings.access.tokens.scope.statusHint',
 };
 
 /** presetOf names the preset a set of rights is, or "custom" when none is. */

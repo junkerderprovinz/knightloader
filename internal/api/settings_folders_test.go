@@ -101,15 +101,15 @@ func TestAKeySpelledInAnotherCaseIsCheckedLikeTheField(t *testing.T) {
 
 	for _, body := range []string{
 		fmt.Sprintf(`{"downloaddir":%q}`, unusable),
-		`{"EVENTTARGETS":[{"url":"ftp://x.example/"}]}`,
+		`{"NOTIFYCHANNELS":[{"id":"1","kind":"webhook","enabled":true,"webhook":{"url":"ftp://x.example/"}}]}`,
 		fmt.Sprintf(`{"downloadDir":%q,"downloaddir":%q}`, t.TempDir(), unusable),
 	} {
 		if code, _, msg := patchSettings(t, srv.URL, body); code != http.StatusBadRequest {
 			t.Errorf("%s answered %d %s, want it refused", body, code, msg)
 		}
 	}
-	if s := a.Settings.Get(); s.DownloadDir == unusable || len(s.EventTargets) != 0 {
-		t.Errorf("a refused patch was stored: download folder %q, %d event targets", s.DownloadDir, len(s.EventTargets))
+	if s := a.Settings.Get(); s.DownloadDir == unusable || len(s.NotifyChannels) != 0 {
+		t.Errorf("a refused patch was stored: download folder %q, %d channels", s.DownloadDir, len(s.NotifyChannels))
 	}
 
 	good := t.TempDir()

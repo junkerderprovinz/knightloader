@@ -120,7 +120,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     top.className = 'glim-instance-top';
     const badge = document.createElement('span');
     badge.className = status === null ? 'glim-status glim-status--off' : 'glim-status glim-status--on';
-    badge.textContent = t(status === null ? 'instance.notConnected' : 'instance.connected');
+    badge.textContent = t(status === null ? 'instance.notReachable' : 'instance.connected');
     top.append(name, badge);
     body.append(top, what);
   } else {
@@ -132,7 +132,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   if (status !== undefined) {
     const line = document.createElement('span');
     line.className = 'glim-instance-stats glim-num';
-    line.textContent = status === null ? t('instance.notConnected') : statusLine(status);
+    line.textContent = status === null ? t('instance.notReachable') : statusLine(status);
     if (status === null) line.classList.add('glim-instance-stats--off');
     if (status && downloading(status)) livePulse(line);
     body.appendChild(line);
@@ -218,7 +218,7 @@ function deviceCard(app, { index, own }) {
     badge.textContent = t('device.paired');
     top.appendChild(glimInfoIcon(t('device.pairedTip')));
   } else {
-    inactiveBadge(badge);
+    notReachableBadge(badge);
   }
 
   const what = document.createElement('span');
@@ -256,7 +256,7 @@ function awayCard(member, { index }) {
   name.className = 'glim-instance-name';
   name.textContent = instanceLabel({ name: member.name, instanceId: member.id });
   const badge = document.createElement('span');
-  inactiveBadge(badge);
+  notReachableBadge(badge);
   top.append(name, badge);
   const what = document.createElement('span');
   what.className = 'glim-instance-what';
@@ -266,6 +266,42 @@ function awayCard(member, { index }) {
 
   card.append(cardMark(), body);
   return card;
+}
+
+/**
+ * behindList draws the devices that stayed on the old phrase when the group
+ * moved into a fortress, as one quiet list under the cards, by name and kind
+ * only. Taking one out is left to an instance's web interface, since the
+ * extension cannot remove members.
+ */
+function behindList(devices) {
+  const section = document.createElement('div');
+  section.className = 'behind';
+  const title = document.createElement('p');
+  title.className = 'behind-title glim-eyebrow';
+  title.append(document.createTextNode(t('options.groupBehind')), glimInfoIcon(t('options.groupBehindTip')));
+  const rows = document.createElement('ul');
+  rows.className = 'behind-list glim-well';
+  for (const device of devices) {
+    const row = document.createElement('li');
+    const name = document.createElement('span');
+    name.className = 'glim-instance-name';
+    name.textContent = device.name?.trim() || device.id.slice(0, 16);
+    const what = document.createElement('span');
+    what.className = 'glim-instance-what';
+    what.textContent = behindKind(device);
+    row.append(name, what);
+    rows.appendChild(row);
+  }
+  section.append(title, rows);
+  return section;
+}
+
+/** The keys are written out for check-locales.mjs. */
+function behindKind(device) {
+  if (device.kind === 'mobile') return t('device.kindMobile');
+  if (device.kind === 'extension') return t('device.kindExtension');
+  return deploymentLabel(device.deployment);
 }
 
 /** The logo along a card's start edge. */
@@ -281,9 +317,9 @@ function cardMark() {
 }
 
 /** Grey rather than red, since being closed or away is no fault. */
-function inactiveBadge(badge) {
+function notReachableBadge(badge) {
   badge.className = 'glim-status glim-status--idle';
-  badge.textContent = t('instance.inactive');
+  badge.textContent = t('instance.notReachable');
 }
 
 function lastSeenLine(unix) {

@@ -1,6 +1,6 @@
 // phraseWords reads a pasted or typed pairing phrase the way people hand one
 // over: one word per line, numbered, separated by commas. The list is the
-// server's own (internal/seedphrase/english.txt, kept identical by a Go test),
+// server's own (kit/phrase's word list, kept identical by a Go test),
 // so a word flagged here is one the server would refuse too.
 import list from './bip39-english.txt?raw';
 

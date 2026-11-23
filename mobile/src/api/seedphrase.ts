@@ -2,7 +2,7 @@
 //
 // It decodes locally rather than asking a server, because the phrase is for
 // the case where this phone cannot reach any instance yet. A line-for-line port
-// of internal/seedphrase: the two have to agree on every one of the 2048 words
+// of kit/phrase: the two have to agree on every one of the 2048 words
 // and on the bit packing, or the key derived here differs from the server's and
 // the symptom is a relay that never connects, with nothing in any log.
 //
@@ -16,7 +16,7 @@ export const WORD_COUNT = 12;
 const BITS_PER_WORD = 11;
 const CHECKSUM_BITS = (SECRET_LEN * 8) / 32; // BIP39's own rule
 
-// relay.DefaultRelayURL, compiled in on the server side for the same reason
+// relay.DefaultURL, compiled in on the server side for the same reason
 // it is a constant here: it is what keeps a phrase twelve words instead of a
 // URL plus a key.
 export const DEFAULT_RELAY_URL = 'wss://parleyport.halleluja.design/relay/connect';
@@ -120,14 +120,14 @@ export function keyFromPhrase(phrase: string): string {
 
 /**
  * FRAME_KEY_DOMAIN is the second domain over the same secret, mirroring
- * internal/relay/key.go's frameDomain. Both strings must match byte for byte
+ * kit/keys' frame-key label. Both strings must match byte for byte
  * or this phone joins a group it cannot talk to.
  */
 const FRAME_KEY_DOMAIN = 'knightloader/relay/frame-key/v1';
 
 /**
  * deriveFrameKey returns the 32-byte key that seals proxy frames, mirroring
- * relay.DeriveFrameKey.
+ * federation.Domain.FrameKey.
  *
  * The domain has to be a second one because the relay is handed deriveKey's
  * output in every hello frame. A frame key derived from that value, or under
@@ -145,4 +145,25 @@ export function deriveFrameKey(secret: Uint8Array): Uint8Array {
 /** frameKeyFromPhrase is deriveFrameKey's counterpart to keyFromPhrase. */
 export function frameKeyFromPhrase(phrase: string): Uint8Array {
   return deriveFrameKey(decodePhrase(phrase));
+}
+
+/** PEER_AUTH_DOMAIN mirrors kit/keys' peer-auth label. */
+const PEER_AUTH_DOMAIN = 'knightloader/peer-auth/v1';
+
+/**
+ * derivePeerAuth returns the key a direct call on the local network is tagged
+ * with, mirroring federation.Domain.PeerAuthKey. An instance turns away a
+ * direct call without it before it reads the body.
+ */
+export function derivePeerAuth(secret: Uint8Array): Uint8Array {
+  const domain = utf8(PEER_AUTH_DOMAIN);
+  const buf = new Uint8Array(domain.length + secret.length);
+  buf.set(domain);
+  buf.set(secret, domain.length);
+  return sha256(buf);
+}
+
+/** peerAuthFromPhrase is derivePeerAuth's counterpart to keyFromPhrase. */
+export function peerAuthFromPhrase(phrase: string): Uint8Array {
+  return derivePeerAuth(decodePhrase(phrase));
 }

@@ -1,4 +1,4 @@
-// The BIP39 English wordlist, generated from internal/seedphrase/english.txt so
+// The BIP39 English wordlist, generated from kit/phrase's word list so
 // the extension, the phone and the server agree on it. Do not edit by hand: one
 // changed word shifts every later index and changes the derived keys.
 //

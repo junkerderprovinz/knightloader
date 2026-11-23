@@ -102,21 +102,17 @@ justification per entry, and an unauthenticated metrics route on a
 password-locked instance is a hole somebody would have to have chosen on
 purpose. Anybody who wants it scraped switches it on and knows why they did.
 
-## Outbound notifications: HTTP now, SMTP as its own item
+## Outbound notifications: the fortress's channels
 
-**Built:** one HTTP subscriber on the event bus. ntfy, Gotify, Matrix and any
-plain webhook are all the same shape and are all covered. Discord is the same
-shape too; a Discord address with no body of its own gets one written for it,
-because a single template cannot colour a failure red or keep a long file name
-inside Discord's limits.
+**Built:** one subscriber on the event bus that hands each event to the
+notification channels of parleyport's kit, the same ones every app of a
+fortress uses: webhook, Discord, Slack, Gotify, ntfy, Matrix, e-mail and
+Apprise. A webhook keeps the method, headers, body and placeholders the old
+event targets had, so a target from before moves over as it was.
 
-**Not built:** e-mail.
-
-SMTP is a second transport with its own credential at rest, its own TLS-mode
-question, its own test shape and its own German copy. Folding it in adds about a
-third again on both sides plus a second credentials decision in the middle of the
-first. `internal/notify`'s package comment says in as many words that the absent
-seam is absent on purpose, so nobody adds one while they are in there.
+**Not offered here:** the kit's Healthchecks and Unraid channels. KnightLoader
+has no run to ping a check for, and it runs in a container that cannot reach
+Unraid's notify script.
 
 ## Orphaned files: deferred until the history can point at one
 

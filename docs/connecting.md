@@ -5,42 +5,18 @@ build, the Android app, and the browser extension. Any of them can also talk to
 a *second* KnightLoader. This is how each of those connections is made, and what
 happens when one of them cannot be.
 
-The short version: on one network, nothing needs configuring. Across networks,
-twelve words connect every instance you run. The relay section after that is
-the same machinery reached the manual way, for anyone who wants to name the
-relay and the key themselves.
+The short version: twelve words connect every instance you run, on one
+network and across networks alike. The relay section after that is for anyone
+who wants to run the relay themselves.
 
 ## On one network
 
-An instance announces itself every five seconds over UDP multicast, to an
-administratively-scoped group that routers do not forward off the local network.
-Every other instance listening picks it up.
+Instances pair with the twelve words alone, described in the next section.
+Once they share a phrase, the ones on one network find each other by
+themselves. Each announces itself every five seconds over UDP multicast, to an
+administratively-scoped group that routers do not forward off the local
+network.
 
-The Instances page shows what it heard under **Found on your network**, with
-an **Add** button on each row.
-
-Being on the same network is *not* consent, so nothing is connected until that
-button is pressed. A guest laptop and an IoT device sit on that network too.
-
-Adding stores an address. It exchanges nothing: no credential travels in
-either direction. A credential exchange triggered by an announce that anything
-on the LAN can send would let any device there help itself to a token.
-
-So if the instance you add has a password set, it will refuse the calls that
-follow, and the page says so. An address is not a credential; the connection
-phrase is, and it covers every instance in the group at once instead of one
-peer at a time. An instance with no password works immediately.
-
-Nothing in an announce is trusted. Anything on the network can send one, so the
-fields are length-capped on arrival and the list is bounded, so a device
-announcing endless invented instances cannot grow it without limit. What a row
-shows is a claim. That is why the address is displayed next to the name, and
-why nothing is added until you decide to add it.
-
-Multicast blocked, or no network at all, means an empty list. Everything below
-still works.
-
-Instances in the same phrase group use the same announce to find each other.
 A member tags its announce with a MAC over everything in it, its time
 included, under a key derived from the phrase
 (`SHA-256("knightloader/peer-auth/v1" || secret)`). Another member recognises
@@ -50,8 +26,16 @@ than two minutes does not pass, so one played back later does not bring a
 departed member back. Members on one network call each other over plain HTTP
 at `/api/group/call`: every call is sealed under the frame key, as over the
 relay, signed with the peer-auth key and refused when it is stale or has run
-before. The relay only carries what cannot go directly. They do not show under
-**Found on your network**, because they are already on the page as cards.
+before. The relay only carries what cannot go directly.
+
+Nothing in an announce is trusted. Anything on the network can send one, so the
+fields are length-capped on arrival and the list is bounded. Multicast blocked,
+or no network at all, only means the members reach each other through the
+relay.
+
+Older releases could also add an instance by its address. Such instances are
+gone from the Instances page after the update, which names them once, and they
+join the group with the phrase like any other.
 
 ## Across networks: the connection phrase
 
@@ -113,8 +97,9 @@ domain (the addresses you type under **Settings → Pairing**; a name a request
 arrived on is never added there), else its address on its
 network, such as `192.168.20.86:8749`. The address travels in the announce
 members already send, sealed on the relay and signed on the network. An
-instance drops it from an announce that comes from outside the group. The Instances page shows it under each
-instance's name and **Open** goes there. A phone shows no address.
+instance drops it from an announce that comes from outside the group. **Open**
+on the Instances page goes there. No page shows it, and neither does the phone
+or the browser extension.
 
 The words *are* the credential. Whoever has them reaches every instance in the
 group, so keep that in mind before you read them out over the phone.
@@ -160,13 +145,10 @@ claim an instance is absent (a denial of service it could equally perform by
 dropping the frame), but not fabricate an answer: a response with no sealed
 payload is never mistaken for one.
 
-If you configure a relay by hand-entered key instead of by phrase, there is no
-secret to derive from and the frame key comes from the relay key itself. That
-still seals the traffic against anything sitting *between* you and the relay
-(a reverse proxy, a TLS terminator, a captured log), but not against the relay
-operator, who is handed that key. That trade fits the case it exists for:
-somebody hosting the relay themselves. The instances on such a key sign their
-calls and approve each other just as a group made with the words does.
+Instances pair by the phrase alone. Older releases also took a relay key typed
+in by hand, whose frame key came from the relay key itself, so the relay
+operator could read the traffic. An instance paired that way stands alone
+after the update, and its Pairing page asks to pair it again with the words.
 
 **Every member signs its own calls.** The words are shared, so a sealed frame
 only proves that its sender holds them. On top of that, every instance, the
@@ -226,7 +208,7 @@ waits for approval.
 
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay**, **Instance as relay** or **No relay**, with a badge that says
-Connected, Not connected or No relay. The phrase card shows the same badge
+Connected, Not reachable or No relay. The phrase card shows the same badge
 beside its state. **Instance as relay** makes this instance the relay of the
 group, which works for any instance that can be reached from outside. For
 your own relay the card names the two ways to run one, the
@@ -304,6 +286,13 @@ name, and a whitelist of one would stop issuing a certificate for it the moment
 you switch, so those clients fail in the handshake instead of moving across.
 Run both names for as long as anything still dials the old one, then drop it.
 
+Older releases came with a relay image of their own,
+`ghcr.io/junkerderprovinz/knightloader-relay`. ParleyPort took its place and
+reads the same `KL_RELAY_…` settings, so switching the image is all it takes.
+Only the certificate folder moves, from `/var/lib/knightloader-relay/certs` to
+`/var/lib/parleyport/certs`: mount your volume there, or ParleyPort simply
+fetches a new certificate.
+
 The relay takes all of its settings from the environment. Its one flag,
 `-version`, prints the version and the commit it was built from and exits
 without opening a port. Any other flag or argument is refused, so a mistyped
@@ -324,10 +313,10 @@ such as `https://example.com/kl`, and the others dial `/relay/connect` below
 it. A `relayUrl` whose path already ends in `/connect` is dialled as it stands,
 for a relay a proxy has mounted somewhere else.
 
-It admits only the relay key that instance stores, so switching it on does not
-turn a published address into a meeting place for whoever finds it. With the
-switch off, `/relay/connect` answers 404, the same as any build that never had
-the feature.
+It admits only the relay key that instance's group dials with, so switching it
+on does not turn a published address into a meeting place for whoever finds
+it. With the switch off, `/relay/connect` answers 404, the same as any build
+that never had the feature.
 
 What this does *not* change is the one requirement a relay has: it is the third
 point both sides dial out to, so it has to be reachable by both. Turning it on
@@ -388,21 +377,20 @@ connection takes over an id that is already connected only when its hello
 proves the key behind that id, which is how an instance or a phone whose old
 socket the relay still holds gets back in. The relay opens every connection
 with random bytes of its own that the proof signs, so a hello somebody saw
-proves nothing on another connection. A standalone relay has to run the same
-release as the instances for this.
+proves nothing on another connection. A relay you run yourself needs a
+current ParleyPort for this.
 
 The proof also names the relay the device dialled, by its host name without
 the port, and a relay takes it only under a name of its own. So a relay a
 device dials with the same key cannot pass another relay's random bytes on to
 it and use the proof there. An instance that serves the relay goes by the name
 a connection reached it under, when it answers on that name, and by its known
-domains. The standalone relay in this repository, `knightloader-relay`, goes
-by the address the instances dial it at, set in `KL_RELAY_PUBLIC_URL` such as
-`https://relay.example.com` (several separated by commas), and by the names in
-`KL_RELAY_DOMAIN`. With neither set it goes by the Host header
-each connection arrives with, which whoever opens the connection writes, so a
-relay that can be reached from outside your network needs one of the two.
-Behind a reverse proxy, set `KL_RELAY_PUBLIC_URL`.
+domains. A ParleyPort relay goes by the address the instances dial it at,
+set in `PARLEYPORT_PUBLIC_URL` such as `https://relay.example.com` (several
+separated by commas), and by the names in `PARLEYPORT_DOMAIN`. With neither set
+it goes by the Host header each connection arrives with, which whoever opens
+the connection writes, so a relay that can be reached from outside your network
+needs one of the two. Behind a reverse proxy, set `PARLEYPORT_PUBLIC_URL`.
 
 A relay peer is never written to disk. It exists for as long as the relay sees
 it, and one remembered across a restart would be a peer that cannot be reached
@@ -426,16 +414,14 @@ and cannot be explained.
   words alone, so every build of the app reads it; a build too old for the
   second line refuses the longer code because it counts thirteen words.
 - **The phone has a card of its own** on the Instances page of every instance
-  in the group: the device name Android reports, Connected or Not connected,
+  in the group: the device name Android reports, Connected or Not reachable,
   and when it was last seen. It announces itself on the relay with that name
   and the kind `mobile`, which keeps it apart from the instances and from the
   browser extension. A connected phone counts as somebody in the group, so an
   instance whose only partner is a phone shows Paired.
-- **A connection saved by address** in an earlier build of the app keeps
-  working if the address starts with `https://`, but the app no longer makes
-  one. One saved with an `http://` address does not, since the app permits no
-  cleartext traffic: its card says it has to be added again with the twelve
-  words. Those builds took the address
+- **A connection saved by address** in an earlier build of the app leaves the
+  list on the first start after the update, and the app names it once and asks
+  for the phrase. Those builds took the address
   typed in, scanned from the QR code the Security page showed then or found with **Find on this
   network**, plus a token where the instance had a password.
 
@@ -464,13 +450,12 @@ and cannot be explained.
 - **Captchas** are answered on the phone. A card on the instance's downloads,
   a count on its overview card and a banner over the open screen lead to a list
   of what is waiting, and picture and click captchas are answered right there.
-  reCAPTCHA, hCaptcha and Cloudflare Turnstile open in a window of their own,
-  on either kind of connection. The app fetches the instance's widget page,
-  over the relay as well, and shows it under the address of the hoster's page
-  the captcha came from. The captcha service then sees the hoster's website,
-  as it would in a browser on that page. Many hosters tie their captcha to
-  their own domains, and every Turnstile key is tied that way, so anywhere
-  else the service refuses to run.
+  reCAPTCHA, hCaptcha and Cloudflare Turnstile open in a window of their own.
+  The app fetches the instance's widget page over the relay and shows it under
+  the address of the hoster's page the captcha came from. The captcha service
+  then sees the hoster's website, as it would in a browser on that page. Many
+  hosters tie their captcha to their own domains, and every Turnstile key is
+  tied that way, so anywhere else the service refuses to run.
   The banner also says when a captcha timed out or was answered somewhere else,
   as the web UI's messages do.
 
@@ -497,7 +482,7 @@ and cannot be explained.
 The extension takes the same twelve words and nothing else. There is no address
 field, no name field, no token field and no sync button on the options page any
 more. The extension carries its own relay client (`extension/src/relay.js`) and derives
-the group key from the phrase with a WebCrypto port of `internal/seedphrase`
+the group key from the phrase with a WebCrypto port of `kit/phrase`
 (`extension/src/phrase.js`), so it is a group member in its own right rather
 than a guest of one configured instance.
 
@@ -519,10 +504,9 @@ over downloads and finding media each ask for it when switched on; see
 
 ## API tokens and their rights
 
-A script, Sonarr, a dashboard, or the phone app connected by address rather
-than by phrase signs in with an API token: **Settings → Security → API
-tokens → New token**. Every token has a name, can be revoked on its own, and
-carries some of four rights:
+A script, Sonarr or a dashboard signs in with an API token: **Settings →
+Security → API tokens → New token**. Every token has a name, can be revoked on
+its own, and carries some of four rights:
 
 | Right | What it covers |
 |---|---|
@@ -530,10 +514,18 @@ carries some of four rights:
 | Add | links, torrents, NZB files handed over by Sonarr or Radarr, and containers |
 | Control | pausing, resuming, removing and reordering downloads, the queue's own switches, captchas, unpacking, and the accent, corners and rainbow the apps take over |
 | Admin | settings, accounts, tokens, instances, scripts, the logs, backups and restarts, and picking the folder a download goes to |
+| Fortress status | how the instance is doing and its event log at `/api/fortress/v1/status` and `/api/fortress/v1/log`, and nothing else |
 
-The window that creates a token offers four presets: **Full access** (all
-four), **Add and read**, **Read only**, and **Custom**, which shows one switch
-per right.
+The window that creates a token offers five presets: **Full access** (every
+right), **Add and read**, **Read only**, **Fortress status only**, and
+**Custom**, which shows one switch per right.
+
+**Fortress status only** is the one for a dashboard such as Homepage or
+Homarr. It reads what the other apps of a fortress read: the state, what needs
+you, the running downloads and the log, with texts in the language the
+dashboard asks for (`?lang=de` or its `Accept-Language`). A token with Read
+opens these two addresses as well. Without any token they answer 401, also on
+an instance without a password.
 
 **Add and read** is enough for Sonarr and Radarr, through either of their
 doors. Through SABnzbd's they send their key in the address (`?apikey=`), where
@@ -559,18 +551,23 @@ write to. Without one, links go where the download folder, a category or a
 Packagizer rule puts them.
 
 **Read only** suits a dashboard, or a monitoring system reading `/api/metrics`.
-The phone app uses Read, Add and Control and never needs Admin. The switch of
-the Sonarr bridge and the one for `/api/metrics` warn in their (i) when no
-token has the rights they need.
+The switch of the Sonarr bridge and the one for `/api/metrics` warn in their
+(i) when no token has the rights they need.
 
-The phone app's Play button asks for a play link with `POST
-/api/tasks/{id}/play`, which needs Read. A player app opens the link without a
-token, so the link itself is the key: it opens that one file and nothing
-else, for twelve hours, and anyone who has it can play the file in that time.
+A play link comes from `POST /api/tasks/{id}/play`, which needs Read. A player
+app opens the link without a token, so the link itself is the key: it opens
+that one file and nothing else, for twelve hours, and anyone who has it can
+play the file in that time.
 The link stops working before that when the instance restarts, when the token
 that asked for it is revoked, and when you change the password or sign out
 everywhere. For a torrent of several files that is the
-file Play picked, not the rest of the torrent.
+file Play picked, not the rest of the torrent. The answer also gives the
+file's `size` and `type`.
+
+`GET /api/tasks/{id}/range?from=…&length=…` sends that many bytes of the file
+from `from` on as a plain 200, at most 4 MiB at a time, and needs Read too. The
+phone app plays a file through it, because neither the relay nor a stream on
+the local network carries a `Range` header.
 
 A call the token has no right to is answered with a 403 that names the missing
 right:

@@ -16,7 +16,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -28,6 +27,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/afterdownload"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
@@ -41,6 +41,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
+	"github.com/junkerderprovinz/knightloader/internal/fortress"
 	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
@@ -75,6 +76,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/update"
 	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
 )
 
 // backend is a download backend: the embedded Gopeed engine or headless JD.
@@ -133,6 +135,9 @@ type App struct {
 	// EventPrograms starts a configured program on an event. It owns one
 	// goroutine per enabled program and must be closed (see app_eventprog.go).
 	EventPrograms *eventprog.Dispatcher
+	// FortressLog keeps the latest events for the members of the fortress and
+	// the dashboards that read /api/fortress/v1/log.
+	FortressLog *fortress.Log
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
 	Throttle *throttle.Limiter
@@ -149,6 +154,17 @@ type App struct {
 	// MediaHooks calls the address a category points at once a package filed
 	// there has finished and its files are in place (see app_mediahook.go).
 	MediaHooks *mediahook.Runner
+
+	// AfterDownload starts the ArrowLoop job a category names once a package filed
+	// there has landed (see app_afterdownload.go).
+	AfterDownload *afterdownload.Runner
+	// joined is the fortress this instance is in, nil until it joins one.
+	joinedMu sync.Mutex
+	joined   afterdownload.Fortress
+	// ToHost turns a folder this process sees into the path the host knows it
+	// by, for a job another container sets up on the same folder. Nil reads
+	// this process's mount table (hostpath.ToHost).
+	ToHost func(dir string) (string, error)
 
 	// Playback asks the media servers what is playing and holds quiet mode
 	// while something counts (see app_playback.go).
@@ -344,7 +360,7 @@ type App struct {
 	savedHooks []func(settings.Settings)
 	// discovery is the multicast announce/listen service, nil unless a main
 	// package enabled it (buildinfo.DiscoveryEnabled).
-	discovery io.Closer
+	discovery *lan.Service
 
 	// bmu guards the backend fields above. It is separate from mu because
 	// re-wiring makes network calls, and task state must not wait for those.
@@ -747,6 +763,8 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	a.Events.Subscribe("eventtargets", a.EventTargets.On)
 	a.EventPrograms = a.newEventPrograms(nil)
 	a.Events.Subscribe("eventprograms", a.EventPrograms.On)
+	a.FortressLog = fortress.NewLog(fortressLogSize)
+	a.Events.Subscribe("fortress", a.FortressLog.On)
 	scripts, err := script.NewHost(script.Options{DataDir: dataDir, Actions: scriptActions{a}, Hub: a.Hub, Bus: a.Events})
 	if err != nil {
 		st.Close()
@@ -757,6 +775,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 
 	// After the bus and the credential store, both of which it needs.
 	a.startMediaHooks()
+	a.startAfterDownload()
 
 	a.switchOffUnorderedSolvers()
 	a.rewireBackends()
@@ -1005,10 +1024,17 @@ func (a *App) SetSelfServeHandler(h http.Handler) {
 
 // SetDiscovery stores the network-discovery service so Close can stop it; a
 // shutting-down instance must stop announcing itself.
-func (a *App) SetDiscovery(c io.Closer) {
+func (a *App) SetDiscovery(svc *lan.Service) {
 	a.smu.Lock()
-	a.discovery = c
+	a.discovery = svc
 	a.smu.Unlock()
+}
+
+// Discovery is the network-discovery service, nil where it does not run.
+func (a *App) Discovery() *lan.Service {
+	a.smu.Lock()
+	defer a.smu.Unlock()
+	return a.discovery
 }
 
 // SelfServeHandler returns whatever SetSelfServeHandler last stored, or nil
@@ -1040,9 +1066,9 @@ func (a *App) Close() error {
 	if a.cancel != nil {
 		a.cancel()
 	}
-	// Leave the relay and stop announcing on the network.
+	// Leave the group and stop announcing on the network.
 	if a.Federation != nil {
-		a.Federation.SetRelay(nil)
+		a.Federation.SetGroup(nil)
 		a.Federation.SetRetired(nil, time.Time{})
 	}
 	a.smu.Lock()
@@ -1064,7 +1090,7 @@ func (a *App) Close() error {
 	}
 	a.wmu.Unlock()
 	// Waits for a poll in flight so no entry is still being added. cancel has
-	// already aborted any fetch, so this is bounded by the handover.
+	// already aborted any fetch, so this is bounded by the afterdownload.
 	a.fmu.Lock()
 	if a.feeds != nil {
 		_ = a.feeds.Close()
@@ -1093,6 +1119,9 @@ func (a *App) Close() error {
 	// Pending media hook calls are dropped rather than flushed: their files
 	// were never moved into place.
 	a.stopMediaHooks()
+	if a.AfterDownload != nil {
+		_ = a.AfterDownload.Close()
+	}
 	// Before the engine and the store: a torrent on a debrid service has its
 	// files fetched by the one and its job noted in the other.
 	a.serviceRuns.stop()

@@ -41,16 +41,16 @@ const feature = (id: string, fields: Partial<Feature> = {}): Feature => ({
 });
 
 function Probe({ watch }: { watch: boolean }) {
-  const { ways, open } = useWays(watch, [{ name: 'nas', url: 'http://nas:8749' }]);
+  const { ways, open } = useWays(watch);
   seen = { ways, open, at: useLocation().pathname };
   return null;
 }
 
-async function mount(modules: Feature[], answers: { apps?: unknown[] } = {}, watch = false) {
+async function mount(modules: Feature[], answers: { apps?: unknown[]; members?: unknown[] } = {}, watch = false) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => {
-      const body = { members: [], apps: answers.apps ?? [] };
+      const body = { members: answers.members ?? [], apps: answers.apps ?? [] };
       return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
     }),
   );
@@ -116,7 +116,7 @@ describe('the ways into the collector', () => {
   });
 
   it('count the other instances while the module is on', async () => {
-    await mount([feature('federation', { enabled: true })]);
+    await mount([feature('federation', { enabled: true })], { members: [{ id: 'id-nas', name: 'nas' }] });
     expect(seen.ways.find((w) => w.id === 'instances')).toMatchObject({ state: 'on', detail: 'nas' });
   });
 

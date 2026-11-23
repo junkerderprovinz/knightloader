@@ -2,14 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
-import { DEFAULT_RELAY_URL, PhraseError, WORD_COUNT, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
+import { DEFAULT_RELAY_URL, PhraseError, WORD_COUNT, frameKeyFromPhrase, keyFromPhrase, peerAuthFromPhrase } from '../api/seedphrase';
 import { checkPhrase, splitPhrase } from '../api/phraseWords';
 import { readPairingCode } from '../api/pairingCode';
 import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
 import { memberOptions } from '../storage/relayIdentity';
 import { addConnection, listConnections, newConnectionId, setActiveConnectionId } from '../storage/connections';
-import type { RelayConnection, ServerConnection } from '../api/types';
+import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useShake } from '../theme/MotionContext';
 import { NUM, TYPE } from '../theme/tokens';
@@ -30,7 +30,7 @@ import { Text, TextInput } from '../components/Text';
 //
 // The phone is a full group member rather than a client of one instance. It
 // derives the same key its siblings derive (api/seedphrase.ts, a port of
-// internal/seedphrase held to the Go side's own vectors), dials the same relay,
+// kit/phrase held to the Go side's own vectors), dials the same relay,
 // and is authenticated by that: the server accepts a relay-delivered request
 // from anything presenting the group key, so there is no token to enter. See
 // relayProxyHandler for what that admits and what it does not.
@@ -82,7 +82,7 @@ export default function RelayConnectScreen({
   // the instance list below renders only once this is set.
   // frameKey rides along as hex because that is the form it is saved in - see
   // types.ts's relayFrameKey for why it is stored rather than re-derived.
-  const [live, setLive] = useState<{ url: string; key: string; frameKey: string } | null>(null);
+  const [live, setLive] = useState<{ url: string; key: string; frameKey: string; peerAuth: string } | null>(null);
   // The ref mirrors it purely for the unmount cleanup, which must see the
   // latest value rather than the one captured when the effect was set up.
   const liveRef = useRef<{ url: string; key: string } | null>(null);
@@ -97,7 +97,7 @@ export default function RelayConnectScreen({
     const open = liveRef.current;
     if (!open) return;
     const saved = await listConnections();
-    const stillUsed = saved.some((sc) => sc.kind === 'relay' && sc.relayUrl === open.url && sc.relayKey === open.key);
+    const stillUsed = saved.some((sc) => sc.relayUrl === open.url && sc.relayKey === open.key);
     if (!stillUsed) closeRelayClient(open.url, open.key);
     liveRef.current = null;
   }, []);
@@ -123,9 +123,11 @@ export default function RelayConnectScreen({
     // from this point rather than being re-derived, since there would be
     // nothing left to re-derive it from. See types.ts's relayFrameKey.
     let frameKey: Uint8Array;
+    let peerAuth: Uint8Array;
     try {
       key = keyFromPhrase(words);
       frameKey = frameKeyFromPhrase(words);
+      peerAuth = peerAuthFromPhrase(words);
     } catch (e) {
       setError(
         e instanceof PhraseError
@@ -156,7 +158,7 @@ export default function RelayConnectScreen({
 
     unsubscribe.current = client.subscribe(() => setSibs(client.siblings()));
     liveRef.current = { url: relay, key };
-    setLive({ url: relay, key, frameKey: toHex(frameKey) });
+    setLive({ url: relay, key, frameKey: toHex(frameKey), peerAuth: toHex(peerAuth) });
     setSibs(client.siblings());
     setTimeout(() => setSearching(false), SETTLE_MS);
   };
@@ -167,25 +169,29 @@ export default function RelayConnectScreen({
   const saveAll = async () => {
     if (!live || sibs.length === 0) return;
     const existing = await listConnections();
-    let first: RelayConnection | null = null;
+    let first: ServerConnection | null = null;
     for (const s of sibs) {
       // Re-joining with the same phrase must not double every row. An
       // instance is the same instance if the group and its id match; its name
       // is a label it may have changed since.
       const already = existing.find(
-        (e) => e.kind === 'relay' && e.relayUrl === live.url && e.relayKey === live.key && e.instanceId === s.instanceId,
+        (e) => e.relayUrl === live.url && e.relayKey === live.key && e.instanceId === s.instanceId,
       );
       if (already) {
-        first = first ?? (already as RelayConnection);
+        // One paired before the phone kept the peer-auth key gets it, and with
+        // it the way to play files on the local network.
+        if (!already.peerAuthKey) await addConnection({ ...already, peerAuthKey: live.peerAuth });
+        first = first ?? already;
         continue;
       }
-      const conn: RelayConnection = {
+      const conn: ServerConnection = {
         kind: 'relay',
         id: newConnectionId(),
         name: s.name || s.instanceId,
         relayUrl: live.url,
         relayKey: live.key,
         relayFrameKey: live.frameKey,
+        peerAuthKey: live.peerAuth,
         instanceId: s.instanceId,
       };
       await addConnection(conn);

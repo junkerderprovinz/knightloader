@@ -23,10 +23,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
-	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/web"
+	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // Handler builds the full HTTP handler.
@@ -36,32 +36,33 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	h := withBasePath(reg.proxySeen.note(knownHost(a, sameOrigin(guard(a, reg, mux)))))
+	h := withBasePath(fortressTabs(a, reg.proxySeen.note(knownHost(a, sameOrigin(guard(a, reg, mux))))))
 
-	// A relay-proxied call is answered by this same handler, so it cannot drift
-	// from what a browser or an API token gets. Wiring the relay and the peer
-	// tokens here means a saved relay address and saved peer credentials take
-	// effect as soon as either binary boots.
+	// A member's call is answered by this same handler, so it cannot drift
+	// from what a browser or an API token gets. Opening the group here means a
+	// saved relay takes effect as soon as either binary boots.
 	a.SetSelfServeHandler(h)
 	applyRelay(a)
-	a.Federation.SetPeerTokens(peerTokens{a: a})
 	return h
 }
 
-// relayGroupKey marks a request as having arrived over this instance's own
-// relay socket, from a sibling that presented the same group key. It is a
-// context value rather than a header because a header can be forged by whoever
-// composed the frame; relayProxyHandler attaches it only after the relay client
-// has accepted the frame.
-type relayGroupKeyType struct{}
+// memberCallKey marks a request as a call from a member of this instance's
+// group and carries who it is. It is a context value rather than a header
+// because a header can be forged by whoever composed the call; memberHandler
+// attaches it only after kit/group admitted the member.
+type memberCallKey struct{}
 
-var relayGroupKey relayGroupKeyType
+// fromGroup reports whether this request is a call from a member of this
+// instance's group, over the relay or directly.
+func fromGroup(r *http.Request) bool {
+	_, ok := memberOf(r)
+	return ok
+}
 
-// fromRelayGroup reports whether this request came in over the relay from a
-// sibling holding the same connection phrase.
-func fromRelayGroup(r *http.Request) bool {
-	v, _ := r.Context().Value(relayGroupKey).(bool)
-	return v
+// memberOf is the member of the group a request came from.
+func memberOf(r *http.Request) (group.Caller, bool) {
+	c, ok := r.Context().Value(memberCallKey{}).(group.Caller)
+	return c, ok
 }
 
 // authenticated reports whether the request carries a valid session or a
@@ -79,10 +80,10 @@ func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
 	if !a.Auth.Enabled() {
 		return nil, true
 	}
-	// A sibling on the relay already holds the group key, derived from the
-	// connection phrase that reaches every instance in the group, so a second
-	// credential would protect nothing. guard holds such calls to groupRoutes.
-	if fromRelayGroup(r) {
+	// A member already holds the phrase that reaches every instance in the
+	// group, so a second credential would protect nothing. guard holds such
+	// calls to groupRoutes.
+	if fromGroup(r) {
 		return nil, true
 	}
 	if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Valid(c.Value) {
@@ -102,9 +103,9 @@ func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
 // on an instance without a password. A phone or an instance of the group
 // holds the group's phrase, which is no admin right.
 func addsAsAdmin(a *app.App, r *http.Request) bool {
-	if fromRelayGroup(r) {
-		c, ok := federation.CallerOf(r.Context())
-		return ok && c.Kind == relay.KindExtension
+	if fromGroup(r) {
+		c, ok := memberOf(r)
+		return ok && c.Kind == member.KindExtension
 	}
 	tok, ok := caller(a, r)
 	return ok && (tok == nil || tok.Has(apitoken.ScopeAdmin))
@@ -150,15 +151,21 @@ func tokenSecret(r *http.Request) string {
 // that lies about it gains nothing: a Secure cookie only stays off plain HTTP,
 // and the cookie is its own.
 func setSession(w http.ResponseWriter, r *http.Request, token string) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     auth.CookieName,
-		Value:    token,
+	http.SetCookie(w, browserCookie(r, auth.CookieName, token))
+}
+
+// browserCookie is a cookie of the browser's session with this instance,
+// kept under the base path for as long as a sign-in lasts.
+func browserCookie(r *http.Request, name, value string) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
 		Path:     cookiePath(r),
 		HttpOnly: true,
 		Secure:   requestScheme(r) == "https",
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(auth.SessionTTL / time.Second),
-	})
+	}
 }
 
 func clearSession(w http.ResponseWriter, r *http.Request) {
@@ -193,9 +200,13 @@ func cookiePath(r *http.Request) string {
 // for requireScope to check against the route.
 func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if reg.shutInTunnel(a, r) {
+			refuseTunnel(w)
+			return
+		}
 		// Before the open routes, which a member reaches only when they are
 		// on its list too.
-		if fromRelayGroup(r) {
+		if fromGroup(r) {
 			if reg.admitGroup(a, w, r) {
 				next.ServeHTTP(w, r)
 			}

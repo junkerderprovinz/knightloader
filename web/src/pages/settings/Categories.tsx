@@ -16,6 +16,7 @@ import { RATE_UNITS, fmtSpeed } from '../../lib/format';
 import { IconAdd, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { COLLISION_LABEL } from './Archives';
+import { AfterDownloadRow } from './AfterDownload';
 import { useDraft, useFieldError } from './context';
 import { RowRefusal, SettingRow, Sheet } from './controls';
 import { FileSelectionFields } from './Torrents';
@@ -676,6 +677,8 @@ function CategoryRow({
               />
             )}
           </SettingRow>
+
+          <AfterDownloadRow cat={cat} onChange={onChange} />
 
           {/* Two segments rather than a switch, like the rows above: Inherit
               is "no opinion", not "off". */}

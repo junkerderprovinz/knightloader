@@ -40,8 +40,6 @@ const group = {
   relayMode: 'project',
   projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
-  address: '',
-  networkAddress: '',
   members: [],
   apps: [],
   away: [],
@@ -50,9 +48,12 @@ const group = {
   pending: [],
   awaiting: false,
   fingerprint: '',
+  relayKeyDropped: false,
+  droppedInstances: [],
+  behind: [],
 } satisfies ConnectInfo;
 
-const relay: RelayConfig = { mode: 'project', relayUrl: '', keySet: false, connected: false, serve: false, serveClients: 0 };
+const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };
 
 function draw(g: Partial<ConnectInfo>, r: Partial<RelayConfig> = {}) {
   act(() =>
@@ -67,7 +68,7 @@ function draw(g: Partial<ConnectInfo>, r: Partial<RelayConfig> = {}) {
 const state = () => host.querySelector('[data-testid="relay-state"]')!.textContent;
 
 describe('RelayCard', () => {
-  it('says there is no group yet instead of Not connected before a phrase', () => {
+  it('says there is no group yet instead of Not reachable before a phrase', () => {
     draw({});
     expect(state()).toBe('No group yet');
     // The sentence behind the word stands in the state's (i).
@@ -78,7 +79,7 @@ describe('RelayCard', () => {
 
   it('reports the connection once there is a group', () => {
     draw({ active: true });
-    expect(state()).toBe('Not connected');
+    expect(state()).toBe('Not reachable');
     draw({ active: true }, { connected: true });
     expect(state()).toBe('Connected');
     expect(host.querySelector('[data-testid="relay-state"] [role="note"]')).toBeNull();

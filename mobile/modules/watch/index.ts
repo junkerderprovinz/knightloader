@@ -34,6 +34,10 @@ declare class KnightWatchModule extends NativeModule<{ onOpen: () => void }> {
   update(title: string, text: string): void;
   stop(): void;
   running(): boolean;
+  /** Keeps the app in front of Android's freezer while a player reads a file
+   *  from it. False when Android refuses, as for start. */
+  serve(title: string, text: string): boolean;
+  endServe(): void;
   /** When the service runs the next pass, in milliseconds from the end of this
    *  one, and whether the phone stays awake until then or an alarm wakes it. */
   next(delayMs: number, awake: boolean): void;

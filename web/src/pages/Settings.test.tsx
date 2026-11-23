@@ -31,7 +31,7 @@ beforeEach(() => {
       if (path === '/api/settings' && init?.method === 'PATCH') stored = { ...stored, ...JSON.parse(String(init.body)) };
       // The Instances page is on offer once a test has its module.
       const pages = modules.length > 0 ? [{ id: 'instances', modules: ['federation'] }] : [];
-      const lists = ['/api/instances', '/api/discovery'];
+      const lists = ['/api/instances'];
       const body =
         path === '/api/settings'
           ? stored

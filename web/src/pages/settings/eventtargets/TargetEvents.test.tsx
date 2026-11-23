@@ -26,7 +26,7 @@ it('offers every event but the manual run, which never reaches a target or a pro
   act(() =>
     root.render(
       <I18nProvider>
-        <TargetEvents triggers={['task.done', 'queue.idle', 'manual']} picked={[]} hue={0} onChange={() => {}} />
+        <TargetEvents triggers={['task.done', 'queue.idle', 'manual']} picked={[]} hue={0} noneText="" onChange={() => {}} />
       </I18nProvider>,
     ),
   );

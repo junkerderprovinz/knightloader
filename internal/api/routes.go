@@ -49,6 +49,8 @@ func registerAll(reg *Registry, a *app.App) {
 	registerFederation(reg, a)
 	registerRelay(reg, a)
 	registerConnect(reg, a)
+	registerFortressMembership(reg, a)
+	registerFortressOpen(reg, a)
 	registerClipWatch(reg, a)
 	registerDiscovery(reg, a)
 	registerFeatures(reg, a)
@@ -66,6 +68,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerSelfTest(reg, a)
 	registerFileOwner(reg, a)
 	registerHealth(reg, a)
+	registerFortress(reg, a)
 	registerFiles(reg, a)
 	registerLifecycle(reg, a)
 	registerBackup(reg, a)
@@ -86,6 +89,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerEventTargets(reg, a)
 	registerEventPrograms(reg, a)
 	registerMediaHooks(reg, a)
+	registerAfterDownload(reg, a)
 	registerPlayback(reg, a)
 	registerDebridDrive(reg, a)
 	registerUsenetServers(reg, a)
@@ -138,11 +142,6 @@ type Registry struct {
 	// ServeMux panicking at startup in production.
 	seen map[string]bool
 
-	// refreshDiscovery re-reads what this instance announces on the network,
-	// for a settings save that renames it. registerDiscovery sets it; until
-	// then, and on a build without discovery, it does nothing.
-	refreshDiscovery func()
-
 	// passwordGate throttles every route that checks the login password, so
 	// a route that asks for it again cannot serve as an unthrottled way to
 	// guess it.
@@ -161,10 +160,9 @@ type Registry struct {
 
 func newRegistry() *Registry {
 	return &Registry{
-		seen:             map[string]bool{},
-		refreshDiscovery: func() {},
-		passwordGate:     newLoginGate(nil),
-		proxySeen:        newProxySeen(),
+		seen:         map[string]bool{},
+		passwordGate: newLoginGate(nil),
+		proxySeen:    newProxySeen(),
 	}
 }
 

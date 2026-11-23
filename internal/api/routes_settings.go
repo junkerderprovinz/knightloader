@@ -10,13 +10,14 @@ import (
 	"slices"
 	"strings"
 
+	kitnotify "github.com/junkerderprovinz/parleyport/kit/notify"
+
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/mediahook"
-	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -59,7 +60,6 @@ func registerSettings(reg *Registry, a *app.App) {
 			if applied.InstanceName != prev.InstanceName || applied.RelayURL != prev.RelayURL ||
 				!slices.Equal(applied.KnownDomains, prev.KnownDomains) {
 				applyRelay(a)
-				reg.refreshDiscovery()
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
@@ -114,15 +114,13 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// The relay client is rebuilt only when the patch touches what it
-			// is built from: the name and address it announces in its hello
-			// frame, and the relay it dials.
+			// The group is opened again only when the patch touches what it
+			// is opened with: the name and address it announces and the relay
+			// it dials.
 			_, renamed := patch["instanceName"]
 			_, readdressed := patch["knownDomains"]
-			if renamed || readdressed {
-				applyRelay(a)
-				reg.refreshDiscovery()
-			} else if _, ok := patch["relayUrl"]; ok {
+			_, rerouted := patch["relayUrl"]
+			if renamed || readdressed || rerouted {
 				applyRelay(a)
 			}
 			writeJSON(w, settingsBody(a, applied))
@@ -170,22 +168,12 @@ func writeValidationError(w http.ResponseWriter, err error) {
 		}
 	}
 	// Settings.tsx prefixes the code with "settings.", which makes this the
-	// key the event target page already uses beside the row.
-	var np *notify.Problem
-	if errors.As(err, &np) {
-		out["code"] = "eventTargets.problem." + np.Code
-		params := map[string]any{}
-		if np.N != 0 {
-			params["n"] = np.N
-		}
-		if np.Header != "" {
-			params["header"] = np.Header
-		}
-		if np.Value != "" {
-			params["value"] = np.Value
-		}
-		if len(params) > 0 {
-			out["params"] = params
+	// key the event target page uses beside the row.
+	var ps kitnotify.Problems
+	if errors.As(err, &ps) && len(ps) > 0 {
+		out["code"] = "eventTargets.problem." + ps[0].Code
+		if ps[0].Field != "" {
+			out["params"] = map[string]any{"field": ps[0].Field}
 		}
 	}
 	// A refusal that names its field is shown beside it, and the page saves the
@@ -322,14 +310,14 @@ func validateRows(dataDir string, s settings.Settings, named func(key string) bo
 			}
 		}
 	}
-	// notify.Validate returns *Problem rather than error, so it is checked
-	// before being wrapped; a typed nil in an error variable is not nil.
-	if sent("eventTargets") {
-		for i, e := range s.EventTargets {
-			if p := notify.Validate(e); p != nil {
-				return &settings.FieldError{Field: fmt.Sprintf("eventTargets.%d", i),
-					Err: fmt.Errorf("event target %d: %w", i+1, p)}
+	if sent("notifyChannels") {
+		if err := kitnotify.Validate(s.NotifyChannels); err != nil {
+			field := "notifyChannels"
+			var ps kitnotify.Problems
+			if errors.As(err, &ps) && len(ps) > 0 {
+				field = fmt.Sprintf("notifyChannels.%d", ps[0].Index)
 			}
+			return &settings.FieldError{Field: field, Err: err}
 		}
 	}
 	// The accounts page's own route checks these too; a settings patch or an

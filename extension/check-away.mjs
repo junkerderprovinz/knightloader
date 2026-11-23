@@ -1,13 +1,15 @@
 // An instance approved in the group that is away, such as a desktop app that
 // was closed, is listed on the options page with when it was last seen, and
-// once it is back on the relay it is listed once, as an instance.
+// once it is back on the relay it is listed once, as an instance. It reads
+// Not reachable, in the web interface's words, which are GlimStone's. One that
+// did not follow the group into a fortress is listed as left behind, not away.
 //
 // groupView runs for real against a stand-in relay session.
 //
 // Run by CI and by hand: `node extension/check-away.mjs`.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import vm from 'node:vm';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -21,7 +23,7 @@ const expect = (what, got, want) => {
   if (g !== w) problems.push(`${what}: got ${g}, want ${w}`);
 };
 
-const desktop = { id: 'desk', name: 'Zathallia', deployment: 'desktop', address: 'http://192.168.20.86:8749', lastSeen: 1790000000 };
+const desktop = { id: 'desk', name: 'Zathallia', deployment: 'desktop', lastSeen: 1790000000 };
 const nas = { instanceId: 'nas', name: 'Unraid', deployment: 'container' };
 
 // Every instance answers its queue; the one asked for the roster sends `roster`.
@@ -46,6 +48,22 @@ expect('a desktop app back on the relay is listed as an instance', back.instance
 
 const old = await view([nas], { apps: [] });
 expect('an instance from before the away list lists none', old.away, []);
+expect('an instance from before the fortress lists nobody left behind', old.behind, []);
+
+const phone = { id: 'mobile-1', name: 'Arthallia', kind: 'mobile', deployment: '' };
+const stayed = { id: 'desk', name: 'Zathallia', kind: 'instance', deployment: 'desktop' };
+const moved = await view([nas], { apps: [], away: [desktop], behind: [phone, stayed, { name: 'no id' }] });
+expect('a device that did not follow into the fortress is listed as left behind', moved.behind, [phone, stayed]);
+expect('an instance left behind is not listed as away as well', moved.away, []);
+
+const words = vm.createContext({ navigator: { language: 'en', languages: ['en'] } });
+vm.runInContext(readFileSync(join(here, 'src', 'i18n.js'), 'utf8') + ';globalThis.MESSAGES = MESSAGES;', words);
+for (const [lang, messages] of Object.entries(words.MESSAGES)) {
+  const [web] = Object.values(await import(pathToFileURL(join(here, '..', 'web', 'src', 'lib', 'locales', `${lang}.ts`)).href));
+  expect(`${lang}: an instance that is away`, messages['instance.notReachable'], web['instances.notReachable']);
+  expect(`${lang}: the word for it before`, messages['instance.inactive'], undefined);
+  expect(`${lang}: the word for one that does not answer`, messages['instance.notConnected'], undefined);
+}
 
 if (problems.length) {
   console.error(problems.join('\n'));

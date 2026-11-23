@@ -1,40 +1,38 @@
 package api
 
-// The relay configuration: the address this instance dials out to, kept in
-// settings.json, and the key that authorises it there, sealed in
-// internal/accounts under relay.AccountService. The key is never answered
-// with, and it does not ride on /api/settings, which hands the whole document
-// back.
+// The relay configuration: which relay this instance's group dials, kept in
+// settings.json, and the group itself, opened from the phrase sealed in
+// internal/accounts under federation.SeedAccount. The phrase never rides on
+// /api/settings, which hands the whole document back.
 
 import (
-	"bytes"
 	"context"
-	"crypto/ed25519"
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
-	"io"
 	"log"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/fortress"
+	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
-// relayConfig is what both GET and PUT /api/relay/config answer with: the
-// address, and the one bit of the key anybody is entitled to know.
+// relayConfig is what both GET and PUT /api/relay/config answer with.
 type relayConfig struct {
 	RelayURL string `json:"relayUrl"`
-	KeySet   bool   `json:"keySet"`
 	// Connected is whether the socket to that relay is up right now, which a
-	// stored address and key alone cannot tell.
+	// stored address alone cannot tell.
 	Connected bool `json:"connected"`
 	// Serve is whether this instance is itself running the relay, under
 	// /relay/connect on its own address.
@@ -47,7 +45,18 @@ type relayConfig struct {
 	Mode string `json:"mode"`
 }
 
+// maxAnswer is the most a member answers a direct call with, and
+// maxRelayAnswer the most it answers over the relay. The Overview of a busy
+// instance lists thousands of tasks, which the network next door carries
+// whole and a relay frame up to its size.
+const (
+	maxAnswer      = 32 << 20
+	maxRelayAnswer = 8 << 20
+)
+
 func registerRelay(reg *Registry, a *app.App) {
+	dropRelayKey(a)
+
 	// The relay socket is open: instances dialling in have no session here,
 	// and the relay key in the first frame is the credential. One Server lives
 	// for the whole process with the switch read per connection, so saving an
@@ -63,7 +72,7 @@ func registerRelay(reg *Registry, a *app.App) {
 		if !ok || subtle.ConstantTimeCompare([]byte(key), []byte(g.Key)) != 1 {
 			return ""
 		}
-		return idOf(a, g.member())
+		return idOf(a, g.identity())
 	}
 	// A hello proves an id only to the relay it names. This one goes by the
 	// name a connection reached it under, when that is a name this instance
@@ -95,30 +104,33 @@ func registerRelay(reg *Registry, a *app.App) {
 	// A member on the same network calls here instead of over the relay. The
 	// route is open like the relay socket: the call is signed and sealed with
 	// keys only members hold, and answers 404 outside a group.
-	reg.AddOpen(http.MethodPost, federation.DirectPath,
+	reg.AddOpen(http.MethodPost, group.DirectPath,
 		"a call from another member of this instance's phrase group on the same network - authorised by the group's keys, never by a session",
 		func(w http.ResponseWriter, r *http.Request) {
-			serve := a.SelfServeHandler()
-			if serve == nil {
-				http.Error(w, "not ready", http.StatusServiceUnavailable)
+			if f := fortressOf(a); f != nil {
+				f.direct.ServeHTTP(w, r)
 				return
 			}
-			a.Federation.ServeDirect(w, r, a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))))
+			g := a.Federation.Group()
+			if g == nil {
+				http.NotFound(w, r)
+				return
+			}
+			g.DirectHandler().ServeHTTP(w, r)
 		})
 
 	reg.Add(http.MethodGet, "/api/relay/config",
-		"the relay this instance dials out to, and whether a key is stored for it - never the key itself",
+		"the relay this instance's group dials, and whether it is connected",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, relayConfigOf(a, srv))
 		})
 
 	reg.Add(http.MethodPut, "/api/relay/config",
-		"set the relay address, and the relay key when one is sent; saving either reconnects the relay client",
+		"set the relay address, the relay mode and whether this instance serves a relay; saving reconnects the group",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				RelayURL string `json:"relayUrl"`
-				// Key is absent to keep the stored key, "" to clear it, and
-				// anything else to replace it.
+				// Key is the relay key older releases took by hand.
 				Key *string `json:"key"`
 				// Serve and Mode are pointers so a save from one control does
 				// not carry the others back.
@@ -126,6 +138,11 @@ func registerRelay(reg *Registry, a *app.App) {
 				Mode  *string `json:"mode"`
 			}
 			if !decodeJSON(w, r, &body) {
+				return
+			}
+			if body.Key != nil && *body.Key != "" {
+				writeRefusal(w, http.StatusBadRequest, "relayKeyGone",
+					"a relay key typed in by hand no longer pairs instances; pair them with the phrase instead", nil)
 				return
 			}
 			// SetPartial, so a concurrent edit to other settings survives.
@@ -164,48 +181,47 @@ func registerRelay(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if body.Key != nil {
-				before, _ := a.Accounts.Get(relay.AccountService)
-				if err := a.Accounts.Set(relay.AccountService, *body.Key); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				if before != *body.Key && groupSecret(a) == nil {
-					if err := enterManualGroup(a, *body.Key != ""); err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
-					}
-				}
-			}
 			applyRelay(a)
 			writeJSON(w, relayConfigOf(a, srv))
 		})
 }
 
-// enterManualGroup starts the group a hand-entered relay key makes, or leaves
-// it when joined is false. Its instances sign their calls and approve each
-// other as in a group reached by the words, under a member key of its own.
-func enterManualGroup(a *app.App, joined bool) error {
-	if err := a.Accounts.Set(relay.MemberAccountService, ""); err != nil {
-		return err
+// dropRelayKey forgets a relay key typed in by hand, which older releases
+// paired instances by without a phrase. An instance that was in such a
+// group is left alone in none, and its Pairing card says why.
+func dropRelayKey(a *app.App) {
+	manual, err := a.Accounts.Get(federation.RelayKeyAccount)
+	if err != nil || manual == "" {
+		return
 	}
-	at := time.Time{}
-	if joined {
-		at = time.Now()
+	if err := a.Accounts.Set(federation.RelayKeyAccount, ""); err != nil {
+		log.Printf("relay: could not forget the relay key typed in by hand: %v", err)
+		return
 	}
-	return a.Federation.SetJoined(at)
+	if groupSecret(a) != nil {
+		return
+	}
+	log.Printf("relay: a relay key typed in by hand no longer pairs instances; pair this one again with the phrase")
+	if err := a.Accounts.Set(federation.MemberAccount, ""); err != nil {
+		log.Printf("relay: could not forget the member key of the group the relay key made: %v", err)
+	}
+	if err := a.Federation.DropRelayKey(); err != nil {
+		log.Printf("relay: could not note that the relay key typed in by hand is gone: %v", err)
+	}
 }
 
 // servesKey reports whether the relay this instance serves admits key: the
-// hand-entered relay key, or the one its phrase group dials with (see
-// relayTarget).
+// one its phrase group dials with, or the one of the group it left at a
+// reset.
 func servesKey(a *app.App, key string) bool {
 	var served []string
-	if manual, err := a.Accounts.Get(relay.AccountService); err == nil && manual != "" {
-		served = append(served, manual)
-	}
 	if secret := groupSecret(a); secret != nil {
-		served = append(served, relay.DeriveKey(secret))
+		served = append(served, federation.Domain.GroupKey(secret))
+	}
+	// The pairing in a fortress dials under the fortress phrase, and so do
+	// the apps of the fortress.
+	if secret := fortressSecret(a); secret != nil {
+		served = append(served, federation.Domain.GroupKey(secret), fortress.Domain.GroupKey(secret))
 	}
 	if g, ok := retiredOf(a, time.Now()); ok {
 		served = append(served, g.Key)
@@ -220,11 +236,9 @@ func servesKey(a *app.App, key string) bool {
 	return ok
 }
 
-// relayConfigOf reads the configuration back from the two stores, so PUT
-// answers with what is stored. A key that will not decrypt reads as not set,
-// as in app.accountRow.
+// relayConfigOf reads the configuration back from the settings, so PUT
+// answers with what is stored.
 func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
-	key, err := a.Accounts.Get(relay.AccountService)
 	cfg := a.Settings.Get()
 	// Sockets opened before the switch went off linger until they drop, so the
 	// count is only reported while it is on.
@@ -235,165 +249,246 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 	return relayConfig{
 		Mode:         cfg.RelayModeOf(),
 		RelayURL:     cfg.RelayURL,
-		KeySet:       err == nil && key != "",
 		Connected:    a.Federation.RelayConnected(),
 		Serve:        cfg.RelayServe,
 		ServeClients: clients,
 	}
 }
 
-// relayTarget answers which relay applyRelay dials, with which key, and under
-// which key the frames are sealed.
-//
-// A stored connection secret from the seed phrase comes first: the relay key
-// and the frame key are derived from it under different domains
-// (relay.DeriveKey, relay.DeriveFrameKey), so the relay can hold one and never
-// compute the other. Without a seed, a hand-entered relay key is used, and the
-// frame key comes from it (relay.FrameKeyFromRelayKey), a weaker guarantee no
-// UI text claims.
-func relayTarget(a *app.App) (url, key string, frameKey []byte) {
+// relayOf is the relay the group dials: the project's, the own one at the
+// stored address, or none. Only "own" honours the stored address; in project
+// mode the field may still hold an address somebody switched away from.
+func relayOf(a *app.App) (group.RelayMode, string) {
 	cfg := a.Settings.Get()
-	// Checked before any credential is read, so switching the relay off does
-	// not log warnings about the stored secret.
-	if cfg.RelayModeOf() == settings.RelayModeOff {
-		return "", "", nil
-	}
-	// Only "own" honours the stored address; in project mode the field may
-	// still hold an address somebody switched away from.
-	override := ""
-	if cfg.RelayModeOf() == settings.RelayModeOwn {
-		override = cfg.RelayURL
+	switch cfg.RelayModeOf() {
+	case settings.RelayModeOff:
+		return group.RelayOff, ""
+	case settings.RelayModeOwn:
 		// Own relay without an address dials nothing rather than falling back
 		// to the project relay.
-		if strings.TrimSpace(override) == "" {
+		if strings.TrimSpace(cfg.RelayURL) == "" {
 			log.Printf("relay: own relay is selected but no address is set, nothing is dialled")
-			return "", "", nil
+			return group.RelayOff, ""
 		}
+		return group.RelayOwn, cfg.RelayURL
 	}
-
-	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
-		secret, err := hex.DecodeString(secretHex)
-		if err != nil || len(secret) != seedphrase.SecretLen {
-			// Logged, because the instance looks configured while reaching
-			// nothing.
-			log.Printf("relay: the stored connection secret is malformed, remote access is off until the phrase is entered again")
-			return "", "", nil
-		}
-		if override != "" {
-			return override, relay.DeriveKey(secret), relay.DeriveFrameKey(secret)
-		}
-		return relay.DefaultRelayURL, relay.DeriveKey(secret), relay.DeriveFrameKey(secret)
-	}
-
-	manual, err := a.Accounts.Get(relay.AccountService)
-	if err != nil {
-		log.Printf("relay: the stored key could not be read, connecting without one: %v", err)
-	}
-	if manual == "" {
-		return override, "", nil
-	}
-	return override, manual, relay.FrameKeyFromRelayKey(manual)
+	return group.RelayProject, relay.DefaultURL
 }
 
-// applyRelay rebuilds the relay client from what is stored and installs it on
-// a.Federation, which closes the previous one. It runs at boot and after every
-// relay or name change. A relay that cannot be reached is not an error for the
-// caller; the client keeps retrying in the background.
+// applyRelay opens this instance's group again from what is stored. It runs
+// at boot and after every relay or name change. A relay that cannot be
+// reached is not an error for the caller, since the group keeps trying in the
+// background.
 func applyRelay(a *app.App) {
-	applyGroup(a)
-	applyRetired(a)
-	relayURL, key, frameKey := relayTarget(a)
-	serve := a.SelfServeHandler()
-	if relayURL == "" || key == "" || serve == nil {
-		a.Federation.SetRelay(nil)
-		return
+	if err := regroup(a, nil); err != nil {
+		log.Printf("relay: could not open the group: %v", err)
 	}
-
-	member := memberKey(a)
-	c, err := relay.NewClient(relay.ClientOptions{
-		URL:      relayURL,
-		Key:      key,
-		FrameKey: frameKey,
-		Self: relay.Announce{
-			InstanceID: idOf(a, member),
-			Name:       instanceDisplayName(a),
-			Deployment: instanceKind(),
-			Address:    groupAddress(a),
-		},
-		Member: member,
-		Trusts: a.Federation.TrustsAnswer,
-		Serve:  a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))),
-		// A browser extension holds its socket only for the length of a call,
-		// so its card is written while it is there rather than whenever a page
-		// next asks, and the open pages hear of it.
-		OnChange: func() {
-			go func() {
-				if _, err := a.Federation.Apps(time.Now()); err != nil {
-					log.Printf("relay: could not record the phones of the group: %v", err)
-				}
-				if _, err := a.Federation.AwayMembers(time.Now()); err != nil {
-					log.Printf("relay: could not record the instances of the group: %v", err)
-				}
-				a.Hub.Broadcast("group", nil)
-				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-				defer cancel()
-				syncGroupDevices(ctx, a)
-			}()
-		},
-	})
-	if err != nil {
-		log.Printf("relay: could not configure the client: %v", err)
-		a.Federation.SetRelay(nil)
-		return
-	}
-	c.Start()
-	a.Federation.SetRelay(c)
 }
 
-// applyGroup hands the stored group secret to the direct transport, which
-// works whichever relay is chosen, none included.
-func applyGroup(a *app.App) {
-	member := memberKey(a)
-	a.Federation.SetGroup(groupSecret(a), idOf(a, member), member)
+// regroup closes the group, runs change, when there is one, and opens the
+// group from what is stored then.
+func regroup(a *app.App, change func() error) error {
+	applyRetired(a)
+	err := a.Federation.Reopen(func() (federation.GroupView, error) {
+		var changeErr error
+		if change != nil {
+			changeErr = change()
+		}
+		var g federation.GroupView
+		var err error
+		if secret := fortressSecret(a); secret != nil {
+			g, err = openFortress(a, secret)
+		} else if pg, perr := openPhraseGroup(a, a.Discovery()); pg != nil {
+			g, err = pg, perr
+		} else {
+			err = perr
+		}
+		if changeErr != nil {
+			return g, changeErr
+		}
+		return g, err
+	})
+	return err
+}
+
+// openPhraseGroup opens the group the stored phrase makes, nil outside one,
+// announcing it on network. A group that has never been opened here takes
+// over what group.json holds from releases before kit/group. An instance in a
+// fortress keeps it open until every member followed, handing the phones and
+// browsers the keys of the pairing there, and an instance of the group that
+// joins a fortress hands the fortress phrase over through it (moveKeeper).
+func openPhraseGroup(a *app.App, network *lan.Service) (*group.Group, error) {
+	secret := groupSecret(a)
+	serve := a.SelfServeHandler()
+	if secret == nil || serve == nil {
+		return nil, nil
+	}
+	members := fortress.Moved(fortress.Moving(memberHandler(a, serve), moveKeeper{a}), func() *fortress.Fortress {
+		if g := fortressOf(a); g != nil && g.taken() {
+			return g.f
+		}
+		return nil
+	})
+	identity := memberKey(a)
+	if identity == nil {
+		return nil, nil
+	}
+	store := groupStore{a.Accounts}
+	kept, err := store.Load()
+	if err != nil {
+		return nil, err
+	}
+	mode, url := relayOf(a)
+	cfg := pairingConfig(a, serve, store)
+	cfg.LAN = network
+	cfg.Domain = federation.Domain
+	cfg.Secret = secret
+	cfg.Identity = *identity
+	cfg.Self = groupSelf(a)
+	cfg.Relay, cfg.RelayURL = mode, url
+	// The owner of an instance that was taken out leaves only the group it
+	// was taken out of: a reset in between put it in a group of its own,
+	// which nobody else may make it leave.
+	cfg.OnRemoved = func() {
+		err := a.Auth.Mint(func() bool { return subtle.ConstantTimeCompare(groupSecret(a), secret) == 1 },
+			func() error { return enterGroup(a, nil) })
+		if err != nil {
+			log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
+		}
+	}
+	g, err := group.Open(cfg, members)
+	if err != nil {
+		return nil, err
+	}
+	if len(kept) == 0 {
+		if old, ok := a.Federation.OldGroup(); ok {
+			if err := g.Import(old); err != nil {
+				log.Printf("relay: could not keep the group this instance was in before the update: %v", err)
+			}
+		}
+	}
+	return g, nil
+}
+
+// pairingConfig is how KnightLoader pairs its own instances, phones and
+// browsers, on its own phrase or in a fortress, where the fortress sets who
+// joins and where.
+func pairingConfig(a *app.App, serve http.Handler, store group.Store) group.Config {
+	return group.Config{
+		Signing:             federation.Signing,
+		LAN:                 a.Discovery(),
+		Store:               store,
+		Kinds:               []member.Kind{member.KindMobile, member.KindExtension},
+		Ports:               federation.LAN.Ports,
+		MaxAnswerBytes:      maxAnswer,
+		MaxRelayAnswerBytes: maxRelayAnswer,
+		OnChange: func() {
+			a.Hub.Broadcast("group", nil)
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer cancel()
+			a.Federation.SyncLegacy(ctx, time.Now())
+		},
+		// A file a phone plays on this network comes as a stream.
+		Stream: memberHandler(a, serve),
+	}
+}
+
+// groupSelf is what the other members see of this instance.
+func groupSelf(a *app.App) group.Self {
+	return group.Self{
+		Name:       instanceDisplayName(a),
+		Deployment: instanceKind(),
+		Address:    groupAddress(a),
+		DirectURL:  networkAddress(),
+	}
+}
+
+// groupStore keeps what kit/group knows of the group sealed in the credential
+// store, beside the phrase it belongs to.
+type groupStore struct{ accounts *accounts.Store }
+
+func (s groupStore) Load() ([]byte, error) {
+	v, err := s.accounts.Get(federation.GroupAccount)
+	return []byte(v), err
+}
+
+func (s groupStore) Save(b []byte) error {
+	return s.accounts.Set(federation.GroupAccount, string(b))
+}
+
+// memberHandler serves a member's call with serve, the same handler a browser
+// or an API token reaches, marked as coming from the group, and tells the open
+// pages when a member handed links over.
+//
+// Whoever holds the phrase can join the group, so serve holds such a call to
+// groupRoutes: a member cannot read accounts, change the password, mint a
+// token or ask for the phrase. Who the member is, and whether it was taken
+// out, kit/group decided before this runs.
+func memberHandler(a *app.App, serve http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, _ := group.CallerOf(r.Context())
+		serveMember(a, serve, c, w, r)
+	})
+}
+
+// serveMember serves r, a call member c made, with serve.
+func serveMember(a *app.App, serve http.Handler, c group.Caller, w http.ResponseWriter, r *http.Request) {
+	r = r.WithContext(context.WithValue(r.Context(), memberCallKey{}, c))
+	sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+	serve.ServeHTTP(sw, r)
+	if addsLinks(r.Method, r.URL.Path) && sw.status/100 == 2 {
+		a.Hub.Broadcast("handover", handover{Peer: c.ID})
+	}
+}
+
+// statusWriter remembers the status a handler answered with.
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(status int) {
+	w.status = status
+	w.ResponseWriter.WriteHeader(status)
 }
 
 // memberMu keeps two callers from minting two member keys at once.
 var memberMu sync.Mutex
 
 // memberKey is the key this instance signs its calls to the group with, nil
-// outside a group. A group reached by a hand-entered relay key signs the same
-// way as one reached by the words. The key is minted here the first time it is
-// needed.
-func memberKey(a *app.App) ed25519.PrivateKey {
-	if manual, _ := a.Accounts.Get(relay.AccountService); groupSecret(a) == nil && manual == "" {
+// outside a group. The key is minted here the first time it is needed.
+func memberKey(a *app.App) *member.Identity {
+	if groupSecret(a) == nil && fortressSecret(a) == nil {
 		return nil
 	}
 	memberMu.Lock()
 	defer memberMu.Unlock()
-	if stored, err := a.Accounts.Get(relay.MemberAccountService); err == nil && stored != "" {
-		if seed, err := hex.DecodeString(stored); err == nil && len(seed) == ed25519.SeedSize {
-			return ed25519.NewKeyFromSeed(seed)
+	if stored, err := a.Accounts.Get(federation.MemberAccount); err == nil && stored != "" {
+		if seed, err := hex.DecodeString(stored); err == nil {
+			if id, err := member.FromSeed(member.KindInstance, seed); err == nil {
+				return &id
+			}
 		}
 		log.Printf("relay: the stored member key is malformed, minting a new one; the group pins it as a new key")
 	}
-	seed, err := relay.NewMemberSeed()
+	id, err := member.NewIdentity(member.KindInstance)
 	if err == nil {
-		err = a.Accounts.Set(relay.MemberAccountService, hex.EncodeToString(seed))
+		err = a.Accounts.Set(federation.MemberAccount, hex.EncodeToString(id.Seed()))
 	}
 	if err != nil {
 		log.Printf("relay: no member key, the group refuses this instance's calls until one can be made: %v", err)
 		return nil
 	}
-	return ed25519.NewKeyFromSeed(seed)
+	return &id
 }
 
-// idOf is the id this instance goes by with member: the one the key makes
-// (relay.MemberID), or its own instance id without one.
-func idOf(a *app.App, member ed25519.PrivateKey) string {
-	if member == nil {
+// idOf is the id this instance goes by with identity: the one its key makes,
+// or its own instance id without one.
+func idOf(a *app.App, identity *member.Identity) string {
+	if identity == nil {
 		return a.Settings.Get().InstanceID
 	}
-	return relay.MemberID(relay.KindInstance, member.Public().(ed25519.PublicKey))
+	return identity.ID()
 }
 
 // groupID is the id the group knows this instance by.
@@ -402,90 +497,13 @@ func groupID(a *app.App) string { return idOf(a, memberKey(a)) }
 // groupSecret is the stored connection secret of this instance's phrase
 // group, nil outside a group or when the stored value is malformed.
 func groupSecret(a *app.App) []byte {
-	secretHex, err := a.Accounts.Get(relay.SeedAccountService)
+	secretHex, err := a.Accounts.Get(federation.SeedAccount)
 	if err != nil || secretHex == "" {
 		return nil
 	}
 	secret, err := hex.DecodeString(secretHex)
-	if err != nil || len(secret) != seedphrase.SecretLen {
+	if err != nil || len(secret) != phrase.SecretLen {
 		return nil
 	}
 	return secret
-}
-
-// relayProxyHandler turns one inbound relay call into a request against serve,
-// the same handler a browser or an API token reaches.
-//
-// The relay only joins sockets presenting the same group key, derived from the
-// connection phrase, so the sender has proved group membership and the request
-// is marked as coming from the group. Whoever holds the phrase can join the
-// group anyway. In return guard holds the call to groupRoutes, so a member
-// cannot read accounts, change the password, mint a token or ask for the
-// phrase. Who the sender is, and whether it was taken out, is the guard's to
-// decide (federation.Manager.Guard) before this runs.
-func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
-	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
-		var body io.Reader
-		if len(call.Body) > 0 {
-			body = bytes.NewReader(call.Body)
-		}
-		httpReq, err := http.NewRequestWithContext(ctx, call.Method, call.Path, body)
-		if err != nil {
-			return http.StatusBadRequest, []byte(err.Error())
-		}
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), relayGroupKey, true))
-		if len(call.Body) > 0 {
-			httpReq.Header.Set("Content-Type", "application/json")
-		}
-		rec := newRelayRecorder()
-		// There is no net/http server here to recover a panicking handler, and
-		// this runs on the goroutine reading relay frames, so a panic would take
-		// the whole instance down.
-		status, out := func() (s int, b []byte) {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Printf("relay: handler panicked serving %s %s: %v", call.Method, call.Path, r)
-					s, b = http.StatusInternalServerError, []byte("internal error")
-				}
-			}()
-			serve.ServeHTTP(rec, httpReq)
-			if rec.tooLong {
-				return http.StatusBadGateway, []byte(errRelayAnswerTooLong.Error())
-			}
-			return rec.status, rec.body.Bytes()
-		}()
-		return status, out
-	}
-}
-
-// relayAnswerMax bounds what one relayed call answers. No member reads more
-// than 32 MiB of an answer, sealed and encoded, so a larger one, such as a
-// finished file, could never arrive and would only fill this instance's memory.
-const relayAnswerMax = 32 << 20
-
-// relayRecorder buffers one handler's response in memory, so production code
-// does not depend on httptest.
-type relayRecorder struct {
-	header  http.Header
-	status  int
-	body    bytes.Buffer
-	tooLong bool
-}
-
-func newRelayRecorder() *relayRecorder {
-	return &relayRecorder{header: http.Header{}, status: http.StatusOK}
-}
-
-// errRelayAnswerTooLong stops a handler that writes past relayAnswerMax.
-var errRelayAnswerTooLong = errors.New("answer too large to pass on")
-
-func (r *relayRecorder) Header() http.Header    { return r.header }
-func (r *relayRecorder) WriteHeader(status int) { r.status = status }
-
-func (r *relayRecorder) Write(b []byte) (int, error) {
-	if r.tooLong || r.body.Len()+len(b) > relayAnswerMax {
-		r.tooLong = true
-		return 0, errRelayAnswerTooLong
-	}
-	return r.body.Write(b)
 }

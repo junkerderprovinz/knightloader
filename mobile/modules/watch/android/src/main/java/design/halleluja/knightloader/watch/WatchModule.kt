@@ -57,6 +57,21 @@ class WatchModule : Module() {
       WatchService.stop(context)
     }
 
+    Function("serve") { title: String, text: String ->
+      try {
+        ServeService.start(context, title, text)
+        true
+      } catch (e: IllegalStateException) {
+        false
+      } catch (e: SecurityException) {
+        false
+      }
+    }
+
+    Function("endServe") {
+      ServeService.stop(context)
+    }
+
     Function("running") {
       WatchService.running
     }

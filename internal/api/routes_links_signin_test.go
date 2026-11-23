@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/ed25519"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +10,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // addedByAdmin reports whether the task staged for link records an admin as
@@ -87,16 +86,8 @@ func TestOnlyAnAdminsLinksGoOutWithTheOwnersSessions(t *testing.T) {
 func TestTheExtensionsLinksGoOutWithTheOwnersSessionsAndAPhonesDoNot(t *testing.T) {
 	t.Parallel()
 	a, _, _, _, _ := groupServer(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	approve := func(kind string) func(string, ed25519.PublicKey) {
-		return func(id string, key ed25519.PublicKey) {
-			if _, _, err := a.Federation.Approve(id, key, kind); err != nil {
-				t.Fatal(err)
-			}
-		}
-	}
-	browser := signedCall(t, "browser-mine", relay.KindExtension, serve, approve(relay.KindExtension))
-	phone := signedCall(t, "phone-mine", relay.KindMobile, serve, approve(relay.KindMobile))
+	browser := signedCall(t, a, "browser-mine", member.KindExtension)
+	phone := signedCall(t, a, "phone-mine", member.KindMobile)
 
 	if status, body := browser(http.MethodPost, "/api/links", linkBody("https://www.patreon.com/posts/from-the-browser-1")); status != http.StatusOK {
 		t.Fatalf("the extension adding a link = %d (%s)", status, body)

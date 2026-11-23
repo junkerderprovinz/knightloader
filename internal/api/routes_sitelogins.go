@@ -41,9 +41,8 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // handoverSite is what the extension learns of a site: where to read the
@@ -105,7 +104,7 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 		"the added sites the browser extension can hand a session over for, and which this instance waits for",
 		func(w http.ResponseWriter, r *http.Request) {
 			if q := r.URL.Query(); q.Has("reads") {
-				if c, ok := federation.CallerOf(r.Context()); ok && c.Kind == relay.KindExtension {
+				if c, ok := memberOf(r); ok && c.Kind == member.KindExtension {
 					if err := a.NoteSiteReaders(c.ID, strings.Split(q.Get("reads"), ",")); err != nil {
 						log.Printf("sitelogins: could not record which sites a browser reads: %v", err)
 					}
@@ -130,8 +129,8 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			// The group's phones and instances hold the words too, and none of
 			// them signs in anywhere on the user's behalf.
-			if fromRelayGroup(r) {
-				if c, ok := federation.CallerOf(r.Context()); !ok || c.Kind != relay.KindExtension {
+			if fromGroup(r) {
+				if c, ok := memberOf(r); !ok || c.Kind != member.KindExtension {
 					writeRefusal(w, http.StatusForbidden, "handoverNotFromExtension",
 						"only the browser extension hands a site's session over", nil)
 					return

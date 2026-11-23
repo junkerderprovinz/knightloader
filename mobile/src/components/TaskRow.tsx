@@ -114,8 +114,7 @@ export default function TaskRow({
   /** Disables this link, or enables it again; the package header's badge
    *  does the same for all of its links. */
   onSwitch?: () => void;
-  /** Opens the file in a player app; absent where there is nothing to play
-   *  or no player could reach the instance. */
+  /** Opens the file in a player app; absent where there is nothing to play. */
   onPlay?: () => void;
   /** A torrent's files, drawn under the rest of the card in the row's own
    *  colour. */
@@ -285,8 +284,8 @@ export default function TaskRow({
         {files?.(rowAccent)}
       </View>
 
-      {/* Hands the file to a player app, which streams it while it still
-          downloads. Only where a player can reach the instance. */}
+      {/* Hands the file to a player app, which plays it while it still
+          downloads. */}
       {onPlay && (
         <IconBadge symbol="▶" onPress={onPlay} accessibilityLabel={t('task.play')} />
       )}

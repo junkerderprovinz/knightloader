@@ -21,12 +21,14 @@ import (
 	"strings"
 	"sync"
 
+	kitnotify "github.com/junkerderprovinz/parleyport/kit/notify"
+	"github.com/junkerderprovinz/parleyport/kit/notify/legacy"
+
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
-	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -608,18 +610,18 @@ func setFeature(a *app.App, id string, on bool) error {
 		value = subs
 
 	case "eventtargets":
-		key = "eventTargets"
+		key = "notifyChannels"
 		if !on {
-			if err := parkValue(a, id, cur.EventTargets); err != nil {
+			if err := parkValue(a, id, cur.NotifyChannels); err != nil {
 				return err
 			}
 			break
 		}
-		var targets []notify.Target
-		if !unparkValue(a, id, &targets) || len(targets) == 0 {
+		channels := unparkChannels(a, id)
+		if len(channels) == 0 {
 			return nothing("there is no event target to switch back on; add one on the Automation page")
 		}
-		value = targets
+		value = channels
 
 	case "scheduler":
 		key = "schedule"
@@ -675,7 +677,7 @@ func parkSlotFilled(s settings.Settings, id string) bool {
 	case "feeds":
 		return len(s.Feeds) > 0
 	case "eventtargets":
-		return len(s.EventTargets) > 0
+		return len(s.NotifyChannels) > 0
 	case "scheduler":
 		return len(s.Schedule) > 0
 	case "reconnect":
@@ -741,6 +743,33 @@ func storeParkDoc(a *app.App, doc map[string]json.RawMessage) error {
 		return err
 	}
 	return a.SetUIState(parkBucket, string(out))
+}
+
+// unparkChannels reads parked channels back. A list parked by a build from
+// before the channels holds event targets, which come back as channels.
+func unparkChannels(a *app.App, id string) []kitnotify.Channel {
+	var raw json.RawMessage
+	if !unparkValue(a, id, &raw) {
+		return nil
+	}
+	var rows []map[string]json.RawMessage
+	if json.Unmarshal(raw, &rows) != nil {
+		return nil
+	}
+	for _, row := range rows {
+		if _, ok := row["kind"]; !ok {
+			channels, err := legacy.FromTargets(raw)
+			if err != nil {
+				return nil
+			}
+			return channels
+		}
+	}
+	var channels []kitnotify.Channel
+	if json.Unmarshal(raw, &channels) != nil {
+		return nil
+	}
+	return channels
 }
 
 // unparkValue reads a parked value back and reports whether there was one.

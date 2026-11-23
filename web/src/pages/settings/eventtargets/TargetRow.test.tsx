@@ -3,38 +3,28 @@ import { act, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { expect, it } from 'vitest';
 
-import type { EventTargetStatus } from '../../../lib/eventtargets';
+import type { Channel, EventTargetStatus } from '../../../lib/eventtargets';
 import { I18nProvider } from '../../../lib/i18n';
 import { SettingsProvider, type SettingsDraft } from '../context';
 import { TargetRow } from './TargetRow';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-it('names the host of the address as it stands, not the one the server last reported', () => {
+it('names the kind and the host of the address, without its query', () => {
   const host = document.createElement('div');
   document.body.append(host);
   const root = createRoot(host);
   const draft = { cfg: {}, fieldError: () => undefined, showRefusalsAt: () => () => {} } as unknown as SettingsDraft;
-  const status: EventTargetStatus = {
-    id: '1',
-    name: 'ntfy',
-    enabled: true,
-    host: 'old.example',
-    lastStatus: 200,
-    attempts: 1,
-    sent: 1,
-    dropped: 0,
-  };
+  const status: EventTargetStatus = { id: '1', name: 'ntfy', kind: 'ntfy', enabled: true, lastStatus: 0, attempts: 1, sent: 1, dropped: 0 };
   act(() =>
     root.render(
       <I18nProvider>
         <SettingsProvider draft={draft} features={{ features: { modules: [], pages: [] }, toggle: async () => {} }}>
           <ul>
             <TargetRow
-              row={{ id: '1', name: 'ntfy', enabled: true, url: 'https://new.example/topic', attempts: 0, timeoutSeconds: 0 }}
+              row={{ id: '1', kind: 'ntfy', name: 'phone', enabled: true, ntfy: { url: 'https://new.example/topic?auth=secret' } }}
               index={0}
               last
-              stored
               open={false}
               triggers={[]}
               placeholders={[]}
@@ -48,21 +38,20 @@ it('names the host of the address as it stands, not the one the server last repo
       </I18nProvider>,
     ),
   );
-  expect(host.textContent).toContain('new.example');
-  expect(host.textContent).not.toContain('old.example');
+  expect(host.textContent).toContain('ntfy · new.example');
+  expect(host.textContent).not.toContain('secret');
   act(() => root.unmount());
   host.remove();
 });
 
-/** An unsaved row that takes its own edits, as the list holds a row not saved yet. */
-function UnsavedRow() {
-  const [row, setRow] = useState({ id: '1', name: 'ntfy', enabled: true, url: '', attempts: 0, timeoutSeconds: 0 });
+/** A webhook row that takes its own edits, as the settings draft does. */
+function WebhookRow() {
+  const [row, setRow] = useState<Channel>({ id: '1', kind: 'webhook', name: 'ntfy', enabled: false, webhook: { url: '' } });
   return (
     <TargetRow
       row={row}
       index={0}
       last
-      stored={false}
       open
       triggers={[]}
       placeholders={[]}
@@ -73,7 +62,7 @@ function UnsavedRow() {
   );
 }
 
-/** An unsaved row with its window open, and the box whose caption reads `caption`. */
+/** A webhook row with its window open, and the box whose caption reads `caption`. */
 function openRow(caption: string) {
   const host = document.createElement('div');
   document.body.append(host);
@@ -84,7 +73,7 @@ function openRow(caption: string) {
       <I18nProvider>
         <SettingsProvider draft={draft} features={{ features: { modules: [], pages: [] }, toggle: async () => {} }}>
           <ul>
-            <UnsavedRow />
+            <WebhookRow />
           </ul>
         </SettingsProvider>
       </I18nProvider>,

@@ -3,14 +3,14 @@ import { getRandomBytes } from 'expo-crypto';
 import { memberPublicKey, proveId, verifyResult } from './memberKey';
 import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult, sealSignedCall } from './relayFrame';
 
-// This app's client for internal/relay's wire protocol, the second way it can
+// This app's client for kit/relay's wire protocol, the second way it can
 // reach an instance: one behind a NAT with no port forwarding and no reverse
 // proxy, where nothing on the phone's network can open a connection to it. Both
 // ends dial out to the relay instead, and it forwards between them.
 //
 // The protocol is one JSON frame per message so that a client which speaks only
 // plain WebSocket text needs a JSON parser and nothing else. Keep the frame
-// shapes below in sync with internal/relay/protocol.go, which is the source of
+// shapes below in sync with kit/relay/protocol.go, which is the source of
 // truth.
 //
 // The relay carries request and response frames, not a tunnelled WebSocket, so
@@ -29,8 +29,10 @@ export interface RelaySibling {
 
 export interface RelayProxyResult {
   status: number;
+  /** The response body as it came, such as a range of a file. */
+  bytes: Uint8Array;
   /** The response body as text; '' when the answer carried none. */
-  body: string;
+  readonly body: string;
 }
 
 // Mirrors the Go client's own constants, so the two behave alike on a flaky
@@ -49,7 +51,7 @@ const T_PROXY_REQUEST = 'proxy-request';
 const T_PROXY_RESPONSE = 'proxy-response';
 
 /**
- * connectURL mirrors internal/relay/client.go's function of the same name:
+ * connectURL mirrors kit/relay's function of the same name:
  * people write down the https:// address they gave their reverse proxy, not a
  * WebSocket URL, so both scheme families are accepted. A path ending in
  * /connect names the socket and stays (a relay behind a proxy can be mounted
@@ -102,7 +104,7 @@ export interface RelayClientOptions {
   key: string;
   /**
    * The 32-byte key every proxy frame is sealed under - seedphrase.ts's
-   * deriveFrameKey, mirroring relay.DeriveFrameKey.
+   * deriveFrameKey, mirroring federation.Domain.FrameKey.
    *
    * Separate from `key` and it has to stay that way: `key` is what this
    * client hands the relay in its hello frame, so a frame key equal to it
@@ -480,7 +482,14 @@ export class RelayClient {
           p.reject(new Error('relay: the answer is not signed by the instance it claims to come from'));
           return;
         }
-        p.resolve({ status, body: bytesToUtf8(body) });
+        p.resolve({
+          status,
+          bytes: new Uint8Array(body),
+          // Read as text only when asked, since a range of a film is no text.
+          get body() {
+            return bytesToUtf8(body);
+          },
+        });
         return;
       }
       case T_PROXY_REQUEST: {
