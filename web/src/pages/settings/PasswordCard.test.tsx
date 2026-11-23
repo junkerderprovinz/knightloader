@@ -99,12 +99,32 @@ describe('the password card', () => {
     expect(row.lastElementChild).toBe(apply);
   });
 
-  it('counts characters, not bytes, and says so in its own words', async () => {
+  it('sets a short password and only says beforehand that it is easy to guess', async () => {
     await open();
+    expect(host.textContent).not.toContain(en['auth.passwordShortHint']);
 
+    type(field(en['settings.passwordNew'])!, 'äöüßäöü');
+    expect(host.textContent).toContain(en['auth.passwordShortHint']);
     await setPassword('äöüßäöü');
 
-    expect(toast).toHaveBeenCalledWith(en['auth.passwordShort'], 'fail');
+    expect(toast).not.toHaveBeenCalledWith(expect.anything(), 'fail');
+    expect(puts).toEqual([{ current: '', new: 'äöüßäöü' }]);
+  });
+
+  it('drops the hint once the password has twelve characters', async () => {
+    await open();
+
+    type(field(en['settings.passwordNew'])!, 'äöüßäöüéäöüß');
+
+    expect(host.textContent).not.toContain(en['auth.passwordShortHint']);
+  });
+
+  it('refuses a password longer than bcrypt takes in its own words', async () => {
+    await open();
+
+    await setPassword('ä'.repeat(37));
+
+    expect(toast).toHaveBeenCalledWith(en['auth.passwordLong'], 'fail');
     expect(puts).toHaveLength(0);
   });
 

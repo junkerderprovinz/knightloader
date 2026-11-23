@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -32,11 +34,10 @@ func sendJSON(t *testing.T, c *http.Client, method, url string, body any) (int, 
 	return resp.StatusCode, refusal.Code, out
 }
 
-// TestWithoutAPasswordNoStoredPasswordsGo: an instance without a password
-// answers whoever reaches its port. The task list, the twelve words and the
-// downloaded files are open to them, but the passwords in a backup wait until
-// a password is set.
-func TestWithoutAPasswordNoStoredPasswordsGo(t *testing.T) {
+// TestWithoutAPasswordEverythingIsOpen: an instance without a password
+// answers whoever reaches its port, the backups with every stored password in
+// them included, as do the twelve words and erasing downloaded files.
+func TestWithoutAPasswordEverythingIsOpen(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -46,19 +47,18 @@ func TestWithoutAPasswordNoStoredPasswordsGo(t *testing.T) {
 	if code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
 		t.Fatalf("activate answered %d: %s", code, body)
 	}
-	for _, r := range []struct {
-		method, path string
-		body         any
-	}{
-		{http.MethodGet, "/api/system/backup", nil},
-		{http.MethodGet, "/api/system/backups/knightloader-auto-20261001-030000.zip", nil},
-	} {
-		code, refusal, body := sendJSON(t, c, r.method, srv.URL+r.path, r.body)
-		if code != http.StatusForbidden || refusal != "passwordNotSet" {
-			t.Errorf("%s %s answered %d %.80s, want 403 passwordNotSet", r.method, r.path, code, body)
+	const auto = "knightloader-auto-20261001-030000.zip"
+	if err := os.MkdirAll(a.AutoBackupDir(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(a.AutoBackupDir(), auto), []byte("PK"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{"/api/system/backup", "/api/system/backups/" + auto} {
+		if code, _, body := sendJSON(t, c, http.MethodGet, srv.URL+path, nil); code != http.StatusOK {
+			t.Errorf("GET %s answered %d %.80s, want 200", path, code, body)
 		}
 	}
-	// What gives no stored password away stays open, erasing files included.
 	var shown struct{ Phrase string }
 	code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
 	if err := json.Unmarshal(body, &shown); code != http.StatusOK || err != nil || shown.Phrase == "" {

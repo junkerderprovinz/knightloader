@@ -28,7 +28,7 @@ import {
   IconKeyRevoke,
   IconTrash,
 } from '../../lib/icons';
-import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../../lib/passwordLength';
+import { isShort, refusedTooLong, tooLong } from '../../lib/passwordLength';
 import { useToast } from '../../lib/toast';
 import { unusedProxyRanges } from '../../lib/trustedProxies';
 import { useDraft } from './context';
@@ -112,8 +112,7 @@ export function PasswordCard({
   }
 
   async function onApply() {
-    const length = next === '' ? undefined : lengthProblem(next);
-    if (length) return refuse(t(LENGTH_PROBLEM[length]));
+    if (tooLong(next)) return refuse(t('auth.passwordLong'));
     try {
       setAuth(await setPassword(current, next));
       setCurrent('');
@@ -123,14 +122,14 @@ export function PasswordCard({
       setTimeout(() => setDone(false), 1800);
       onAuthChanged();
     } catch (e) {
-      const refused = refusedLength(e);
-      refuse(refused ? t(LENGTH_PROBLEM[refused]) : String(e).replace(/^Error:\s*/, ''));
+      refuse(refusedTooLong(e) ? t('auth.passwordLong') : String(e).replace(/^Error:\s*/, ''));
     }
   }
 
   const locked = auth?.enabled ?? false;
   // A repetition that differs says so; one still being typed is not wrong yet.
   const mismatch = next !== '' && repeat !== '' && repeat !== next;
+  const short = isShort(next);
   // Emptying the first field takes the second away, and with it what was in it.
   if (next === '' && repeat !== '') setRepeat('');
 
@@ -152,13 +151,24 @@ export function PasswordCard({
           </SettingRow>
         )}
         <SettingRow control="long" label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
-          <PasswordInput
-            value={next}
-            onChange={setNext}
-            autoComplete="new-password"
-            showLabel={t('common.showPassword')}
-            hideLabel={t('common.hidePassword')}
-          />
+          <span className="flex flex-col">
+            <PasswordInput
+              value={next}
+              onChange={setNext}
+              autoComplete="new-password"
+              describedBy={short ? 'password-short' : undefined}
+              showLabel={t('common.showPassword')}
+              hideLabel={t('common.hidePassword')}
+            />
+            {/* A word about the length, never a refusal: how strong the lock is, is the owner's call. */}
+            <span aria-live="polite">
+              {short && (
+                <span id="password-short" className="mt-1.5 block text-xs text-carbon-textSub">
+                  {t('auth.passwordShortHint')}
+                </span>
+              )}
+            </span>
+          </span>
         </SettingRow>
         {/* A new password is typed twice, so a slip of the finger never
             becomes the one nobody can sign in with. The second field comes

@@ -3607,8 +3607,7 @@ export async function logout(): Promise<void> {
 }
 
 // setPassword sets, changes or (with an empty next) removes the password lock.
-// A new password of the wrong length is refused with the code passwordTooShort
-// or passwordTooLong.
+// A new password longer than 72 bytes is refused with the code passwordTooLong.
 export async function setPassword(current: string, next: string): Promise<AuthState> {
   const r = await fetch('/api/auth/password', {
     method: 'PUT',

@@ -28,11 +28,8 @@ import (
 
 func registerBackup(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/system/backup",
-		"download the store and settings as one archive, every stored password included; refused while no login password is set",
+		"download the store and settings as one archive, every stored password included",
 		func(w http.ResponseWriter, r *http.Request) {
-			if !passwordFirst(a, w, "downloading a backup, which carries every password in the settings") {
-				return
-			}
 			downloadBackup(w, a)
 		})
 
@@ -43,11 +40,8 @@ func registerBackup(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/system/backups/{name}",
-		"download one automatic backup, every stored password included; refused while no login password is set",
+		"download one automatic backup, every stored password included",
 		func(w http.ResponseWriter, r *http.Request) {
-			if !passwordFirst(a, w, "downloading a backup, which carries every password in the settings") {
-				return
-			}
 			downloadAutoBackup(w, r, a)
 		})
 
@@ -74,7 +68,7 @@ func registerBackup(reg *Registry, a *app.App) {
 
 func downloadBackup(w http.ResponseWriter, a *app.App) {
 	// Unredacted. Unlike GET /api/settings this is never served to a page on
-	// load, only to a session that asked for the download.
+	// load, only to whoever asked for the download.
 	parts, err := a.PrepareBackup()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

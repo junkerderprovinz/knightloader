@@ -36,7 +36,7 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	h := withBasePath(fortressTabs(a, reg.proxySeen.note(knownHost(a, sameOrigin(guard(a, reg, mux))))))
+	h := withBasePath(fortressTabs(a, reg.proxySeen.note(sameOrigin(guard(a, reg, mux)))))
 
 	// A member's call is answered by this same handler, so it cannot drift
 	// from what a browser or an API token gets. Opening the group here means a
@@ -242,7 +242,8 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 // sameOrigin keeps other websites from driving this instance through the
 // visitor's browser. The UI is served from the same origin as the API, so no
 // cross-origin access is ever needed. A site that points its own domain at
-// this address passes here; knownHost is what stops it.
+// this address passes here, and with a password set the session cookie,
+// which the browser keeps for the real name, is what stops it.
 //
 // Sec-Fetch-Site is set by the browser itself and no page can change it, so it
 // still says cross-site where a privacy setting has dropped the Origin. Only
@@ -274,8 +275,7 @@ func originMatchesHost(origin, host string) bool {
 
 func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	// No InsecureSkipVerify: the library then requires Origin to match Host,
-	// which with knownHost in front is what stops another site from opening
-	// this socket.
+	// so a page on another site cannot open this socket under the real name.
 	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		return

@@ -17,7 +17,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { Button } from '../components/ui';
 import { SignInCard } from '../components/SignInCard';
 import { IconForward } from '../lib/icons';
-import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../lib/passwordLength';
+import { refusedTooLong, tooLong } from '../lib/passwordLength';
 import type { SignInText } from '../lib/signIn';
 import logoUrl from '../assets/logo.svg';
 
@@ -130,10 +130,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
       text={text}
       passkey={passkeyHere}
       reset
-      passwordProblem={(p) => {
-        const problem = lengthProblem(p);
-        return problem ? t(LENGTH_PROBLEM[problem]) : null;
-      }}
+      passwordProblem={(p) => (tooLong(p) ? t('auth.passwordLong') : null)}
       step={done ? <ResetDone removed={done.removed} onContinue={() => onSignedIn(done)} /> : undefined}
       onSignIn={async ({ password, code }) => {
         try {
@@ -176,8 +173,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
           // in the second case.
           if (status(e) === 401) return { rejected: true };
           if (status(e) === 429) return { error: t('auth.tooMany') };
-          const length = status(e) === 400 ? refusedLength(e) : undefined;
-          return { error: t(length ? LENGTH_PROBLEM[length] : 'auth.reset.failed') };
+          return { error: t(refusedTooLong(e) ? 'auth.passwordLong' : 'auth.reset.failed') };
         }
       }}
     />

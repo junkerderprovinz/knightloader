@@ -75,12 +75,12 @@ func registerRelay(reg *Registry, a *app.App) {
 		return idOf(a, g.identity())
 	}
 	// A hello proves an id only to the relay it names. This one goes by the
-	// name a connection reached it under, when that is a name this instance
-	// answers on, and by its known domains, which stay right behind a proxy
-	// that rewrites the Host header.
+	// name a connection reached it under, when nobody outside the local
+	// network can point that name here, and by its known domains, which stay
+	// right behind a proxy that rewrites the Host header.
 	srv.Names = func(r *http.Request) []string {
 		var names []string
-		if hostAllowed(a, r.Host) {
+		if ownHost(a, r.Host) {
 			names = append(names, relay.RelayHost(r.Host))
 		}
 		for _, d := range a.Settings.Get().KnownDomains {

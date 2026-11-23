@@ -431,7 +431,7 @@ export const en = {
   'settings.appKeyCopies': 'A copy of the files from before the encryption key is still in the data folder. KnightLoader deletes it after {date}.',
   'settings.passwordCurrent': 'Current password',
   'settings.passwordNew': 'New password',
-  'settings.passwordHint': 'At least 12 characters. Leave it empty to remove the lock. That also switches two-factor authentication off and deletes every passkey.',
+  'settings.passwordHint': 'Any length works. From 12 characters on, a password is hard to guess. Leave it empty to remove the lock. That also switches two-factor authentication off and deletes every passkey.',
   'settings.setPassword': 'Set password',
   'settings.passwordSaved': 'Password updated.',
   'settings.access.trustedProxies': 'Trusted proxies',
@@ -455,7 +455,7 @@ export const en = {
   'auth.reset.effect': 'A code is valid for 10 minutes. Setting the new password switches two-factor authentication off, removes every passkey and every API token, signs out every other browser and takes this instance out of its pairing group.',
   'auth.reset.repeat': 'Confirm password',
   'auth.reset.mismatch': 'The passwords do not match',
-  'auth.passwordShort': 'The password needs at least 12 characters.',
+  'auth.passwordShortHint': 'A password under 12 characters is quick to guess. It still works, but a longer one holds up better.',
   'auth.passwordLong': 'This password is too long. It can be at most 72 bytes, and a letter with an accent or from another alphabet takes two to four of them.',
   'auth.reset.rejected': 'That code was not accepted. Use the newest code written there. Once a code is too old, KnightLoader writes a new one, at most once a minute.',
   'auth.tooMany': 'Too many attempts. Wait a minute and try again.',
@@ -2285,7 +2285,7 @@ export const en = {
   'settings.access.identity.namePlaceholder': 'e.g. Home server',
   'settings.access.identity.nameHint': 'Offered first when pairing and in the QR code below, instead of whatever the OS or container runtime happens to call this machine. Optional: leave it empty to keep using that name.',
   'settings.access.identity.addressesLabel': 'Known addresses',
-  'settings.access.identity.addressesHint': 'KnightLoader never adds a domain here on its own. The first one is the address it gives its group, so your phone and other instances can open it away from home. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
+  'settings.access.identity.addressesHint': 'KnightLoader never adds a domain here on its own. The first one is the address it gives its group, so your phone and other instances can open it away from home. One full address per line, e.g. https://kl.example.com.',
 
   // Every other way to get KnightLoader: the phone app, the desktop app or a
   // server install, the bookmarklet, the MV3 browser extension and the PWA
@@ -3375,8 +3375,8 @@ export const en = {
   'idleAction.openSettings': 'Open the setting',
   'idleAction.dismiss': 'Dismiss',
   'settings.transfer.cardTitle': 'Backup & transfer',
-  'settings.transfer.cardHint': 'Download backup saves everything this instance holds as one file through your browser: the download list, the history, the settings, the hoster and debrid logins, the header profiles, the captcha keys, the login, the tokens and the scripts. Without an encryption key every password in it is readable, so keep the file private; with one, the file is encrypted with that key. Downloading it needs a login password. Upload backup puts such a file back, says first what it replaces, and applies it at the next start.',
-  'settings.transfer.needsPassword': 'A backup carries every stored password, so it needs a login password first. You set it under {path}.',
+  'settings.transfer.cardHint': 'Download backup saves everything this instance holds as one file through your browser: the download list, the history, the settings, the hoster and debrid logins, the header profiles, the captcha keys, the login, the tokens and the scripts. Without an encryption key every password in it is readable, so keep the file private; with one, the file is encrypted with that key. Upload backup puts such a file back, says first what it replaces, and applies it at the next start.',
+  'settings.transfer.noPasswordNote': 'A backup carries every stored password, and without a login password anyone who can reach this instance can download it. You can set one under {path} if you like.',
   'settings.transfer.selectAll': 'All',
   'settings.transfer.selectNone': 'None',
   'settings.transfer.apply': 'Take over {n}',
