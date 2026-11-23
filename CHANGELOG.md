@@ -36,6 +36,65 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.9.5] - 2026-11-22
+
+### Added
+
+- **The Version card shows where updates stand.** Under Settings, Info it shows
+  KnightLoader's version, checks for a newer release and opens What's new in
+  the app. On the desktop, Update now downloads the update with a progress bar,
+  and once it is in place, the Restart button, which names the new version,
+  closes KnightLoader and opens it. A container and the Flatpak link to the
+  guide on how to update them.
+
+### Design
+
+- **KnightLoader follows GlimStone 4.8.5.** Settings, Info holds the same four
+  cards in the web interface, the phone app and the extension: Version,
+  Components, Help and About. Badges in connection rows are smaller, and the
+  AllDebrid mark stays visible on a dark background.
+- **The Components card says what each program does** in its (i). On the
+  desktop it ends with the PommelPorter release the installer was built with.
+  On a narrow screen a long version number moves below the name.
+
+### Improved
+
+- **The phone app and the extension say which store brings their updates.**
+  The phone app names Google Play or F-Droid, and an APK installed by hand
+  points to the release page for new versions. The extension names its
+  browser's add-on store.
+- **yt-dlp is current in the container too.** The image ships yt-dlp
+  2026.10.26 from yt-dlp's own releases, so it no longer waits for Alpine's
+  package to catch up. The image and the app also check yt-dlp's signature on
+  every release they fetch.
+- **Fresh building blocks.** Deno 2.9.8 and PommelPorter 1.2.6. The container
+  takes Deno from Deno's own releases and checks it against their checksum,
+  since Alpine's package trails them by months.
+- **Security fixes in the container image.** The build installs every Alpine
+  update published after the base image, which brings the fixed OpenSSL and
+  zlib. Python is gone from the image, and py3-cryptography with it.
+- **The published images get OS updates every week.** Between releases, the
+  KnightLoader and relay images tagged `latest` take Alpine's pending updates
+  once a week and are left alone when no package has an update.
+- **Dashboard labels.** Dashboards that read container labels list
+  KnightLoader with its name, logo and description on their own. Put the
+  address in the template's Dashboard Link field to make the entry a link.
+
+### Fixed
+
+- **Downloads pick up again once a used-up volume is back.** Downloads that ran
+  into a used-up download volume, such as Debrid-Link's daily traffic for one
+  hoster, gave up after three quick retries and never started again. They now
+  wait until the volume is back and pick up by themselves.
+- **Uninstalling quietly closes KnightLoader first.** A silent uninstall left a
+  running KnightLoader and its qBittorrent open, also when the app ran in
+  another Windows session. It now ends both before it removes the files.
+
+### Translations
+
+- **Every new text is in all 42 languages** of the web interface, the phone
+  app and the extension. About no longer repeats the app's name.
+
 ## [2.9.4] - 2026-11-20
 
 ### Design

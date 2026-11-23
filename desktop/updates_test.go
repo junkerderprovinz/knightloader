@@ -22,8 +22,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/update"
 )
 
-const testInstaller = "knightloader-test-installer.exe"
-
 // fakeGitHub serves a latest release with files and a checksums.txt that
 // sums lists, the way release.yml publishes one.
 func fakeGitHub(t *testing.T, tag string, files map[string][]byte, sums string) *httptest.Server {
@@ -69,17 +67,17 @@ func sumsOf(files map[string][]byte) string {
 }
 
 // testUpdater runs v1.3.0 from a program file of its own and asks srv for
-// releases. It offers testInstaller as this platform's installer and records
-// what it is asked to launch instead of starting it.
-func testUpdater(t *testing.T, srv *httptest.Server) (*updater, *[]string) {
+// releases. For the copy installed for all users, a stand-in for the elevated
+// run records the version it puts in place in *installed.
+func testUpdater(t *testing.T, srv *httptest.Server) (*updater, *string) {
 	t.Helper()
 	platform := runtime.GOOS + "/" + runtime.GOARCH
-	prevInstallers, prevLaunch := update.Installers, launchInstaller
-	t.Cleanup(func() { update.Installers, launchInstaller = prevInstallers, prevLaunch })
-	update.Installers = map[string]string{platform: testInstaller}
-	var launched []string
-	launchInstaller = func(path string) error {
-		launched = append(launched, path)
+	prevElevated, prevInstalled := updateElevated, installedVersion
+	t.Cleanup(func() { updateElevated, installedVersion = prevElevated, prevInstalled })
+	installed := "1.3.0"
+	installedVersion = func() string { return installed }
+	updateElevated = func(context.Context, func(update.Progress)) error {
+		installed = "1.4.0"
 		return nil
 	}
 
@@ -93,7 +91,16 @@ func testUpdater(t *testing.T, srv *httptest.Server) (*updater, *[]string) {
 	up.u.Client = srv.Client()
 	up.u.Path = prog
 	up.u.Assets = map[string]string{platform: "knightloader-test.zip"}
-	return up, &launched
+	return up, &installed
+}
+
+func zippedProgram(content string) []byte {
+	var zipped bytes.Buffer
+	zw := zip.NewWriter(&zipped)
+	w, _ := zw.Create("KnightLoader.exe")
+	w.Write([]byte(content))
+	zw.Close()
+	return zipped.Bytes()
 }
 
 // settled waits for an install to stop downloading and returns where it ended.
@@ -102,7 +109,7 @@ func settled(t *testing.T, up *updater) update.Progress {
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		p := up.currentProgress()
-		if p.State != update.Downloading && p.State != update.Starting {
+		if p.State != update.Downloading {
 			return p
 		}
 		time.Sleep(10 * time.Millisecond)
@@ -111,54 +118,55 @@ func settled(t *testing.T, up *updater) update.Progress {
 	return update.Progress{}
 }
 
-func TestInstallStartsTheVerifiedInstallerOfTheNewRelease(t *testing.T) {
-	setup := bytes.Repeat([]byte("installer"), 1000)
-	files := map[string][]byte{testInstaller: setup}
-	srv := fakeGitHub(t, "v1.4.0", files, sumsOf(files))
-	up, launched := testUpdater(t, srv)
-
-	if err := up.install(context.Background(), true); err != nil {
-		t.Fatal(err)
-	}
-	got := settled(t, up)
-	if got.State != update.Started || got.Version != "1.4.0" {
-		t.Fatalf("install ended at %+v, want the installer of 1.4.0 started", got)
-	}
-	if len(*launched) != 1 {
-		t.Fatalf("launched %v, want the installer once", *launched)
-	}
-	data, err := os.ReadFile((*launched)[0])
-	if err != nil || !bytes.Equal(data, setup) {
-		t.Fatalf("launched something other than the release's installer: %v", err)
-	}
-	if filepath.Ext((*launched)[0]) != ".exe" {
-		t.Errorf("launched %s, which Windows would not run as a program", (*launched)[0])
-	}
-}
-
-func TestInstallRefusesAnInstallerThatFailsItsChecksum(t *testing.T) {
-	files := map[string][]byte{testInstaller: []byte("installer")}
-	sums := sumsOf(map[string][]byte{testInstaller: []byte("another installer")})
-	srv := fakeGitHub(t, "v1.4.0", files, sums)
-	up, launched := testUpdater(t, srv)
-
-	if err := up.install(context.Background(), true); err != nil {
-		t.Fatal(err)
-	}
-	got := settled(t, up)
-	if got.State != update.Failed || !strings.Contains(got.Error, "checksum") {
-		t.Fatalf("install ended at %+v, want a failure that names the checksum", got)
-	}
-	if len(*launched) != 0 {
-		t.Errorf("launched %v after a checksum mismatch", *launched)
-	}
-}
-
-func TestInstallSaysWhenTheInstallerDidNotStart(t *testing.T) {
-	files := map[string][]byte{testInstaller: []byte("installer")}
-	srv := fakeGitHub(t, "v1.4.0", files, sumsOf(files))
+func TestInstallOfTheInstalledCopyEndsReadyForARestart(t *testing.T) {
+	srv := fakeGitHub(t, "v1.4.0", nil, "")
 	up, _ := testUpdater(t, srv)
-	launchInstaller = func(string) error { return errors.New("permission to run it was refused") }
+	var announced []string
+	up.announce = func(v string) { announced = append(announced, v) }
+
+	if err := up.install(context.Background(), true); err != nil {
+		t.Fatal(err)
+	}
+	got := settled(t, up)
+	if got.State != update.Ready || got.Version != "1.4.0" {
+		t.Fatalf("install ended at %+v, want 1.4.0 ready for Restart", got)
+	}
+	if up.readyVersion() != "1.4.0" || len(announced) != 1 || announced[0] != "1.4.0" {
+		t.Errorf("ready %q, announced %v, want 1.4.0 once", up.readyVersion(), announced)
+	}
+}
+
+func TestInstallOfTheInstalledCopyShowsHowFarTheElevatedRunHasCome(t *testing.T) {
+	srv := fakeGitHub(t, "v1.4.0", nil, "")
+	up, installed := testUpdater(t, srv)
+	halfway, carryOn := make(chan struct{}), make(chan struct{})
+	updateElevated = func(_ context.Context, progress func(update.Progress)) error {
+		progress(update.Progress{State: update.Downloading, Version: "1.4.0", Done: 40, Total: 100})
+		close(halfway)
+		<-carryOn
+		*installed = "1.4.0"
+		return nil
+	}
+
+	if err := up.install(context.Background(), true); err != nil {
+		t.Fatal(err)
+	}
+	<-halfway
+	if p := up.currentProgress(); p.State != update.Downloading || p.Done != 40 || p.Total != 100 || p.Version != "1.4.0" {
+		t.Errorf("progress halfway is %+v, want 40 of 100 bytes of 1.4.0", p)
+	}
+	close(carryOn)
+	if got := settled(t, up); got.State != update.Ready {
+		t.Fatalf("install ended at %+v", got)
+	}
+}
+
+func TestInstallOfTheInstalledCopySaysWhenWindowsRefused(t *testing.T) {
+	srv := fakeGitHub(t, "v1.4.0", nil, "")
+	up, _ := testUpdater(t, srv)
+	updateElevated = func(context.Context, func(update.Progress)) error {
+		return errors.New("permission to run it was refused")
+	}
 
 	if err := up.install(context.Background(), true); err != nil {
 		t.Fatal(err)
@@ -167,17 +175,83 @@ func TestInstallSaysWhenTheInstallerDidNotStart(t *testing.T) {
 	if got.State != update.Failed || !strings.Contains(got.Error, "permission") {
 		t.Fatalf("install ended at %+v, want the refusal passed on", got)
 	}
+	if up.readyVersion() != "" {
+		t.Errorf("%q waits for a restart after a refusal", up.readyVersion())
+	}
+}
+
+func TestInstallOfTheInstalledCopySaysWhenNothingNewerWasPutInPlace(t *testing.T) {
+	srv := fakeGitHub(t, "v1.4.0", nil, "")
+	up, _ := testUpdater(t, srv)
+	updateElevated = func(context.Context, func(update.Progress)) error { return nil }
+
+	if err := up.install(context.Background(), true); err != nil {
+		t.Fatal(err)
+	}
+	got := settled(t, up)
+	if got.State != update.Failed || got.Error != errNothingNewer.Error() {
+		t.Fatalf("install ended at %+v, want %q", got, errNothingNewer)
+	}
+}
+
+// The elevated run is Update now in a process that may write to the folder
+// of the copy installed for all users. It leaves the window a record of how
+// far it has come and how it ended.
+func TestUpdateNowPutsTheReleaseInPlaceAndRecordsHowItEnded(t *testing.T) {
+	files := map[string][]byte{"knightloader-test.zip": zippedProgram("new program")}
+	srv := fakeGitHub(t, "v1.4.0", files, sumsOf(files))
+	up, _ := testUpdater(t, srv)
+	record := filepath.Join(t.TempDir(), progressFile)
+	var seen []update.Progress
+	prevWrite := writeProgress
+	t.Cleanup(func() { writeProgress = prevWrite })
+	writeProgress = func(path string, p update.Progress) error {
+		seen = append(seen, p)
+		return prevWrite(path, p)
+	}
+
+	if err := up.updateNow(context.Background(), record); err != nil {
+		t.Fatal(err)
+	}
+	if data, _ := os.ReadFile(up.u.Path); string(data) != "new program" {
+		t.Errorf("program is %q after the update", data)
+	}
+	if len(seen) < 2 || seen[0].State != update.Downloading {
+		t.Fatalf("recorded %+v, want downloading first", seen)
+	}
+	got, err := readProgress(record)
+	if err != nil || got.State != update.Ready || got.Version != "1.4.0" {
+		t.Fatalf("the record says %+v (%v), want 1.4.0 ready", got, err)
+	}
+}
+
+func TestUpdateNowRecordsWhyItPutNothingInPlace(t *testing.T) {
+	files := map[string][]byte{"knightloader-test.zip": zippedProgram("new program")}
+	sums := sumsOf(map[string][]byte{"knightloader-test.zip": []byte("something else")})
+	srv := fakeGitHub(t, "v1.4.0", files, sums)
+	up, _ := testUpdater(t, srv)
+	record := filepath.Join(t.TempDir(), progressFile)
+
+	if err := up.updateNow(context.Background(), record); err == nil {
+		t.Fatal("updateNow put a file in place that failed its checksum")
+	}
+	if data, _ := os.ReadFile(up.u.Path); string(data) != "old program" {
+		t.Errorf("program is %q after a failed update", data)
+	}
+	got, err := readProgress(record)
+	if err != nil || got.State != update.Failed || !strings.Contains(got.Error, "checksum") {
+		t.Fatalf("the record says %+v (%v), want a failure that names the checksum", got, err)
+	}
 }
 
 func TestInstallOfAPortableCopyPutsTheNewVersionInPlace(t *testing.T) {
-	var zipped bytes.Buffer
-	zw := zip.NewWriter(&zipped)
-	w, _ := zw.Create("KnightLoader.exe")
-	w.Write([]byte("new program"))
-	zw.Close()
-	files := map[string][]byte{"knightloader-test.zip": zipped.Bytes()}
+	files := map[string][]byte{"knightloader-test.zip": zippedProgram("new program")}
 	srv := fakeGitHub(t, "v1.4.0", files, sumsOf(files))
-	up, launched := testUpdater(t, srv)
+	up, _ := testUpdater(t, srv)
+	updateElevated = func(context.Context, func(update.Progress)) error {
+		t.Error("a portable copy asked for an elevated run")
+		return nil
+	}
 
 	if err := up.install(context.Background(), false); err != nil {
 		t.Fatal(err)
@@ -188,9 +262,6 @@ func TestInstallOfAPortableCopyPutsTheNewVersionInPlace(t *testing.T) {
 	}
 	if data, _ := os.ReadFile(up.u.Path); string(data) != "new program" {
 		t.Errorf("program is %q after the update", data)
-	}
-	if len(*launched) != 0 {
-		t.Errorf("a portable copy launched an installer: %v", *launched)
 	}
 }
 

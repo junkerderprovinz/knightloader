@@ -2,7 +2,7 @@
   "expo": {
     "name": "KnightLoader",
     "slug": "knightloader-mobile",
-    "version": "2.9.4",
+    "version": "2.9.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,7 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.VIBRATE"
       ],
-      "versionCode": 20904
+      "versionCode": 20905
     },
     "web": {
       "favicon": "./assets/favicon.png"

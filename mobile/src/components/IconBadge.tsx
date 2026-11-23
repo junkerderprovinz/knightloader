@@ -544,6 +544,11 @@ export function Copy({ color, size = GLYPH_BOX }: { color: string; size?: number
   return <Drawn source={require('../../assets/copy.png')} color={color} size={size} />;
 }
 
+/** What's new: GlimStone's gift, rendered from web/scripts/glyphs.json like the others. */
+export function WhatsNew({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/whats-new.png')} color={color} size={size} />;
+}
+
 /** SpeedLimit marks a limit's figure on the speed graph: a sign's ring round a
  *  gauge needle. The glyph list has no limit, so it is a drawing of its own. */
 export function SpeedLimit({ color, size = GLYPH_BOX }: { color: string; size?: number }) {

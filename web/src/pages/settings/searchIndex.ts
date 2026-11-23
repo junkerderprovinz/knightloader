@@ -1349,27 +1349,33 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   help: [
-    // The Info tile's three cards. Their buttons carry no caption to scroll
+    // The Info tile's four cards. Their buttons carry no caption to scroll
     // to, so they are `also` entries.
     {
-      title: 'settings.info.componentsTitle',
-      hint: 'settings.info.componentsIntro',
+      title: 'versionCard.title',
+      hint: 'versionCard.hint',
       rows: [
-        { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
-        { key: 'settings.info.componentsAuto', hint: 'settings.info.componentsAutoHint' },
+        { key: 'versionCard.auto', hint: 'versionCard.autoHint' },
+        { key: 'versionCard.autoCheck', hint: 'settings.look.updatesAutoUpdateContainerHint' },
+      ],
+      // The Flatpak's switch says how Flatpak installs its updates.
+      body: ['settings.look.updatesAutoUpdateStoreHint'],
+      also: ['versionCard.whatsNew', 'versionCard.check', 'versionCard.update', 'versionCard.guide'],
+    },
+    {
+      title: 'componentsCard.title',
+      hint: 'componentsCard.hint',
+      rows: [
+        { key: 'componentsCard.auto', hint: 'settings.info.componentsAutoHint' },
         { key: 'settings.info.qbitVersion', hint: 'settings.info.qbitVersionHint' },
       ],
-      // The container build and the Flatpak use their own sentences for
-      // KnightLoader's update hint. A status's (i) says what went wrong where
-      // something needs doing.
+      // A status's (i) says what went wrong where something needs doing.
       body: [
-        'settings.look.updatesAutoUpdateContainerHint',
-        'settings.look.updatesAutoUpdateStoreHint',
         'settings.resolvers.toolsShadowedOlder',
         'settings.resolvers.toolsManagedBroken',
         'settings.info.statusWaitsHint',
       ],
-      also: ['settings.info.updateNow', 'settings.look.updatesReleaseNotes'],
+      also: ['componentsCard.update'],
     },
     {
       title: 'settings.info.helpTitle',

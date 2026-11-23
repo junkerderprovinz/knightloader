@@ -118,7 +118,8 @@ func (a *App) beginPreflightLocked(id string) uint64 {
 
 // preflight asks later, the resolver resolveLocked deferred, where job goes
 // and with which headers. It reports false when the start is off: the task
-// was paused or removed meanwhile, or a newer start took its place.
+// was paused or removed meanwhile, a newer start took its place, or the app
+// is closing.
 func (a *App) preflight(job *engine.Job, later resolver.Resolver, seq uint64) bool {
 	target, err := later.Resolve(a.ctx, resolver.Request{URL: job.URL})
 	a.mu.Lock()
@@ -131,7 +132,9 @@ func (a *App) preflight(job *engine.Job, later resolver.Resolver, seq uint64) bo
 			delete(a.started, job.TaskID)
 		}
 	}
-	current = current && a.active[job.TaskID]
+	// Close cancels a.ctx, and a probe cut short passes as uncheckable, so
+	// without this the start would reach the engine on the way out.
+	current = current && a.active[job.TaskID] && a.ctx.Err() == nil
 	a.mu.Unlock()
 	if !current {
 		return false

@@ -6,6 +6,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -34,6 +35,9 @@ type DeploymentInfo struct {
 	// Engines are the libraries compiled in that do a share of the work
 	// somebody sees, which the Updates card lists beside the programs.
 	Engines []buildinfo.Module `json:"engines"`
+	// Installer is the PommelPorter version the desktop build's installer
+	// carries, which the Components card lists last; see buildinfo.Installer.
+	Installer string `json:"installer,omitempty"`
 }
 
 // engineModules are the libraries Engines names, in the order the card lists them.
@@ -67,7 +71,12 @@ func registerLifecycle(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/system/update-check",
 		"whether a newer release exists on GitHub than this build's own version, and on desktop which one waits for the next start",
 		func(w http.ResponseWriter, r *http.Request) {
-			info := update.Check(r.Context(), buildinfo.Version)
+			var info update.Info
+			if a.UpdateCheck != nil {
+				info = a.UpdateCheck(r.Context())
+			} else {
+				info = update.Check(r.Context(), buildinfo.Version)
+			}
 			if a.UpdateReady != nil {
 				info.Ready = a.UpdateReady()
 			}
@@ -84,8 +93,26 @@ func registerLifecycle(reg *Registry, a *app.App) {
 			writeJSON(w, a.UpdateProgress())
 		})
 
+	reg.Add(http.MethodPost, "/api/system/update-restart",
+		"desktop: end the program and start the version an update put in place",
+		func(w http.ResponseWriter, r *http.Request) {
+			if a.RestartIntoUpdate == nil {
+				http.Error(w, "only the desktop build starts itself again", http.StatusNotImplemented)
+				return
+			}
+			if a.UpdateReady == nil || a.UpdateReady() == "" {
+				writeJSONStatus(w, http.StatusConflict, map[string]string{"status": "no update waits for a restart"})
+				return
+			}
+			if !a.RestartIntoUpdate() {
+				writeJSONStatus(w, http.StatusConflict, map[string]string{"status": "a shutdown is already in progress"})
+				return
+			}
+			writeJSONStatus(w, http.StatusAccepted, map[string]string{"status": "restarting"})
+		})
+
 	reg.Add(http.MethodPost, "/api/system/update-install",
-		"desktop: download the newest release now and install it, or have it start next time where the program cannot replace itself while running",
+		"desktop: download the newest release now and put it in place for the next start or a restart",
 		func(w http.ResponseWriter, r *http.Request) {
 			if a.InstallUpdate == nil {
 				http.Error(w, "only the desktop build installs its own updates", http.StatusNotImplemented)
@@ -106,6 +133,7 @@ func deploymentInfo(a *app.App) DeploymentInfo {
 		CanQuit:    a.RequestExit != nil,
 		CanRestart: a.RequestExit != nil,
 		Engines:    buildinfo.Modules(engineModules...),
+		Installer:  strings.TrimPrefix(buildinfo.Installer, "v"),
 
 		UpdatesFromStore: flatpak.ID() != "",
 	}

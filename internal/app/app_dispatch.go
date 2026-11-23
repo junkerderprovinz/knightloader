@@ -929,14 +929,12 @@ func (a *App) dispatchLocked() {
 			if misrouted {
 				a.rerouting[engineID] = true
 			}
-			a.beginHandoverLocked(id)
-			go func() {
-				defer a.endHandover(id)
+			a.handOverLocked(id, func() {
 				if misrouted {
 					a.reroute(id, engineID, route, chosen)
 				}
 				be.Resume(id)
-			}()
+			})
 			continue
 		}
 		// The filter is asked once more before bytes move, since rules may
@@ -1079,7 +1077,7 @@ func (a *App) dispatchLocked() {
 			if old := a.backendFor(prev); old != be {
 				t.Loaded = 0
 				t.ServiceJob = nil
-				go old.Remove(id, true)
+				a.spawn(func() { old.Remove(id, true) })
 			}
 		}
 		conns := connsFor(t, cfg, result.Connections, hostCapFor(res, h))
@@ -1109,13 +1107,11 @@ func (a *App) dispatchLocked() {
 				// A torrent carries on with the files its earlier attempt left.
 				own = leftover{}
 			}
-			a.beginHandoverLocked(id)
 			var seq uint64
 			if later != nil {
 				seq = a.beginPreflightLocked(id)
 			}
-			go func() {
-				defer a.endHandover(id)
+			a.handOverLocked(id, func() {
 				if later != nil && !a.preflight(&job, later, seq) {
 					return
 				}
@@ -1123,20 +1119,18 @@ func (a *App) dispatchLocked() {
 					own.drop(id)
 				}
 				a.Engine.Start(job)
-			}()
+			})
 		} else {
 			// Delegated backends reach the internet their own way, so they get
 			// no route. Those that pass their link on to the engine go through
 			// engineHandoff, which gives the engine the same job and route as
 			// above.
-			a.beginHandoverLocked(id)
-			go func() {
-				defer a.endHandover(id)
+			a.handOverLocked(id, func() {
 				if !a.Engine.Resumes(id, own.path) {
 					own.drop(id)
 				}
 				be.Download(id, result.DirectURL, result.Headers, conns)
-			}()
+			})
 		}
 	}
 	a.queue = rest
@@ -1719,6 +1713,17 @@ func (a *App) onUpdate(id string, u core.Update) {
 			// bot check, further requests only strengthen the block.
 			t.GaveUp = true
 			t.NextTry = time.Time{}
+		case t.ErrorCode == core.CodeQuotaUsed:
+			// A spent volume comes back by itself, so waiting for it never
+			// runs out of tries. Without a reset time it is looked at again
+			// when a volume bench would be.
+			t.Retries++
+			t.MaxTries = 0
+			retryIn = u.Retry
+			if retryIn <= 0 {
+				retryIn = volumeRecheck
+			}
+			t.NextTry = time.Now().Add(retryIn)
 		case t.Retries < plan.Tries:
 			t.Retries++
 			// Recorded here, the only place the merged plan is known.

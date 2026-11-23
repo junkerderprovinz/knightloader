@@ -26,10 +26,10 @@ permissions:
 
 jobs:
   pommelporter:
-    uses: junkerderprovinz/junkerderprovinz/.github/workflows/pommelporter-current.yml@b7a5006e947cce048494e8430ee389bec897c082 # main
+    uses: junkerderprovinz/junkerderprovinz/.github/workflows/pommelporter-current.yml@c5de9719d2e5cc47b1a74812fc23413bfaa9dd9f # main
 
   glimstone:
-    uses: junkerderprovinz/junkerderprovinz/.github/workflows/glimstone-current.yml@b7a5006e947cce048494e8430ee389bec897c082 # main
+    uses: junkerderprovinz/junkerderprovinz/.github/workflows/glimstone-current.yml@c5de9719d2e5cc47b1a74812fc23413bfaa9dd9f # main
 
   # The checks stop a tag here, before the long builds.
   tag:

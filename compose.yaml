@@ -15,5 +15,15 @@ services:
     volumes:
       - "./appdata:/data"
       - "./downloads:/data/downloads"
+      - "./user:/mnt/user"
     environment:
       UMASK: "022"
+    labels:
+      homepage.href: ""
+      homepage.group: Downloads
+      homepage.name: KnightLoader
+      homepage.icon: "https://raw.githubusercontent.com/junkerderprovinz/unraid-apps/main/knightloader/icon.png?v=4"
+      homepage.description: "Download manager for hosters, torrents and Usenet"
+      glance.name: KnightLoader
+      glance.icon: "https://raw.githubusercontent.com/junkerderprovinz/unraid-apps/main/knightloader/icon.png?v=4"
+      glance.description: "Download manager for hosters, torrents and Usenet"

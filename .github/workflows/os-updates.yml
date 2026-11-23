@@ -1,0 +1,21 @@
+name: OS updates
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    permissions:
+      contents: read
+      packages: write
+    uses: junkerderprovinz/junkerderprovinz/.github/workflows/os-updates.yml@c5de9719d2e5cc47b1a74812fc23413bfaa9dd9f # main
+    with:
+      images: knightloader knightloader-relay
+      dockerhub-user: ${{ vars.DOCKERHUB_USERNAME }}
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

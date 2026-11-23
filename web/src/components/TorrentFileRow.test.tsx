@@ -2,6 +2,10 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// Loaded with the file, where no timeout runs: the first import transforms the
+// list and all it pulls in, which on a busy machine outlasts a test's five
+// seconds. The import each test makes after resetModules only runs it again.
+import './TaskList';
 
 import type { Task, TorrentFileView } from '../lib/api';
 

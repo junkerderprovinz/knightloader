@@ -461,6 +461,14 @@ func TestWellKnownIconPathsFollowTheFrontPageRedirect(t *testing.T) {
 	}
 }
 
+// iconApp is an App with what fetching icons needs: a data folder and the
+// context Close cancels.
+func iconApp(dir string) *App {
+	a := &App{DataDir: dir}
+	a.ctx, a.cancel = context.WithCancel(context.Background())
+	return a
+}
+
 // stubIconFetch puts fetch in place of the network for one test.
 func stubIconFetch(t *testing.T, fetch func(context.Context, string) ([]byte, string, error)) {
 	t.Helper()
@@ -475,7 +483,7 @@ func TestARequestDoesNotWaitForTheSite(t *testing.T) {
 		<-release
 		return pngBytes(32, 32), "image/png", nil
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	start := time.Now()
 	if _, _, err := a.HosterIcon("example.org"); !errors.Is(err, ErrIconPending) {
@@ -501,7 +509,7 @@ func TestRequestsForOneHostShareOneFetch(t *testing.T) {
 		<-release
 		return pngBytes(32, 32), "image/png", nil
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	for range 5 {
 		_, _, _ = a.HosterIcon("example.org")
@@ -522,7 +530,7 @@ func TestAFetchThatHasJustFinishedIsNotStartedAgain(t *testing.T) {
 		calls.Add(1)
 		return pngBytes(32, 32), "image/png", nil
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	<-a.fetchHosterIcon("example.org")
 	<-a.fetchHosterIcon("example.org")
@@ -537,7 +545,7 @@ func TestAnIconWhoseFileWasRemovedIsFetchedAgain(t *testing.T) {
 		calls.Add(1)
 		return pngBytes(32, 32), "image/png", nil
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	<-a.fetchHosterIcon("example.org")
 	if err := os.RemoveAll(a.iconDir()); err != nil {
@@ -563,10 +571,10 @@ func TestASiteWithoutAnIconIsNotAskedAgainAfterARestart(t *testing.T) {
 	})
 	dir := t.TempDir()
 
-	first := &App{DataDir: dir}
+	first := iconApp(dir)
 	<-first.fetchHosterIcon("example.org")
 
-	restarted := &App{DataDir: dir}
+	restarted := iconApp(dir)
 	if _, _, err := restarted.HosterIcon("example.org"); err == nil || errors.Is(err, ErrIconPending) {
 		t.Fatalf("HosterIcon = %v, want the remembered miss", err)
 	}
@@ -591,7 +599,7 @@ func TestAMissOlderThanItsTTLIsTriedAgain(t *testing.T) {
 }
 
 func TestAnIconFetchedBeforeARestartIsReadFromDisk(t *testing.T) {
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 	dir := filepath.Join(a.DataDir, "icons")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
@@ -715,7 +723,7 @@ func TestALocalNetworkNameIsNeverFetched(t *testing.T) {
 		calls.Add(1)
 		return pngBytes(32, 32), "image/png", nil
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	for _, host := range []string{"nas.local", "host.lan", "x.home.arpa", "a.example", "ci.test", "svc.internal", "box.localhost"} {
 		if _, _, err := a.HosterIcon(host); err == nil || errors.Is(err, ErrIconPending) {
@@ -739,7 +747,7 @@ func TestMadeUpHostsQueueABoundedNumberOfFetches(t *testing.T) {
 		<-release
 		return nil, "", errors.New("no such host")
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	for i := range 20 * iconMaxPending {
 		_, _, _ = a.HosterIcon(fmt.Sprintf("made-up-%d.example.org", i))
@@ -762,7 +770,7 @@ func TestTheIconCacheForgetsTheOldestHostPastItsBound(t *testing.T) {
 	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
 		return nil, "", errors.New("no such host")
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	for i := range iconMaxKnown + 50 {
 		<-a.fetchHosterIcon(fmt.Sprintf("made-up-%d.example.org", i))
@@ -794,7 +802,7 @@ func TestIconFilesStayBoundedAcrossRestarts(t *testing.T) {
 	dir := t.TempDir()
 
 	for run := range 3 {
-		a := &App{DataDir: dir}
+		a := iconApp(dir)
 		for i := range iconMaxKnown {
 			<-a.fetchHosterIcon(fmt.Sprintf("run-%d-host-%d.example.org", run, i))
 		}
@@ -815,7 +823,7 @@ func TestPruningTheIconFilesDropsExpiredOnesFirst(t *testing.T) {
 	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
 		return nil, "", errors.New("no such host")
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 	dir := a.iconDir()
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
@@ -867,7 +875,7 @@ func TestAnOverrideWinsOverTheShippedSet(t *testing.T) {
 		t.Error("the site was asked for an icon that ships with the binary")
 		return nil, "", errors.New("unreachable")
 	})
-	got, ct, err := (&App{DataDir: t.TempDir()}).HosterIcon("example.org")
+	got, ct, err := iconApp(t.TempDir()).HosterIcon("example.org")
 	if err != nil || string(got) != "<svg/>" || ct != "image/svg+xml" {
 		t.Errorf("HosterIcon = %q (%s), %v, want the override", got, ct, err)
 	}
@@ -879,7 +887,7 @@ func TestAShippedIconAnswersAtOnceWithoutAskingTheSite(t *testing.T) {
 		t.Error("the site was asked for an icon that ships with the binary")
 		return nil, "", errors.New("unreachable")
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 	for _, host := range []string{"example.org", "www.example.org", "dl3.example.org", "HTTPS://Example.org/file/1"} {
 		got, ct, err := a.HosterIcon(host)
 		if err != nil || string(got) != "shipped png" || ct != "image/png" {
@@ -895,7 +903,7 @@ func TestAHostThatShipsNoIconIsFetchedFromTheSite(t *testing.T) {
 		calls.Add(1)
 		return pngBytes(32, 32), "image/png", nil
 	})
-	a := &App{DataDir: t.TempDir()}
+	a := iconApp(t.TempDir())
 
 	if _, _, err := a.HosterIcon("example.net"); !errors.Is(err, ErrIconPending) {
 		t.Fatalf("HosterIcon(example.net) = %v, want a fetch", err)

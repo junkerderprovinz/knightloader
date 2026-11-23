@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -34,14 +35,16 @@ import (
 
 func main() {
 	// The installer's scheduled task starts the program this way as the system
-	// account. It must not provision JDownloader, listen for Click'n'Load or
-	// open a window, so it runs before any of that.
-	if len(os.Args) == 2 && os.Args[1] == "--update" {
-		if err := updateInstalled(); err != nil {
+	// account, and Update now as an administrator with nowFlag. It must not
+	// provision JDownloader, listen for Click'n'Load or open a window, so it
+	// runs before any of that.
+	if args := os.Args[1:]; len(args) > 0 && args[0] == updateFlag && (len(args) == 1 || len(args) == 2 && args[1] == nowFlag) {
+		if err := updateInstalled(len(args) == 2); err != nil {
 			os.Exit(1)
 		}
 		return
 	}
+	waitForPrevious(os.Args)
 
 	// Must be set before app.New; the default is "container".
 	buildinfo.Deployment = "desktop"
@@ -140,6 +143,8 @@ func main() {
 	updateCtx, stopUpdates := context.WithCancel(context.Background())
 	a.InstallUpdate = func() error { return up.install(updateCtx, installed) }
 	a.UpdateProgress = up.currentProgress
+	a.UpdateCheck = up.check
+	var restarting atomic.Bool
 	if installed {
 		go up.follow(updateCtx)
 	} else {
@@ -229,6 +234,14 @@ func main() {
 	})
 	tray.attach(wails, window)
 	popup.attach(wails, tray)
+	a.RestartIntoUpdate = func() bool {
+		if !restarting.CompareAndSwap(false, true) {
+			return false
+		}
+		// After the answer has left, since the quit takes the server down.
+		time.AfterFunc(200*time.Millisecond, wails.Quit)
+		return true
+	}
 
 	// Wails reads the clipboard on the main thread, so the watch starts once
 	// the app runs.
@@ -263,6 +276,11 @@ func main() {
 	})
 	if err := wails.Run(); err != nil {
 		log.Fatal(err)
+	}
+	if restarting.Load() {
+		if err := startAgain(); err != nil {
+			log.Printf("update: could not start the new version: %v", err)
+		}
 	}
 }
 

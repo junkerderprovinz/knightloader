@@ -58,13 +58,12 @@ func lookup(hash string) (share, bool) {
 
 // Client is the client in memory. The zero value is not usable; see New.
 type Client struct {
-	mu       sync.Mutex
-	held     map[string]*held
-	prefs    []torrents.Prefs
-	stalled  bool
-	adds     []torrents.Add
-	failNext error
-	lag      int
+	mu      sync.Mutex
+	held    map[string]*held
+	prefs   []torrents.Prefs
+	stalled bool
+	adds    []torrents.Add
+	lag     int
 }
 
 type held struct {
@@ -168,26 +167,9 @@ func (c *Client) Lag(n int) {
 	c.lag = n
 }
 
-// FailNext has the next call fail with err.
-func (c *Client) FailNext(err error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.failNext = err
-}
-
-// failing returns the error FailNext left, once. Caller holds c.mu.
-func (c *Client) failing() error {
-	err := c.failNext
-	c.failNext = nil
-	return err
-}
-
 func (c *Client) Add(_ context.Context, a torrents.Add) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if err := c.failing(); err != nil {
-		return err
-	}
 	if c.held[a.Hash] != nil {
 		return fmt.Errorf("the client has %s already", a.Hash)
 	}
@@ -236,9 +218,6 @@ func filesOf(raw []byte) ([]torrents.File, error) {
 }
 
 func (c *Client) torrent(hash string) (*held, error) {
-	if err := c.failing(); err != nil {
-		return nil, err
-	}
 	h := c.held[hash]
 	if h == nil {
 		return nil, torrents.ErrUnknown
@@ -334,9 +313,6 @@ func (c *Client) Delete(_ context.Context, hash string, files bool) error {
 func (c *Client) Readings(_ context.Context) (map[string]torrents.Reading, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if err := c.failing(); err != nil {
-		return nil, err
-	}
 	out := make(map[string]torrents.Reading, len(c.held))
 	now := time.Now()
 	for hash, h := range c.held {
@@ -479,9 +455,6 @@ func (c *Client) Stream(_ context.Context, hash string, on bool) error {
 func (c *Client) Configure(_ context.Context, p torrents.Prefs) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if err := c.failing(); err != nil {
-		return err
-	}
 	c.prefs = append(c.prefs, p)
 	return nil
 }

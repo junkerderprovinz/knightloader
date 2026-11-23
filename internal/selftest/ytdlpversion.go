@@ -6,10 +6,10 @@ package selftest
 // `yt-dlp --version` is already run at boot
 // (internal/resolver/ytdlp.Backend.Available) and its output thrown away: the
 // call keeps the exit code and nothing else, so the app knows whether yt-dlp
-// exists and nothing knows which one it is. In the container it comes from the
-// Alpine package that was current when the image was built and never updates
-// itself, and the big video sites break an old yt-dlp within weeks, with a
-// failure that looks like a dead link rather than stale software.
+// exists and nothing knows which one it is. In the container it is the release
+// that was current when the image was built, and the big video sites break an
+// old yt-dlp within weeks, with a failure that looks like a dead link rather
+// than stale software.
 //
 // A date and not a version comparison, because yt-dlp's versions are dates:
 // the project releases as YYYY.MM.DD and its nightlies append a build time, so

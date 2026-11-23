@@ -70,21 +70,25 @@ The installed app keeps the switch in that file too and only watches the entry's
 updates itself.
 
 The Updates card's **Install now** (`POST /api/system/update-install`) does not
-wait for either. The installed copy downloads the release's
-`knightloader-windows-<arch>-installer.exe` into `%TEMP%KnightLoader update`,
-checks it against `checksums.txt` and starts it with `runas`, so Windows asks
-for an administrator and the installer takes it from there. A portable copy
-runs the daily download and swap at once. The card polls the same route with
+wait for either. The installed copy starts `KnightLoader.exe --update --now`
+with `runas`, so Windows asks for an administrator, and that run does what the
+task does, whatever the switch says. It records how far it has come in
+`update-progress.json` beside `update.log`, which the window follows, and once
+the entry's `DisplayVersion` is newer the card offers the restart. A portable
+copy runs the daily download and swap at once. The card polls the same route with
 GET for the progress and for any error.
 
 To try the whole path locally, build with `-tags updatetest`. That build reads
 `KL_UPDATE_API` (a stand-in for `https://api.github.com` that serves
 `/repos/junkerderprovinz/knightloader/releases/latest`) and `KL_UPDATE_DELAY`
-(how long to wait before the first check, such as `15s`). Release builds leave
-the tag out, so no environment variable can change where an update comes from.
+(how long to wait before the first check, such as `15s`). Without a stand-in
+it asks a host that never resolves, never GitHub, so neither Check for updates
+nor Update now can reach a real release. Release builds leave the tag out, so
+no environment variable can change where an update comes from.
 
 The same build installs as **KnightLoader Test**, beside a real installation,
-with a task and a folder under ProgramData of that name:
+with a task, a folder under ProgramData and an app key in the credential store
+of that name:
 
 ```sh
 KL_VERSION=v1.2.1 node scripts/desktop.mjs --installer --updatetest

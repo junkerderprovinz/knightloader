@@ -51,6 +51,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.9.5',
+    changes: [{ id: 'version-card', text: 'whatsnew.change.versionCard', names: { name: 'versionCard.title' } }],
+  },
+  {
     version: '2.9.3',
     changes: [
       { id: 'appimage', to: ['/settings/browsertools'], text: 'whatsnew.change.appImage' },
@@ -130,13 +134,13 @@ export const RELEASES: Release[] = [
         id: 'components-switch',
         to: ['/settings/help'],
         text: 'whatsnew.change.componentsSwitch',
-        names: { name: 'settings.info.componentsTitle', auto: 'settings.info.componentsAuto', now: 'settings.info.updateNow' },
+        names: { name: 'componentsCard.title', auto: 'componentsCard.auto', now: 'componentsCard.update' },
       },
       {
         id: 'update-switch',
         to: ['/settings/help'],
         text: 'whatsnew.change.updateSwitch',
-        names: { name: 'settings.look.updatesAutoUpdate' },
+        names: { name: 'versionCard.auto' },
       },
       { id: 'debrid-declined', text: 'whatsnew.change.debridDeclined' },
       {
@@ -280,7 +284,7 @@ export const RELEASES: Release[] = [
       {
         id: 'jd-check',
         text: 'whatsnew.change.jdSwitches',
-        names: { name: 'health.part.jd', check: 'settings.look.updatesAuto', update: 'settings.look.updatesAutoUpdate' },
+        names: { name: 'health.part.jd', check: 'settings.look.updatesAuto', update: 'versionCard.auto' },
       },
       { id: 'unrar', text: 'whatsnew.change.unrar' },
       { id: 'own-java', text: 'whatsnew.change.ownJava' },
@@ -367,7 +371,7 @@ export const RELEASES: Release[] = [
       {
         id: 'jd-auto-update',
         text: 'whatsnew.change.jdAutoUpdate',
-        names: { name: 'health.part.jd', updates: 'settings.info.componentsTitle' },
+        names: { name: 'health.part.jd', updates: 'componentsCard.title' },
       },
       { id: 'brand-hover-logos', to: ['/settings/accounts', '/accounts'], text: 'whatsnew.change.brandHoverLogos' },
       {
@@ -462,13 +466,13 @@ export const RELEASES: Release[] = [
         id: 'jd-tool',
         to: ['/settings/help'],
         text: 'whatsnew.change.jdTool',
-        names: { name: 'settings.info.componentsTitle' },
+        names: { name: 'componentsCard.title' },
       },
       {
         id: 'ytdlp-updates',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.ytdlpUpdates',
-        names: { name: 'settings.info.componentsTitle', page: 'settings.nav.help' },
+        names: { name: 'componentsCard.title', page: 'settings.nav.help' },
       },
       {
         id: 'video-format',
@@ -733,18 +737,18 @@ export const RELEASES: Release[] = [
         id: 'updates-card',
         to: ['/settings/help'],
         text: 'whatsnew.change.updatesCard',
-        names: { name: 'settings.info.componentsTitle' },
+        names: { name: 'componentsCard.title' },
       },
       {
         id: 'built-in',
         to: ['/settings/help'],
         text: 'whatsnew.change.builtIn',
-        names: { name: 'settings.info.componentsTitle', updates: 'settings.info.componentsTitle' },
+        names: { name: 'componentsCard.title', updates: 'componentsCard.title' },
       },
       {
         id: 'jd-update',
         text: 'whatsnew.change.jdUpdate',
-        names: { name: 'health.part.jd', updates: 'settings.info.componentsTitle' },
+        names: { name: 'health.part.jd', updates: 'componentsCard.title' },
       },
       { id: 'row-window', to: ['/settings/rules'], text: 'whatsnew.change.rowWindow' },
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
@@ -829,7 +833,7 @@ export const RELEASES: Release[] = [
           free: 'settings.accounts.freeTitle',
           parts: 'settings.health.parts',
           health: 'settings.nav.health',
-          updates: 'settings.info.componentsTitle',
+          updates: 'componentsCard.title',
         },
       },
       {
@@ -862,7 +866,7 @@ export const RELEASES: Release[] = [
         id: 'news-button',
         to: ['/settings/help'],
         text: 'whatsnew.change.newsButton',
-        names: { name: 'settings.info.componentsTitle' },
+        names: { name: 'componentsCard.title' },
       },
       // Drawn in the window the Components card's button opens.
       { id: 'news-toggle', to: ['/settings/help'], text: 'whatsnew.change.newsToggle' },

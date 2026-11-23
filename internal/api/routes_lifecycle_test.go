@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -179,6 +180,49 @@ func TestUpdateInstallIsRefusedWhereNothingInstallsItself(t *testing.T) {
 	}
 	if code := getJSON(t, srv.URL+"/api/system/update-install", nil); code != http.StatusNotImplemented {
 		t.Fatalf("GET update-install = %d, want %d", code, http.StatusNotImplemented)
+	}
+}
+
+func TestUpdateCheckAsksTheDesktopsOwnSource(t *testing.T) {
+	a, srv := lifecycleServer(t)
+	a.UpdateCheck = func(context.Context) update.Info {
+		return update.Info{Checked: true, Available: true, Current: "v2.9.4", Latest: "v2.9.5"}
+	}
+	a.UpdateReady = func() string { return "v2.9.5" }
+	var info update.Info
+	if code := getJSON(t, srv.URL+"/api/system/update-check", &info); code != http.StatusOK {
+		t.Fatalf("GET update-check = %d", code)
+	}
+	if info.Latest != "v2.9.5" || info.Ready != "v2.9.5" {
+		t.Errorf("update-check answered %+v, want the desktop's own source with the waiting version", info)
+	}
+}
+
+func TestUpdateRestartStartsOnlyAWaitingVersion(t *testing.T) {
+	a, srv := lifecycleServer(t)
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/system/update-restart", nil); code != http.StatusNotImplemented {
+		t.Fatalf("POST update-restart without a desktop = %d, want %d", code, http.StatusNotImplemented)
+	}
+
+	ready := ""
+	restarts := 0
+	a.UpdateReady = func() string { return ready }
+	a.RestartIntoUpdate = func() bool {
+		restarts++
+		return restarts == 1
+	}
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/system/update-restart", nil); code != http.StatusConflict {
+		t.Fatalf("POST update-restart with nothing waiting = %d, want %d", code, http.StatusConflict)
+	}
+	ready = "2.10.0"
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/system/update-restart", nil); code != http.StatusAccepted {
+		t.Fatalf("POST update-restart = %d, want %d", code, http.StatusAccepted)
+	}
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/system/update-restart", nil); code != http.StatusConflict {
+		t.Fatalf("POST update-restart while shutting down = %d, want %d", code, http.StatusConflict)
+	}
+	if restarts != 2 {
+		t.Errorf("asked to restart %d times, want 2", restarts)
 	}
 }
 

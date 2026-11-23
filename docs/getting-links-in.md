@@ -82,7 +82,7 @@ Settings, Info shows it with its version. Private trackers let in only the
 clients on their list, so qBittorrent stays at the version you pick there.
 Until you pick one it runs 5.0.5, the newest. Some private trackers let in only
 older clients, OPS for one lists up to 4.5.x, so pick 4.6.7 or 4.5.5 for
-those. Neither the automatic update nor "Update now" moves a version you
+those. Neither the automatic update nor "Update components" moves a version you
 picked. Picking another version fetches it and
 restarts qBittorrent, and if the fetch fails, the one running carries on. The
 Linux build and the container take the static build of

@@ -233,7 +233,6 @@ export const en = {
   'settings.rainbow': 'Rainbow mode',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'While rainbow mode is on, every coloured element glides through the palette together, one colour every 2.4 seconds. With Animation set to Off, or reduced motion switched on in your phone’s settings, it steps from one colour to the next instead.',
-  'settings.problems': 'Problems?',
   'settings.problemsHint': 'Send this along when you report something. It saves a round of questions, and it contains no address or token.',
   'settings.problemsCopy': 'Copy report',
   'settings.problemsCopied': 'Report copied',
@@ -425,6 +424,16 @@ export const en = {
   'battery.askBody': 'To save battery, Android may pause KnightLoader in the background, and notifications then arrive late. On the next screen, find KnightLoader and turn battery optimisation off for it.',
   'battery.askLater': 'Not now',
   'battery.askOpen': 'Open settings',
+  'versionCard.hint': 'The version of {app}, where its updates stand and what this version brought.',
+  'versionCard.whatsNew': 'What\'s new',
+  'versionCard.store': 'Updates come through {store}.',
+  'versionCard.unreleased': '{version}, not a released build',
+  'componentsCard.title': 'Components',
+  'componentsCard.hint': 'Everything {app} is made of or brings along, with its version.',
+  'componentsCard.design': 'Design system',
+  'settings.help': 'Help',
+  'versionCard.anyStore': 'Updates come through the store you got the app from.',
+  'versionCard.direct': 'New versions come as a download on the release page.',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

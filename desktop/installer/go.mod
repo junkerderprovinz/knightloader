@@ -8,21 +8,23 @@ toolchain go1.27.4
 
 require (
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/junkerderprovinz/pommelporter v1.2.4
+	github.com/junkerderprovinz/pommelporter v1.2.6
 )
 
 require (
 	github.com/GopeedLab/gopeed v1.9.3 // indirect
+	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/andybalholm/brotli v1.2.8 // indirect
 	github.com/bodgit/plumbing v1.3.0 // indirect
 	github.com/bodgit/sevenzip v1.6.5 // indirect
 	github.com/bodgit/windows v1.0.1 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/coder/websocket v1.8.15 // indirect
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
-	github.com/klauspost/compress v1.20.4 // indirect
+	github.com/klauspost/compress v1.20.5 // indirect
 	github.com/nwaples/rardecode/v2 v2.4.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
@@ -30,8 +32,9 @@ require (
 	github.com/ulikunitz/xz v0.5.17 // indirect
 	github.com/wailsapp/wails/v3 v3.1.0 // indirect
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
+	golang.org/x/crypto v0.59.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
-	golang.org/x/term v0.46.0 // indirect
+	golang.org/x/term v0.48.0 // indirect
 	golang.org/x/text v0.44.0 // indirect
 )
 

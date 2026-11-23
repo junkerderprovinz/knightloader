@@ -1,0 +1,1 @@
+Die Einstellungen verraten jetzt, über welchen Store deine Updates kommen (Google Play oder F-Droid). So weißt du immer, wem du die Schuld gibst. Hast du die APK von Hand installiert, geht es zur Release-Seite. Neue Karten für Version und Komponenten zeigen, was bei dir läuft und wofür jeder Teil gut ist.

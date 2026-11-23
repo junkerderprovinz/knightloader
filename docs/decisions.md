@@ -171,7 +171,7 @@ current by one switch, **Update components automatically**, which ships on.
 While it is on, the app asks after yt-dlp once a day and after the others once
 a week, and downloads only a version newer than the one in use. Every fetch
 verifies its checksum, proves the program RUNS on this machine, and only then
-swaps it in. **Update now** on the Components card runs the same updates at
+swaps it in. **Update components** on the Components card runs the same updates at
 once, whatever the switch says. When each component was last asked after is
 kept in `tools/checks.json` in the data folder, so a restart does not ask again
 before one is due.
@@ -185,8 +185,9 @@ none.
 
 yt-dlp does ship regressions, and a new one changes what downloads produce.
 The switch is on anyway because the other failure is the common one: the
-container carries Alpine's yt-dlp package, which lags weeks behind, and a site
-that changed its page breaks every download from it until yt-dlp catches up. A
+container ships the yt-dlp release that was current when the image was built,
+and a site that changed its page breaks every download from it until yt-dlp
+catches up. A
 new release that fails its checksum or does not start here replaces nothing.
 yt-dlp is asked after daily for the same reason, and the others weekly because
 they move slower. ffmpeg's rolling build changes every night, so its weekly
@@ -203,7 +204,7 @@ component, because a video link that no yt-dlp reads falls through to
 JDownloader and lands as one plain row, and the copy the app keeps current is
 the fetched one anyway: the program's folder is read-only to the app. The
 installer on Windows and Linux fetches it into the data folder, checked against
-the release's `SHA2-256SUMS`, as the last step of the install. The macOS app, a
+the release's signed `SHA2-256SUMS`, as the last step of the install. The macOS app, a
 copy from the zip, the Flatpak and a silent install fetch it at the first
 start, where the app finds none. The Windows and Linux zips stay the program
 alone, because every installed copy updates itself from them and refuses a zip
@@ -234,22 +235,28 @@ list on Windows), runs it with `--version` and puts it beside the fetched
 yt-dlp. Every yt-dlp run gets it as `--js-runtimes deno:<path>`, the fetched
 copy ahead of `KL_DENO` and `PATH` as for yt-dlp itself, and without a Deno
 yt-dlp runs as before with fewer YouTube formats. A newer release replaces the
-fetched copy. The container installs Alpine's deno package instead, which is
-built for musl on both architectures, where the official builds need glibc.
-The self-test does not take a Deno on disk as proof: it asks yt-dlp, whose
+fetched copy. The container takes the official release too, pinned in the
+Dockerfile and checked against the same `.sha256sum`, because Alpine's deno
+package trails the releases by months and carries their security fixes late.
+The official builds need glibc, so the image keeps the few glibc libraries
+Deno links in `/usr/local/lib/glibc`, away from Alpine's musl, and the binary
+is patched to load them from there. A Deno update in the container comes with
+a new image, never at run time. The self-test does not take a Deno on disk as proof: it asks yt-dlp, whose
 `-v` header names the runtimes it found, and warns on `JS runtimes: none`.
 
-## The desktop update: on the next start, checked by its checksum
+## The desktop update: on the next start or a restart asked for, checked by its checksum
 
 **Built:** a desktop app that downloads a newer release in the background once
 a day, checks it against the release's `checksums.txt` and puts it in place of
-the program for the next start. The switch is on from the start.
+the program for the next start. The switch is on from the start. Once a new
+version is in place, **Restart for** on the Version card ends the program and
+starts the new one.
 
-**Not built:** an Install now button that restarts into the new version, and a
-code signature check.
+**Not built:** a restart nobody asked for, and a code signature check.
 
-A restart in the middle of the day would cut off whatever is downloading, and
-the next start comes soon enough for a download manager that runs all day. The
+A restart in the middle of the day would cut off whatever is downloading, so
+the program never restarts on its own: the new version waits for the next
+start, or for the person who presses the button and knows what runs. The
 checksum proves the file is the one the release workflow published, not that
 the workflow was trustworthy, since both come out of the same job. Only a
 signature tied to a key outside the build would close that gap, and the
