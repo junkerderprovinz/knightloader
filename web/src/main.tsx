@@ -22,6 +22,7 @@ import { watchSystemAccent } from './lib/systemAccent';
 import { setStoragePrefix } from '@glimstone/core';
 import { setGlyphResolver } from '@glimstone/react/glyphs';
 import { glyphFor } from './lib/glyphFor';
+import { askBeforeStaleChanges } from './lib/signin/kit';
 
 // GlimStone's own components keep their choices under kl- and pick their
 // glyphs from KnightLoader's set.
@@ -30,6 +31,7 @@ setGlyphResolver(glyphFor);
 
 // Before anything fetches or routes.
 sendApiCallsUnderBase();
+askBeforeStaleChanges();
 settleUnderBase();
 
 // Apply persisted preferences before first paint (no flash). Disco starts from

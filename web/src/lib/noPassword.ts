@@ -2,7 +2,7 @@
 // backups with every stored password included. The desktop build opens no
 // port, so there only its own window gets that far.
 import { useEffect, useState } from 'react';
-import { fetchAuth } from './api';
+import { signIn } from './signin/kit';
 import { isDesktop } from './desktop';
 import type { TranslationKey } from './i18n';
 
@@ -14,11 +14,9 @@ export function useNoPassword(): boolean {
   useEffect(() => {
     if (isDesktop()) return;
     let live = true;
-    fetchAuth()
-      .then((a) => {
-        if (live) setOpen(a.enabled === false);
-      })
-      .catch(() => {});
+    void signIn.options().then((r) => {
+      if (live && r.ok) setOpen(r.value.open);
+    });
     return () => {
       live = false;
     };

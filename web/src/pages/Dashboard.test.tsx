@@ -25,7 +25,6 @@ import { Dashboard } from './Dashboard';
 vi.mock('../lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../lib/api')>()),
   connectWS: vi.fn(() => () => {}),
-  fetchAuth: vi.fn(async () => ({ enabled: false, authenticated: true })),
   fetchSettings: vi.fn(async () => ({ instanceName: 'Home', speedLimit: 0, diskLowSpace: 10, diskCriticalSpace: 5 })),
   fetchInstances: vi.fn(async () => []),
   fetchCaptchas: vi.fn(async () => []),

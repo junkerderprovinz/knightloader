@@ -4,12 +4,12 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Access, TokensSection } from './Access';
+import { Access } from './Access';
 import { SettingsProvider, type SettingsDraft } from './context';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-// jsdom has no ResizeObserver, which the rights presets' tab strip measures with.
+// jsdom has no ResizeObserver, which GlimStone's selectors measure with.
 globalThis.ResizeObserver ??= class {
   observe() {}
   unobserve() {}
@@ -19,12 +19,32 @@ globalThis.ResizeObserver ??= class {
 let root: Root;
 let host: HTMLDivElement;
 
-beforeEach(() => {
-  // No tokens yet, which is all the card asks the server for.
+/** What the kit says about this browser: an open instance without a password. */
+const ME = { role: 'admin', via: 'open', owner: true, password: false, twoFactor: false, recoveryLeft: 0, fresh: true, askPassword: true };
+
+function serve(access: object) {
   vi.stubGlobal(
     'fetch',
-    vi.fn(() => Promise.resolve(new Response('[]', { headers: { 'Content-Type': 'application/json' } }))),
+    vi.fn((input: RequestInfo | URL) => {
+      const path = new URL(String(input), location.href).pathname;
+      const body =
+        path === '/api/system/access'
+          ? access
+          : path.endsWith('/api/signin/v1/me')
+            ? ME
+            : path.endsWith('/api/signin/v1/options')
+              ? { open: true, owner: true, minPassword: 12, signedIn: false, passkeys: false, services: [] }
+              : path.endsWith('/api/signin/v1/settings')
+                ? { askPassword: true }
+                : path.endsWith('/api/signin/v1/roles')
+                  ? { roles: ['admin'], serviceRole: 'admin' }
+                  : [];
+      return Promise.resolve(new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }));
+    }),
   );
+}
+
+beforeEach(() => {
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -36,42 +56,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('TokensSection', () => {
-  it('labels the new token window’s name field Name, not with the card title', async () => {
-    // The card's module switch finds no module and draws nothing.
-    const features = { features: { modules: [], pages: [] }, toggle: async () => {} };
-    await act(async () =>
-      root.render(
-        <SettingsProvider draft={{} as SettingsDraft} features={features}>
-          <TokensSection />
-        </SettingsProvider>,
-      ),
-    );
-    const open = [...host.querySelectorAll('button')].find((b) => b.textContent === 'New token')!;
-    await act(async () => open.click());
-    // The window is a portal on the body.
-    const input = document.body.querySelector<HTMLInputElement>('input[placeholder="e.g. Sonarr"]')!;
-    const caption = input.closest('label')!.querySelector('[data-glim-label]')!;
-    expect(caption.getAttribute('data-glim-label')).toBe('Name');
-  });
-});
-
 describe('Access', () => {
-  async function renderWithAuth(auth: object, trustedProxies: string[] = []) {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string) => {
-        const body =
-          url === '/api/auth'
-            ? auth
-            : url === '/api/remote-access'
-              ? { exposed: false }
-              : url === '/api/mcp'
-                ? { path: '/mcp', clients: [], tools: [] }
-                : [];
-        return Promise.resolve(new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }));
-      }),
-    );
+  async function render(access: object, trustedProxies: string[] = []) {
+    serve(access);
     const features = { features: { modules: [], pages: [] }, toggle: async () => {} };
     const draft = {
       cfg: { trustedProxies },
@@ -90,8 +77,13 @@ describe('Access', () => {
     );
   }
 
-  it('names the encryption key without a warning when there is none', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: false });
+  it('shows the sign-in tile from the kit', async () => {
+    await render({ behindProxy: false });
+    expect(host.querySelector('[data-signin-card="password"]')).not.toBeNull();
+  });
+
+  it('names the encryption key without a warning', async () => {
+    await render({ behindProxy: false });
     const line = host.querySelector('[data-testid="app-key"]')!;
     expect(line.textContent).toContain('Encryption key');
     expect(line.className).not.toMatch(/statusWarn/);
@@ -99,27 +91,27 @@ describe('Access', () => {
   });
 
   it('says nothing about old copies once the key has been in use long enough', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true });
+    await render({ behindProxy: false });
     expect(host.textContent).not.toContain('from before the encryption key');
   });
 
   it('says when the copies from before the encryption key go', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, appKeyCopiesUntil: '2026-10-18T12:00:00Z' });
+    await render({ behindProxy: false, appKeyCopiesUntil: '2026-10-18T12:00:00Z' });
     expect(host.textContent).toContain('A copy of the files from before the encryption key is still in the data folder.');
   });
 
   it('leaves the trusted proxies out while no request comes through a proxy', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: false });
+    await render({ behindProxy: false });
     expect(host.textContent).not.toContain('Trusted proxies');
   });
 
   it('offers the trusted proxies once requests come through a proxy', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: true });
+    await render({ behindProxy: true });
     expect(host.textContent).toContain('Trusted proxies');
   });
 
   it('keeps the trusted proxies in view while the list has entries', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: false }, ['10.0.0.2']);
+    await render({ behindProxy: false }, ['10.0.0.2']);
     expect(host.textContent).toContain('Trusted proxies');
   });
 });
