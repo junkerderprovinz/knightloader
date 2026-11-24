@@ -42,8 +42,8 @@ type Client struct {
 	ID string `json:"id"`
 	// Kind is the id of the client in the interface's list, such as
 	// "claude-code", or "other".
-	Kind    string    `json:"kind"`
-	TokenID string    `json:"tokenId"`
+	Kind    string `json:"kind"`
+	TokenID string `json:"tokenId"`
 	// Account is the sign-in account that set the client up, so the client
 	// ends with it. Empty for one set up while the app was open or before
 	// the kit's sign-in.
