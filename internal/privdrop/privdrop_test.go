@@ -196,3 +196,53 @@ func TestAnEscapedMountPointIsReadAsTheKernelMeantIt(t *testing.T) {
 		t.Errorf("the escaped space was not undone: %v", got)
 	}
 }
+
+// lookAsRoot answers for real folders as if root owned them all, so the
+// listing rules run against a real directory without root.
+func lookAsRoot(mounts map[string]bool) func(string) (folder, bool) {
+	return func(dir string) (folder, bool) {
+		empty, err := emptyBesides(dir, mounts)
+		return folder{uid: 0, empty: empty}, err == nil
+	}
+}
+
+// TestARootOwnedMountHoldingOnlyLostFoundIsHandedOver is a fresh ext4 volume,
+// such as a Proxmox mount point, where mke2fs leaves lost+found at the root.
+// lost+found itself is not planned and stays root's.
+func TestARootOwnedMountHoldingOnlyLostFoundIsHandedOver(t *testing.T) {
+	data := t.TempDir()
+	if err := os.Mkdir(filepath.Join(data, "lost+found"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	p, err := makePlan(0, noEnv, []string{data}, lookAsRoot(map[string]bool{data: true}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(p.handOver, []string{data}) {
+		t.Errorf("a fresh ext4 mount planned %v, want only %s", p.handOver, data)
+	}
+}
+
+func TestLostFoundCountsAsContentOutsideTheRootOfAMount(t *testing.T) {
+	data := t.TempDir()
+	if err := os.Mkdir(filepath.Join(data, "lost+found"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if empty, _ := emptyBesides(data, map[string]bool{}); empty {
+		t.Error("a folder that is no mount point counted as empty with a lost+found in it")
+	}
+}
+
+func TestALostFoundWithFilesInItCountsAsContent(t *testing.T) {
+	data := t.TempDir()
+	lost := filepath.Join(data, "lost+found")
+	if err := os.Mkdir(lost, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(lost, "#12"), []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if empty, _ := emptyBesides(data, map[string]bool{data: true}); empty {
+		t.Error("a mount whose lost+found holds recovered files counted as empty")
+	}
+}

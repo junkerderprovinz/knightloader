@@ -8,11 +8,13 @@
 // knight) when they are unset.
 //
 // Only a folder owned by root with nothing in it is handed over, and only that
-// folder, never its contents. A folder with something in it is somebody's
-// existing data or share, and chowning it would rewrite its ownership; the
-// boot line from fileowner.Advise explains that case instead. A process
-// started as anyone but root (--user 99:100 on Unraid, runAsUser, rootless
-// Docker) is left as it is, and PUID and PGID are not read.
+// folder, never its contents: the mount points of other volumes and the empty
+// lost+found of a fresh ext4 volume do not count, and keep their owner. A
+// folder with something in it is somebody's existing data or share, and
+// chowning it would rewrite its ownership; the boot line from fileowner.Advise
+// explains that case instead. A process started as anyone but root (--user
+// 99:100 on Unraid, runAsUser, rootless Docker) is left as it is, and PUID and
+// PGID are not read.
 package privdrop
 
 import (
@@ -53,8 +55,7 @@ func Applied() bool { return applied }
 // folder is one candidate as a single look saw it.
 type folder struct {
 	uid int
-	// empty is true when the folder holds nothing but the mount points of
-	// other volumes.
+	// empty is what emptyBesides answers for the folder.
 	empty bool
 }
 
@@ -118,19 +119,28 @@ func id(getenv func(string) string, name string, def int) (int, error) {
 	return n, nil
 }
 
-// emptyBesides reports whether dir holds nothing but mount points. For
-// `-v appdata:/data -v downloads:/data/downloads` Docker creates the mount
-// point for the second volume inside the first, so a brand-new data directory
-// is never quite empty.
+// emptyBesides reports whether dir holds nothing but mount points and, at the
+// root of a mount, an empty lost+found. For `-v appdata:/data -v
+// downloads:/data/downloads` Docker creates the mount point for the second
+// volume inside the first, so a brand-new data directory is never quite empty,
+// and mke2fs puts lost+found on every fresh ext4 volume, such as a Proxmox
+// mount point.
 func emptyBesides(dir string, mounts map[string]bool) (bool, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return false, err
 	}
 	for _, e := range entries {
-		if !mounts[filepath.Join(dir, e.Name())] {
-			return false, nil
+		p := filepath.Join(dir, e.Name())
+		if mounts[p] {
+			continue
 		}
+		if mounts[dir] && e.Name() == "lost+found" && e.IsDir() {
+			if inside, err := os.ReadDir(p); err == nil && len(inside) == 0 {
+				continue
+			}
+		}
+		return false, nil
 	}
 	return true, nil
 }

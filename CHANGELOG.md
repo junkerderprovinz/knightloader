@@ -36,6 +36,17 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **KnightLoader starts on a fresh Proxmox mount point.** A new ext4 volume,
+  such as the one Proxmox VE creates for a container's mount point, always
+  holds an empty lost+found folder. KnightLoader took that for somebody's
+  data, left the folder to root and stopped with "unable to open database
+  file". It now takes such a folder over like an empty one, and lost+found
+  stays with root.
+
 ## [2.9.6] - 2026-11-24
 
 ### Added
