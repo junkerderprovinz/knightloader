@@ -36,7 +36,7 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.9.6] - 2026-11-24
 
 ### Added
 
@@ -110,7 +110,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 ### Changed
 
 - **The sign-in is the one your whole fortress shares.** The sign-in page and
-  the Security tile come from GlimStone 4.9.0: at most two buttons, Forgot
+  the Security tile come from GlimStone 4.9.1: at most two buttons, Forgot
   password? as a link below them, and your browser offers a saved passkey
   right in the password field. Your password, two-factor authentication,
   recovery codes, passkeys and API tokens move along, and a browser that was
