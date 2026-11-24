@@ -111,6 +111,10 @@ func registerRelay(reg *Registry, a *app.App) {
 				f.direct.ServeHTTP(w, r)
 				return
 			}
+			if m := movedOf(a); m != nil {
+				m.direct.ServeHTTP(w, r)
+				return
+			}
 			g := a.Federation.Group()
 			if g == nil {
 				http.NotFound(w, r)
@@ -299,7 +303,7 @@ func regroup(a *app.App, change func() error) error {
 		if secret := fortressSecret(a); secret != nil {
 			g, err = openFortress(a, secret)
 		} else if pg, perr := openPhraseGroup(a, a.Discovery()); pg != nil {
-			g, err = pg, perr
+			g, err = beside(a, pg), perr
 		} else {
 			err = perr
 		}
@@ -346,6 +350,10 @@ func openPhraseGroup(a *app.App, network *lan.Service) (*group.Group, error) {
 	cfg.Identity = *identity
 	cfg.Self = groupSelf(a)
 	cfg.Relay, cfg.RelayURL = mode, url
+	if fortressSecret(a) == nil {
+		cfg.Previous, _ = previousPhrase(a)
+		cfg.OnNewPhrase = takeNewPhrase(a)
+	}
 	// The owner of an instance that was taken out leaves only the group it
 	// was taken out of: a reset in between put it in a group of its own,
 	// which nobody else may make it leave.

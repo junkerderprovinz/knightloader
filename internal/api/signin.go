@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
@@ -224,7 +225,7 @@ func freshSignIn(a *app.App, w http.ResponseWriter, r *http.Request, password st
 // blocked, removed, revoked or given a lower role loses the MCP clients it
 // set up and the devices it let into the group.
 func signInEnded(a *app.App) func(context.Context, string, signin.Ending) error {
-	return func(_ context.Context, account string, what signin.Ending) error {
+	return func(ctx context.Context, account string, what signin.Ending) error {
 		a.Ending.Lock()
 		defer a.Ending.Unlock()
 		switch what {
@@ -242,6 +243,13 @@ func signInEnded(a *app.App) func(context.Context, string, signin.Ending) error 
 				if err := takeOut(a, id); err != nil {
 					return err
 				}
+			}
+			// The account could show the phrase, and a phrase opens the group
+			// to whoever holds it.
+			ctx, cancel := context.WithTimeout(ctx, time.Minute)
+			defer cancel()
+			if err := rotatePhrase(ctx, a); err != nil {
+				return err
 			}
 		}
 		if what == signin.EndReset {

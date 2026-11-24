@@ -47,6 +47,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **What an account set up leaves with it.** When you block or remove an
   account that came in through a sign-in service, the MCP clients it set up
   stop working, and the phones and browsers it let into your group leave it.
+- **A new phrase when an account goes.** When you block or remove an account,
+  end all of its sign-ins, or give it a lower role, KnightLoader gives your
+  group a new phrase by itself. Your other instances, phones and browsers
+  move to it and stay connected, and the old words that account could see
+  let nobody new in. In a fortress, the fortress phrase changes the same way.
 - **Sessions you can see.** The Sessions card lists every browser that is
   signed in, and you can sign any of them out, or all the others at once.
 - **The password check on changes.** Before a new passkey, token, pairing or

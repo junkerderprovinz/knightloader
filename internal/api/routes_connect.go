@@ -551,6 +551,7 @@ func enterGroup(a *app.App, secret []byte) error {
 		if err := a.Accounts.Set(federation.GroupAccount, ""); err != nil {
 			return err
 		}
+		forgetPreviousPhrase(a)
 		// No relay mode is written: an unset mode already resolves to the
 		// project relay, and writing one would stop RelayModeOf from
 		// inferring "own" from a typed address.

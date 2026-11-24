@@ -32,6 +32,13 @@ const (
 	// GroupAccount holds what kit/group keeps of the group: who is approved,
 	// who was taken out and where the members answered.
 	GroupAccount = "relay-group"
+	// SeedPreviousAccount holds the secret before the group moved to a new
+	// phrase, SeedChangedAccount when it moved, in Unix nanoseconds, and
+	// GroupPreviousAccount what kit/group kept of the group on it. The group
+	// on that phrase stays open until every member followed, 30 days at most.
+	SeedPreviousAccount  = "relay-seed-previous"
+	SeedChangedAccount   = "relay-seed-changed"
+	GroupPreviousAccount = "relay-group-previous"
 	// FortressAccount holds the secret behind the fortress phrase. Once it is
 	// set, the pairing lives in the fortress under the same phrase, and
 	// SeedAccount holds the old one only until every member followed.
