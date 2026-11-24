@@ -18,7 +18,9 @@
 package privdrop
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -124,7 +126,9 @@ func id(getenv func(string) string, name string, def int) (int, error) {
 // downloads:/data/downloads` Docker creates the mount point for the second
 // volume inside the first, so a brand-new data directory is never quite empty,
 // and mke2fs puts lost+found on every fresh ext4 volume, such as a Proxmox
-// mount point.
+// mount point. A lost+found that cannot be listed counts as empty: in an
+// unprivileged LXC it belongs to the host's root, which the container's root
+// is not.
 func emptyBesides(dir string, mounts map[string]bool) (bool, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -136,7 +140,8 @@ func emptyBesides(dir string, mounts map[string]bool) (bool, error) {
 			continue
 		}
 		if mounts[dir] && e.Name() == "lost+found" && e.IsDir() {
-			if inside, err := os.ReadDir(p); err == nil && len(inside) == 0 {
+			inside, err := os.ReadDir(p)
+			if errors.Is(err, fs.ErrPermission) || (err == nil && len(inside) == 0) {
 				continue
 			}
 		}

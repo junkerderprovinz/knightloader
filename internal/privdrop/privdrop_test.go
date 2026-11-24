@@ -223,6 +223,24 @@ func TestARootOwnedMountHoldingOnlyLostFoundIsHandedOver(t *testing.T) {
 	}
 }
 
+// TestAnUnreadableLostFoundAtTheRootOfAMountDoesNotCountAsContent is an
+// unprivileged LXC, where the host's root owns lost+found and the container's
+// root is an unmapped account that may not list it.
+func TestAnUnreadableLostFoundAtTheRootOfAMountDoesNotCountAsContent(t *testing.T) {
+	data := t.TempDir()
+	lost := filepath.Join(data, "lost+found")
+	if err := os.Mkdir(lost, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(lost, 0o700) })
+	if _, err := os.ReadDir(lost); err == nil {
+		t.Skip("this process can list a folder with mode 000, as root can")
+	}
+	if empty, err := emptyBesides(data, map[string]bool{data: true}); err != nil || !empty {
+		t.Errorf("a mount holding only a lost+found this process cannot list counted as in use (err %v)", err)
+	}
+}
+
 func TestLostFoundCountsAsContentOutsideTheRootOfAMount(t *testing.T) {
 	data := t.TempDir()
 	if err := os.Mkdir(filepath.Join(data, "lost+found"), 0o700); err != nil {
