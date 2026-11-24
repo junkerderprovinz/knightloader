@@ -306,11 +306,11 @@ var kitRefusals = []string{
 }
 
 func TestTheKitRefusesWithTheListedCodes(t *testing.T) {
-	out, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/junkerderprovinz/parleyport/kit").Output()
+	out, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/junkerderprovinz/parleyport").Output()
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir := strings.TrimSpace(string(out))
+	dir := filepath.Join(strings.TrimSpace(string(out)), "kit")
 	code := regexp.MustCompile(`(?:refuse\([^,]+,|RefusalBody\()\s*"([A-Za-z]+)"`)
 	found := map[string]bool{}
 	for _, pkg := range []string{"group", "relay"} {
