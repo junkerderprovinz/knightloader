@@ -30,6 +30,9 @@ const UNREACHABLE = {
   groupClosed: 'the app joins no fortress',
   // A stream is asked for only to play a file, on the local network, and any
   // refusal of it plays the file through the relay instead.
+  // Only an instance hands a group's new phrase to another.
+  phraseKeyGone: 'the app hands no phrase on',
+  phraseUnusable: 'the app hands no phrase on',
   noStreams: 'a refused stream plays through the relay',
   streamBusy: 'a refused stream plays through the relay',
   streamDirectOnly: 'a refused stream plays through the relay',

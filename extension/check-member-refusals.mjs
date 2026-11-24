@@ -31,6 +31,9 @@ const UNREACHABLE = {
   // The browser hands links over and reads small answers, far below what a
   // relay frame carries.
   answerTooLarge: 'the browser reads no large answer',
+  // Only an instance hands a group's new phrase to another.
+  phraseKeyGone: 'the browser hands no phrase on',
+  phraseUnusable: 'the browser hands no phrase on',
   // Streams are for playing a file on a phone.
   noStreams: 'the browser asks for no stream',
   streamBusy: 'the browser asks for no stream',

@@ -297,6 +297,8 @@ var kitRefusals = []string{
 	"memberUnsigned",
 	"noStreams",
 	"noUploads",
+	"phraseKeyGone",
+	"phraseUnusable",
 	"streamBusy",
 	"streamDirectOnly",
 	"streamLength",
