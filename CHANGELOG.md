@@ -44,6 +44,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   services you can add Pocket ID, authentik, Authelia, Keycloak, Kanidm,
   Zitadel or any other OpenID Connect service. Enter its address, client ID
   and secret, run the test sign-in, and the sign-in page gets a button for it.
+- **What an account set up leaves with it.** When you block or remove an
+  account that came in through a sign-in service, the MCP clients it set up
+  stop working, and the phones and browsers it let into your group leave it.
 - **Sessions you can see.** The Sessions card lists every browser that is
   signed in, and you can sign any of them out, or all the others at once.
 - **The password check on changes.** Before a new passkey, token, pairing or
@@ -107,8 +110,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   right in the password field. Your password, two-factor authentication,
   recovery codes, passkeys and API tokens move along, and a browser that was
   signed in stays signed in. Nothing has to be set up again.
-- **A password is fully optional.** Without one, KnightLoader answers on every
-  name it is reached under, and backups download as well. Any length works:
+- **A password is fully optional, in the desktop app too.** Without one,
+  KnightLoader answers on every name it is reached under, and backups download
+  as well. A password you set in the desktop app before stays. Any length works:
   below 12 characters the field says the password is quick to guess and sets
   it all the same.
 - **API tokens have one level each.** Status only, read, add and read, or
