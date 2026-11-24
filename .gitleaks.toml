@@ -75,6 +75,8 @@ description = "Invented credentials that are test fixtures for the parsers that 
 # reCAPTCHA answer.
 regexes = [
   '''demo:s3cret''',
+  '''49d9b435b124f28a7945db16a27bd58ae8e44a03aa7140c0583a42da69fca3ef''',
+  '''00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff''',
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
   '''0123456789abcdef''',
   '''KL_TORBOX=secret-key''',
