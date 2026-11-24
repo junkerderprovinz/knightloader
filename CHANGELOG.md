@@ -36,11 +36,20 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [2.9.5] - 2026-11-22
 ## [Unreleased]
 
 ### Added
 
+- **Sign in through a sign-in service.** Under Settings > Security > Sign-in
+  services you can add Pocket ID, authentik, Authelia, Keycloak, Kanidm,
+  Zitadel or any other OpenID Connect service. Enter its address, client ID
+  and secret, run the test sign-in, and the sign-in page gets a button for it.
+- **Sessions you can see.** The Sessions card lists every browser that is
+  signed in, and you can sign any of them out, or all the others at once.
+- **The password check on changes.** Before a new passkey, token, pairing or
+  fortress change, and before a phrase shows, KnightLoader asks for your
+  password in a small window when you signed in more than ten minutes ago.
+  You can turn the question off.
 - **KnightLoader joins a fortress.** Enter the fortress's twelve words on the
   Pairing page, and KnightLoader joins your other apps there. The instances,
   phones and browser extensions it is paired with come along, and one that
@@ -92,6 +101,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
+- **The sign-in is the one your whole fortress shares.** The sign-in page and
+  the Security tile come from GlimStone 4.9.0: at most two buttons, Forgot
+  password? as a link below them, and your browser offers a saved passkey
+  right in the password field. Your password, two-factor authentication,
+  recovery codes, passkeys and API tokens move along, and a browser that was
+  signed in stays signed in. Nothing has to be set up again.
+- **A password is fully optional.** Without one, KnightLoader answers on every
+  name it is reached under, and backups download as well. Any length works:
+  below 12 characters the field says the password is quick to guess and sets
+  it all the same.
+- **API tokens have one level each.** Status only, read, add and read, or
+  everything. Your tokens keep exactly the rights they had.
+- **Staying signed in.** A sign-in lasts 30 days, or 7 without a visit.
 - **No network address on any page.** KnightLoader shows no address of an
   instance any more. Every member reads Connected or Not reachable, in the
   web interface, on the phone and in the browser extension.
@@ -117,6 +139,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Removed
 
+- **`-reset-2fa` is gone.** Forgot password? on the sign-in page writes a
+  code to the log, and the reset that takes it sets a new password and turns
+  two-factor authentication off.
 - **Instances are no longer added by their address.** Every app pairs the
   same simple way, with the twelve words. Instances you had added by address
   are gone after the update, the Instances page names them once, and the
@@ -139,18 +164,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Only the certificate folder moves to `/var/lib/parleyport/certs`, so mount
   your volume there or let ParleyPort fetch a new certificate.
 
-## [2.7.5] - 2026-11-09
-
-### Fixed
-
-- **The browser extension reaches Firefox Add-ons again.** Firefox Add-ons
-  turned 2.7.4 away because its notes for the reviewers were one character
-  over the limit, so Firefox stayed on 2.7.3 without the video button.
-- **Uninstalling the desktop app on Windows leaves nothing behind,** and the
-  installer window shows KnightLoader's icon on Linux. The installer follows
-  PommelPorter 1.1.5.
-
-## [2.7.4] - 2026-11-09
+## [2.9.5] - 2026-11-22
 
 ### Added
 
