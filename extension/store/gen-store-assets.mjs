@@ -11,7 +11,7 @@
  * to the edge. A store renders its own card around the icon and asks for 16px of
  * transparent padding instead.
  *
- * Bree Serif Light for the name and Bree Light for the line under it are read
+ * Bree Serif Regular for the name and Bree Light for the line under it are read
  * as TTF from HOUSE_FONTS (default %LOCALAPPDATA%\halleluja-fonts) and handed to
  * resvg, so no installed font is needed. opentype.js only measures the text.
  *
@@ -46,7 +46,7 @@ const BG = "#0d1117", NAME_FILL = "#e6edf3", LINE_FILL = "#9aa4ad";
 
 // The house typeface is licensed, so it is read from a local folder and never committed.
 const fonts = process.env.HOUSE_FONTS ?? join(process.env.LOCALAPPDATA ?? tmpdir(), "halleluja-fonts");
-const nameFile = join(fonts, "bree-serif-light.ttf");
+const nameFile = join(fonts, "bree-serif-regular.ttf");
 const lineFile = join(fonts, "bree-light.ttf");
 const nameFont = opentype.parse(readFileSync(nameFile).buffer);
 const lineFont = opentype.parse(readFileSync(lineFile).buffer);
@@ -81,7 +81,7 @@ function tile(file, w, h, logoH, nameSize, lineSize, gap) {
   const groupW = logoW + gap + Math.max(nameW, lineW);
   const x0 = (w - groupW) / 2;
   const textX = x0 + logoW + gap;
-  // Centred on the cap height, since Bree Serif Light's ascender sits far above its capitals.
+  // Centred on the cap height, since Bree Serif's ascender sits far above its capitals.
   const nameCap = nameFont.tables.os2.sCapHeight * (nameSize / nameFont.unitsPerEm);
   const nameDesc = -nameFont.descender * (nameSize / nameFont.unitsPerEm);
   const lineAsc = lineFont.ascender * (lineSize / lineFont.unitsPerEm);
@@ -92,7 +92,7 @@ function tile(file, w, h, logoH, nameSize, lineSize, gap) {
   if (groupW > w * 0.94) throw new Error(`${file}: text does not fit (${groupW.toFixed(0)} of ${w})`);
   emit(file, w, h, `<rect width="${w}" height="${h}" fill="${BG}"/>
     ${logo(x0, (h - logoH) / 2, logoW, logoH)}
-    <text x="${textX.toFixed(2)}" y="${nameBase.toFixed(2)}" font-family="Bree Serif" font-weight="300" font-size="${nameSize}" fill="${NAME_FILL}">${NAME}</text>
+    <text x="${textX.toFixed(2)}" y="${nameBase.toFixed(2)}" font-family="Bree Serif" font-weight="400" font-size="${nameSize}" fill="${NAME_FILL}">${NAME}</text>
     <text x="${textX.toFixed(2)}" y="${lineBase.toFixed(2)}" font-family="Bree" font-weight="300" font-size="${lineSize}" fill="${LINE_FILL}">${LINE}</text>`, BG);
 }
 

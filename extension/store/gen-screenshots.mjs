@@ -13,7 +13,7 @@
  * Every layer is rendered at twice the size and drawn at half, which keeps the
  * text sharp through the window's perspective.
  *
- * The caption is set in Bree Serif Light and Bree Light, read as TTF from
+ * The caption is set in Bree Serif Regular and Bree Light, read as TTF from
  * HOUSE_FONTS (default %LOCALAPPDATA%\halleluja-fonts). The address bar keeps Lato.
  *
  * As in gen-store-assets.mjs, no browser is named: Edge's policy 1.1.2 rejects a
@@ -116,7 +116,7 @@ const IMAGES = {
 };
 // The house typeface is licensed, so it is read from a local folder and never committed.
 const fonts = process.env.HOUSE_FONTS ?? join(process.env.LOCALAPPDATA ?? tmpdir(), "halleluja-fonts");
-const breeSerif = readFileSync(join(fonts, "bree-serif-light.ttf")).toString("base64");
+const breeSerif = readFileSync(join(fonts, "bree-serif-regular.ttf")).toString("base64");
 const bree = readFileSync(join(fonts, "bree-light.ttf")).toString("base64");
 const lato = (await cached("KnightLoader-Lato-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf")).toString("base64");
 const logo = readFileSync(join(EXT, "src", "logo.svg")).toString("base64");
@@ -238,7 +238,7 @@ const BACKDROP = `<div class="backdrop"><div class="wall"></div><img class="mark
 function frame({ copy, url, page, popup, pointer }) {
   const x = 384, y = (800 - VIEW_H - BAR_H) / 2;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-@font-face { font-family: "Bree Serif"; font-weight: 300; src: url(data:font/ttf;base64,${breeSerif}); }
+@font-face { font-family: "Bree Serif"; font-weight: 400; src: url(data:font/ttf;base64,${breeSerif}); }
 @font-face { font-family: Bree; font-weight: 300; src: url(data:font/ttf;base64,${bree}); }
 @font-face { font-family: Lato; src: url(data:font/ttf;base64,${lato}); }
 * { box-sizing: border-box; margin: 0; }
@@ -252,7 +252,7 @@ body { width: 1280px; height: 800px; overflow: hidden; position: relative; font-
 .vignette { inset: 0; box-shadow: inset 0 0 200px rgba(0,0,0,.6); }
 .copy { position: absolute; left: 64px; top: 0; bottom: 0; width: 290px; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
 .copy img { width: 58px; }
-h1 { font: 300 38px/1.14 "Bree Serif", serif; color: #f4f4f4; }
+h1 { font: 400 38px/1.14 "Bree Serif", serif; color: #f4f4f4; }
 h1 em { font-style: normal; color: #FCC419; }
 .copy p { font: 300 18px Bree, sans-serif; color: #9d9481; }
 .stage { position: absolute; left: ${x}px; top: ${y}px; width: ${VIEW_W}px; height: ${VIEW_H + BAR_H}px; perspective: 2400px; }
@@ -307,7 +307,7 @@ const caption = (text) => `<div class="copy"><img src="data:image/svg+xml;base64
 async function render(browser, file, opts) {
   const canvas = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await canvas.setContent(frame(opts));
-  await canvas.evaluate(() => Promise.all(['300 1em "Bree Serif"', "300 1em Bree", "1em Lato"].map((f) => document.fonts.load(f))));
+  await canvas.evaluate(() => Promise.all(['400 1em "Bree Serif"', "300 1em Bree", "1em Lato"].map((f) => document.fonts.load(f))));
   await canvas.screenshot({ path: file });
   await canvas.close();
 }
