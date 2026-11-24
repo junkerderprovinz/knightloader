@@ -92,7 +92,7 @@ func scopedToken(a *app.App, name string, scopes []apitoken.Scope) (apitoken.Tok
 	if err != nil {
 		return tok, secret, err
 	}
-	if _, err := a.MCPClients.Add("other", tok.ID); err != nil {
+	if _, err := a.MCPClients.Add("other", tok.ID, ""); err != nil {
 		return tok, secret, err
 	}
 	return tok, secret, nil

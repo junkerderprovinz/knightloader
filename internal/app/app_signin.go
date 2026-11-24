@@ -11,7 +11,7 @@ import (
 
 // signInEnding is what ends KnightLoader's own ways in after the kit ended
 // its own, set once the routes exist.
-type signInEnding = func(ctx context.Context, what signin.Ending) error
+type signInEnding = func(ctx context.Context, account string, what signin.Ending) error
 
 var errNoRoutesYet = errors.New("the routes are not up yet")
 
@@ -20,12 +20,12 @@ var errNoRoutesYet = errors.New("the routes are not up yet")
 // an ending until it ran, so one it hands over before this is set runs then.
 func (a *App) OnSignInEnded(end signInEnding) { a.signInEnd.Store(&end) }
 
-func (a *App) signInEnded(ctx context.Context, what signin.Ending) error {
+func (a *App) signInEnded(ctx context.Context, account string, what signin.Ending) error {
 	end := a.signInEnd.Load()
 	if end == nil {
 		return errNoRoutesYet
 	}
-	return (*end)(ctx, what)
+	return (*end)(ctx, account, what)
 }
 
 // publicURL is the first known address in full, which passkeys and sign-in

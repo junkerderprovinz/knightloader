@@ -46,6 +46,9 @@ type GroupState struct {
 	// address, which the update took away, until the owner puts the note on
 	// the Instances page away.
 	DroppedInstances []string `json:"droppedInstances,omitempty"`
+	// Approvers names, by device id, the sign-in account that let the
+	// device in, so the device leaves when that account ends.
+	Approvers map[string]string `json:"approvers,omitempty"`
 }
 
 // oldGroup is what group.json held of the group's members before kit/group.
@@ -142,6 +145,45 @@ func (m *Manager) SetJoined(at time.Time) error {
 	defer m.group.mu.Unlock()
 	m.group.state = GroupState{JoinedAt: at, DroppedInstances: m.group.state.DroppedInstances}
 	m.group.old = oldGroup{}
+	return m.group.flushLocked()
+}
+
+// NoteApprover records that account let the device id into the group.
+func (m *Manager) NoteApprover(id, account string) error {
+	if account == "" {
+		return nil
+	}
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	if m.group.state.Approvers == nil {
+		m.group.state.Approvers = map[string]string{}
+	}
+	m.group.state.Approvers[id] = account
+	return m.group.flushLocked()
+}
+
+// ApprovedBy lists the devices account let into the group, oldest id first.
+func (m *Manager) ApprovedBy(account string) []string {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	var out []string
+	for id, by := range m.group.state.Approvers {
+		if by == account {
+			out = append(out, id)
+		}
+	}
+	slices.Sort(out)
+	return out
+}
+
+// ForgetApprover drops what NoteApprover recorded for id.
+func (m *Manager) ForgetApprover(id string) error {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	if _, ok := m.group.state.Approvers[id]; !ok {
+		return nil
+	}
+	delete(m.group.state.Approvers, id)
 	return m.group.flushLocked()
 }
 

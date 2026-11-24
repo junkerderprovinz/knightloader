@@ -19,6 +19,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/mcpclient"
 	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
 	"github.com/junkerderprovinz/parleyport/kit/signin"
 )
@@ -216,23 +217,29 @@ func freshSignIn(a *app.App, w http.ResponseWriter, r *http.Request, password st
 	return ran
 }
 
-// signInEnded ends KnightLoader's own ways in after the kit ended its own.
-// A reset ends everything somebody else may hold: the MCP clients' tokens,
-// the place in the pairing group, whose phrase opens the group's routes
-// without a password, and every live stream.
-func signInEnded(a *app.App) func(context.Context, signin.Ending) error {
-	return func(_ context.Context, what signin.Ending) error {
+// signInEnded ends KnightLoader's own ways in after the kit ended those of
+// account. A reset ends everything somebody else may hold: the MCP clients'
+// tokens, the place in the pairing group, whose phrase opens the group's
+// routes without a password, and every live stream. An account that is
+// blocked, removed, revoked or given a lower role loses the MCP clients it
+// set up and the devices it let into the group.
+func signInEnded(a *app.App) func(context.Context, string, signin.Ending) error {
+	return func(_ context.Context, account string, what signin.Ending) error {
 		a.Ending.Lock()
 		defer a.Ending.Unlock()
 		switch what {
-		case signin.EndReset, signin.EndFirstPassword, signin.EndRevoked:
+		case signin.EndReset, signin.EndFirstPassword:
 			// A token an MCP client got while the app was open would
 			// outlive the password that now closes it.
-			for _, c := range a.MCPClients.List() {
-				if err := a.APITokens.Revoke(c.TokenID); err != nil && !errors.Is(err, apitoken.ErrNotFound) {
-					return err
-				}
-				if _, err := a.MCPClients.Remove(c.ID); err != nil {
+			if err := endMCPClients(a, func(mcpclient.Client) bool { return true }); err != nil {
+				return err
+			}
+		case signin.EndBlocked, signin.EndRemoved, signin.EndRevoked, signin.EndRole:
+			if err := endMCPClients(a, func(c mcpclient.Client) bool { return c.Account == account }); err != nil {
+				return err
+			}
+			for _, id := range a.Federation.ApprovedBy(account) {
+				if err := takeOut(a, id); err != nil {
 					return err
 				}
 			}
@@ -247,6 +254,22 @@ func signInEnded(a *app.App) func(context.Context, signin.Ending) error {
 		a.Hub.DropAll()
 		return nil
 	}
+}
+
+// endMCPClients removes the MCP clients ending picks, with their tokens.
+func endMCPClients(a *app.App, ending func(mcpclient.Client) bool) error {
+	for _, c := range a.MCPClients.List() {
+		if !ending(c) {
+			continue
+		}
+		if err := a.APITokens.Revoke(c.TokenID); err != nil && !errors.Is(err, apitoken.ErrNotFound) {
+			return err
+		}
+		if _, err := a.MCPClients.Remove(c.ID); err != nil && !errors.Is(err, mcpclient.ErrNotFound) {
+			return err
+		}
+	}
+	return nil
 }
 
 // signInRoutes serves the kit's contract and its browser routes under

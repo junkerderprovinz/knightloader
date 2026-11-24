@@ -123,7 +123,7 @@ func start(t *testing.T, dir string, key *appkey.Key) *instance {
 	in := &instance{dir: dir}
 	in.opts = Options{
 		Dir: dir, Store: st, AppKey: key, Tokens: tokens, MCP: mcp,
-		Ended: func(_ context.Context, what signin.Ending) error {
+		Ended: func(_ context.Context, _ string, what signin.Ending) error {
 			in.mu.Lock()
 			in.ended = append(in.ended, what)
 			in.mu.Unlock()
@@ -320,7 +320,7 @@ func TestAnMCPClientsTokenStaysOutOfTheKit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := mcp.Add("claude", tok.ID); err != nil {
+	if _, err := mcp.Add("claude", tok.ID, ""); err != nil {
 		t.Fatal(err)
 	}
 	in := start(t, dir, nil)

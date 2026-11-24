@@ -29,6 +29,7 @@ import (
 	"github.com/junkerderprovinz/parleyport/kit/member"
 	"github.com/junkerderprovinz/parleyport/kit/phrase"
 	"github.com/junkerderprovinz/parleyport/kit/relay"
+	"github.com/junkerderprovinz/parleyport/kit/signin"
 )
 
 // ConnectInfo is what GET /api/connect answers with. It never carries the
@@ -411,6 +412,11 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			if v, ok := signin.From(r.Context()); ok {
+				if err := a.Federation.NoteApprover(id, v.Account); err != nil {
+					log.Printf("connect: could not note who let %s in: %v", id, err)
+				}
+			}
 			for _, m := range g.Roster().Members {
 				if m.ID == id {
 					body, _ := json.Marshal(deviceDecision{Key: m.Key, Kind: m.Kind})
@@ -461,24 +467,36 @@ func registerConnect(reg *Registry, a *app.App) {
 // tells the instances on this release, and passOn the older ones, the member
 // itself included. It reports whether it answered nothing yet.
 func removeHere(w http.ResponseWriter, a *app.App, id string) bool {
+	if err := takeOut(a, id); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return false
+	}
+	return true
+}
+
+// takeOut removes member id from the group, here and, through the instances
+// on older releases, everywhere.
+func takeOut(a *app.App, id string) error {
 	g := a.Federation.Group()
 	if g == nil {
-		return true
+		return nil
 	}
 	to := olderInstances(a, "")
 	if err := g.Remove(id); err != nil && !errors.Is(err, group.ErrNoSuchMember) {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return false
+		return err
+	}
+	if err := a.Federation.ForgetApprover(id); err != nil {
+		return err
 	}
 	path := "/api/connect/apps/" + url.PathEscape(id)
 	switch federation.KindOfID(id) {
 	case member.KindInstance:
 		path = "/api/connect/members/" + url.PathEscape(id)
 	case "":
-		return true
+		return nil
 	}
 	go passOn(a, to, http.MethodDelete, path, nil)
-	return true
+	return nil
 }
 
 // takePassedOn takes a removal an instance on an older release passed on: of

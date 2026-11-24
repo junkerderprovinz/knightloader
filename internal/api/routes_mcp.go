@@ -21,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/mcpclient"
+	"github.com/junkerderprovinz/parleyport/kit/signin"
 )
 
 const (
@@ -113,7 +114,8 @@ func registerMCP(reg *Registry, a *app.App) {
 				if tok, secret, err = a.APITokens.CreateScoped(body.Name, scopes); err != nil {
 					return err
 				}
-				if client, err = a.MCPClients.Add(body.Kind, tok.ID); err != nil {
+				v, _ := signin.From(r.Context())
+				if client, err = a.MCPClients.Add(body.Kind, tok.ID, v.Account); err != nil {
 					_ = a.APITokens.Revoke(tok.ID)
 				}
 				return err

@@ -30,7 +30,7 @@ func mcpClientToken(t *testing.T, a *app.App, scopes ...apitoken.Scope) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := a.MCPClients.Add("claude-code", tok.ID); err != nil {
+	if _, err := a.MCPClients.Add("claude-code", tok.ID, ""); err != nil {
 		t.Fatal(err)
 	}
 	return secret

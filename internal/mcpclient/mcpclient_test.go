@@ -17,7 +17,7 @@ func TestAClientSurvivesAReopen(t *testing.T) {
 	if !s.Empty() {
 		t.Fatal("a new store is not empty")
 	}
-	c, err := s.Add("claude-code", "tok1")
+	c, err := s.Add("claude-code", "tok1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,20 +35,20 @@ func TestAClientSurvivesAReopen(t *testing.T) {
 
 func TestATokenBelongsToOneClient(t *testing.T) {
 	s, _ := Open(t.TempDir())
-	if _, err := s.Add("cursor", "tok1"); err != nil {
+	if _, err := s.Add("cursor", "tok1", ""); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.Add("zed", "tok1"); !errors.Is(err, ErrTokenInUse) {
+	if _, err := s.Add("zed", "tok1", ""); !errors.Is(err, ErrTokenInUse) {
 		t.Errorf("a second client on the same token: %v", err)
 	}
-	if _, err := s.Add("", "tok2"); !errors.Is(err, ErrNoKind) {
+	if _, err := s.Add("", "tok2", ""); !errors.Is(err, ErrNoKind) {
 		t.Errorf("a client without a kind: %v", err)
 	}
 }
 
 func TestRemovingTheLastClientEmptiesTheStore(t *testing.T) {
 	s, _ := Open(t.TempDir())
-	c, _ := s.Add("cursor", "tok1")
+	c, _ := s.Add("cursor", "tok1", "")
 	got, err := s.Remove(c.ID)
 	if err != nil || got.TokenID != "tok1" {
 		t.Fatalf("Remove = %+v, %v", got, err)
@@ -64,7 +64,7 @@ func TestRemovingTheLastClientEmptiesTheStore(t *testing.T) {
 func TestTouchWritesAtMostOncePerMinute(t *testing.T) {
 	dir := t.TempDir()
 	s, _ := Open(dir)
-	c, _ := s.Add("cursor", "tok1")
+	c, _ := s.Add("cursor", "tok1", "")
 	now := time.Now()
 	s.Touch(c.ID, now)
 	path := filepath.Join(dir, fileName)

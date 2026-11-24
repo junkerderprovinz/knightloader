@@ -44,6 +44,10 @@ type Client struct {
 	// "claude-code", or "other".
 	Kind    string    `json:"kind"`
 	TokenID string    `json:"tokenId"`
+	// Account is the sign-in account that set the client up, so the client
+	// ends with it. Empty for one set up while the app was open or before
+	// the kit's sign-in.
+	Account string    `json:"account,omitempty"`
 	AddedAt time.Time `json:"addedAt"`
 	// LastCall is when the client last reached /mcp, nil until its first call.
 	LastCall *time.Time `json:"lastCall,omitempty"`
@@ -85,8 +89,8 @@ func (s *Store) List() []Client {
 	return out
 }
 
-// Add records a client of kind reached with tokenID.
-func (s *Store) Add(kind, tokenID string) (Client, error) {
+// Add records a client of kind reached with tokenID, set up by account.
+func (s *Store) Add(kind, tokenID, account string) (Client, error) {
 	kind = strings.TrimSpace(kind)
 	switch {
 	case kind == "":
@@ -106,7 +110,7 @@ func (s *Store) Add(kind, tokenID string) (Client, error) {
 			return Client{}, ErrTokenInUse
 		}
 	}
-	c := Client{ID: newID(), Kind: kind, TokenID: tokenID, AddedAt: time.Now().UTC()}
+	c := Client{ID: newID(), Kind: kind, TokenID: tokenID, Account: account, AddedAt: time.Now().UTC()}
 	s.clients = append(s.clients, c)
 	if err := s.flushLocked(); err != nil {
 		s.clients = s.clients[:len(s.clients)-1]

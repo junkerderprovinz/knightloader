@@ -55,8 +55,9 @@ type Options struct {
 	Base   string
 	// Proxies are the trusted proxies, read on every request.
 	Proxies func() []netip.Prefix
-	// Ended ends KnightLoader's own ways in after the kit ended its own.
-	Ended  func(ctx context.Context, what signin.Ending) error
+	// Ended ends KnightLoader's own ways in after the kit ended those of
+	// account.
+	Ended  func(ctx context.Context, account string, what signin.Ending) error
 	Logger *slog.Logger
 }
 
@@ -93,11 +94,11 @@ func Open(ctx context.Context, o Options) (*signin.Auth, error) {
 		Import:      func(context.Context) ([]signin.Imported, error) { return importOld(o, old) },
 		Legacy:      legacy(o, old),
 		Hooks: signin.Hooks{
-			Ended: func(ctx context.Context, _ string, what signin.Ending) error {
+			Ended: func(ctx context.Context, account string, what signin.Ending) error {
 				if o.Ended == nil {
 					return nil
 				}
-				return o.Ended(ctx, what)
+				return o.Ended(ctx, account, what)
 			},
 		},
 		Logger: o.Logger,
