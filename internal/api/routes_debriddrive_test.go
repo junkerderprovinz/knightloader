@@ -36,11 +36,11 @@ func TestTheDebridDriveOpensOnlyToATokenThatCanRead(t *testing.T) {
 	a := testApp(t)
 	srv := httptest.NewServer(Handler(a))
 	t.Cleanup(srv.Close)
-	_, reader, err := a.APITokens.CreateScoped("rclone", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "rclone", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, adder, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd})
+	_, adder, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeAdd})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestTheDebridDriveRefusesWritesThroughTheRouteTable(t *testing.T) {
 	a := testApp(t)
 	srv := httptest.NewServer(Handler(a))
 	t.Cleanup(srv.Close)
-	_, reader, err := a.APITokens.CreateScoped("rclone", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "rclone", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +131,7 @@ func TestTheDebridDriveNamesItsEntriesUnderTheBasePath(t *testing.T) {
 	a := testApp(t)
 	srv := httptest.NewServer(Handler(a))
 	t.Cleanup(srv.Close)
-	_, reader, err := a.APITokens.CreateScoped("rclone", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "rclone", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func TestTheDebridDriveNamesItsEntriesAsTheClientAskedForThem(t *testing.T) {
 	a := testApp(t)
 	srv := httptest.NewServer(Handler(a))
 	t.Cleanup(srv.Close)
-	_, reader, err := a.APITokens.CreateScoped("rclone", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "rclone", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +210,7 @@ func TestTheDebridDriveRowSaysWhatIsMissing(t *testing.T) {
 	if got := detail(); got != "debriddriveNoToken" {
 		t.Errorf("with no token the row says %q, want debriddriveNoToken", got)
 	}
-	if _, _, err := a.APITokens.CreateScoped("rclone", []apitoken.Scope{apitoken.ScopeRead}); err != nil {
+	if _, _, err := scopedToken(a, "rclone", []apitoken.Scope{apitoken.ScopeRead}); err != nil {
 		t.Fatal(err)
 	}
 	if got := detail(); got != "debriddriveNoAccount" {

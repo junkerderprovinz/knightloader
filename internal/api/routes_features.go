@@ -857,7 +857,7 @@ func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 			code: "downloadclientOff",
 		}
 	}
-	tokens := a.APITokens.List()
+	tokens := allTokens(a)
 	switch {
 	case len(tokens) == 0:
 		return line{
@@ -895,7 +895,7 @@ func debridDriveDetail(a *app.App, s settings.Settings, base string) line {
 			code: "debriddriveOff",
 		}
 	}
-	if !someTokenHolds(a.APITokens.List(), apitoken.ScopeRead) {
+	if !someTokenHolds(allTokens(a), apitoken.ScopeRead) {
 		return line{
 			text: "no API token can read, so every mount is refused; create one on the Security page",
 			code: "debriddriveNoToken",

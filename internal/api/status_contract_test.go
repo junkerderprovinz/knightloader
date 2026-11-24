@@ -21,9 +21,7 @@ func fortressApp(t *testing.T) (http.Handler, *app.App) {
 	t.Helper()
 	srv, a, _ := seedFailed(t, core.ReasonUnknown)
 	srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	// Dated as they happen: the queue's idle event, which the instance logs a
 	// moment after it starts, would otherwise land between them out of order.
 	for _, name := range []string{"first.mkv", "second.mkv"} {
@@ -34,7 +32,7 @@ func fortressApp(t *testing.T) (http.Handler, *app.App) {
 
 func tokenWith(t *testing.T, a *app.App, scopes ...apitoken.Scope) string {
 	t.Helper()
-	_, secret, err := a.APITokens.CreateScoped("dashboard", scopes)
+	_, secret, err := scopedToken(a, "dashboard", scopes)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -50,12 +50,11 @@ extension instead. See
 
 ## Trusted proxies
 
-KnightLoader takes five failed sign-ins a minute from one address and refuses
-the next until the first of them is a minute old. The right password is
-refused too while the address waits, and a wrong password gets the same answer
-however close it was. Passwords and two-factor codes share one count, passkeys
-and reset codes have one each. Behind a reverse proxy every request arrives
-from the proxy, so one person guessing makes everybody wait.
+After a run of failed sign-ins KnightLoader makes the address, and the
+account, wait before it takes the next one. The right password is refused too
+while they wait, and a wrong password gets the same answer however close it
+was. Behind a reverse proxy every request arrives from the proxy, so one
+person guessing makes everybody wait.
 
 **Trusted proxies** under Settings > Security, beside the password, fixes that.
 The field shows up once a request has come through a proxy in the last day,
@@ -75,10 +74,8 @@ counts as a proxy. A wider range an
 earlier version took stays in the list, is not used, and is named under the
 field until you change it.
 Empty, the default, means every request counts for the address it connected
-from. An IPv6 caller counts by its `/64`, since one connection usually gets
-that many addresses, and a whole `/48` together gets 20 failed sign-ins a
-minute. At most two password checks run at once, and the rest wait. The relay an instance serves under Pairing reads the same
-list for its own count of failed handshakes.
+from. The relay an instance serves under Pairing reads the same list for its
+own count of failed handshakes.
 
 ## A forgotten password
 
@@ -101,8 +98,7 @@ code is valid for 10 minutes, and a new one is written at most once a minute.
 It has twelve characters, so wrong guesses do not use it up, and nobody can
 keep you from resetting by guessing. The new password switches two-factor
 authentication off, removes every passkey and every API token, signs out every
-other browser and replaces the key sessions are signed with, so a copy of
-`auth.json` taken earlier opens nothing either. An instance in a pairing group
+other browser and ends every session made before. An instance in a pairing group
 leaves it: it gets new connection words that nobody else holds, and every
 phone, browser extension and other
 instance has to pair again with the new words, which Settings > Pairing shows

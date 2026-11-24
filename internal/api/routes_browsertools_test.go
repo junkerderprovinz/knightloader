@@ -179,9 +179,7 @@ func TestDownloadExtensionRequiresASession(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "at-least-8-chars"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "at-least-8-chars")
 
 	resp, err := http.Get(srv.URL + "/api/browser-extension.zip")
 	if err != nil {

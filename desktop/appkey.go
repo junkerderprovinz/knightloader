@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/zalando/go-keyring"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
@@ -50,8 +52,10 @@ func loadAppKey(store keyStore, dataDir string) (*appkey.Key, error) {
 		log.Printf("encryption key: the credential store cannot be read (%v); secrets in %s stay as they are", err, dataDir)
 		return nil, nil
 	}
-	if b, err := os.ReadFile(filepath.Join(dataDir, auth.FileName)); err == nil && appkey.IsSealed(string(b)) {
-		return nil, nil
+	for _, name := range []string{auth.FileName, access.KeyFile} {
+		if b, err := os.ReadFile(filepath.Join(dataDir, name)); err == nil && appkey.IsSealed(strings.TrimSpace(string(b))) {
+			return nil, nil
+		}
 	}
 	k, err := appkey.Generate()
 	if err != nil {

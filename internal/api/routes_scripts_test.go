@@ -244,9 +244,7 @@ func TestManagingScriptsNeedsASession(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 
 	resp, err := http.Get(srv.URL + "/api/scripts")
 	if err != nil {

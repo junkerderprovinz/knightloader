@@ -7,6 +7,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math"
 	"mime/multipart"
@@ -62,7 +63,7 @@ func qbitServerOn(t *testing.T, a *app.App, tune func(*settings.Settings)) (*app
 	}
 	a.SetHalted(true)
 
-	_, secret, err := a.APITokens.Create("sonarr")
+	_, secret, err := scopedToken(a, "sonarr", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -342,7 +343,7 @@ func TestASessionEndsWithItsToken(t *testing.T) {
 	t.Parallel()
 	a, srv, secret, _ := qbitServer(t, nil)
 	sonarr := a.APITokens.List()[0]
-	radarr, radarrSecret, err := a.APITokens.Create("radarr")
+	radarr, radarrSecret, err := scopedToken(a, "radarr", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1176,7 +1177,7 @@ func TestSonarrsRoundWorksWithAnAddAndReadToken(t *testing.T) {
 	if err := qb.record(qbitTorrent{Hash: qbitOtherHash, Category: "tv-sonarr", TaskIDs: []string{"done"}, Folder: content, AddedAt: now}); err != nil {
 		t.Fatal(err)
 	}
-	_, secret, err := a.APITokens.CreateScoped("sonarr-add-read", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	_, secret, err := scopedToken(a, "sonarr-add-read", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1253,12 +1254,18 @@ func (qb *qbitClient) taskIDs(t *testing.T, hash string) []string {
 func TestEveryQbittorrentCallNeedsTheRightItsTableNames(t *testing.T) {
 	t.Parallel()
 	a, srv, _, _ := qbitServer(t, nil)
+	made := map[string]string{}
 	token := func(scopes []apitoken.Scope) string {
 		t.Helper()
-		_, secret, err := a.APITokens.CreateScoped("probe", scopes)
+		key := fmt.Sprint(scopes)
+		if secret, ok := made[key]; ok {
+			return secret
+		}
+		_, secret, err := scopedToken(a, "probe", scopes)
 		if err != nil {
 			t.Fatal(err)
 		}
+		made[key] = secret
 		return secret
 	}
 	for call, need := range qbittorrentScopes {
@@ -1282,7 +1289,7 @@ func TestEveryQbittorrentCallNeedsTheRightItsTableNames(t *testing.T) {
 func TestASavePathNeedsAdmin(t *testing.T) {
 	t.Parallel()
 	a, srv, full, _ := qbitServer(t, nil)
-	_, adder, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	_, adder, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1348,7 +1355,7 @@ func TestBothDoorsFileAMissingCategoryAlike(t *testing.T) {
 func TestACategorySavePathNeedsAdminAndOnlyShapesANewCategory(t *testing.T) {
 	t.Parallel()
 	a, srv, full, _ := qbitServer(t, nil)
-	_, sonarr, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	_, sonarr, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1394,7 +1401,7 @@ func TestATokenWithoutAdminSeesNoTrackerPasskey(t *testing.T) {
 	if err := qb.record(qbitTorrent{Hash: qbitTestHash, Category: "tv", TaskIDs: []string{"m1"}, AddedAt: now}); err != nil {
 		t.Fatal(err)
 	}
-	_, read, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	_, read, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}

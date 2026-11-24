@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/parleyport/kit/group"
@@ -237,7 +236,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				return
 			}
 			exists := false
-			err = a.Auth.Mint(stillAdmitted(a, r), func() error {
+			ran, err := lasting(a, w, r, func() error {
 				// Replacing an existing secret would orphan every instance
 				// joined to the old phrase; leaving is an explicit DELETE.
 				if existing, err := a.Accounts.Get(federation.SeedAccount); err == nil && existing != "" {
@@ -246,6 +245,9 @@ func registerConnect(reg *Registry, a *app.App) {
 				}
 				return enterGroup(a, secret)
 			})
+			if !ran {
+				return
+			}
 			if exists {
 				writeRefusal(w, http.StatusConflict, "phraseExists",
 					"this instance already has a connection phrase; remove it first to start a new group", nil)
@@ -285,7 +287,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if refuseGroupChange(w, a.Auth.Mint(stillAdmitted(a, r), func() error { return enterGroup(a, secret) })) {
+			if ran, err := lasting(a, w, r, func() error { return enterGroup(a, secret) }); !ran || refuseGroupChange(w, err) {
 				return
 			}
 			writeJSON(w, connectInfo(a))
@@ -294,28 +296,16 @@ func registerConnect(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/connect/reveal",
 		"show this instance's connection phrase again; with a login password set it has to be entered again, because the phrase reaches every instance in the group",
 		func(w http.ResponseWriter, r *http.Request) {
+			// A session is not enough: it may have been left open on an
+			// unattended screen, and the phrase unlocks every instance in the
+			// group. Without a password the phrase card warns that anyone who
+			// opens the page can read the words.
 			var body struct {
 				Password string `json:"password"`
 			}
-			// The body is optional; without a password there is nothing to
-			// enter again, and the phrase card warns that anyone who opens
-			// the page can read the words.
 			_ = decodeBody(r, &body)
-
-			// A session is not enough: it may have been left open on an
-			// unattended screen, and the phrase unlocks every instance in the
-			// group. The check shares the login's throttle, or whoever sits at
-			// that screen could guess the password here at full speed.
-			if a.Auth.Enabled() {
-				if !reg.passwordGate.try(r) {
-					http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
-					return
-				}
-				if !a.Auth.Check(body.Password) {
-					writeRefusal(w, http.StatusForbidden, "passwordWrong", "the password is required to show the phrase again", nil)
-					return
-				}
-				reg.passwordGate.pass(r)
+			if !freshSignIn(a, w, r, body.Password) {
+				return
 			}
 			secretHex, err := a.Accounts.Get(federation.SeedAccount)
 			if err != nil || secretHex == "" {
@@ -508,13 +498,13 @@ func takePassedOn(w http.ResponseWriter, r *http.Request, a *app.App, id string)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	// Answered before the group closes under this request. The leaving runs
-	// under Mint, and only while the instance that asked is still approved
-	// here: a reset in between puts this instance in a group of its own,
-	// which nobody else may make it leave.
+	// Answered before the group closes under this request. The leaving waits
+	// out a reset, and runs only while the instance that asked is still
+	// approved here: a reset puts this instance in a group of its own, which
+	// nobody else may make it leave.
 	w.WriteHeader(http.StatusNoContent)
 	go func() {
-		err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil) })
+		err := whileStill(a, func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil) })
 		if err != nil {
 			log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
 		}
@@ -551,13 +541,13 @@ func enterGroup(a *app.App, secret []byte) error {
 }
 
 // refuseGroupChange answers a failed join or activation and reports whether
-// err was one. Both run under Mint, so a session a reset ended cannot put the
-// instance back into a group the reset left.
+// err was one. Both wait out a reset, so a session a reset ended cannot put
+// the instance back into a group the reset left.
 func refuseGroupChange(w http.ResponseWriter, err error) bool {
 	switch {
 	case err == nil:
 		return false
-	case errors.Is(err, auth.ErrStale):
+	case errors.Is(err, errStale):
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 	default:
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -627,7 +617,7 @@ func connectInfo(a *app.App) ConnectInfo {
 	return ConnectInfo{
 		Active:           secretHex != "",
 		Connected:        a.Federation.RelayConnected(),
-		PasswordSet:      a.Auth.Enabled(),
+		PasswordSet:      closed(a),
 		RelayURL:         url,
 		SelfHosted:       selfHosted,
 		RelayMode:        mode,

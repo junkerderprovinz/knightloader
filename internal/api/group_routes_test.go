@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -33,25 +32,9 @@ import (
 // route on neither this list nor groupRoutes fails
 // TestEveryRouteIsDecidedForTheGroup, so whoever adds one decides.
 var groupRefused = []string{
-	// The login, its second factor, passkeys and tokens.
-	"POST /api/auth/2fa/begin",
-	"POST /api/auth/2fa/confirm",
-	"POST /api/auth/2fa/disable",
-	"POST /api/auth/login",
-	"POST /api/auth/logout",
-	"POST /api/auth/passkey/login/begin",
-	"POST /api/auth/passkey/login/finish",
-	"POST /api/auth/passkey/register/begin",
-	"POST /api/auth/passkey/register/finish",
-	"GET /api/auth/passkeys",
-	"POST /api/auth/reset",
-	"POST /api/auth/reset/finish",
-	"DELETE /api/auth/passkeys/{id}",
-	"PATCH /api/auth/passkeys/{id}",
-	"PUT /api/auth/password",
-	"GET /api/tokens",
-	"POST /api/tokens",
-	"DELETE /api/tokens/{id}",
+	// What the Security page says beside the sign-in, and the MCP clients
+	// and their tokens.
+	"GET /api/system/access",
 	"GET /api/mcp",
 	"POST /api/mcp/clients",
 	"DELETE /api/mcp/clients/{id}",
@@ -360,9 +343,7 @@ func gateOnly(t *testing.T, a *app.App) (http.Handler, *int) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 	}
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	return guard(a, reg, mux), reached
 }
 
@@ -410,7 +391,8 @@ func TestAMemberGetsA404ForWhatNoRouteServes(t *testing.T) {
 		{http.MethodGet, "/api//settings"},
 		{http.MethodGet, "/api/tasks/"},
 		{http.MethodPost, "/api/tasks"},
-		{http.MethodGet, "/api/auth/password"},
+		{http.MethodGet, "/api/signin/v1/options"},
+		{http.MethodPut, "/api/signin/v1/me/password"},
 		{http.MethodPost, "/api/captcha"},
 		{http.MethodGet, "/api/captcha/c1/widget/phone/again"},
 	} {
@@ -549,14 +531,12 @@ func TestAMemberCannotEraseWhatWasDownloaded(t *testing.T) {
 	}
 
 	// Erasing files needs a password of its own, so the owner signs in first.
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	other := putFile(t, a, downloads, "other.mkv", []byte("frames"))
 	r := httptest.NewRequest(http.MethodPost, "/api/tasks/delete", strings.NewReader(`{"ids":["`+other+`"],"files":true}`))
 	r.Host = "127.0.0.1:8080"
 	r.Header.Set("Content-Type", "application/json")
-	r.AddCookie(&http.Cookie{Name: auth.CookieName, Value: a.Auth.Issue()})
+	r.Header.Set("Cookie", signIn(t, a, "a-good-password"))
 	w := httptest.NewRecorder()
 	Handler(a).ServeHTTP(w, r)
 	if w.Code != http.StatusOK {
@@ -604,24 +584,17 @@ func signedFor(key ed25519.PrivateKey, requestID, target string, call relay.Prox
 	return call
 }
 
-func TestAMemberLearnsNoMoreOfTheLoginThanAStranger(t *testing.T) {
+func TestAMemberNeverReachesTheSignIn(t *testing.T) {
 	t.Parallel()
-	a, _, _, member, owner := groupServer(t)
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
+	a, _, _, member, _ := groupServer(t)
+	if status, body := member(http.MethodPut, "/api/signin/v1/me/password", `{"next":"set by a member"}`); status != http.StatusNotFound {
+		t.Errorf("a member setting the first password = %d (%s), want 404", status, body)
 	}
-	_, body := member(http.MethodGet, "/api/auth", "")
-	var got map[string]any
-	if err := json.Unmarshal(body, &got); err != nil {
-		t.Fatalf("GET /api/auth for a member = %s", body)
+	if closed(a) {
+		t.Error("a member of the group gave the instance its first password")
 	}
-	for _, key := range []string{"twoFactor", "recoveryLeft", "appKey", "appKeyCopiesUntil"} {
-		if _, ok := got[key]; ok {
-			t.Errorf("a member of the group read %q from GET /api/auth: %s", key, body)
-		}
-	}
-	if _, body := owner(http.MethodGet, "/api/auth", ""); bytes.Contains(body, []byte("twoFactor")) {
-		t.Errorf("a stranger read the second factor from GET /api/auth: %s", body)
+	if status, _ := member(http.MethodGet, "/api/signin/v1/options", ""); status != http.StatusNotFound {
+		t.Errorf("a member reading the sign-in = %d, want 404", status)
 	}
 }
 
@@ -782,14 +755,15 @@ func TestARemovalThatArrivesDuringAResetDoesNotEndTheNewGroup(t *testing.T) {
 
 	resetting, renew := make(chan struct{}), make(chan struct{})
 	reset := make(chan error, 1)
+	// A reset holds what ends KnightLoader's own ways in while it renews
+	// the group, as signInEnded does.
 	go func() {
-		reset <- a.Auth.RevokeAll(func() {
-			close(resetting)
-			<-renew
-			if _, err := renewGroup(a); err != nil {
-				t.Error(err)
-			}
-		})
+		a.Ending.Lock()
+		close(resetting)
+		<-renew
+		_, err := renewGroup(a)
+		a.Ending.Unlock()
+		reset <- err
 	}()
 	<-resetting
 	if status, body := instance(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusNoContent {

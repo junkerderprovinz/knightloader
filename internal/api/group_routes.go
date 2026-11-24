@@ -18,10 +18,9 @@ import (
 // nothing else. A route that is not here answers ownLoginNeeded to such a
 // call, so a new one stays out until somebody puts it here.
 var groupRoutes = map[string]bool{
-	// Whether a password is wanted, the look, the instances of the group and
-	// the addresses this instance answers on. The addresses travel inside the
-	// sealed frame, so the relay operator never learns them.
-	"GET /api/auth": true,
+	// The look, the instances of the group and the addresses this instance
+	// answers on. The addresses travel inside the sealed frame, so the relay
+	// operator never learns them.
 	// A phone or browser on the old phrase asks where the group moved.
 	"GET /api/group/peer/moved": true,
 	"GET /api/appearance":       true,

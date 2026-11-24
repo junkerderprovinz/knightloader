@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
@@ -41,9 +42,7 @@ func sourceBackup(t *testing.T, key *appkey.Key) (archive []byte, token string) 
 	t.Helper()
 	a := openApp(t, t.TempDir(), key)
 	defer a.Close()
-	if err := a.Auth.SetPassword("", "source-login-password"); err != nil {
-		t.Fatal(err)
-	}
+	session := setPassword(t, a, "source-login-password")
 	if err := a.Accounts.SetCredential("torbox", "", accounts.Credential{APIKey: "torbox-api-key"}); err != nil {
 		t.Fatal(err)
 	}
@@ -58,10 +57,7 @@ func sourceBackup(t *testing.T, key *appkey.Key) (archive []byte, token string) 
 	if err := a.Store.Save(&core.Task{ID: "t1", Name: "set.rar", Password: "archive-password", CreatedAt: time.Now()}); err != nil {
 		t.Fatal(err)
 	}
-	_, token, err := a.APITokens.Create("ci")
-	if err != nil {
-		t.Fatal(err)
-	}
+	token = kitToken(t, a, session)
 
 	parts, err := a.PrepareBackup()
 	if err != nil {
@@ -82,9 +78,7 @@ func restoreOnto(t *testing.T, archive []byte, sourceKey, key *appkey.Key) *App 
 	t.Helper()
 	dir := t.TempDir()
 	before := openApp(t, dir, key)
-	if err := before.Auth.SetPassword("", "target-login-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, before, "target-login-password")
 	before.Close()
 
 	plain, err := backup.Unseal(archive, key, sourceKey)
@@ -118,7 +112,7 @@ func assertRestored(t *testing.T, a *App, token string) {
 	if err != nil || len(tasks) != 1 || tasks[0].Password != "archive-password" {
 		t.Errorf("the task reads %+v, %v", tasks, err)
 	}
-	if _, ok := a.APITokens.Check(token); !ok {
+	if !tokenCounts(a, token) {
 		t.Error("the API token from the backup is refused")
 	}
 }
@@ -130,7 +124,7 @@ func TestABackupRestoresUnderAnotherAppKey(t *testing.T) {
 	assertRestored(t, a, token)
 
 	// Sealed under B now, with nothing left in the clear.
-	for _, name := range []string{"settings.json", "auth.json", accounts.KeyringName} {
+	for _, name := range []string{"settings.json", access.KeyFile, accounts.KeyringName} {
 		b, err := os.ReadFile(filepath.Join(a.DataDir, name))
 		if err != nil {
 			t.Fatal(err)
@@ -142,10 +136,10 @@ func TestABackupRestoresUnderAnotherAppKey(t *testing.T) {
 	if copies, _ := filepath.Glob(filepath.Join(a.DataDir, appkey.CopiesPrefix+"*")); len(copies) != 0 {
 		t.Errorf("the restore left plain copies behind: %v", copies)
 	}
-	// A password hashed under A cannot be checked under B, so the target keeps
-	// its own rather than locking everybody out.
-	if _, ok := a.Auth.CheckPassword("target-login-password"); !ok {
-		t.Error("the target's own login no longer works")
+	// The sign-in's key travels in the archive, so the backup's password
+	// comes along under any app key.
+	if !signsIn(a, "source-login-password") || signsIn(a, "target-login-password") {
+		t.Error("the backup's login did not replace the target's")
 	}
 }
 
@@ -154,8 +148,8 @@ func TestABackupWithAKeyRestoresWithoutOne(t *testing.T) {
 	archive, token := sourceBackup(t, keyA)
 	a := restoreOnto(t, archive, keyA, nil)
 	assertRestored(t, a, token)
-	if _, ok := a.Auth.CheckPassword("target-login-password"); !ok {
-		t.Error("the target's own login no longer works")
+	if !signsIn(a, "source-login-password") {
+		t.Error("the backup's login does not work after the restore")
 	}
 }
 
@@ -169,10 +163,10 @@ func TestTheLoginComesAlongWhereTheTargetCanCheckIt(t *testing.T) {
 			archive, token := sourceBackup(t, c.source)
 			a := restoreOnto(t, archive, c.source, c.target)
 			assertRestored(t, a, token)
-			if _, ok := a.Auth.CheckPassword("source-login-password"); !ok {
+			if !signsIn(a, "source-login-password") {
 				t.Error("the backup's login password does not work after the restore")
 			}
-			if _, ok := a.Auth.CheckPassword("target-login-password"); ok {
+			if signsIn(a, "target-login-password") {
 				t.Error("the target's old login password still works")
 			}
 		})

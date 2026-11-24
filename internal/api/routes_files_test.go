@@ -243,9 +243,7 @@ func TestServeTaskFileRequiresASession(t *testing.T) {
 	}
 	id := putFile(t, a, base, "movie.mkv", []byte("x"))
 
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	resp, err := http.Get(srv.URL + "/api/tasks/" + id + "/file")
 	if err != nil {
 		t.Fatal(err)
@@ -288,7 +286,11 @@ func TestTaskFileStatusMapping(t *testing.T) {
 func playLink(t *testing.T, srvURL, id, secret string) string {
 	t.Helper()
 	req, _ := http.NewRequest(http.MethodPost, srvURL+"/api/tasks/"+id+"/play", nil)
-	req.Header.Set("Authorization", "Bearer "+secret)
+	if strings.HasPrefix(secret, kitSession+"=") {
+		req.Header.Set("Cookie", secret)
+	} else {
+		req.Header.Set("Authorization", "Bearer "+secret)
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -321,9 +323,7 @@ func TestAPlayLinkEndsWithTheRemovalOfTheDeviceThatAskedForIt(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
@@ -357,10 +357,8 @@ func TestAPlayLinkOpensItsFileOnALockedInstance(t *testing.T) {
 	}
 	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
 	other := putFile(t, a, base, "other.mkv", []byte("other frames"))
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	_, phone, err := a.APITokens.CreateScoped("phone", []apitoken.Scope{apitoken.ScopeRead})
+	setPassword(t, a, "a-good-password")
+	_, phone, err := scopedToken(a, "phone", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -403,18 +401,16 @@ func TestAnExpiredPlayLinkIsRefused(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	ticket := playTicket(id, "", "", a.Auth.Epoch(), time.Now().Add(-time.Minute))
+	setPassword(t, a, "a-good-password")
+	ticket := playTicket(id, "", "", signInEpoch(a), time.Now().Add(-time.Minute))
 	if got := getStatus(t, srv.URL+"/api/tasks/"+id+"/file?ticket="+ticket); got != http.StatusUnauthorized {
 		t.Fatalf("an expired play link answered %d, want 401", got)
 	}
 }
 
-// Revoking a lost phone's token, signing out everywhere or changing the
-// password has to end the play links handed out before, not leave them open
-// for the rest of their twelve hours.
+// Revoking a lost phone's token or signing out everywhere has to end the play
+// links handed out before, not leave them open for the rest of their twelve
+// hours.
 func TestAPlayLinkEndsWithTheCredentialsThatMadeIt(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
@@ -424,11 +420,9 @@ func TestAPlayLinkEndsWithTheCredentialsThatMadeIt(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	token := func(name string) (string, string) {
-		tok, secret, err := a.APITokens.CreateScoped(name, []apitoken.Scope{apitoken.ScopeRead})
+		tok, secret, err := scopedToken(a, name, []apitoken.Scope{apitoken.ScopeRead})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -449,20 +443,18 @@ func TestAPlayLinkEndsWithTheCredentialsThatMadeIt(t *testing.T) {
 		t.Fatal("revoking one token ended the link of another")
 	}
 
-	if err := a.Auth.RevokeAll(nil); err != nil {
-		t.Fatal(err)
+	// A browser's link ends with its session, and a token's with the token,
+	// which outlasts a sign-out and a new password.
+	browser := signIn(t, a, "a-good-password")
+	browserLink, tokenLink := playLink(t, srv.URL, id, browser), playLink(t, srv.URL, id, kept)
+	if w := kitCall(t, a, http.MethodPost, "logout", browser, map[string]bool{"everywhere": true}); w.Code/100 != 2 {
+		t.Fatalf("signing out everywhere = %d %s", w.Code, w.Body)
 	}
-	if opens(keptLink) {
-		t.Error("a link from before signing out everywhere still opens the file")
+	if opens(browserLink) {
+		t.Error("a browser's link from before signing out everywhere still opens the file")
 	}
-
-	_, again := token("tablet again")
-	link := playLink(t, srv.URL, id, again)
-	if err := a.Auth.SetPassword("a-good-password", "another-good-one"); err != nil {
-		t.Fatal(err)
-	}
-	if opens(link) {
-		t.Error("a link from before the password change still opens the file")
+	if !opens(tokenLink) {
+		t.Error("signing out everywhere ended a token's link")
 	}
 }
 
@@ -604,7 +596,7 @@ func TestMediaKindsAreWhatTheRouteServesAsAudioOrVideo(t *testing.T) {
 func TestAPlayLinkOpensOnlyTheFileItWasMadeFor(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)
-	ticket := playTicket("t1", "1", "", a.Auth.Epoch(), time.Now().Add(time.Hour))
+	ticket := playTicket("t1", "1", "", signInEpoch(a), time.Now().Add(time.Hour))
 	opens := func(query string) bool {
 		r := httptest.NewRequest(http.MethodGet, "/api/tasks/t1/file?ticket="+ticket+query, nil)
 		return playTicketOpens(a, r)

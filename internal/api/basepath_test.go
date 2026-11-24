@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
 
@@ -50,7 +50,7 @@ func baseElement(path string) string {
 
 func sessionCookie(resp *http.Response) *http.Cookie {
 	for _, c := range resp.Cookies() {
-		if c.Name == auth.CookieName {
+		if c.Name == kitSession {
 			return c
 		}
 	}
@@ -178,22 +178,21 @@ func TestARedirectKeepsTheBasePath(t *testing.T) {
 	}
 }
 
-func TestTheSessionCookieStaysUnderTheBasePath(t *testing.T) {
+func TestASessionSignedInUnderTheBasePathWorksThere(t *testing.T) {
 	servedUnder(t, "/kl")
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 
 	body, _ := json.Marshal(map[string]string{"password": "a-good-password"})
-	resp, _ := fetch(t, http.MethodPost, srv.URL+"/kl/api/auth/login", map[string]string{"Content-Type": "application/json"}, body)
+	resp, _ := fetch(t, http.MethodPost, srv.URL+"/kl/api/signin/v1/login", map[string]string{"Content-Type": "application/json", "Sec-Fetch-Site": "same-origin"}, body)
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("login under /kl answered %d", resp.StatusCode)
 	}
+	// The kit keeps a session for the whole site, as its __Host- name needs.
 	session := sessionCookie(resp)
-	if session == nil || session.Path != "/kl" {
-		t.Fatalf("session cookie = %+v, want Path /kl so requests to other apps on the host do not carry it", session)
+	if session == nil {
+		t.Fatal("signing in under /kl set no session")
 	}
 
 	resp, _ = fetch(t, http.MethodGet, srv.URL+"/kl/api/tasks", map[string]string{"Cookie": session.Name + "=" + session.Value}, nil)
@@ -210,9 +209,7 @@ func TestLoggingOutUnderTheBasePathEndsASessionFromTheRoot(t *testing.T) {
 	servedUnder(t, "")
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	browser := &http.Client{Jar: newJar(t)}
 	if code := login(t, browser, srv.URL, "a-good-password"); code != http.StatusOK {
 		t.Fatalf("login at the root answered %d", code)
@@ -232,11 +229,9 @@ func TestLoggingOutUnderTheBasePathEndsASessionFromTheRoot(t *testing.T) {
 	if code := tasks(); code != http.StatusOK {
 		t.Fatalf("GET /kl/api/tasks with the root session = %d, want 200", code)
 	}
-	resp, err := browser.Post(srv.URL+"/kl/api/auth/logout", "application/json", nil)
-	if err != nil {
-		t.Fatal(err)
+	if code, body := postTo(t, browser, srv.URL+"/kl/api/signin/v1/logout", struct{}{}); code/100 != 2 {
+		t.Fatalf("logging out under /kl = %d %s", code, body)
 	}
-	resp.Body.Close()
 	if code := tasks(); code != http.StatusUnauthorized {
 		t.Errorf("GET /kl/api/tasks after logging out = %d, want 401", code)
 	}
@@ -257,11 +252,9 @@ func TestTheRootServesAsItAlwaysHas(t *testing.T) {
 		t.Errorf("GET /kl/api/health at the root = %d, want the page as for any other route", resp.StatusCode)
 	}
 
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	payload, _ := json.Marshal(map[string]string{"password": "a-good-password"})
-	resp, _ = fetch(t, http.MethodPost, srv.URL+"/api/auth/login", map[string]string{"Content-Type": "application/json"}, payload)
+	resp, _ = fetch(t, http.MethodPost, srv.URL+"/api/signin/v1/login", map[string]string{"Content-Type": "application/json", "Sec-Fetch-Site": "same-origin"}, payload)
 	if session := sessionCookie(resp); session == nil || session.Path != "/" {
 		t.Errorf("session cookie = %+v, want Path /", session)
 	}
@@ -295,9 +288,7 @@ func TestAProxyPrefixIsHonouredWhenNoneIsConfigured(t *testing.T) {
 	}
 
 	// Taking the prefix off must not take a route out from under the guard.
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	resp, _ = fetch(t, http.MethodGet, srv.URL+"/x/api/tasks", map[string]string{"X-Forwarded-Prefix": "/x"}, nil)
 	if resp.StatusCode != http.StatusUnauthorized {
 		t.Errorf("GET /x/api/tasks with X-Forwarded-Prefix /x and no session = %d, want 401", resp.StatusCode)
@@ -368,7 +359,7 @@ func TestTheModuleLinesNameAddressesUnderTheBasePath(t *testing.T) {
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := a.APITokens.Create("sonarr"); err != nil {
+	if _, _, err := scopedToken(a, "sonarr", apitoken.AllScopes()); err != nil {
 		t.Fatal(err)
 	}
 

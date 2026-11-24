@@ -358,9 +358,7 @@ func TestARelayCallNeedsNoToken(t *testing.T) {
 		t.Fatalf("unprotected instance answered %d (%s), want 200", status, body)
 	}
 
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 
 	// A sibling without a token gets through, because reaching this handler
 	// already took the group key.
@@ -377,9 +375,7 @@ func TestABodylessRelayCallDoesNotPanic(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
 	serve := asMember(t, a)
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	if status, body := serve(relay.ProxyCall{Method: http.MethodPost, Path: "/api/appearance"}); status == http.StatusForbidden || status == http.StatusInternalServerError {
 		t.Errorf("POST /api/appearance = %d (%s), want the palette settable without a panic", status, body)
 	}
@@ -394,9 +390,7 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 	a := testApp(t)
 	serve := asMember(t, a)
 	// With a password set, a call the relay did not vouch for is a 401.
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	call := func(method, path, body string) (int, []byte) {
 		return serve(relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
 	}

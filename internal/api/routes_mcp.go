@@ -20,7 +20,6 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/mcpclient"
 )
 
@@ -109,7 +108,7 @@ func registerMCP(reg *Registry, a *app.App) {
 			var client mcpclient.Client
 			var tok apitoken.Token
 			var secret string
-			err = a.Auth.Mint(stillAdmitted(a, r), func() error {
+			ran, err := lasting(a, w, r, func() error {
 				var err error
 				if tok, secret, err = a.APITokens.CreateScoped(body.Name, scopes); err != nil {
 					return err
@@ -120,7 +119,9 @@ func registerMCP(reg *Registry, a *app.App) {
 				return err
 			})
 			switch {
-			case errors.Is(err, auth.ErrStale):
+			case !ran:
+				return
+			case errors.Is(err, errStale):
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			case errors.Is(err, apitoken.ErrEmptyName), errors.Is(err, apitoken.ErrTooMany),

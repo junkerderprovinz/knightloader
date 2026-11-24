@@ -73,7 +73,7 @@ func registerRemoteAccess(reg *Registry, a *app.App) {
 func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 	info := RemoteAccessInfo{
 		Deployment:  buildinfo.Deployment,
-		PasswordSet: a.Auth.Enabled(),
+		PasswordSet: closed(a),
 	}
 	// The desktop build serves the handler through Wails' asset server and is
 	// reachable only over the relay.

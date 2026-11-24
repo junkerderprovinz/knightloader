@@ -96,14 +96,13 @@ func streamSignInBrowser(a *app.App, w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	admitted := stillAdmitted(a, r)
 	go func() {
 		t := time.NewTicker(signInBrowserRecheck)
 		defer t.Stop()
 		for {
 			select {
 			case <-t.C:
-				if !admitted() {
+				if !stillAdmitted(a, r) {
 					cancel()
 					return
 				}

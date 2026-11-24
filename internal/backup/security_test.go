@@ -16,11 +16,11 @@ import (
 
 func checksPassword(t *testing.T, dir, password string) bool {
 	t.Helper()
-	g, err := auth.Open(dir)
+	old, err := auth.Read(dir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return g.Check(password)
+	return old.CheckPassword(old.Hash(), password)
 }
 
 // A backup from an instance without a password never takes the password off

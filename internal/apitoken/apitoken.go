@@ -389,3 +389,62 @@ func newID() string {
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)
 }
+
+// KitScopes are the levels a token of the kit's sign-in takes, narrowest
+// first. Each one stands for the rights KnightLoader's presets gave, and
+// control is there for a token that came across with it.
+var KitScopes = []string{"status", "read", "add", "control", "admin"}
+
+// Granted is what a kit token with levels may do here: add reads as well,
+// admin does everything, and a name that is no scope grants nothing.
+func Granted(levels []string) []Scope {
+	var out []Scope
+	for _, s := range AllScopes() {
+		for _, l := range levels {
+			if Scope(l) == s || l == "admin" || l == "add" && s == ScopeRead {
+				out = append(out, s)
+				break
+			}
+		}
+	}
+	return out
+}
+
+// Level is the kit levels a token with scopes moves over with: its preset's
+// one where its rights are a preset, else its scopes as they are.
+func Level(scopes []Scope) []string {
+	switch {
+	case slices.Contains(scopes, ScopeRead) && slices.Contains(scopes, ScopeAdd) &&
+		slices.Contains(scopes, ScopeControl) && slices.Contains(scopes, ScopeAdmin):
+		return []string{"admin"}
+	case slices.Equal(scopes, []Scope{ScopeRead, ScopeAdd}):
+		return []string{"add"}
+	}
+	out := make([]string, len(scopes))
+	for i, s := range scopes {
+		out[i] = string(s)
+	}
+	return out
+}
+
+// Digested is a token with the digest of its secret.
+type Digested struct {
+	Token
+	Digest string
+}
+
+// WithDigests lists every token with its digest, oldest first, for moving
+// the tokens to the kit's sign-in.
+func (s *Store) WithDigests() []Digested {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := make([]Digested, 0, len(s.byID))
+	for _, r := range s.byID {
+		out = append(out, Digested{Token: r.Token, Digest: r.HashHex})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.Before(out[j].CreatedAt) })
+	return out
+}
+
+// Digest is how a token's secret is kept.
+func Digest(secret string) string { return hashHex(secret) }

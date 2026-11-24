@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -128,9 +127,7 @@ func lockedServer(t *testing.T) (*httptest.Server, *app.App) {
 	t.Helper()
 	srv, a := testServer(t)
 	t.Cleanup(srv.Close)
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	return srv, a
 }
 
@@ -159,7 +156,7 @@ func TestEachScopeOpensItsOwnRoutesAndNoOthers(t *testing.T) {
 	srv, a := lockedServer(t)
 
 	for _, s := range apitoken.AllScopes() {
-		_, secret, err := a.APITokens.CreateScoped("only "+string(s), []apitoken.Scope{s})
+		_, secret, err := scopedToken(a, "only "+string(s), []apitoken.Scope{s})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -180,7 +177,7 @@ func TestEachScopeOpensItsOwnRoutesAndNoOthers(t *testing.T) {
 func TestAFullTokenAndASessionReachEveryScope(t *testing.T) {
 	t.Parallel()
 	srv, a := lockedServer(t)
-	_, full, err := a.APITokens.Create("full")
+	_, full, err := scopedToken(a, "full", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -216,9 +213,7 @@ func TestATokenFromBeforeScopesStillReachesEveryRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	srv := httptest.NewServer(Handler(a))
 	t.Cleanup(srv.Close)
 
@@ -228,20 +223,7 @@ func TestATokenFromBeforeScopesStillReachesEveryRoute(t *testing.T) {
 			t.Errorf("the old token answered %d on %s %s, want it let through", code, p.method, p.path)
 		}
 	}
-	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/tokens", nil)
-	req.Header.Set("Authorization", "Bearer "+secret)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	var listed []apitoken.Token
-	if err := json.NewDecoder(resp.Body).Decode(&listed); err != nil {
-		t.Fatal(err)
-	}
-	if len(listed) != 1 || !slices.Equal(listed[0].Scopes, apitoken.AllScopes()) {
-		t.Errorf("GET /api/tokens lists %+v, want the old token with every scope", listed)
-	}
+
 }
 
 // The peer takes a forwarded call on this instance's own full token, so the
@@ -249,16 +231,16 @@ func TestATokenFromBeforeScopesStillReachesEveryRoute(t *testing.T) {
 func TestAForwardedCallNeedsTheRightItWouldNeedHere(t *testing.T) {
 	t.Parallel()
 	srv, a := lockedServer(t)
-	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Without read: forwarding needs no right of its own.
-	_, controller, err := a.APITokens.CreateScoped("remote", []apitoken.Scope{apitoken.ScopeControl})
+	_, controller, err := scopedToken(a, "remote", []apitoken.Scope{apitoken.ScopeControl})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, adder, err := a.APITokens.CreateScoped("script", []apitoken.Scope{apitoken.ScopeAdd})
+	_, adder, err := scopedToken(a, "script", []apitoken.Scope{apitoken.ScopeAdd})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,15 +269,15 @@ func TestAForwardedCallNeedsTheRightItWouldNeedHere(t *testing.T) {
 func TestPickingTheFolderOfADownloadNeedsAdmin(t *testing.T) {
 	t.Parallel()
 	srv, a := lockedServer(t)
-	_, sonarr, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd})
+	_, sonarr, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, remote, err := a.APITokens.CreateScoped("remote", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeControl})
+	_, remote, err := scopedToken(a, "remote", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeControl})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, admin, err := a.APITokens.CreateScoped("owner", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeAdmin})
+	_, admin, err := scopedToken(a, "owner", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -339,13 +321,12 @@ func TestPickingTheFolderOfADownloadNeedsAdmin(t *testing.T) {
 func TestThePhoneAppsRightsReachEveryCallItMakes(t *testing.T) {
 	t.Parallel()
 	srv, a := lockedServer(t)
-	_, phone, err := a.APITokens.CreateScoped("phone", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd, apitoken.ScopeControl})
+	_, phone, err := scopedToken(a, "phone", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd, apitoken.ScopeControl})
 	if err != nil {
 		t.Fatal(err)
 	}
 	// mobile/src/api/client.ts and stats.ts, one line per function.
 	for _, c := range []struct{ method, path, body string }{
-		{http.MethodGet, "/api/auth", ""},
 		{http.MethodGet, "/api/tasks", ""},
 		{http.MethodPost, "/api/links", `{"links":""}`},
 		{http.MethodPost, "/api/tasks/enabled", `{"ids":["x"],"enabled":false}`},
@@ -372,7 +353,7 @@ func TestThePhoneAppsRightsReachEveryCallItMakes(t *testing.T) {
 func TestAReaderMaySayItCannotLoadACaptcha(t *testing.T) {
 	t.Parallel()
 	srv, a := lockedServer(t)
-	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -388,108 +369,32 @@ func TestAReaderMaySayItCannotLoadACaptcha(t *testing.T) {
 	}
 }
 
-// GET /api/auth is open for the sign-in screen. What it adds for a caller
-// that is signed in, the second factor and the recovery codes left, is
-// security configuration.
-func TestTheSecondFactorIsReportedOnlyToAnAdminToken(t *testing.T) {
+// A token of the kit's sign-in has one level, and each level does what
+// KnightLoader's preset of that name did: add reads too, admin does
+// everything.
+func TestAKitTokenDoesWhatItsLevelSays(t *testing.T) {
 	t.Parallel()
-	srv, a := lockedServer(t)
-	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd, apitoken.ScopeControl})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, admin, err := a.APITokens.CreateScoped("admin", []apitoken.Scope{apitoken.ScopeAdmin})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodGet, "/api/auth", "", reader)
-	if doc["authenticated"] != true {
-		t.Errorf("a valid token is not reported as signed in: %+v", doc)
-	}
-	if hasKey(doc, "twoFactor") || hasKey(doc, "recoveryLeft") {
-		t.Errorf("a token without admin learned the second-factor state: %+v", doc)
-	}
-	if _, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodGet, "/api/auth", "", admin); !hasKey(doc, "twoFactor") || !hasKey(doc, "recoveryLeft") {
-		t.Errorf("an admin token did not get the second-factor state: %+v", doc)
-	}
-}
-
-func TestCreatingATokenTakesItsScopes(t *testing.T) {
-	t.Parallel()
-	srv, _ := testServer(t)
-	defer srv.Close()
-
-	post := func(body string) (int, newTokenResponse) {
-		t.Helper()
-		resp, err := http.Post(srv.URL+"/api/tokens", "application/json", bytes.NewReader([]byte(body)))
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer resp.Body.Close()
-		var out newTokenResponse
-		if resp.StatusCode == http.StatusCreated {
-			if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
-				t.Fatal(err)
+	srv, a := testServer(t)
+	t.Cleanup(srv.Close)
+	session := setPassword(t, a, "a-good-password")
+	for level, may := range map[string][]apitoken.Scope{
+		"status": {apitoken.ScopeStatus},
+		"read":   {apitoken.ScopeRead},
+		"add":    {apitoken.ScopeRead, apitoken.ScopeAdd},
+		"admin":  apitoken.AllScopes(),
+	} {
+		secret := kitTokenWith(t, a, session, level)
+		for _, p := range scopeProbes {
+			what := level + " token on " + p.method + " " + p.path
+			code, doc := callAPI(t, http.DefaultClient, srv.URL, p.method, p.path, p.body, secret)
+			if !slices.Contains(may, p.need) {
+				wantRefused(t, what, code, doc, p.need)
+				continue
+			}
+			if code == http.StatusForbidden || code == http.StatusUnauthorized {
+				t.Errorf("%s answered %d, want it let through", what, code)
 			}
 		}
-		return resp.StatusCode, out
-	}
-
-	code, tok := post(`{"name":"sonarr","scopes":["add","read"]}`)
-	if code != http.StatusCreated || !slices.Equal(tok.Scopes, []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd}) {
-		t.Errorf("creating an add and read token answered %d with %v", code, tok.Scopes)
-	}
-	code, tok = post(`{"name":"old client"}`)
-	if code != http.StatusCreated || !slices.Equal(tok.Scopes, apitoken.AllScopes()) {
-		t.Errorf("a request naming no scopes answered %d with %v, want every scope", code, tok.Scopes)
-	}
-	// Only a request without the field is an old client; null is a client
-	// that named the rights and got them wrong.
-	for _, body := range []string{
-		`{"name":"nothing","scopes":[]}`, `{"name":"null","scopes":null}`, `{"name":"typo","scopes":["read","delete"]}`,
-	} {
-		if code, _ := post(body); code != http.StatusBadRequest {
-			t.Errorf("%s answered %d, want 400", body, code)
-		}
-	}
-}
-
-// A token that may manage tokens cannot mint one that may do more than itself.
-func TestATokenCannotIssueOneWithMoreRights(t *testing.T) {
-	t.Parallel()
-	srv, a := lockedServer(t)
-	_, admin, err := a.APITokens.CreateScoped("admin only", []apitoken.Scope{apitoken.ScopeAdmin, apitoken.ScopeRead})
-	if err != nil {
-		t.Fatal(err)
-	}
-	code, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodPost, "/api/tokens", `{"name":"wider","scopes":["read","control"]}`, admin)
-	wantRefused(t, "an admin and read token issuing a control token", code, doc, apitoken.ScopeControl)
-	if code, _ := callAPI(t, http.DefaultClient, srv.URL, http.MethodPost, "/api/tokens", `{"name":"narrower","scopes":["read"]}`, admin); code != http.StatusCreated {
-		t.Errorf("issuing a token with a subset of the caller's rights answered %d, want 201", code)
-	}
-	if code, _ := callAPI(t, http.DefaultClient, srv.URL, http.MethodPost, "/api/tokens", `{"name":"everything"}`, admin); code != http.StatusForbidden {
-		t.Errorf("issuing a full token from a narrower one answered %d, want 403", code)
-	}
-}
-
-// The passkey list is open for the sign-in screen's counts; the keys
-// themselves need the admin right when a token asks.
-func TestPasskeysAreListedOnlyToAnAdminToken(t *testing.T) {
-	t.Parallel()
-	srv, a := lockedServer(t)
-	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, admin, err := a.APITokens.CreateScoped("admin", []apitoken.Scope{apitoken.ScopeAdmin})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodGet, "/api/auth/passkeys", "", reader); hasKey(doc, "passkeys") {
-		t.Errorf("a read token got the registered passkeys: %+v", doc)
-	}
-	if _, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodGet, "/api/auth/passkeys", "", admin); !hasKey(doc, "passkeys") {
-		t.Errorf("an admin token did not get the registered passkeys: %+v", doc)
 	}
 }
 
@@ -504,10 +409,8 @@ func TestModuleRowsNoticeTokensWithoutTheRightsTheModuleNeeds(t *testing.T) {
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	if _, _, err := a.APITokens.CreateScoped("remote", []apitoken.Scope{apitoken.ScopeControl}); err != nil {
+	setPassword(t, a, "a-good-password")
+	if _, _, err := scopedToken(a, "remote", []apitoken.Scope{apitoken.ScopeControl}); err != nil {
 		t.Fatal(err)
 	}
 	rows := func(bridge, metrics string) {
@@ -521,18 +424,13 @@ func TestModuleRowsNoticeTokensWithoutTheRightsTheModuleNeeds(t *testing.T) {
 	}
 	rows("downloadclientNoAddReadToken", "metricsNoReadToken")
 
-	if _, _, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead}); err != nil {
+	if _, _, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead}); err != nil {
 		t.Fatal(err)
 	}
 	rows("downloadclientNoAddReadToken", "metricsReady")
 
-	if _, _, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd}); err != nil {
+	if _, _, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd}); err != nil {
 		t.Fatal(err)
 	}
 	rows("downloadclientReadyBoth", "metricsReady")
-}
-
-func hasKey(m map[string]any, k string) bool {
-	_, ok := m[k]
-	return ok
 }

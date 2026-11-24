@@ -36,7 +36,6 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/fortress"
@@ -743,7 +742,7 @@ func fortressViewOf(a *app.App) fortressView {
 		Phrase:        fortressSecret(a) != nil,
 		Device:        fortressDevice(a),
 		DefaultDevice: defaultFortressDevice(a),
-		PasswordSet:   a.Auth.Enabled(),
+		PasswordSet:   closed(a),
 		Members:       []fortressMemberView{},
 		Permissions:   []fortressPermissionView{},
 		PairedWith:    []string{},
@@ -857,6 +856,13 @@ func fortressSelf(a *app.App) group.Self {
 	return s
 }
 
+// changeFortress runs fn, a change that makes or ends a lasting way in, for
+// a visitor who signed in moments ago, and reports whether it ran and worked.
+func changeFortress(a *app.App, w http.ResponseWriter, r *http.Request, fn func() error) bool {
+	ran, err := lasting(a, w, r, fn)
+	return ran && !refuseFortress(w, err)
+}
+
 // refuseFortress answers a failed fortress change and reports whether err
 // was one.
 func refuseFortress(w http.ResponseWriter, err error) bool {
@@ -872,29 +878,11 @@ func refuseFortress(w http.ResponseWriter, err error) bool {
 	case errors.Is(err, errShutOut):
 		// GlimStone words the code itself.
 		writeJSONStatus(w, http.StatusForbidden, map[string]any{"ok": false, "code": group.ClosedUntilNewPhrase})
-	case errors.Is(err, auth.ErrStale):
+	case errors.Is(err, errStale):
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 	default:
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	return true
-}
-
-// passwordAgain asks for the login password again, where one is set, before
-// the phrase shows: a session may be open on a screen nobody watches.
-func passwordAgain(reg *Registry, a *app.App, w http.ResponseWriter, r *http.Request, password string) bool {
-	if !a.Auth.Enabled() {
-		return true
-	}
-	if !reg.passwordGate.try(r) {
-		http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
-		return false
-	}
-	if !a.Auth.Check(password) {
-		writeRefusal(w, http.StatusForbidden, "passwordWrong", "the password is required to show the phrase", nil)
-		return false
-	}
-	reg.passwordGate.pass(r)
 	return true
 }
 
@@ -929,20 +917,20 @@ func registerFortressMembership(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if refuseFortress(w, a.Auth.Mint(stillAdmitted(a, r), func() error { return joinFortress(a, secret) })) {
+			if !changeFortress(a, w, r, func() error { return joinFortress(a, secret) }) {
 				return
 			}
 			writeJSON(w, fortressViewOf(a))
 		})
 
 	reg.Add(http.MethodPost, "/api/fortress/phrase/show",
-		"show the fortress phrase again, with its QR code; with a login password set it has to be entered again, because the phrase opens every app of the fortress",
+		"show the fortress phrase again, with its QR code; with the password again or after a sign-in moments ago, where a password is set, because the phrase opens every app of the fortress",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Password string `json:"password"`
 			}
 			_ = decodeBody(r, &body)
-			if !passwordAgain(reg, a, w, r, body.Password) {
+			if !freshSignIn(a, w, r, body.Password) {
 				return
 			}
 			secret := fortressSecret(a)
@@ -959,13 +947,13 @@ func registerFortressMembership(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/fortress/phrase",
-		"give the fortress a new phrase, for every instance in reach; answers with it and the devices out of reach, which enter it once; with a login password set it has to be entered again",
+		"give the fortress a new phrase, for every instance in reach; answers with it and the devices out of reach, which enter it once; with the password again or after a sign-in moments ago, where a password is set",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Password string `json:"password"`
 			}
 			_ = decodeBody(r, &body)
-			if !passwordAgain(reg, a, w, r, body.Password) {
+			if !freshSignIn(a, w, r, body.Password) {
 				return
 			}
 			words, left, err := changeFortressPhrase(r.Context(), a)
@@ -1039,7 +1027,7 @@ func registerFortressMembership(reg *Registry, a *app.App) {
 	reg.Add(http.MethodDelete, "/api/fortress",
 		"leave the fortress; the pairing that lived under its phrase ends with it",
 		func(w http.ResponseWriter, r *http.Request) {
-			if refuseFortress(w, a.Auth.Mint(stillAdmitted(a, r), func() error { return leaveFortress(a) })) {
+			if !changeFortress(a, w, r, func() error { return leaveFortress(a) }) {
 				return
 			}
 			writeJSON(w, fortressViewOf(a))

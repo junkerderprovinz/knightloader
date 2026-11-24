@@ -114,7 +114,7 @@ func TestVPNRefusalsCarryACodeAndTheField(t *testing.T) {
 
 func TestVPNRoutesNeedAdmin(t *testing.T) {
 	srv, a := lockedServer(t)
-	_, secret, err := a.APITokens.CreateScoped("control", []apitoken.Scope{apitoken.ScopeControl, apitoken.ScopeRead, apitoken.ScopeAdd})
+	_, secret, err := scopedToken(a, "control", []apitoken.Scope{apitoken.ScopeControl, apitoken.ScopeRead, apitoken.ScopeAdd})
 	if err != nil {
 		t.Fatal(err)
 	}

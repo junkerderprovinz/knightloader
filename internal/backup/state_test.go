@@ -3,6 +3,7 @@ package backup
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/store"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // liveInstance is a data directory with a database, settings, a login and one
@@ -35,15 +37,7 @@ func liveInstance(t *testing.T, apiKey, password string) (string, map[string][]b
 	if err := acc.Set("torbox", apiKey); err != nil {
 		t.Fatal(err)
 	}
-	g, err := auth.Open(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if password != "" {
-		if err := g.SetPassword("", password); err != nil {
-			t.Fatal(err)
-		}
-	}
+	writeOldLogin(t, dir, password)
 	if err := os.WriteFile(filepath.Join(dir, "scripts.json"), []byte(`[]`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -77,11 +71,7 @@ func archiveOfInstance(t *testing.T, dir string) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, err := auth.Open(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	state, err := g.State()
+	state, err := os.ReadFile(filepath.Join(dir, auth.FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,11 +108,7 @@ func TestARestoreBringsTheAccountsAndTheLoginAlong(t *testing.T) {
 	if got, err := acc.Get("torbox"); err != nil || got != "source-key" {
 		t.Errorf("the restored account reads %q, %v", got, err)
 	}
-	g, err := auth.Open(target)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !g.Check("source-password") {
+	if !checksPassword(t, target, "source-password") {
 		t.Error("the restored login does not take the backup's password")
 	}
 }
@@ -134,8 +120,7 @@ func TestAStateFileTheBackupLacksIsRemoved(t *testing.T) {
 	}
 	target, _ := liveInstance(t, "target-key", "target-password")
 	acc, _ := accounts.Open(source)
-	g, _ := auth.Open(source)
-	state, _ := g.State()
+	state, _ := os.ReadFile(filepath.Join(source, auth.FileName))
 	accountsJSON, _ := os.ReadFile(filepath.Join(source, "accounts.json"))
 	manifest := testManifest()
 	manifest.Files = StateFiles
@@ -317,4 +302,22 @@ func appendEntry(t *testing.T, archive []byte, name string) []byte {
 		t.Fatal(err)
 	}
 	return out.Bytes()
+}
+
+// writeOldLogin writes the auth.json of the versions before the kit's
+// sign-in, with password set unless it is empty.
+func writeOldLogin(t *testing.T, dir, password string) {
+	t.Helper()
+	login := map[string]string{"key": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"}
+	if password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+		if err != nil {
+			t.Fatal(err)
+		}
+		login["hash"] = string(hash)
+	}
+	b, _ := json.Marshal(login)
+	if err := os.WriteFile(filepath.Join(dir, auth.FileName), b, 0o600); err != nil {
+		t.Fatal(err)
+	}
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/parleyport/kit/status"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
@@ -66,17 +67,13 @@ func openingTwoWith(t *testing.T, openerHasPassword, memberHasPassword bool) *op
 		return false
 	})
 	if memberHasPassword {
-		if err := p.b.Auth.SetPassword("", memberPassword); err != nil {
-			t.Fatal(err)
-		}
+		setPassword(t, p.b, memberPassword)
 	}
 	p.browser = &http.Client{Jar: newJar(t), CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	if !openerHasPassword {
 		return p
 	}
-	if err := p.a.Auth.SetPassword("", openerPassword); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, p.a, openerPassword)
 	if code := login(t, p.browser, p.opener.URL, openerPassword); code != http.StatusOK {
 		t.Fatalf("signing in at the opener answered %d", code)
 	}
@@ -156,7 +153,7 @@ func TestTheMembersInterfaceOpensBehindItsOwnSignIn(t *testing.T) {
 	if code, _ := inTab(t, http.MethodGet, tab+"/api/tasks", ""); code != http.StatusUnauthorized {
 		t.Errorf("the member's list answered %d before its own sign-in, want 401", code)
 	}
-	if code, raw := inTab(t, http.MethodPost, tab+"/api/auth/login", `{"password":"`+memberPassword+`"}`); code != http.StatusOK {
+	if code, raw := inTab(t, http.MethodPost, tab+"/api/signin/v1/login", `{"password":"`+memberPassword+`"}`); code != http.StatusOK {
 		t.Fatalf("signing in at the member answered %d %s", code, raw)
 	}
 	if code, raw := inTab(t, http.MethodGet, tab+"/api/tasks", ""); code != http.StatusOK {
@@ -179,8 +176,8 @@ func TestAMemberWithoutAPasswordOpensWithItsOwnDoorsShut(t *testing.T) {
 		t.Errorf("the member's list answered %d %.200s", code, raw)
 	}
 	for _, door := range []struct{ method, path, body string }{
-		{http.MethodPut, "/api/auth/password", `{"new":"set from elsewhere"}`},
-		{http.MethodGet, "/api/tokens", ""},
+		{http.MethodPut, "/api/signin/v1/me/password", `{"next":"set from elsewhere"}`},
+		{http.MethodGet, "/api/signin/v1/me/tokens", ""},
 		{http.MethodGet, "/api/system/backup", ""},
 	} {
 		code, raw := inTab(t, door.method, tab+door.path, door.body)
@@ -188,7 +185,7 @@ func TestAMemberWithoutAPasswordOpensWithItsOwnDoorsShut(t *testing.T) {
 			t.Errorf("%s %s answered %d %.200s through the tunnel", door.method, door.path, code, raw)
 		}
 	}
-	if p.b.Auth.Enabled() {
+	if closed(p.b) {
 		t.Error("a page opened through the fortress gave the member its first password")
 	}
 }
@@ -222,9 +219,7 @@ func TestAKnightLoaderWithoutAPasswordOpensAnotherApp(t *testing.T) {
 	if code := codeAt(&http.Client{CheckRedirect: p.browser.CheckRedirect}); code == http.StatusOK {
 		t.Error("another browser got the tab")
 	}
-	if err := p.a.Auth.SetPassword("", openerPassword); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, p.a, openerPassword)
 	if code := codeAt(p.browser); code == http.StatusOK {
 		t.Error("the tab stayed open after a password was set here")
 	}
@@ -233,7 +228,7 @@ func TestAKnightLoaderWithoutAPasswordOpensAnotherApp(t *testing.T) {
 func TestOnlyAPasswordSessionOpensAMember(t *testing.T) {
 	t.Parallel()
 	p := openingTwo(t, true)
-	_, secret, err := p.a.APITokens.Create("script")
+	_, secret, err := scopedToken(p.a, "script", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,14 +248,16 @@ func TestATunnelledPageFindsTheDoorsOfOtherProgramsShut(t *testing.T) {
 	t.Parallel()
 	p := openingTwo(t, true)
 	tab := p.tab(t)
-	if code, raw := inTab(t, http.MethodPost, tab+"/api/auth/login", `{"password":"`+memberPassword+`"}`); code != http.StatusOK {
+	if code, raw := inTab(t, http.MethodPost, tab+"/api/signin/v1/login", `{"password":"`+memberPassword+`"}`); code != http.StatusOK {
 		t.Fatalf("signing in at the member answered %d %s", code, raw)
 	}
 	for _, door := range []struct{ method, path string }{
-		{http.MethodPost, "/api/auth/reset"},
-		{http.MethodPost, "/api/auth/reset/finish"},
-		{http.MethodGet, "/api/tokens"},
-		{http.MethodPost, "/api/tokens"},
+		{http.MethodPost, "/api/signin/v1/reset-code"},
+		{http.MethodPost, "/api/signin/v1/reset"},
+		{http.MethodGet, "/api/signin/v1/me/tokens"},
+		{http.MethodPost, "/api/signin/v1/me/tokens"},
+		{http.MethodPost, "/api/signin/v1/me/passkeys/options"},
+		{http.MethodGet, "/api/signin/v1/methods/oidc"},
 		{http.MethodGet, "/api/mcp"},
 		{http.MethodPost, "/mcp"},
 		{http.MethodGet, "/api/metrics"},
@@ -283,7 +280,7 @@ func TestTheLiveStreamRunsThroughTheTunnel(t *testing.T) {
 	t.Parallel()
 	p := openingTwo(t, true)
 	tab := p.tab(t)
-	if code, raw := inTab(t, http.MethodPost, tab+"/api/auth/login", `{"password":"`+memberPassword+`"}`); code != http.StatusOK {
+	if code, raw := inTab(t, http.MethodPost, tab+"/api/signin/v1/login", `{"password":"`+memberPassword+`"}`); code != http.StatusOK {
 		t.Fatalf("signing in at the member answered %d %s", code, raw)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)

@@ -21,14 +21,12 @@ func TestANarrowTokenDoesNotLearnTheIdleProgram(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	_, read, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	setPassword(t, a, "a-good-password")
+	_, read, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, admin, err := a.APITokens.CreateScoped("owner", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdmin})
+	_, admin, err := scopedToken(a, "owner", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}

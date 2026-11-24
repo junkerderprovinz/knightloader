@@ -151,10 +151,8 @@ func TestRemoteAccessNotExposedOnNonLoopbackRequestWithAPassword(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	_, secret, err := a.APITokens.Create("test script")
+	setPassword(t, a, "a-good-password")
+	_, secret, err := scopedToken(a, "test script", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -327,18 +325,17 @@ const signInPassword = "a-good-password"
 // would, setting the password first when none is set. It returns the status.
 func signInOn(t *testing.T, a *app.App, url, host string) int {
 	t.Helper()
-	if !a.Auth.Enabled() {
-		if err := a.Auth.SetPassword("", signInPassword); err != nil {
-			t.Fatal(err)
-		}
+	if !closed(a) {
+		setPassword(t, a, signInPassword)
 	}
-	req, err := http.NewRequest(http.MethodPost, url+"/api/auth/login", strings.NewReader(`{"password":"`+signInPassword+`"}`))
+	req, err := http.NewRequest(http.MethodPost, url+"/api/signin/v1/login", strings.NewReader(`{"password":"`+signInPassword+`"}`))
 	if err != nil {
 		t.Fatal(err)
 	}
 	req.Host = host
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
 	return doJSON(t, req, nil)
 }
 
@@ -353,10 +350,11 @@ func TestTheHostOfASignInIsNeverAdopted(t *testing.T) {
 
 	// The first password needs no session, so whoever reaches the port sets
 	// it, on any name an instance without a password answers on.
-	body := strings.NewReader(`{"new":"` + signInPassword + `"}`)
-	req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/auth/password", body)
+	body := strings.NewReader(`{"next":"` + signInPassword + `"}`)
+	req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/signin/v1/me/password", body)
 	req.Host = "attacker.home.lan"
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
 	if code := doJSON(t, req, nil); code != http.StatusOK {
 		t.Fatalf("setting the first password answered %d", code)
 	}
@@ -366,9 +364,6 @@ func TestTheHostOfASignInIsNeverAdopted(t *testing.T) {
 
 	if known := a.Settings.Get().KnownDomains; len(known) != 0 {
 		t.Fatalf("KnownDomains = %v after a password and a sign-in on forged names, want none", known)
-	}
-	if err := a.Auth.SetPassword(signInPassword, ""); err != nil {
-		t.Fatal(err)
 	}
 	if got := groupAddress(a); strings.Contains(got, "example.tld") || strings.Contains(got, "home.lan") {
 		t.Fatalf("the group is told %q, a name only a request header carried", got)
@@ -382,10 +377,8 @@ func TestReadingRemoteAccessRemembersNothing(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", signInPassword); err != nil {
-		t.Fatal(err)
-	}
-	_, secret, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	setPassword(t, a, signInPassword)
+	_, secret, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}

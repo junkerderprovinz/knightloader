@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// TestTheSecurityPageLearnsAProxyIsInFront: /api/auth says behindProxy once a
+// TestTheSecurityPageLearnsAProxyIsInFront: /api/system/access says behindProxy once a
 // request arrived with a forwarding header, and not before.
 func TestTheSecurityPageLearnsAProxyIsInFront(t *testing.T) {
 	t.Parallel()
@@ -19,8 +19,8 @@ func TestTheSecurityPageLearnsAProxyIsInFront(t *testing.T) {
 		var auth struct {
 			BehindProxy *bool `json:"behindProxy"`
 		}
-		if code := getJSON(t, srv.URL+"/api/auth", &auth); code != http.StatusOK || auth.BehindProxy == nil {
-			t.Fatalf("/api/auth answered %d without behindProxy", code)
+		if code := getJSON(t, srv.URL+"/api/system/access", &auth); code != http.StatusOK || auth.BehindProxy == nil {
+			t.Fatalf("/api/system/access answered %d without behindProxy", code)
 		}
 		return *auth.BehindProxy
 	}

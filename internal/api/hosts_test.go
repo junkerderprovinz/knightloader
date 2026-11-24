@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 )
 
 // requestOn sends method path to the test server with Host set to host and,
@@ -103,11 +105,9 @@ func TestAPasswordLetsEveryNameThrough(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	if code := requestOn(t, srv.URL, http.MethodGet, "/api/auth", "kl.example.com", "", nil); code != http.StatusOK {
-		t.Errorf("GET /api/auth on an unlisted domain answered %d, want 200", code)
+	setPassword(t, a, "a-good-password")
+	if code := requestOn(t, srv.URL, http.MethodGet, "/api/signin/v1/options", "kl.example.com", "", nil); code != http.StatusOK {
+		t.Errorf("the sign-in on an unlisted domain answered %d, want 200", code)
 	}
 	if code := requestOn(t, srv.URL, http.MethodGet, "/api/tasks", "kl.example.com", "", nil); code != http.StatusUnauthorized {
 		t.Errorf("GET /api/tasks on an unlisted domain without a session answered %d, want 401", code)
@@ -120,10 +120,8 @@ func TestATokenPassesOnAnyName(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	_, secret, err := a.APITokens.Create("phone")
+	setPassword(t, a, "a-good-password")
+	_, secret, err := scopedToken(a, "phone", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}

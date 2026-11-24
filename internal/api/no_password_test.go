@@ -87,9 +87,7 @@ func TestWithoutAPasswordEverythingIsOpen(t *testing.T) {
 
 	// With a password and a sign-in each of them works.
 	const password = "a-good-password"
-	if err := a.Auth.SetPassword("", password); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, password)
 	signed, _ := signedIn(t, srv.URL, password)
 	for _, r := range []struct {
 		method, path string

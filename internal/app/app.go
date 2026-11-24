@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"path/filepath"
 	"slices"
@@ -26,11 +27,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/afterdownload"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -77,6 +79,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/signin"
 )
 
 // backend is a download backend: the embedded Gopeed engine or headless JD.
@@ -115,10 +118,16 @@ type App struct {
 	VPN        *vpnconn.Manager
 	Settings   *settings.Store
 	Federation *federation.Manager
-	Auth       *auth.Guard
-	// APITokens are named, individually revocable credentials that satisfy
-	// the same session guard a password does (see api.authenticated) without
-	// sharing its secret.
+	// SignIn is the kit's sign-in: the password, two-factor, passkeys,
+	// sessions and API tokens.
+	SignIn    *signin.Auth
+	signInEnd atomic.Pointer[signInEnding]
+	// Ending is held for writing while KnightLoader ends its own ways in
+	// after the kit ended its own, and for reading while a request makes
+	// one, so nothing made slips past a reset.
+	Ending sync.RWMutex
+	// APITokens keeps the MCP clients' tokens, and until the kit ends one of
+	// the old ways in, the tokens it took over from it.
 	APITokens *apitoken.Store
 	// MCPClients are the assistants set up to reach /mcp, each with a token
 	// of its own.
@@ -732,13 +741,6 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		return nil, err
 	}
 
-	guard, err := auth.OpenWithKey(dataDir, key)
-	if err != nil {
-		st.Close()
-		return nil, err
-	}
-	a.Auth = guard
-
 	tokens, err := apitoken.Open(dataDir)
 	if err != nil {
 		st.Close()
@@ -752,6 +754,21 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		return nil, err
 	}
 	a.MCPClients = mcpClients
+
+	access.RemoveResetCode(dataDir)
+	signIn, err := access.Open(context.Background(), access.Options{
+		Dir: dataDir, Store: st, AppKey: key, Tokens: tokens, MCP: mcpClients,
+		Public:  a.publicURL,
+		Base:    buildinfo.BasePath,
+		Proxies: func() []netip.Prefix { return a.Settings.Get().TrustedProxyPrefixes() },
+		Ended:   a.signInEnded,
+		Logger:  access.Logger(dataDir, access.Console(buildinfo.Deployment == "desktop")),
+	})
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
+	a.SignIn = signIn
 
 	// The bus belongs to the app rather than the script host, so other
 	// subscribers do not depend on the host and closing it leaves the bus
@@ -1144,6 +1161,9 @@ func (a *App) Close() error {
 	// trackers through it to announce stopped.
 	if a.proxy != nil {
 		_ = a.proxy.Close()
+	}
+	if a.SignIn != nil {
+		_ = a.SignIn.Close()
 	}
 	return a.Store.Close()
 }

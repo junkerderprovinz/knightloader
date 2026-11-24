@@ -12,11 +12,11 @@ package api
 import (
 	"net/http"
 
+	"github.com/junkerderprovinz/parleyport/kit/signin"
 	"github.com/junkerderprovinz/parleyport/kit/status"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/fortress"
 )
 
@@ -40,14 +40,12 @@ func fortressAccess(a *app.App) func(*http.Request) error {
 		if fromGroup(r) {
 			return nil
 		}
-		if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Enabled() && a.Auth.Valid(c.Value) {
+		if v, ok := signin.From(r.Context()); ok && v.Via != signin.ViaAnyone && v.Via != signin.ViaToken {
 			return nil
 		}
-		secret := bearerToken(r)
-		if secret == "" {
-			return status.ErrUnauthenticated
-		}
-		tok, ok := a.APITokens.Check(secret)
+		// Asked of the token itself, since an open app lets everybody in
+		// and a dashboard still needs one.
+		tok, ok := anyToken(a, bearerToken(r))
 		if !ok {
 			return status.ErrUnauthenticated
 		}

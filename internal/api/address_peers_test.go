@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
@@ -35,10 +36,10 @@ func TestInstancesAddedByAddressMakeWayForThePhrase(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
-	if _, _, err := a.APITokens.Create("peer: nas"); err != nil {
+	if _, _, err := scopedToken(a, "peer: nas", apitoken.AllScopes()); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := a.APITokens.Create("dashboard"); err != nil {
+	if _, _, err := scopedToken(a, "dashboard", apitoken.AllScopes()); err != nil {
 		t.Fatal(err)
 	}
 	srv := httptest.NewServer(Handler(a))

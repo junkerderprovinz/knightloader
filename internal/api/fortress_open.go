@@ -31,11 +31,11 @@ import (
 	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
 	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/signin"
 	"github.com/junkerderprovinz/parleyport/kit/status"
 
 	"github.com/junkerderprovinz/knightloader/internal/afterdownload"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
 
 // fortressUses is every action KnightLoader calls at the other members.
@@ -82,18 +82,18 @@ func openerSession(a *app.App, r *http.Request) (string, bool) {
 	if _, ok := kitfortress.Opened(r); ok {
 		return "", false
 	}
-	if !a.Auth.Enabled() {
+	if !closed(a) {
 		c, err := r.Cookie(visitorCookieName)
 		if err != nil || c.Value == "" {
 			return "", false
 		}
 		return c.Value, true
 	}
-	c, err := r.Cookie(auth.CookieName)
-	if err != nil || !a.Auth.Valid(c.Value) {
+	v, ok := signin.From(r.Context())
+	if !ok || v.Session() == "" || !a.SignIn.Alive(r.Context(), v.Session()) {
 		return "", false
 	}
-	return c.Value, true
+	return v.Session(), true
 }
 
 // sessionName is what the kit knows a session by. The token stays here.
@@ -143,14 +143,6 @@ func fortressTabs(a *app.App, next http.Handler) http.Handler {
 // with and the doors they use, the dashboards' reading, the archives that
 // carry every stored secret, and the fortress's own ways in.
 var tunnelShut = map[string]bool{
-	"POST /api/auth/reset":                   true,
-	"POST /api/auth/reset/finish":            true,
-	"POST /api/auth/passkey/register/begin":  true,
-	"POST /api/auth/passkey/register/finish": true,
-
-	"GET /api/tokens":              true,
-	"POST /api/tokens":             true,
-	"DELETE /api/tokens/{id}":      true,
 	"/mcp":                         true,
 	"GET /api/mcp":                 true,
 	"POST /api/mcp/clients":        true,
@@ -178,14 +170,34 @@ var tunnelShut = map[string]bool{
 }
 
 // shutInTunnel reports whether r came through the fortress for a route that
-// stays closed to it. Setting the first password counts while there is none,
-// so that the owner and not another member decides on one.
-func (reg *Registry) shutInTunnel(a *app.App, r *http.Request) bool {
+// stays closed to it.
+func (reg *Registry) shutInTunnel(r *http.Request) bool {
 	if _, ok := kitfortress.Opened(r); !ok {
 		return false
 	}
-	pattern := reg.patternOf(r.Method, r.URL)
-	return tunnelShut[pattern] || pattern == "PUT /api/auth/password" && !a.Auth.Enabled()
+	return tunnelShut[reg.patternOf(r.Method, r.URL)]
+}
+
+// signInShutInTunnel reports whether r came through the fortress for a part
+// of the kit's sign-in that stays closed to it: the reset, new passkeys, the
+// API tokens and the sign-in services, and while there is no password,
+// setting the first one, so that the owner and not another member decides.
+// Signing in and out stays open, behind this instance's own password.
+func signInShutInTunnel(a *app.App, r *http.Request) bool {
+	if _, ok := kitfortress.Opened(r); !ok {
+		return false
+	}
+	p := strings.TrimPrefix(r.URL.Path, "/api/signin/v1/")
+	switch {
+	case p == "reset-code" || p == "reset", strings.HasPrefix(p, "me/tokens"), strings.HasPrefix(p, "methods/"),
+		strings.HasPrefix(p, "me/identities"), strings.HasPrefix(r.URL.Path, "/signin/oidc/"):
+		return true
+	case strings.HasPrefix(p, "me/passkeys"):
+		return r.Method != http.MethodGet
+	case p == "me/password":
+		return !closed(a)
+	}
+	return false
 }
 
 func refuseTunnel(w http.ResponseWriter) {
@@ -231,12 +243,15 @@ func registerFortressOpen(reg *Registry, a *app.App) {
 			"answers the tab's path below the base path, or a refusal code",
 		func(w http.ResponseWriter, r *http.Request) {
 			secret, ok := openerSession(a, r)
-			valid := func() bool { return !a.Auth.Enabled() }
-			if a.Auth.Enabled() {
-				valid = func() bool { return a.Auth.Valid(secret) }
+			valid := func() bool { return !closed(a) }
+			if closed(a) {
+				valid = func() bool { return a.SignIn.Alive(context.Background(), secret) }
 			} else if !ok && tokenSecret(r) == "" && !fromGroup(r) {
 				secret, ok = rand.Text(), true
-				http.SetCookie(w, browserCookie(r, visitorCookieName, secret))
+				http.SetCookie(w, &http.Cookie{
+					Name: visitorCookieName, Value: secret, Path: cookiePath(r), HttpOnly: true,
+					Secure: requestScheme(r) == "https", SameSite: http.SameSiteLaxMode, MaxAge: 30 * 24 * 60 * 60,
+				})
 			}
 			if !ok {
 				writeRefusal(w, http.StatusForbidden, "noBrowserSession", "only a browser opens another app", nil)

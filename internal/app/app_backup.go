@@ -10,6 +10,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,6 +25,7 @@ import (
 
 	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
@@ -115,19 +117,22 @@ func removeBackupSnapshots(dataDir string) {
 	}
 }
 
-// stateFiles reads the state files this instance has. The login and the
-// credential key come from the stores holding them open, in the clear; the
-// others are read off the disk as they are, since none is sealed.
+// stateFiles reads the state files this instance has. The sign-in's key and
+// the credential key come in the clear; the others are read off the disk as
+// they are, since none is sealed. The sign-in itself is in the database, so
+// the old auth.json stays out, and a restore of this backup removes it.
 func (a *App) stateFiles() (map[string][]byte, error) {
 	files := map[string][]byte{}
-	state, err := a.Auth.State()
+	key, err := access.ReadKey(a.DataDir, a.AppKey)
 	if err != nil {
-		return nil, fmt.Errorf("could not read the login: %w", err)
+		return nil, fmt.Errorf("could not read the sign-in's key: %w", err)
 	}
-	files[auth.FileName] = state
+	if key != nil {
+		files[access.KeyFile] = []byte(hex.EncodeToString(key))
+	}
 	files[accounts.KeyringName] = a.Accounts.Keyring()
 	for _, name := range backup.StateFiles {
-		if _, ok := files[name]; ok {
+		if _, ok := files[name]; ok || name == auth.FileName || name == access.KeyFile {
 			continue
 		}
 		b, err := os.ReadFile(filepath.Join(a.DataDir, name))

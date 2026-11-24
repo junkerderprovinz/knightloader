@@ -182,7 +182,7 @@ func (dc *downloadClient) authorized(w http.ResponseWriter, r *http.Request) (ap
 		return apitoken.Token{}, false
 	}
 	// The instance's own tokens, so there is only one place to revoke from.
-	tok, ok := dc.a.APITokens.Check(key)
+	tok, ok := anyToken(dc.a, key)
 	if !ok {
 		sabError(w, "API Key Incorrect")
 		return apitoken.Token{}, false

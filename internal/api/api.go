@@ -21,7 +21,6 @@ import (
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/web"
@@ -36,7 +35,8 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	h := withBasePath(fortressTabs(a, reg.proxySeen.note(sameOrigin(guard(a, reg, mux)))))
+	a.OnSignInEnded(signInEnded(a))
+	h := withBasePath(a.SignIn.Guard(fortressTabs(a, reg.proxySeen.note(sameOrigin(signInRoutes(a, guard(a, reg, mux)))))))
 
 	// A member's call is answered by this same handler, so it cannot drift
 	// from what a browser or an API token gets. Opening the group here means a
@@ -65,38 +65,6 @@ func memberOf(r *http.Request) (group.Caller, bool) {
 	return c, ok
 }
 
-// authenticated reports whether the request carries a valid session or a
-// valid API token, or whether no password is set at all.
-func authenticated(a *app.App, r *http.Request) bool {
-	_, ok := caller(a, r)
-	return ok
-}
-
-// caller works out who is asking: ok is false for nobody, and tok is set when
-// an API token is what let the request in, since only a token is narrowed by
-// scopes. A token is checked even when a cookie was sent too, so one route can
-// be tested with curl from a logged-in browser machine.
-func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
-	if !a.Auth.Enabled() {
-		return nil, true
-	}
-	// A member already holds the phrase that reaches every instance in the
-	// group, so a second credential would protect nothing. guard holds such
-	// calls to groupRoutes.
-	if fromGroup(r) {
-		return nil, true
-	}
-	if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Valid(c.Value) {
-		return nil, true
-	}
-	if secret := bearerToken(r); secret != "" {
-		if t, ok := a.APITokens.Check(secret); ok {
-			return &t, true
-		}
-	}
-	return nil, false
-}
-
 // addsAsAdmin reports whether r comes from somebody with every right, whose
 // links may go out with the site sessions of the owner's browsers: the
 // signed-in owner, an admin token, the owner's browser extension, or anybody
@@ -109,15 +77,6 @@ func addsAsAdmin(a *app.App, r *http.Request) bool {
 	}
 	tok, ok := caller(a, r)
 	return ok && (tok == nil || tok.Has(apitoken.ScopeAdmin))
-}
-
-// stillAdmitted is what auth.Guard.Mint asks before r creates a credential:
-// whether the session or token that let r in still would.
-func stillAdmitted(a *app.App, r *http.Request) func() bool {
-	return func() bool {
-		_, ok := caller(a, r)
-		return ok
-	}
 }
 
 // bearerToken reads the RFC 6750 Authorization header, which is how scripts,
@@ -146,47 +105,8 @@ func tokenSecret(r *http.Request) string {
 	return ""
 }
 
-// setSession hands the browser its session cookie. Behind a proxy that ends
-// TLS, the forwarded scheme is the only sign the browser used https. A sender
-// that lies about it gains nothing: a Secure cookie only stays off plain HTTP,
-// and the cookie is its own.
-func setSession(w http.ResponseWriter, r *http.Request, token string) {
-	http.SetCookie(w, browserCookie(r, auth.CookieName, token))
-}
-
-// browserCookie is a cookie of the browser's session with this instance,
-// kept under the base path for as long as a sign-in lasts.
-func browserCookie(r *http.Request, name, value string) *http.Cookie {
-	return &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Path:     cookiePath(r),
-		HttpOnly: true,
-		Secure:   requestScheme(r) == "https",
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(auth.SessionTTL / time.Second),
-	}
-}
-
-func clearSession(w http.ResponseWriter, r *http.Request) {
-	paths := []string{cookiePath(r)}
-	// The browser sends a cookie set at the root along with this one: one from
-	// before the base path was configured, or from the LAN address of the same
-	// host. Left alone, it would keep the session alive after the logout.
-	if paths[0] != "/" {
-		paths = append(paths, "/")
-	}
-	for _, p := range paths {
-		http.SetCookie(w, &http.Cookie{
-			Name: auth.CookieName, Value: "", Path: p, HttpOnly: true,
-			Secure: requestScheme(r) == "https", SameSite: http.SameSiteLaxMode, MaxAge: -1,
-		})
-	}
-}
-
-// cookiePath keeps the session cookie under the base path, so requests to
-// other applications on the same host do not carry it. It is no boundary
-// against their scripts, which share the origin and can call the API.
+// cookiePath keeps a cookie under the base path, so requests to other
+// applications on the same host do not carry it.
 func cookiePath(r *http.Request) string {
 	if p := requestBasePath(r); p != "" {
 		return p
@@ -200,7 +120,7 @@ func cookiePath(r *http.Request) string {
 // for requireScope to check against the route.
 func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if reg.shutInTunnel(a, r) {
+		if reg.shutInTunnel(r) {
 			refuseTunnel(w)
 			return
 		}
@@ -220,12 +140,6 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 			if tok != nil {
 				r = withToken(r, *tok)
 			}
-			next.ServeHTTP(w, r)
-			return
-		}
-		// Setting the first password needs no session; there is nothing to
-		// protect yet and no way to get one.
-		if r.URL.Path == "/api/auth/password" && !a.Auth.Enabled() {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -282,7 +196,7 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	}
 	// The guard let the request in before the upgrade; a reset in between
 	// has dropped every stream and must not miss this one.
-	if err := a.Auth.Mint(stillAdmitted(a, r), func() error {
+	if err := admitted(a, r, func() error {
 		openStream(a, c, !seesCredentials(r))
 		return nil
 	}); err != nil {
@@ -483,9 +397,6 @@ const (
 	// gigabyte-long value holds a gigabyte of memory. A settings document or
 	// a pasted list of links stays far below it.
 	maxJSONBody = 16 << 20
-	// maxAuthBody bounds the routes that read a body before anybody has signed
-	// in. A password, a code or a passkey assertion is a few hundred bytes.
-	maxAuthBody = 64 << 10
 )
 
 // decodeJSON reads a JSON body and answers 400 itself when it cannot. It

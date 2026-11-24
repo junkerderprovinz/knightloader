@@ -19,11 +19,11 @@ import (
 // on a server with a password.
 func narrowAndAdmin(t *testing.T, a *app.App) (read, admin string) {
 	t.Helper()
-	_, read, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	_, read, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, admin, err = a.APITokens.CreateScoped("owner", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdmin})
+	_, admin, err = scopedToken(a, "owner", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}

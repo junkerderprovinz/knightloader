@@ -1,17 +1,13 @@
 package api
 
-// Liveness, the event stream, and the password lock.
+// Liveness, the event stream, the look, and what the Security page says
+// beside the sign-in.
 
 import (
 	"encoding/json"
-	"errors"
-	"io"
-	"log"
 	"net/http"
 
-	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -93,192 +89,13 @@ func registerSystem(reg *Registry, a *app.App) {
 			writeJSON(w, appearanceOf(applied))
 		})
 
-	// The password lock. These routes stay reachable while locked out, since
-	// they are how you get back in.
-	reg.AddOpen(http.MethodGet, "/api/auth",
-		"whether a password is set and whether this client is logged in; open because the login screen asks it first",
+	reg.Add(http.MethodGet, "/api/system/access",
+		"what the Security page says beside the sign-in: until when the copies from before the encryption key are kept, and whether a reverse proxy sent requests lately",
 		func(w http.ResponseWriter, r *http.Request) {
-			in := authenticated(a, r)
-			out := map[string]any{
-				"enabled":       a.Auth.Enabled(),
-				"authenticated": in,
-			}
-			// An anonymous caller learns only whether a password is set; the
-			// second factor and the recovery codes left are security
-			// configuration, for a session or a token that may administer. A
-			// member of the group passes every check that asks for a login,
-			// so it is told nothing more than a stranger.
-			if !fromGroup(r) && permits(a, r, apitoken.ScopeAdmin) {
-				out["twoFactor"] = a.Auth.TwoFactorEnabled()
-				out["recoveryLeft"] = a.Auth.RecoveryLeft()
-				out["appKey"] = a.AppKey != nil
-				if until, ok := a.KeyCopiesUntil(); ok {
-					out["appKeyCopiesUntil"] = until
-				}
-				out["behindProxy"] = reg.proxySeen.recently()
+			out := map[string]any{"appKey": a.AppKey != nil, "behindProxy": reg.proxySeen.recently()}
+			if until, ok := a.KeyCopiesUntil(); ok {
+				out["appKeyCopiesUntil"] = until
 			}
 			writeJSON(w, out)
 		})
-	// routes_twofactor.go says why a second factor needs a throttle.
-	gate := reg.passwordGate
-	// The registry makes its gate before it knows the app.
-	gate.trusted = trustedProxies(a)
-	reg.AddOpen(http.MethodPost, "/api/auth/login", "exchange the password (and a second-factor code, when one is armed) for a session; open because it is the way in",
-		func(w http.ResponseWriter, r *http.Request) {
-			if !gate.try(r) {
-				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
-				return
-			}
-			var body struct {
-				Password string `json:"password"`
-				// Code is an authenticator code or a recovery code, ignored when
-				// no second factor is armed.
-				Code string `json:"code"`
-			}
-			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
-				return
-			}
-			checked, ok := a.Auth.CheckPassword(body.Password)
-			if !ok {
-				// The same answer on every instance, so it does not reveal
-				// whether a second factor exists.
-				http.Error(w, "wrong password", http.StatusUnauthorized)
-				return
-			}
-			if checked.TwoFactor {
-				if body.Code == "" {
-					// The password was right and the screen now asks for the
-					// code. Not counted: every honest login passes here once,
-					// and only with the right password.
-					gate.release(r)
-					writeJSON(w, map[string]any{
-						"enabled": true, "authenticated": false, "twoFactorRequired": true,
-					})
-					return
-				}
-				if !a.Auth.CheckSecond(body.Code) {
-					// codeRejected tells "ask for a code" apart from "the code
-					// was wrong".
-					writeJSONStatus(w, http.StatusUnauthorized, map[string]any{
-						"enabled": true, "authenticated": false,
-						"twoFactorRequired": true, "codeRejected": true,
-					})
-					return
-				}
-			}
-			// Refused when the password or the factor changed during the
-			// check, which would otherwise let the old password in once more.
-			tok, ok := a.Auth.IssueFor(checked)
-			if !ok {
-				http.Error(w, "wrong password", http.StatusUnauthorized)
-				return
-			}
-			gate.pass(r)
-			setSession(w, r, tok)
-			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
-		})
-	reg.AddOpen(http.MethodPost, "/api/auth/logout", "drop this client's session, or with {\"everywhere\": true} every session; open because logging out of an expired session must work",
-		func(w http.ResponseWriter, r *http.Request) {
-			var req struct {
-				Everywhere bool `json:"everywhere"`
-			}
-			// The body is optional; a bare POST signs out this client.
-			_ = json.NewDecoder(io.LimitReader(body(r), maxAuthBody)).Decode(&req)
-			if req.Everywhere {
-				// Signing everybody else out is administration, not leaving.
-				if !permits(a, r, apitoken.ScopeAdmin) {
-					http.Error(w, "unauthorized", http.StatusUnauthorized)
-					return
-				}
-				// A live stream was let in when it opened and would go on
-				// delivering to the sessions that have just ended.
-				if err := a.Auth.RevokeAll(a.Hub.DropAll); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			} else if c, err := r.Cookie(auth.CookieName); err == nil {
-				// Clearing the cookie only empties this browser; a copy taken
-				// earlier would still work.
-				if err := a.Auth.Revoke(c.Value); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-			clearSession(w, r)
-			w.WriteHeader(http.StatusNoContent)
-		})
-	reg.Add(http.MethodPut, "/api/auth/password", "set, change or remove the instance password; removing it removes the second factor and every passkey too",
-		func(w http.ResponseWriter, r *http.Request) {
-			// Setting the first password is open (the instance is unprotected
-			// anyway); changing or removing one requires the current password and an
-			// existing session, which the guard enforces.
-			var body struct {
-				Current string `json:"current"`
-				New     string `json:"new"`
-			}
-			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
-				return
-			}
-			// The current password is checked here as well, so a session left
-			// open must not be able to guess it any faster than the login can.
-			// Setting the first one checks nothing and needs no throttle.
-			guarded := a.Auth.Enabled()
-			if guarded && !gate.try(r) {
-				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
-				return
-			}
-			// The page that changed it reconnects its own stream with the
-			// cookie this answer sets.
-			alsoEnd := a.Hub.DropAll
-			if body.New == "" {
-				alsoEnd = func() {
-					// A passkey stands beside the password. Kept, it would
-					// open the instance again as soon as any password is set.
-					if _, err := a.Store.DeleteAllPasskeys(); err != nil {
-						log.Printf("auth: removing the password: removing the passkeys: %v", err)
-					}
-					a.Hub.DropAll()
-				}
-			}
-			changed, err := a.Auth.ChangePassword(body.Current, body.New, alsoEnd)
-			if refusePasswordLength(w, err) {
-				return
-			}
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			if guarded {
-				gate.pass(r)
-			}
-			// A token minted under the old password state would bypass the new
-			// one, as would a session cookie, which SetPassword has already
-			// ended. Best effort: a failed revoke must not undo a password
-			// change that is already persisted.
-			_ = a.APITokens.RevokeAll()
-			if body.New != "" {
-				// Whoever just set it stays signed in, unless it has changed
-				// again since.
-				if tok, ok := a.Auth.IssueFor(changed); ok {
-					setSession(w, r, tok)
-				}
-			} else {
-				clearSession(w, r)
-			}
-			writeJSON(w, map[string]bool{"enabled": a.Auth.Enabled(), "authenticated": true})
-		})
-}
-
-// refusePasswordLength answers a new password of the wrong length with a code
-// the interface translates, and reports whether err was one.
-func refusePasswordLength(w http.ResponseWriter, err error) bool {
-	switch {
-	case errors.Is(err, auth.ErrEmpty):
-		writeRefusal(w, http.StatusBadRequest, "passwordEmpty", err.Error(), nil)
-	case errors.Is(err, auth.ErrTooLong):
-		writeRefusal(w, http.StatusBadRequest, "passwordTooLong", err.Error(), nil)
-	default:
-		return false
-	}
-	return true
 }

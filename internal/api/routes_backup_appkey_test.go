@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
 
@@ -103,12 +104,12 @@ func TestWithoutAnAppKeyTheBackupStaysAZip(t *testing.T) {
 	}
 }
 
-func TestAuthStateSaysWhetherAnAppKeyIsSet(t *testing.T) {
+func TestTheSecurityPageSaysWhetherAnAppKeyIsSet(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	read := func() map[string]any {
-		resp, err := http.Get(srv.URL + "/api/auth")
+		resp, err := http.Get(srv.URL + "/api/system/access")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -131,7 +132,7 @@ func TestAuthStateSaysWhetherAnAppKeyIsSet(t *testing.T) {
 		t.Fatal("appKeyCopiesUntil is set with no copies in the data folder")
 	}
 	made := time.Now()
-	if _, err := appkey.KeepCopies(a.DataDir, []string{"settings.json", "auth.json"}, made); err != nil {
+	if _, err := appkey.KeepCopies(a.DataDir, []string{"settings.json", access.KeyFile}, made); err != nil {
 		t.Fatal(err)
 	}
 	until, _ := read()["appKeyCopiesUntil"].(string)

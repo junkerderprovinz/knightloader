@@ -119,27 +119,16 @@ keeping lives on the volumes:
 | `knightloader.db` | tasks; migrated in place on start, tracked by `PRAGMA user_version` |
 | `settings.json` | download folder, limits, extraction, archive passwords |
 | `.keyring` + account store | the encrypted credentials |
-| `auth.json` | the password hash, the key that signs session cookies, and the second factor (the authenticator secret plus the hashes of the unspent recovery codes) |
+| `signin.key` | the key the sign-in in `knightloader.db` is sealed with: password, second factor, passkeys, sessions and API tokens |
 
-Because the session key is persisted, a redeploy does not sign anyone out of a
-password-locked instance.
+Because the sessions are kept in the database, a redeploy does not sign anyone
+out of a password-locked instance.
 
 ### Locked out by the second factor
 
-KnightLoader has one password and no user accounts, so nobody else can unlock an
-instance for you. If the authenticator app AND the recovery codes are both gone,
-there are two ways back, and both need write access to the data directory:
-
-```sh
-docker exec -it knightloader knightloader -reset-2fa   # in the container
-knightloader -reset-2fa                                # or beside the data dir
-```
-
-or, with KnightLoader stopped, delete the `totp` and `recovery` entries from
-`auth.json` by hand. Either way the password is untouched: this is a way past
-the SECOND factor and never a way past the first. It grants nothing that
-filesystem access did not already grant, since the same access could delete
-`auth.json` outright and take the password with it.
+If the authenticator app and the recovery codes are both gone, use **Forgot
+password?** on the sign-in page. The code it writes to the container log sets a
+new password and turns the second factor off with it.
 
 ## Behind a reverse proxy: turn asset caching OFF
 
@@ -184,7 +173,7 @@ pass it through.
 
 ```sh
 curl -s http://<host>:8749/api/health          # {"status":"ok","version":"preview"}
-curl -s http://<host>:8749/api/auth            # whether a password is set
+curl -s http://<host>:8749/api/signin/v1/options   # whether a password is set
 curl -s -o /dev/null -w '%{http_code}
 '   -H 'Origin: https://elsewhere.example'   http://<host>:8749/api/tasks                 # 403 — foreign origins are refused
 ```

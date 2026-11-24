@@ -9,7 +9,6 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
@@ -36,18 +35,15 @@ func linkBody(link string) string {
 func TestOnlyAnAdminsLinksGoOutWithTheOwnersSessions(t *testing.T) {
 	t.Parallel()
 	a, _, _, _, _ := groupServer(t)
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	_, adder, err := a.APITokens.CreateScoped("friend", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	session := setPassword(t, a, "a-good-password")
+	_, adder, err := scopedToken(a, "friend", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, admin, err := a.APITokens.CreateScoped("script", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeAdmin})
+	_, admin, err := scopedToken(a, "script", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}
-	session := a.Auth.Issue()
 	h := Handler(a)
 	add := func(link string, sign func(*http.Request)) {
 		t.Helper()
@@ -67,7 +63,7 @@ func TestOnlyAnAdminsLinksGoOutWithTheOwnersSessions(t *testing.T) {
 	add("https://www.patreon.com/posts/by-a-friend-1", bearer(adder))
 	add("https://www.patreon.com/posts/by-a-script-2", bearer(admin))
 	add("https://www.patreon.com/posts/by-the-owner-3", func(r *http.Request) {
-		r.AddCookie(&http.Cookie{Name: auth.CookieName, Value: session})
+		r.Header.Set("Cookie", session)
 	})
 
 	if addedByAdmin(t, a, "https://www.patreon.com/posts/by-a-friend-1") {

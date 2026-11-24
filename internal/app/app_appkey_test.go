@@ -23,9 +23,7 @@ func openWithKey(t *testing.T, dir string, key *appkey.Key) *App {
 func TestAddingAnAppKeyKeepsCopiesOnceAndSealsInPlace(t *testing.T) {
 	dir := t.TempDir()
 	a := openWithKey(t, dir, nil)
-	if err := a.Auth.SetPassword("", "correct-horse"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "correct-horse")
 	s := a.Settings.Get()
 	s.Reconnect.Username = "admin"
 	s.Reconnect.Password = "router-secret"
@@ -40,7 +38,7 @@ func TestAddingAnAppKeyKeepsCopiesOnceAndSealsInPlace(t *testing.T) {
 
 	key, _ := appkey.Generate()
 	a = openWithKey(t, dir, key)
-	if !a.Auth.Check("correct-horse") || a.Settings.Get().Reconnect.Password != "router-secret" {
+	if !signsIn(a, "correct-horse") || a.Settings.Get().Reconnect.Password != "router-secret" {
 		t.Fatal("the first start with a key lost the password or the router password")
 	}
 	a.Close()

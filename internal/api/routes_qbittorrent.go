@@ -180,12 +180,11 @@ type qbitClient struct {
 
 func newQbitClient(a *app.App) *qbitClient {
 	lookup := func(tokenID string) (apitoken.Token, bool) {
-		for _, t := range a.APITokens.List() {
-			if t.ID == tokenID {
-				return t, true
-			}
+		secret, ok := tokenSecrets.Load(tokenID)
+		if !ok {
+			return apitoken.Token{}, false
 		}
-		return apitoken.Token{}, false
+		return anyToken(a, secret.(string))
 	}
 	return &qbitClient{a: a, sessions: newQbitSessions(lookup), fetcher: newQbitFetcher()}
 }
@@ -335,11 +334,13 @@ func (qb *qbitClient) login(w http.ResponseWriter, r *http.Request) {
 		qbitText(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
-	tok, ok := qb.a.APITokens.Check(strings.TrimSpace(r.PostForm.Get("password")))
+	secret := strings.TrimSpace(r.PostForm.Get("password"))
+	tok, ok := anyToken(qb.a, secret)
 	if !ok {
 		qbitText(w, http.StatusOK, "Fails.")
 		return
 	}
+	rememberTokenSecret(tok.ID, secret)
 	http.SetCookie(w, &http.Cookie{
 		Name:     qbitCookie,
 		Value:    qb.sessions.open(tok.ID),
@@ -356,7 +357,7 @@ func (qb *qbitClient) login(w http.ResponseWriter, r *http.Request) {
 // cookie came along.
 func (qb *qbitClient) authorized(r *http.Request) (apitoken.Token, bool) {
 	if secret := bearerToken(r); secret != "" {
-		return qb.a.APITokens.Check(secret)
+		return anyToken(qb.a, secret)
 	}
 	c, err := r.Cookie(qbitCookie)
 	if err != nil {

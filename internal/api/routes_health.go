@@ -61,8 +61,8 @@ func metricsDetail(a *app.App, s settings.Settings, base string) line {
 			code: "metricsOff", args: path,
 		}
 	}
-	if a.Auth != nil && a.Auth.Enabled() {
-		tokens := a.APITokens.List()
+	if closed(a) {
+		tokens := allTokens(a)
 		if len(tokens) == 0 {
 			return line{
 				text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Security page",

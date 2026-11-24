@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 )
 
 // jsonRequest is an in-process request carrying body as JSON, the way every
@@ -165,7 +167,7 @@ func TestACrossSiteWriteIsRefusedEverywhere(t *testing.T) {
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}
-	_, secret, err := a.APITokens.Create("sonarr")
+	_, secret, err := scopedToken(a, "sonarr", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}

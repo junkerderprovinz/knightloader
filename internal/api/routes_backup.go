@@ -52,7 +52,12 @@ func registerBackup(reg *Registry, a *app.App) {
 			if !ok {
 				return
 			}
-			report, err := backup.Check(data, buildinfo.Version, a.AppKey, a.Auth.Enabled())
+			live, err := a.Store.SignInHasPassword()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			report, err := backup.Check(data, buildinfo.Version, a.AppKey, live)
 			if !refuseStage(w, err) {
 				return
 			}

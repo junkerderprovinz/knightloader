@@ -53,7 +53,7 @@ func serveDrive(a *app.App, w http.ResponseWriter, r *http.Request) {
 	var tok apitoken.Token
 	ok := false
 	if secret := tokenSecret(r); secret != "" {
-		tok, ok = a.APITokens.Check(secret)
+		tok, ok = anyToken(a, secret)
 	}
 	if !ok {
 		w.Header().Set("WWW-Authenticate", `Basic realm="KnightLoader debrid drive", charset="UTF-8"`)

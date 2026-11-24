@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/zalando/go-keyring"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
@@ -48,15 +50,21 @@ func TestTheFirstStartMakesAKeyAndLaterStartsReuseIt(t *testing.T) {
 
 func TestNoNewKeyIsMadeOverASealedDataFolder(t *testing.T) {
 	t.Setenv(appkey.EnvVar, "")
-	dir := t.TempDir()
-	old, _ := appkey.Generate()
-	if _, err := auth.OpenWithKey(dir, old); err != nil {
-		t.Fatal(err)
-	}
-	store := &memKeyStore{values: map[string]string{}}
-	k, err := loadAppKey(store, dir)
-	if err != nil || k != nil || len(store.values) > 0 {
-		t.Fatalf("with the stored key gone a new one was made (%v, %v); it could not open %s", k, err, filepath.Join(dir, auth.FileName))
+	for _, name := range []string{auth.FileName, access.KeyFile} {
+		dir := t.TempDir()
+		old, _ := appkey.Generate()
+		sealed, err := old.SealString(name, "{}")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(sealed), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		store := &memKeyStore{values: map[string]string{}}
+		k, err := loadAppKey(store, dir)
+		if err != nil || k != nil || len(store.values) > 0 {
+			t.Fatalf("with the stored key gone a new one was made (%v, %v); it could not open %s", k, err, filepath.Join(dir, name))
+		}
 	}
 }
 

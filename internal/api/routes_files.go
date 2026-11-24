@@ -27,14 +27,13 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/parleyport/kit/signin"
 )
 
 // streamWait is how long one read of a file that is still downloading waits
@@ -121,11 +120,15 @@ func registerFiles(reg *Registry, a *app.App) {
 			by := ""
 			if tok, ok := tokenOf(r); ok {
 				by = tok.ID
+				rememberTokenSecret(tok.ID, bearerToken(r))
 			}
 			if c, ok := memberOf(r); ok {
 				by = memberTicket + c.ID
 			}
-			path := "/api/tasks/" + id + "/file?ticket=" + playTicket(id, file, by, a.Auth.Epoch(), time.Now().Add(playTicketTTL))
+			if v, ok := signin.From(r.Context()); ok && v.Session() != "" {
+				by = sessionTicket + v.Session()
+			}
+			path := "/api/tasks/" + id + "/file?ticket=" + playTicket(id, file, by, signInEpoch(a), time.Now().Add(playTicketTTL))
 			if file != "" {
 				path += "&file=" + file
 			}
@@ -263,6 +266,10 @@ var playKey = sync.OnceValue(func() []byte {
 // before its member id. An API token's id never starts with it.
 const memberTicket = "member-"
 
+// sessionTicket opens the "by" of a play link a signed-in browser asked for,
+// so the link ends with its session.
+const sessionTicket = "session-"
+
 // playTicket is the credential in a play link: when it runs out, who asked for
 // it (an API token, a member of the group, or empty for a session), and a MAC
 // over both, the task, the link's ?file (empty for the task's own file) and
@@ -308,10 +315,14 @@ func playTicketOpens(a *app.App, r *http.Request) bool {
 		if !a.Federation.StillMember(member) {
 			return false
 		}
-	} else if by != "" && !slices.ContainsFunc(a.APITokens.List(), func(t apitoken.Token) bool { return t.ID == by }) {
+	} else if session, ok := strings.CutPrefix(by, sessionTicket); ok {
+		if !a.SignIn.Alive(r.Context(), session) {
+			return false
+		}
+	} else if by != "" && !tokenIDCounts(a, by) {
 		return false
 	}
-	return hmac.Equal([]byte(ticket), []byte(playTicket(id, q.Get("file"), by, a.Auth.Epoch(), time.Unix(until, 0))))
+	return hmac.Equal([]byte(ticket), []byte(playTicket(id, q.Get("file"), by, signInEpoch(a), time.Unix(until, 0))))
 }
 
 // inlineType is the Content-Type this route answers with and whether it goes

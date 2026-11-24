@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
-	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -58,15 +57,6 @@ var routeScopes = map[string]apitoken.Scope{
 	// to the queue.
 	"GET /api/appearance":  apitoken.ScopeRead,
 	"POST /api/appearance": apitoken.ScopeControl,
-
-	"POST /api/auth/2fa/begin":               apitoken.ScopeAdmin,
-	"POST /api/auth/2fa/confirm":             apitoken.ScopeAdmin,
-	"POST /api/auth/2fa/disable":             apitoken.ScopeAdmin,
-	"POST /api/auth/passkey/register/begin":  apitoken.ScopeAdmin,
-	"POST /api/auth/passkey/register/finish": apitoken.ScopeAdmin,
-	"DELETE /api/auth/passkeys/{id}":         apitoken.ScopeAdmin,
-	"PATCH /api/auth/passkeys/{id}":          apitoken.ScopeAdmin,
-	"PUT /api/auth/password":                 apitoken.ScopeAdmin,
 
 	"GET /api/browser-extension.xpi":     apitoken.ScopeRead,
 	"GET /api/browser-extension.zip":     apitoken.ScopeRead,
@@ -347,9 +337,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/tasks/{id}/torrent-files": apitoken.ScopeControl,
 	"GET /api/tasks/watch":               apitoken.ScopeRead,
 
-	"GET /api/tokens":         apitoken.ScopeAdmin,
-	"POST /api/tokens":        apitoken.ScopeAdmin,
-	"DELETE /api/tokens/{id}": apitoken.ScopeAdmin,
+	"GET /api/system/access": apitoken.ScopeAdmin,
 
 	// Parsing a .torrent is the first half of adding one.
 	"POST /api/torrents":                  apitoken.ScopeAdd,
@@ -564,12 +552,6 @@ func shownTasks(r *http.Request, tasks []*core.Task) []*core.Task {
 		out[i] = &c
 	}
 	return out
-}
-
-// permits is requireScope for an open route that looks at its caller itself.
-func permits(a *app.App, r *http.Request, s apitoken.Scope) bool {
-	tok, ok := caller(a, r)
-	return ok && (tok == nil || tok.Has(s))
 }
 
 // refuseScope answers 403 naming the right the token is missing, so whoever

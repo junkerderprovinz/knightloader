@@ -44,7 +44,7 @@ func downloadClientServer(t *testing.T, tune func(*settings.Settings)) (*app.App
 	}
 	a.SetHalted(true)
 
-	_, secret, err := a.APITokens.Create("sonarr")
+	_, secret, err := scopedToken(a, "sonarr", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -568,7 +568,7 @@ func nzoIDOf(t *testing.T, add map[string]any) string {
 func TestDownloadClientWorksWithAnAddAndReadToken(t *testing.T) {
 	t.Parallel()
 	a, srv, _ := downloadClientServer(t, holdSamples)
-	_, key, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	_, key, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -611,7 +611,7 @@ func TestDownloadClientWorksWithAnAddAndReadToken(t *testing.T) {
 func TestDownloadClientKeepsARunningDownloadWithoutControl(t *testing.T) {
 	t.Parallel()
 	a, srv, _ := downloadClientServer(t, nil)
-	_, key, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	_, key, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -665,7 +665,7 @@ func TestEveryBridgeOperationNeedsTheRightItsTableNames(t *testing.T) {
 	}
 	token := func(scopes []apitoken.Scope) string {
 		t.Helper()
-		_, secret, err := a.APITokens.CreateScoped("probe", scopes)
+		_, secret, err := scopedToken(a, "probe", scopes)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -694,11 +694,11 @@ func TestEveryBridgeOperationNeedsTheRightItsTableNames(t *testing.T) {
 func TestDownloadClientRefusesWhatTheTokenMayNotDo(t *testing.T) {
 	t.Parallel()
 	a, srv, full := downloadClientServer(t, nil)
-	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, adder, err := a.APITokens.CreateScoped("script", []apitoken.Scope{apitoken.ScopeAdd})
+	_, adder, err := scopedToken(a, "script", []apitoken.Scope{apitoken.ScopeAdd})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -780,7 +780,7 @@ func TestDownloadClientPollDuringAnAddKeepsTheNewGrab(t *testing.T) {
 func TestDownloadClientNamesAnUnimplementedMode(t *testing.T) {
 	t.Parallel()
 	a, srv, full := downloadClientServer(t, nil)
-	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	_, reader, err := scopedToken(a, "dashboard", []apitoken.Scope{apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}

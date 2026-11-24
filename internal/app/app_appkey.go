@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
@@ -16,14 +17,15 @@ import (
 const keyCopiesSweep = time.Hour
 
 // keepCopiesBeforeSealing copies the files a first start with an app key is
-// about to rewrite sealed. An auth.json still in the clear is what marks that
-// first start; a settings.json in the clear on an install already sealed came
-// from a restored backup, whose secrets the owner holds anyway.
+// about to rewrite sealed. The sign-in's key or an old auth.json still in the
+// clear is what marks that first start; a settings.json in the clear on an
+// install already sealed came from a restored backup, whose secrets the owner
+// holds anyway.
 func keepCopiesBeforeSealing(dataDir string, key *appkey.Key) error {
-	if key == nil || !auth.NeedsSealing(dataDir) {
+	if key == nil || !auth.NeedsSealing(dataDir) && !access.NeedsSealing(dataDir) {
 		return nil
 	}
-	dir, err := appkey.KeepCopies(dataDir, []string{auth.FileName, accounts.KeyringName, settings.FileName}, time.Now())
+	dir, err := appkey.KeepCopies(dataDir, []string{auth.FileName, access.KeyFile, accounts.KeyringName, settings.FileName}, time.Now())
 	if err != nil {
 		return fmt.Errorf("encryption key: %w", err)
 	}

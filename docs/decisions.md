@@ -46,8 +46,7 @@ the chown to run on the host.
 
 The switch is Go, in `main`, rather than a shell script, so that root does
 nothing but the hand-over and the switch: no listener, no file in the data
-directory, no JDownloader. `--reset-2fa` and the bridge run after the switch as
-well. `tini` stays PID 1 as root; it reaps children and forwards signals, and
+directory, no JDownloader. The bridge runs after the switch as well. `tini` stays PID 1 as root; it reaps children and forwards signals, and
 starts nothing but the server.
 
 The two kinds of variable need different things. A umask belongs to the

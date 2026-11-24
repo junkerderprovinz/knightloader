@@ -22,7 +22,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
-	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/bridge"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -50,7 +49,7 @@ func main() {
 	remotePw := flag.String("bridge-password", "", "the remote instance's UI password, when it has one")
 	// Also needs the bridgeclipboard build tag; see internal/bridge/clipboard.go.
 	watchClipboard := flag.Bool("bridge-clipboard", false, "watch the OS clipboard for hoster links while bridging (build with -tags bridgeclipboard)")
-	resetTwoFactor := flag.Bool("reset-2fa", false, "turn the second login factor off and exit; the password is untouched. For an operator who has lost both the phone and the recovery codes")
+	resetTwoFactor := flag.Bool("reset-2fa", false, "gone: the password reset on the sign-in page turns the second factor off with it")
 	version := flag.Bool("version", false, "print the version and commit, then exit")
 	flag.Parse()
 
@@ -90,8 +89,8 @@ func main() {
 	}
 
 	if *resetTwoFactor {
-		runResetTwoFactor(dataDir, key)
-		return
+		log.Fatal("reset-2fa: this is gone. Ask for a reset code on the sign-in page instead: it shows in this log, " +
+			"and the reset that takes it sets a new password and turns the second factor off")
 	}
 
 	// Checked before the JDownloader provisioning below, which can take
@@ -287,31 +286,6 @@ func newServer(h http.Handler) *http.Server {
 	}
 	srv.RegisterOnShutdown(stop)
 	return srv
-}
-
-// runResetTwoFactor turns the second login factor off and exits, leaving the
-// password untouched.
-//
-// There is one password and no second account to unlock anything, so an
-// operator who lost both the authenticator and the recovery codes has no other
-// way back short of deleting auth.json, which also drops the password and the
-// session key. It grants nothing new: whoever can run this binary against the
-// data directory can already delete that file. It opens nothing else, and since
-// a running server also holds auth.json it asks for a restart.
-func runResetTwoFactor(dataDir string, key *appkey.Key) {
-	g, err := auth.OpenWithKey(dataDir, key)
-	if err != nil {
-		log.Fatalf("reset-2fa: %v", err)
-	}
-	if !g.TwoFactorEnabled() {
-		log.Printf("reset-2fa: no second factor is set on %s; nothing to do", dataDir)
-		return
-	}
-	if err := g.ClearTwoFactor(); err != nil {
-		log.Fatalf("reset-2fa: %v", err)
-	}
-	log.Printf("reset-2fa: the second factor is off. The password is unchanged. "+
-		"Restart KnightLoader if it is running, sign in with the password, and set the factor up again from Settings > Security (%s)", dataDir)
 }
 
 // runBridge serves Click'n'Load locally and forwards everything it receives to

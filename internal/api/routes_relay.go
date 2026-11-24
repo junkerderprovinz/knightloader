@@ -350,7 +350,7 @@ func openPhraseGroup(a *app.App, network *lan.Service) (*group.Group, error) {
 	// was taken out of: a reset in between put it in a group of its own,
 	// which nobody else may make it leave.
 	cfg.OnRemoved = func() {
-		err := a.Auth.Mint(func() bool { return subtle.ConstantTimeCompare(groupSecret(a), secret) == 1 },
+		err := whileStill(a, func() bool { return subtle.ConstantTimeCompare(groupSecret(a), secret) == 1 },
 			func() error { return enterGroup(a, nil) })
 		if err != nil {
 			log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)

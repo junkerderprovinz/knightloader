@@ -22,9 +22,6 @@ import (
 // in tests and missing from the running server.
 func registerAll(reg *Registry, a *app.App) {
 	registerSystem(reg, a)
-	registerTwoFactor(reg, a)
-	registerPasskeys(reg, a)
-	registerPasswordReset(reg, a)
 	registerTasks(reg, a)
 	registerExtract(reg, a)
 	registerBulk(reg, a)
@@ -74,7 +71,6 @@ func registerAll(reg *Registry, a *app.App) {
 	registerBackup(reg, a)
 	registerIdleAction(reg, a)
 	registerBrowserTools(reg, a)
-	registerTokens(reg, a)
 	registerRemoteAccess(reg, a)
 	registerScripts(reg, a)
 	registerHelp(reg, a)
@@ -142,11 +138,6 @@ type Registry struct {
 	// ServeMux panicking at startup in production.
 	seen map[string]bool
 
-	// passwordGate throttles every route that checks the login password, so
-	// a route that asks for it again cannot serve as an unthrottled way to
-	// guess it.
-	passwordGate *loginGate
-
 	proxySeen *proxySeen
 
 	openOnce   sync.Once
@@ -160,9 +151,8 @@ type Registry struct {
 
 func newRegistry() *Registry {
 	return &Registry{
-		seen:         map[string]bool{},
-		passwordGate: newLoginGate(nil),
-		proxySeen:    newProxySeen(),
+		seen:      map[string]bool{},
+		proxySeen: newProxySeen(),
 	}
 }
 

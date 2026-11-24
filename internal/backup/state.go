@@ -2,6 +2,7 @@ package backup
 
 import (
 	"archive/zip"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,12 +10,14 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
 
 // StateFiles are the files in the data directory besides the database and
-// settings.json that make up an instance: its login, its accounts with the
+// settings.json that make up an instance: the key its sign-in is sealed
+// under, the login of the versions before the kit's sign-in, its accounts with the
 // credential key they are sealed under (hoster and debrid logins, header
 // profiles, captcha keys, VPN logins, media server and media hook tokens),
 // its API and assistant tokens, its scripts, its pairing and the few records
@@ -22,6 +25,7 @@ import (
 // backups themselves are not among them.
 var StateFiles = []string{
 	auth.FileName,
+	access.KeyFile,
 	accounts.KeyringName,
 	"accounts.json",
 	"account_meta.json",
@@ -68,6 +72,11 @@ func readStateFiles(zr *zip.Reader, names []string, budget *int64) (map[string][
 			return nil, fmt.Errorf("the backup's %s is damaged", name)
 		}
 		files[name] = b
+	}
+	if k, ok := files[access.KeyFile]; ok {
+		if raw, err := hex.DecodeString(strings.TrimSpace(string(k))); err != nil || len(raw) < 32 {
+			return nil, fmt.Errorf("the backup's %s is damaged", access.KeyFile)
+		}
 	}
 	if state, ok := files[auth.FileName]; ok {
 		if _, _, err := auth.PasswordIn(state); err != nil {

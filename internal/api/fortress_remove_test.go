@@ -126,10 +126,8 @@ func TestAnAPITokenCannotRemoveAMember(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	if err := a.Auth.SetPassword("", "correct horse battery"); err != nil {
-		t.Fatal(err)
-	}
-	_, secret, err := a.APITokens.CreateScoped("script", apitoken.AllScopes())
+	setPassword(t, a, "correct horse battery")
+	_, secret, err := scopedToken(a, "script", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}

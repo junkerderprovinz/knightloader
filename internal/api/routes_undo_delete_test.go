@@ -92,9 +92,7 @@ func TestErasingTheFilesOffersNoUndo(t *testing.T) {
 	// Erasing files needs a password set. The bare mux has no session guard,
 	// so the call needs no sign-in.
 	a := testApp(t)
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "a-good-password")
 	reg := newRegistry()
 	registerBulk(reg, a)
 	mux := http.NewServeMux()

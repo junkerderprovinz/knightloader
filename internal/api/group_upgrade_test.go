@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/parleyport/kit/group"
@@ -62,10 +63,8 @@ func upgradedServer(t *testing.T) (*httptest.Server, *app.App, string, map[strin
 	}
 	t.Cleanup(func() { a.Close() })
 	relayOff(t, a)
-	if err := a.Auth.SetPassword("", pairingPassword); err != nil {
-		t.Fatal(err)
-	}
-	_, token, err := a.APITokens.Create("upgrade test")
+	setPassword(t, a, pairingPassword)
+	_, token, err := scopedToken(a, "upgrade test", apitoken.AllScopes())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
@@ -31,14 +32,8 @@ func pairingServer(t *testing.T) (*httptest.Server, *app.App, string) {
 	srv, a := testServer(t)
 	t.Cleanup(srv.Close)
 	relayOff(t, a)
-	if err := a.Auth.SetPassword("", pairingPassword); err != nil {
-		t.Fatal(err)
-	}
-	_, token, err := a.APITokens.Create("pairing test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return srv, a, token
+	// A session from moments ago, since pairing makes a lasting way in.
+	return srv, a, setPassword(t, a, pairingPassword)
 }
 
 // relayOff switches a's relay off. An instance in a group dials the project
@@ -54,7 +49,8 @@ func relayOff(t *testing.T, a *app.App) {
 }
 
 // call sends a JSON body, signed in with token unless it is empty, and
-// returns the status and the raw response.
+// returns the status and the raw response. A token that is a session cookie
+// goes as the browser's.
 func call(t *testing.T, token, method, url string, body any) (int, []byte) {
 	t.Helper()
 	var r io.Reader
@@ -70,7 +66,11 @@ func call(t *testing.T, token, method, url string, body any) (int, []byte) {
 		t.Fatal(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if token != "" {
+	switch {
+	case strings.HasPrefix(token, kitSession+"="):
+		req.Header.Set("Cookie", token)
+		req.Header.Set("Sec-Fetch-Site", "same-origin")
+	case token != "":
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
 	resp, err := http.DefaultClient.Do(req)
@@ -372,40 +372,33 @@ func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 	}
 }
 
-// TestRevealNeedsThePasswordEvenWithASession checks that being signed in is
-// not enough to show the phrase again, since the phrase reaches every
-// instance in the group.
-func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
+// TestRevealWantsASignInFromMomentsAgo: a session may be open on a screen
+// nobody watches, and the phrase reaches every instance in the group, so it
+// shows only after a sign-in moments ago or for the password typed again.
+func TestRevealWantsASignInFromMomentsAgo(t *testing.T) {
 	t.Parallel()
-	srv, _, token := pairingServer(t)
-	minted := activate(t, token, srv.URL)
+	srv, a, session := pairingServer(t)
+	minted := activate(t, session, srv.URL)
 
-	for _, c := range []struct {
-		name string
-		body any
-		want int
-	}{
-		{"no password", nil, http.StatusForbidden},
-		{"wrong password", map[string]string{"password": "not-it"}, http.StatusForbidden},
-		{"right password", map[string]string{"password": pairingPassword}, http.StatusOK},
-	} {
-		t.Run(c.name, func(t *testing.T) {
-			code, out := call(t, token, http.MethodPost, srv.URL+"/api/connect/reveal", c.body)
-			if code != c.want {
-				t.Fatalf("reveal answered %d, want %d: %s", code, c.want, out)
-			}
-			var answer struct {
-				Code   string
-				Phrase string
-			}
-			_ = json.Unmarshal(out, &answer)
-			if c.want == http.StatusForbidden && answer.Code != "passwordWrong" {
-				t.Errorf("the refusal carries the code %q, want passwordWrong", answer.Code)
-			}
-			if c.want == http.StatusOK && answer.Phrase != minted {
-				t.Errorf("reveal returned a different phrase:\nminted: %q\nshown:  %q", minted, answer.Phrase)
-			}
-		})
+	code, out := call(t, session, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
+	var answer struct{ Phrase string }
+	_ = json.Unmarshal(out, &answer)
+	if code != http.StatusOK || answer.Phrase != minted {
+		t.Fatalf("reveal right after signing in = %d, %q, want the minted phrase %q", code, answer.Phrase, minted)
+	}
+	_, token, err := scopedToken(a, "script", apitoken.AllScopes())
+	if err != nil {
+		t.Fatal(err)
+	}
+	code, out = call(t, token, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
+	if code != http.StatusForbidden || !strings.Contains(string(out), "signInAgain") {
+		t.Errorf("reveal with a token = %d %s, want 403 signInAgain", code, out)
+	}
+	if code, out := call(t, token, http.MethodPost, srv.URL+"/api/connect/reveal", map[string]string{"password": "not-it"}); code != http.StatusForbidden {
+		t.Errorf("reveal with a token and a wrong password = %d %s, want 403", code, out)
+	}
+	if code, _ := call(t, token, http.MethodPost, srv.URL+"/api/connect/reveal", map[string]string{"password": pairingPassword}); code != http.StatusOK {
+		t.Errorf("reveal with the password typed again = %d, want 200", code)
 	}
 }
 

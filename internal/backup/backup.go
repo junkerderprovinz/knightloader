@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
@@ -197,9 +198,11 @@ func Check(zipBytes []byte, runningVersion string, key *appkey.Key, livePassword
 	if err != nil {
 		return Report{}, err
 	}
-	login, err := loginOutcome(u.files[auth.FileName], u.manifest.KeyID, key, livePassword)
-	if err != nil {
-		return Report{}, err
+	login := LoginRestored
+	if !u.signIn {
+		if login, err = loginOutcome(u.files[auth.FileName], u.manifest.KeyID, key, livePassword); err != nil {
+			return Report{}, err
+		}
 	}
 	group, ok := u.files["group.json"]
 	return Report{Manifest: u.manifest, Paired: ok && federation.GroupJoined(group), Login: login}, nil
@@ -230,6 +233,8 @@ type upload struct {
 	manifest     Manifest
 	settings, db []byte
 	files        map[string][]byte
+	// signIn is whether the database brings the kit's sign-in with a password.
+	signIn bool
 }
 
 func validate(zipBytes []byte, runningVersion string) (upload, error) {
@@ -259,7 +264,7 @@ func validate(zipBytes []byte, runningVersion string) (upload, error) {
 		return upload{}, fmt.Errorf("the backup's settings.json does not match this build's settings shape: %w", err)
 	}
 
-	dbRaw, err := cleanDatabase(zr, budget)
+	dbRaw, signIn, err := cleanDatabase(zr, budget)
 	if err != nil {
 		return upload{}, err
 	}
@@ -277,7 +282,7 @@ func validate(zipBytes []byte, runningVersion string) (upload, error) {
 		return upload{}, err
 	}
 
-	return upload{manifest: manifest, settings: settingsRaw, db: dbRaw, files: files}, nil
+	return upload{manifest: manifest, settings: settingsRaw, db: dbRaw, files: files, signIn: signIn}, nil
 }
 
 // readEntry reads one zip entry of at most limit bytes and takes it off
@@ -303,39 +308,43 @@ func readEntry(zr *zip.Reader, name string, limit int64, budget *int64) ([]byte,
 // cleanDatabase writes the upload's database to a file of its own, at most
 // limit bytes, checks that it passes SQLite's integrity check and has a tasks
 // table, and returns it stripped (see stripDatabase).
-func cleanDatabase(zr *zip.Reader, limit int64) ([]byte, error) {
+func cleanDatabase(zr *zip.Reader, limit int64) (b []byte, signIn bool, err error) {
 	f, err := zr.Open(dbEntry)
 	if err != nil {
-		return nil, fmt.Errorf("the backup is missing %s; it is not one this build can restore from", dbEntry)
+		return nil, false, fmt.Errorf("the backup is missing %s; it is not one this build can restore from", dbEntry)
 	}
 	defer f.Close()
 	dir, err := os.MkdirTemp("", "kl-restore-validate-")
 	if err != nil {
-		return nil, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
+		return nil, false, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
 	}
 	defer os.RemoveAll(dir)
 	path := filepath.Join(dir, dbEntry)
 	out, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
-		return nil, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
+		return nil, false, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
 	}
 	n, err := io.Copy(out, io.LimitReader(f, limit+1))
 	if cerr := out.Close(); err == nil {
 		err = cerr
 	}
 	if err != nil {
-		return nil, fmt.Errorf("could not read %s from the backup: %w", dbEntry, err)
+		return nil, false, fmt.Errorf("could not read %s from the backup: %w", dbEntry, err)
 	}
 	if n > limit {
-		return nil, fmt.Errorf("the backup's %s is larger than this build takes", dbEntry)
+		return nil, false, fmt.Errorf("the backup's %s is larger than this build takes", dbEntry)
 	}
 	if err := checkDatabase(path); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if err := stripDatabase(path); err != nil {
-		return nil, fmt.Errorf("the backup's database could not be cleaned: %w", err)
+		return nil, false, fmt.Errorf("the backup's database could not be cleaned: %w", err)
 	}
-	return os.ReadFile(path)
+	if signIn, err = store.SignInPasswordIn(path); err != nil {
+		return nil, false, fmt.Errorf("the backup's sign-in could not be read: %w", err)
+	}
+	b, err = os.ReadFile(path)
+	return b, signIn, err
 }
 
 func checkDatabase(path string) error {
@@ -683,33 +692,23 @@ func prepare(staged *zip.Reader, ready, dataDir string, key *appkey.Key, manifes
 		return nil, nil, err
 	}
 
-	state, err := os.ReadFile(filepath.Join(ready, auth.FileName))
-	if errors.Is(err, fs.ErrNotExist) {
-		state, err = nil, nil
-	}
+	login, err := takeSignIn(ready, dataDir, key, manifest.KeyID)
 	if err != nil {
 		return nil, nil, err
 	}
-	livePassword, err := auth.HasPassword(dataDir, key)
-	if err != nil {
-		return nil, nil, err
-	}
-	login, err := loginOutcome(state, manifest.KeyID, key, livePassword)
-	if err != nil {
-		return nil, nil, err
-	}
-	if login == LoginRestored {
-		if _, err := auth.OpenWithKey(ready, key); err != nil {
-			return nil, nil, err
+	// A sign-in the restore does not take keeps the live one, with the key
+	// it is sealed under and the old auth.json it may still import.
+	keep := func(n string) bool {
+		switch login {
+		case signInFromBackup:
+			return false
+		case signInFromOld:
+			return n == access.KeyFile
 		}
-	} else {
-		if state != nil && login == LoginKept {
-			log.Print("restore: the backup brings no login password this instance can check, so it keeps its own")
-		}
-		notLogin := func(n string) bool { return n == auth.FileName }
-		install = slices.DeleteFunc(install, notLogin)
-		remove = slices.DeleteFunc(remove, notLogin)
+		return n == access.KeyFile || n == auth.FileName
 	}
+	install = slices.DeleteFunc(install, keep)
+	remove = slices.DeleteFunc(remove, keep)
 
 	if _, err := os.Stat(filepath.Join(ready, accounts.KeyringName)); err == nil {
 		if _, err := accounts.OpenWithKey(ready, key); err != nil {
@@ -717,6 +716,65 @@ func prepare(staged *zip.Reader, ready, dataDir string, key *appkey.Key, manifes
 		}
 	}
 	return install, remove, nil
+}
+
+// Where a restore takes the sign-in from.
+const (
+	signInLive = iota
+	signInFromBackup
+	signInFromOld
+)
+
+// takeSignIn decides where the restored instance's sign-in comes from and
+// readies the database in ready for it. A backup's sign-in replaces the live
+// one only when it has a password, the kit's or an old auth.json's this
+// instance can check, since no password would leave the instance open to
+// whoever reaches it. A sign-in from the backup comes without its passkeys,
+// as a restore always did.
+func takeSignIn(ready, dataDir string, key *appkey.Key, keyID string) (int, error) {
+	s, err := store.Open(filepath.Join(ready, dbEntry))
+	if err != nil {
+		return 0, err
+	}
+	defer s.Close()
+	kit, err := s.SignInHasPassword()
+	if err != nil {
+		return 0, err
+	}
+	if kit {
+		return signInFromBackup, s.DropSignInPasskeys()
+	}
+	state, err := os.ReadFile(filepath.Join(ready, auth.FileName))
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return 0, err
+	}
+	live, err := livePassword(dataDir, key)
+	if err != nil {
+		return 0, err
+	}
+	login, err := loginOutcome(state, keyID, key, live)
+	if err != nil {
+		return 0, err
+	}
+	if login == LoginRestored {
+		if err := auth.SealIn(ready, key); err != nil {
+			return 0, err
+		}
+		return signInFromOld, s.DropSignIn()
+	}
+	if state != nil && login == LoginKept {
+		log.Print("restore: the backup brings no login password this instance can check, so it keeps its own")
+	}
+	return signInLive, s.ReplaceSignInFrom(filepath.Join(dataDir, dbEntry))
+}
+
+// livePassword reports whether the instance a restore replaces has a
+// password, in the kit's sign-in or in an auth.json it has not imported yet.
+func livePassword(dataDir string, key *appkey.Key) (bool, error) {
+	if ok, err := store.SignInPasswordIn(filepath.Join(dataDir, dbEntry)); err != nil || ok {
+		return ok, err
+	}
+	return auth.HasPassword(dataDir, key)
 }
 
 func prepareDatabase(ready, live string, key *appkey.Key) error {

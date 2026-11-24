@@ -92,26 +92,7 @@ func TestEveryRouteDescribesItself(t *testing.T) {
 func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 	t.Parallel()
 	want := map[string]string{
-		"GET /api/health":       "a container orchestrator has to be able to probe a locked instance",
-		"GET /api/auth":         "the login screen asks this before anybody can log in",
-		"POST /api/auth/login":  "this is the way in",
-		"POST /api/auth/logout": "logging out of a session the server no longer honours must still work",
-		"GET /api/auth/passkeys": "the sign-in screen has to know whether to offer the passkey button, and " +
-			"whether this address can carry one at all, before anybody is signed in. It answers with counts " +
-			"and a verdict; the registered keys themselves are listed only to a caller that already has a " +
-			"session, so an open route is not an open list",
-		"POST /api/auth/passkey/login/begin": "one half of signing in with a passkey, which by definition " +
-			"happens without a session. It refuses outright unless a password is set and a credential is " +
-			"registered for this exact address, and it has a throttle of its own",
-		"POST /api/auth/passkey/login/finish": "the other half, and the one that issues the cookie. The " +
-			"credential is the signature the authenticator made over this instance's own challenge, which " +
-			"is a stronger thing to hold than the password would have been",
-		"POST /api/auth/reset": "the way back in for somebody who lost the password, who by definition " +
-			"has no session. It only has a code written where reading takes access to the machine, at " +
-			"most once a minute, and its answer is the same whether it wrote one or not",
-		"POST /api/auth/reset/finish": "the other half, and the one that issues the cookie. It does " +
-			"nothing without the code, which was never sent over HTTP, holds sixty bits and lasts ten " +
-			"minutes, and is refused the same way whether it was wrong, spent or never asked for",
+		"GET /api/health": "a container orchestrator has to be able to probe a locked instance",
 		"GET /api/containers/relay/{token}": "the fetch comes from the JD backend on another host, " +
 			"with no session; the unguessable single-use token in the path is the credential",
 		"GET /api/sabnzbd/api": "Sonarr and Radarr send their credential as ?apikey=, which the session " +

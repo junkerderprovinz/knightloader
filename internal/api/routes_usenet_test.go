@@ -521,7 +521,7 @@ func TestAnAddAndReadTokenOnlyForgetsAnNZBThatFailed(t *testing.T) {
 	t.Parallel()
 	fake := &torboxUsenet{}
 	a, srv, _ := usenetClientServer(t, fake)
-	_, key, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	_, key, err := scopedToken(a, "sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
 	if err != nil {
 		t.Fatal(err)
 	}

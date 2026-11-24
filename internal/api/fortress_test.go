@@ -219,9 +219,7 @@ func TestThePhraseShowsAgainOnlyForThePassword(t *testing.T) {
 		t.Fatalf("without a password the phrase showed as %d %s", code, raw)
 	}
 
-	if err := a.Auth.SetPassword("", "correct horse battery"); err != nil {
-		t.Fatal(err)
-	}
+	setPassword(t, a, "correct horse battery")
 	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/phrase/show", map[string]string{"password": "wrong"}); code != http.StatusUnauthorized && code != http.StatusForbidden {
 		t.Errorf("a wrong password showed the phrase with %d", code)
 	}
