@@ -50,7 +50,9 @@ func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, 
 
 func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target string, key ed25519.PrivateKey, call relay.ProxyCall) (int, []byte, error) {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// An answer of several MiB, sealed and checked under the race detector on
+	// a busy runner, takes longer than a short call.
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 	conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(relayURL, "http")+"/relay/connect", nil)
 	if err != nil {
