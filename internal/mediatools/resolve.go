@@ -108,6 +108,23 @@ func ResolveYtdlp(dataDir string) (path string, source Source, detail string) {
 	return path, source, detail
 }
 
+// FetchedCopyFails reports whether a fetched yt-dlp is recorded and on disk
+// and still does not start, as the python zipapp does where there is no
+// python3. A copy somebody removed is not counted.
+func FetchedCopyFails(dataDir string) bool {
+	if dataDir == "" {
+		return false
+	}
+	if rec, err := LoadRecord(dataDir); err != nil || rec == nil {
+		return false
+	}
+	managed := BinaryPath(dataDir)
+	if _, err := os.Stat(managed); err != nil {
+		return false
+	}
+	return runsAtAll(managed) != nil
+}
+
 // resolveSystemYtdlp answers ResolveYtdlp's question with the managed copy
 // taken out of the running. It is what Status.Shadowed reports and what runs
 // when the fetched copy is gone or does not start.

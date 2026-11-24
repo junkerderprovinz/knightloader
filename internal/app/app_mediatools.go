@@ -136,7 +136,9 @@ func (a *App) autoUpdateYtdlp() {
 // from git, is left alone unless somebody pressed Update now. So is a machine
 // with no yt-dlp at all unless InstallMissingTools is set or somebody pressed
 // it: in the container a missing yt-dlp is a broken image or an operator's
-// choice, not something to paper over.
+// choice, not something to paper over. A fetched copy that does not start is
+// fetched again whatever the versions say, since nothing newer may come out
+// for weeks and the resolver passes over it until then.
 func (a *App) updateYtdlpComponent(ctx context.Context, pressed bool) ComponentResult {
 	if err := mediatools.CanInstall(a.DataDir); err != nil {
 		log.Printf("yt-dlp: the update is skipped, there is nowhere to put a fetched copy: %v", err)
@@ -146,6 +148,14 @@ func (a *App) updateYtdlpComponent(ctx context.Context, pressed bool) ComponentR
 	defer a.ytdlpMu.Unlock()
 
 	current := a.MediaTools().Ytdlp
+	if mediatools.FetchedCopyFails(a.DataDir) {
+		log.Printf("yt-dlp: the fetched copy at %s does not start, so the update fetches the newest release in its place", mediatools.BinaryPath(a.DataDir))
+		otherwise := "media links stay with the other backends until the next try"
+		if current.Found {
+			otherwise = current.Version + " stays in use"
+		}
+		return a.fetchYtdlpLocked(ctx, otherwise)
+	}
 	if !current.Found {
 		if !a.InstallMissingTools && !pressed {
 			log.Print("yt-dlp: none is installed, so the update has nothing to keep current")

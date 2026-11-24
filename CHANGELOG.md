@@ -46,6 +46,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   data, left the folder to root and stopped with "unable to open database
   file". It now takes such a folder over like an empty one, and lost+found
   stays with root.
+- **A fetched yt-dlp that no longer starts gets replaced.** A yt-dlp that
+  KnightLoader fetched before 2.9.5 needs Python, which the image no longer
+  carries, so KnightLoader fell back to the yt-dlp in the image. The daily
+  update now fetches a build that runs in its place, even when no newer
+  yt-dlp is out.
 
 ## [2.9.6] - 2026-11-24
 
