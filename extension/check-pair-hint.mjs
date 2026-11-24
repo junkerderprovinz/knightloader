@@ -98,6 +98,7 @@ async function openPopup({ phrase, siblings = [] }) {
     setHues() {}, setHue() {}, listenForPageHue() {}, applyDisco() {}, loadLanguage: async () => {}, wireTooltips() {},
     cnlState: async () => ({ wanted: false, on: false }),
     readPhrase: async () => phrase,
+    inGroup: async () => phrase !== '',
     groupInstances: async () => { groupAsked++; return siblings; },
     groupStatus: async () => siblings,
     readDefaultTarget: async () => '', defaultOf: (s) => s[0]?.instanceId ?? '',
@@ -153,6 +154,7 @@ async function openPopup({ phrase, siblings = [] }) {
       pairNoticeEl: el('pairNotice'), pairNoticeOpenEl: el('pairNoticeOpen'), phraseInput: el('phrase'),
       leaveBtn: el('leave'), refreshBtn: el('refreshGroup'), joinBtn: el('join'), list: el('list'), ownKeyEl: el('ownKey'), status: el('status'),
       t: (key) => key, glimGlyph: () => new El(), say() {}, recheckGroup() {}, showOwnKey: async () => {}, instancesGlyph: () => new El(),
+      phraseMovedEl: el('phraseMoved'), followedIntoFortress: async () => false,
       readPhrase: async () => phrase, readDefaultTarget: async () => '', groupView: async () => ({ instances: [], apps: [], away: [] }),
     });
     vm.runInContext(`let groupTurn = 0, recheckTimer = 0, recheckDue = false, refusalNotice = '';\n${renderGroup}\n${onOpen}`, ctx, { filename: 'options.js' });
