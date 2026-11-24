@@ -742,6 +742,10 @@ func takeSignIn(ready, dataDir string, key *appkey.Key, keyID string) (int, erro
 		return 0, err
 	}
 	if kit {
+		// The key came in the clear and is sealed under this instance's.
+		if _, err := access.ReadKey(ready, key); err != nil {
+			return 0, err
+		}
 		return signInFromBackup, s.DropSignInPasskeys()
 	}
 	state, err := os.ReadFile(filepath.Join(ready, auth.FileName))

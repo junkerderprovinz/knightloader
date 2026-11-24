@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/access"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
 
@@ -50,7 +51,7 @@ func TestAddingAnAppKeyKeepsCopiesOnceAndSealsInPlace(t *testing.T) {
 	if kept, _ := os.ReadFile(filepath.Join(copies[0], "settings.json")); string(kept) != string(before) {
 		t.Error("the copy of settings.json is not the file as it was")
 	}
-	for _, name := range []string{"auth.json", ".keyring"} {
+	for _, name := range []string{access.KeyFile, ".keyring"} {
 		if _, err := os.Stat(filepath.Join(copies[0], name)); err != nil {
 			t.Errorf("no copy of %s: %v", name, err)
 		}
