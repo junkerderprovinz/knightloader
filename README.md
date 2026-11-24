@@ -41,7 +41,7 @@ Hosters, debrid services, torrents, Usenet, videos and streams: one download man
 >
 > 1. Open the [tester group](https://groups.google.com/g/arrowloop-testers), sign in with the Google account your phone uses and click **Join group**.
 > 2. Open the [test page](https://play.google.com/apps/testing/knightloader.halleluja.design) and tap **Become a tester**.
-> 3. Install KnightLoader from Google Play and keep it for 14 days. Using it for real helps most, and anything that goes wrong is welcome as an [issue](https://github.com/junkerderprovinz/knightloader/issues).
+> 3. Install KnightLoader from Google Play and use it for 14 days, for example by pairing it with your KnightLoader instance and adding a download. Tell me what goes wrong or what you would change, as an [issue](https://github.com/junkerderprovinz/knightloader/issues) or in the group.
 
 <!-- docs-button: written by scripts/gen_download_buttons.py -->
 <p align="center">
