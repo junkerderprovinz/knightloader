@@ -51,6 +51,28 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.9.6',
+    changes: [
+      { id: 'signin-service', text: 'whatsnew.change.signInService', names: { page: 'settings.nav.access' } },
+      { id: 'account-ends', text: 'whatsnew.change.accountEnds' },
+      { id: 'phrase-rotates', text: 'whatsnew.change.phraseRotates' },
+      { id: 'sessions-card', text: 'whatsnew.change.sessionsCard' },
+      { id: 'password-check', text: 'whatsnew.change.passwordCheck' },
+      { id: 'fortress-join', text: 'whatsnew.change.fortressJoin', names: { page: 'settings.nav.pairing' } },
+      { id: 'left-behind', text: 'whatsnew.change.leftBehind', names: { page: 'settings.nav.pairing' } },
+      { id: 'own-logo', text: 'whatsnew.change.ownLogo' },
+      { id: 'open-apps', text: 'whatsnew.change.openApps' },
+      { id: 'app-permissions', text: 'whatsnew.change.appPermissions' },
+      { id: 'fortress-phrase', text: 'whatsnew.change.fortressPhrase' },
+      { id: 'missed-phrase', text: 'whatsnew.change.missedPhrase', names: { page: 'settings.nav.pairing' } },
+      { id: 'remove-app', text: 'whatsnew.change.removeApp' },
+      { id: 'arrowloop-job', text: 'whatsnew.change.arrowLoopJob' },
+      { id: 'backup-app', text: 'whatsnew.change.backupApp' },
+      { id: 'dashboards', text: 'whatsnew.change.dashboards' },
+      { id: 'more-event-targets', text: 'whatsnew.change.moreEventTargets' },
+    ],
+  },
+  {
     version: '2.9.5',
     changes: [{ id: 'version-card', text: 'whatsnew.change.versionCard', names: { name: 'versionCard.title' } }],
   },
