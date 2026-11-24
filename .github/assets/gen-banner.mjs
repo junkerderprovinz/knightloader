@@ -12,7 +12,7 @@
  * near-black alike, unlike the ring logos of the other repos.
  *
  * Text becomes SVG paths through opentype.js, so the SVG needs no font and
- * renders the same in resvg and a browser. Bree Serif Light for the name and
+ * renders the same in resvg and a browser. Bree Serif Regular for the name and
  * Bree Light for the claim. Both are licensed and never committed, so
  * HOUSE_FONTS (default %LOCALAPPDATA%\halleluja-fonts) must hold them as TTF.
  *
@@ -57,7 +57,7 @@ function readViewBox(logoFile) {
 }
 
 const fonts = process.env.HOUSE_FONTS ?? join(process.env.LOCALAPPDATA ?? tmpdir(), "halleluja-fonts");
-const font = opentype.parse(readFileSync(join(fonts, "bree-serif-light.ttf")).buffer);
+const font = opentype.parse(readFileSync(join(fonts, "bree-serif-regular.ttf")).buffer);
 const claimFont = opentype.parse(readFileSync(join(fonts, "bree-light.ttf")).buffer);
 
 // Text layout (logo + name + claim, group centred horizontally).

@@ -14,7 +14,7 @@
 // Every page is rendered at twice the size and scaled down in a second page,
 // which keeps the text sharp through the phone's tilt.
 //
-// Captions are set in Bree Serif Light and Bree, read as TTF from HOUSE_FONTS
+// Captions are set in Bree Serif Regular and Bree, read as TTF from HOUSE_FONTS
 // (default %LOCALAPPDATA%\halleluja-fonts). The service tiles keep Lato.
 //
 // Deps (global): playwright-core with its Chromium installed, qrcode-generator.
@@ -148,7 +148,7 @@ const lato = dataUrl(await cached('Lato-Regular.ttf', 'https://github.com/google
 const logo = dataUrl(readFileSync(join(root, 'docs', 'assets', 'logo.svg')), 'image/svg+xml');
 
 const STYLE = `
-@font-face { font-family: "Bree Serif"; font-weight: 300; src: url(${font('bree-serif-light.ttf')}); }
+@font-face { font-family: "Bree Serif"; font-weight: 400; src: url(${font('bree-serif-regular.ttf')}); }
 @font-face { font-family: Bree; font-weight: 300; src: url(${font('bree-light.ttf')}); }
 @font-face { font-family: Lato; src: url(${lato}); }
 * { box-sizing: border-box; margin: 0; }
@@ -159,7 +159,7 @@ body { position: relative; overflow: hidden; font-family: Lato, sans-serif; back
 .mark { transform: rotate(-10deg); opacity: .32;
   filter: grayscale(1) brightness(.36) contrast(1.2) drop-shadow(-2px -2px 0 rgba(255,255,255,.16)) drop-shadow(12px 18px 26px rgba(0,0,0,.85)); }
 .vignette { inset: 0; box-shadow: inset 0 0 200px rgba(0,0,0,.6); }
-h1 { font-family: "Bree Serif", serif; font-weight: 300; color: #f4f4f4; text-wrap: balance; }
+h1 { font-family: "Bree Serif", serif; font-weight: 400; color: #f4f4f4; text-wrap: balance; }
 h1 em { font-style: normal; color: #FCC419; }
 .sub { font-family: Bree, sans-serif; font-weight: 300; color: #9d9481; }
 
@@ -248,7 +248,7 @@ function featureGraphic(back, front, tagline) {
 body { width: 1024px; height: 500px; }
 .copy { position: absolute; left: 70px; top: 0; bottom: 0; width: 470px; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
 .copy img { width: 84px; }
-.name { font: 300 62px/1 "Bree Serif", serif; color: #f4f4f4; }
+.name { font: 400 62px/1 "Bree Serif", serif; color: #f4f4f4; }
 .sub { font-size: 25px; line-height: 1.35; }
 </style></head><body>
 ${backdrop('46%', '-9%', '-4%')}
@@ -364,7 +364,7 @@ ${phone(middle, { x: 1040, y: 150, sw: 380, lift })}
 async function render(browser, html, width, height, file) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.setContent(html);
-  await page.evaluate(() => Promise.all(['300 1em "Bree Serif"', '300 1em Bree', '700 1em Lato'].map((f) => document.fonts.load(f))));
+  await page.evaluate(() => Promise.all(['400 1em "Bree Serif"', '300 1em Bree', '700 1em Lato'].map((f) => document.fonts.load(f))));
   // A name too long for its tile shrinks until it fits.
   await page.evaluate(() => {
     for (const el of document.querySelectorAll('[data-fit]')) {
