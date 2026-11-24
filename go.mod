@@ -13,7 +13,7 @@ require (
 	github.com/dop251/goja v0.0.0-20261122185237-35fdc4b88e39
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/jlaffaye/ftp v0.2.4
-	github.com/junkerderprovinz/parleyport v1.3.6-0.20261124095323-acb0ac9aba17
+	github.com/junkerderprovinz/parleyport v1.3.6
 	github.com/klauspost/compress v1.20.5
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/nwaples/rardecode/v2 v2.4.6
