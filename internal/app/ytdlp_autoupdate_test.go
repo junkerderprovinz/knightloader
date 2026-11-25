@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -90,6 +91,59 @@ func TestTheDailyUpdateDownloadsNothingWhenYtdlpIsCurrent(t *testing.T) {
 	}
 	if f.installs.Load() != 0 {
 		t.Fatal("the newest release was downloaded although it is the one in use")
+	}
+}
+
+// recordFetchedCopy leaves a fetched yt-dlp and its record in the data
+// directory, as an earlier install did. With script nil only the record is
+// written.
+func recordFetchedCopy(t *testing.T, a *App, script []byte) {
+	t.Helper()
+	if err := os.MkdirAll(mediatools.ToolsDir(a.DataDir), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if script != nil {
+		if err := os.WriteFile(mediatools.BinaryPath(a.DataDir), script, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rec, err := json.Marshal(mediatools.ManagedRecord{Tag: "2026.01.01", Version: "2026.01.01", Asset: "yt-dlp"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(mediatools.ToolsDir(a.DataDir), "ytdlp.json"), rec, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a.mediaToolsProber().Invalidate()
+}
+
+// needsAMissingInterpreter starts like the python zipapp on a system without
+// python3, which env answers with exit 127.
+var needsAMissingInterpreter = []byte("#!/usr/bin/env kl-no-such-interpreter\n")
+
+func TestTheDailyUpdateReplacesAFetchedCopyThatDoesNotStart(t *testing.T) {
+	a := autoUpdateApp(t, true)
+	recordFetchedCopy(t, a, needsAMissingInterpreter)
+	f := &fakeYtdlpRelease{tag: "2026.01.01", install: installsFine}
+	f.wire(a)
+
+	a.autoUpdateYtdlp()
+
+	if f.installs.Load() != 1 {
+		t.Fatalf("a fetched copy that does not start was fetched again %d times, want once although the release is the one in use", f.installs.Load())
+	}
+}
+
+func TestTheDailyUpdateLeavesARemovedFetchedCopyRemoved(t *testing.T) {
+	a := autoUpdateApp(t, true)
+	recordFetchedCopy(t, a, nil)
+	f := &fakeYtdlpRelease{tag: "2026.01.01", install: installsFine}
+	f.wire(a)
+
+	a.autoUpdateYtdlp()
+
+	if f.installs.Load() != 0 {
+		t.Fatal("a fetched copy somebody removed was fetched again although nothing newer is out")
 	}
 }
 

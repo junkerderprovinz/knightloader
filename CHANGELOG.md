@@ -36,6 +36,22 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **KnightLoader starts on a fresh Proxmox mount point.** A new ext4 volume,
+  such as the one Proxmox VE creates for a container's mount point, always
+  holds an empty lost+found folder. KnightLoader took that for somebody's
+  data, left the folder to root and stopped with "unable to open database
+  file". It now takes such a folder over like an empty one, also in an
+  unprivileged container, and lost+found stays with root.
+- **A fetched yt-dlp that no longer starts gets replaced.** A yt-dlp that
+  KnightLoader fetched before 2.9.5 needs Python, which the image no longer
+  carries, so KnightLoader fell back to the yt-dlp in the image. The daily
+  update now fetches a build that runs in its place, even when no newer
+  yt-dlp is out.
+
 ## [2.9.6] - 2026-11-24
 
 ### Added
