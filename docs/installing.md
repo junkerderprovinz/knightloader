@@ -150,8 +150,9 @@ the installed web app, its share target and the bookmarklet all include it.
 Where you name the instance yourself, include the path too: for the
 Click'n'Load bridge (`-bridge https://example.com/kl`), and as the relay
 address on the others when this one has "Instance as relay" chosen in the
-relay card under Settings, Pairing. The phone app and the browser extension reach the instance
-through the relay with the twelve words and need no address.
+relay card under Settings, Pairing. The phone app takes that address from the
+QR code beside the twelve words, and the browser extension from the Relay field
+on its options page.
 
 The path does not separate the instance from the other applications on the
 host. They share one origin with it, so a page served by any of them can call

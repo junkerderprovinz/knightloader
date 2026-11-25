@@ -483,6 +483,9 @@ jobs:
       - name: Relay frame parity
         run: node extension/check-relay-seal.mjs
 
+      - name: Relay address
+        run: node extension/check-relay-address.mjs
+
       - name: Member refusals
         run: node extension/check-member-refusals.mjs
 

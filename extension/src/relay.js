@@ -36,6 +36,20 @@ const RELAY_ROSTER_MAX_MS = 2500;
  *  still happens. */
 const RELAY_TIMEOUT_MS = 20000;
 
+/**
+ * relayDialURL is the socket of a relay entered as its instances take it,
+ * like kit/relay's connectURL: https becomes wss, and a path that does not end
+ * in /connect gets /relay/connect below it, so the address of an instance
+ * serving the relay works unchanged. Anything but TLS is null, as on the
+ * phone, since the group key would cross the network readable.
+ */
+function relayDialURL(address) {
+  const m = String(address ?? '').trim().match(/^(?:https|wss):\/\/([^/?#@\s]+)((?:\/[^?#\s]*)?)$/i);
+  if (!m) return null;
+  const path = m[2].replace(/\/+$/, '');
+  return `wss://${m[1]}${path.endsWith('/connect') ? path : `${path}/relay/connect`}`;
+}
+
 const relayUtf8 = (s) => new TextEncoder().encode(s);
 const relayFromUtf8 = (b) => new TextDecoder().decode(b);
 

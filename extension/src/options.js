@@ -63,6 +63,7 @@ const aboutHeadingEl = document.getElementById('aboutHeading');
 const phraseEye = document.getElementById('phraseEye');
 const phrasePaste = document.getElementById('phrasePaste');
 const deviceNameEl = document.getElementById('deviceName');
+const relayAddressEl = document.getElementById('relayAddress');
 const pairNoticeEl = document.getElementById('pairNotice');
 const pairNoticeOpenEl = document.getElementById('pairNoticeOpen');
 
@@ -344,6 +345,8 @@ function applyStaticText() {
   leaveBtn.replaceChildren(glimGlyph('IconUnlink', 16));
   refreshBtn.replaceChildren(glimGlyph('IconRetry', 14), document.createTextNode(t('options.refresh')));
   rowLabel('deviceNameLabel', t('options.deviceName'), t('options.deviceNameHint'), deviceNameEl);
+  rowLabel('relayAddressLabel', t('options.relayAddress'), t('options.relayAddressHint'), relayAddressEl);
+  relayAddressEl.placeholder = t('options.relayAddressPlaceholder');
   // The default is worded in the page's language.
   void renderDeviceName();
 
@@ -533,11 +536,15 @@ async function renderGroup({ quiet = false } = {}) {
   recheckDue = false;
   const phrase = await readPhrase();
   const followed = await followedIntoFortress();
+  const relayAddress = await readRelayAddress();
   if (turn !== groupTurn) return;
   const joined = phrase !== '' || followed;
   pairNoticeEl.hidden = joined;
-  // The field may hold a phrase being typed.
-  if (!quiet) phraseInput.value = phrase;
+  // The fields may hold a phrase or an address being typed.
+  if (!quiet) {
+    phraseInput.value = phrase;
+    relayAddressEl.value = relayAddress;
+  }
   phraseMovedEl.hidden = !followed;
   leaveBtn.hidden = !joined;
   refreshBtn.hidden = !joined;
@@ -681,6 +688,13 @@ joinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   joinBtn.disabled = true;
   say(t('options.joining'), true, true);
+  if (!(await writeRelayAddress(relayAddressEl.value))) {
+    joinBtn.disabled = false;
+    joinBtn.setAttribute('data-tip', t('options.relayAddressRefused'));
+    say('', false);
+    shake(joinBtn);
+    return;
+  }
   try {
     await writePhrase(phraseInput.value);
   } catch (err) {
@@ -2128,6 +2142,7 @@ async function buildReport() {
     `language:  ${currentLanguage()} (browser: ${navigator.language})`,
     `appearance: theme=${a.theme || 'system'} shape=${a.shape} accent=${a.accent || 'default'} rainbow=${a.rainbow?.on ? 'on' : 'off'}`,
     `group:     ${joined ? 'joined' : 'no phrase stored'} (${reachable})`,
+    `relay:     ${(await readRelayAddress()) ? 'own' : 'project'}`,
     `default:   ${(await readDefaultTarget()) ? 'chosen' : 'first in the group'}`,
     `clicknload: ${cnl.on ? 'on' : cnl.wanted ? 'wanted, no site access' : 'off'}`,
     `clipboard: ${clip.on ? 'watching' : clip.wanted ? 'wanted, no clipboard permission' : 'off'}`,

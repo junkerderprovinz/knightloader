@@ -218,8 +218,8 @@ instance in the group needs;
 the same phrase then works against it, because the phrase carries the secret
 and not the address. An address starting with `ws://` or `http://` is allowed,
 for a relay on your own network, with a warning that the relay key then
-crosses the network unencrypted. The Android app does not follow such a relay:
-it only connects over `wss://`. **What the relay sees** opens the route
+crosses the network unencrypted. The Android app and the browser extension do
+not follow such a relay: they only connect over TLS. **What the relay sees** opens the route
 picture, what the relay sees next to what it never sees, and how the traffic
 is encrypted. The same fields are `relayMode`, `relayUrl` and `relayServe`
 under **Settings → Advanced**.
@@ -479,9 +479,9 @@ and cannot be explained.
 
 ## The browser extension
 
-The extension takes the same twelve words and nothing else. There is no address
-field, no name field, no token field and no sync button on the options page any
-more. The extension carries its own relay client (`extension/src/relay.js`) and derives
+The extension takes the same twelve words, and the relay's address when the
+group runs its own. There is no instance address field, no token field and no
+sync button on the options page any more. The extension carries its own relay client (`extension/src/relay.js`) and derives
 the group key from the phrase with a WebCrypto port of `kit/phrase`
 (`extension/src/phrase.js`), so it is a group member in its own right rather
 than a guest of one configured instance.
@@ -497,6 +497,14 @@ That replaces the whole previous shape and everything that hung off it:
 - **Sends are `POST /api/links` over the relay**, admitted because membership
   is the credential. No window opens, no session cookie is involved, and the
   `sameOrigin` guard is not worked around, because it is not on that path.
+- **Which relay** is the **Relay** field under the phrase. Left empty it is the
+  project relay. For an own relay or an instance serving as the relay it takes
+  the address the instances have, `https://` or `wss://`, and dials
+  `/relay/connect` below it as they do. A `ws://` or `http://` address is
+  refused. An instance serving the relay takes the extension's socket although
+  its `Origin` is the extension's own (`chrome-extension://`, `moz-extension://`,
+  `safari-web-extension://`), on `/relay/connect` alone. Any other site is
+  still refused there.
 
 The extension asks for no site access at install time. Click'n'Load, taking
 over downloads and finding media each ask for it when switched on; see

@@ -18,7 +18,7 @@ them, so they can download what only a signed-in visitor sees. It has no analyti
 advertising, no accounts and no tracking.
 
 It reaches your instances through a relay operated by the party named under "Who
-is responsible". The relay passes messages along but cannot read them, because
+is responsible", or through your own relay if you enter its address. The relay passes messages along but cannot read them, because
 they are encrypted with a key that only your own devices hold. It does see that a
 browser is connected, from which IP address, and which instance a message is
 addressed to.
@@ -37,6 +37,7 @@ profile. We back none of it up, and removing the extension removes all of it.
 - A random ID for this browser in your group. The extension creates it the
   first time it talks to the group and deletes it when the browser leaves.
 - Which of your instances is the default target.
+- The address of your own relay, if you entered one.
 - Settings: interface language, whether Click'n'Load interception is on, the
   Click'n'Load countdown length, whether the clipboard watch is on and why it
   last switched itself off, and whether the "pin the extension" hint has been
@@ -84,8 +85,10 @@ stored.
 
 ### To the relay
 
-The relay is `parleyport.halleluja.design`, on a server in Germany. Every connection
-to it carries:
+The relay is `parleyport.halleluja.design`, on a server in Germany. If you
+enter the address of your own relay on the options page, the extension connects
+to that relay instead and sends nothing to this one. Every connection to the
+relay carries:
 
 - A group key derived from your phrase with a one-way hash. It cannot be turned
   back into the words, and the phrase itself never leaves the browser. Whoever

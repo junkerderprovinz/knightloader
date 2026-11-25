@@ -241,6 +241,28 @@ async function writeDefaultTarget(instanceId) {
   await chrome.storage.local.set({ defaultInstance: String(instanceId || '') });
 }
 
+/**
+ * The relay this browser dials as it was entered, or '' for the project relay.
+ * It stays when the browser leaves the group, like the device name, since the
+ * browser joins again on the relay its instances use.
+ */
+async function readRelayAddress() {
+  const { relayAddress } = await chrome.storage.local.get('relayAddress');
+  return typeof relayAddress === 'string' ? relayAddress : '';
+}
+
+/**
+ * Stores a relay address, or goes back to the project relay for an empty one.
+ * Returns false and keeps the stored one for an address relayDialURL refuses.
+ */
+async function writeRelayAddress(address) {
+  const kept = String(address ?? '').trim();
+  if (kept && !relayDialURL(kept)) return false;
+  if (kept) await chrome.storage.local.set({ relayAddress: kept });
+  else await chrome.storage.local.remove('relayAddress');
+  return true;
+}
+
 /** The longest name the options page takes, well inside what the relay keeps. */
 const DEVICE_NAME_MAX = 60;
 
@@ -394,7 +416,7 @@ async function withGroup(work) {
   const member = await readMember();
   return relaySession(
     {
-      url: DEFAULT_RELAY_URL,
+      url: relayDialURL(await readRelayAddress()) ?? DEFAULT_RELAY_URL,
       key: held.key,
       frameKey: held.frameKey,
       selfId: sessionInstanceId(),
