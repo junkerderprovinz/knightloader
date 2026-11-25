@@ -127,17 +127,17 @@
     },
     {
         "type": "file",
-        "url": "https://registry.npmjs.org/@glimstone/core/-/core-4.9.1.tgz",
-        "sha512": "e242de8d43a6d82dc7cc6efbf308cce869ec0e0ac1a101c6c16350641c010fd62085d6ba8e4d93f08571d9fccc5a5fd8a2e562692e78dbd181eb01f28e0d8bf5",
-        "dest-filename": "de8d43a6d82dc7cc6efbf308cce869ec0e0ac1a101c6c16350641c010fd62085d6ba8e4d93f08571d9fccc5a5fd8a2e562692e78dbd181eb01f28e0d8bf5",
-        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/e2/42"
+        "url": "https://registry.npmjs.org/@glimstone/core/-/core-4.9.2.tgz",
+        "sha512": "654ceb256f7221efdc8e5e2fd1274e5e7e0a37b6f616aa50e7e0d2e8c57ea8caee46afa420a0476a27f565b8e11ba225fd6e933769d8f850ae9978e6dbfedadb",
+        "dest-filename": "eb256f7221efdc8e5e2fd1274e5e7e0a37b6f616aa50e7e0d2e8c57ea8caee46afa420a0476a27f565b8e11ba225fd6e933769d8f850ae9978e6dbfedadb",
+        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/65/4c"
     },
     {
         "type": "file",
-        "url": "https://registry.npmjs.org/@glimstone/react/-/react-4.9.1.tgz",
-        "sha512": "04b53914421633454c2fb625550d1aa55407722edaed94c77b9361e2bb2b54d8676ff0e5546522aec77122d6de870a146c4638f1e4d374cd70d1ea98c5140b04",
-        "dest-filename": "3914421633454c2fb625550d1aa55407722edaed94c77b9361e2bb2b54d8676ff0e5546522aec77122d6de870a146c4638f1e4d374cd70d1ea98c5140b04",
-        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/04/b5"
+        "url": "https://registry.npmjs.org/@glimstone/react/-/react-4.9.2.tgz",
+        "sha512": "93b63f064e427b1690f99be944e5222436d61f0331473c9488bb79acfea69bd7290fc94e2476e74b619fb9a7307ef05380821c90b124b6dc1872bf8f2d89d013",
+        "dest-filename": "3f064e427b1690f99be944e5222436d61f0331473c9488bb79acfea69bd7290fc94e2476e74b619fb9a7307ef05380821c90b124b6dc1872bf8f2d89d013",
+        "dest": "flatpak-node/npm-cache/_cacache/content-v2/sha512/93/b6"
     },
     {
         "type": "file",
@@ -2545,9 +2545,9 @@
     },
     {
         "type": "inline",
-        "contents": "a5090a919d306dbc682d61c3e390da8fdbf53c57\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/@glimstone/react/-/react-4.9.1.tgz\", \"integrity\": \"sha512-BLU5FEIWM0VML7YlVQ0apVQHci7a7ZTHe5Nh4rsrVNhnb/DlVGUirsdxItbehwoUbEY48eTTdM1w0eqYxRQLBA==\", \"time\": 0, \"size\": 102666, \"metadata\": {\"url\": \"https://registry.npmjs.org/@glimstone/react/-/react-4.9.1.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
-        "dest-filename": "aa5073bb977b94696cc122c0d430f79d17aa42d329444cc157730dcefcbd",
-        "dest": "flatpak-node/npm-cache/_cacache/index-v5/00/c2"
+        "contents": "2b973d20a24e7811786e7313765f3c4ed9a55e35\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/@glimstone/react/-/react-4.9.2.tgz\", \"integrity\": \"sha512-k7Y/Bk5CexaQ+ZvpROUiJDbWHwMxRzyUiLt5rP6mm9cpD8lOJHbnS2GfuacwfvBTgIIckLEkttwYcr+PLYnQEw==\", \"time\": 0, \"size\": 104149, \"metadata\": {\"url\": \"https://registry.npmjs.org/@glimstone/react/-/react-4.9.2.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
+        "dest-filename": "a7b7f098839601afb3e7711eea08f55e788c71ae9c1cc499f1a7ba6ffb48",
+        "dest": "flatpak-node/npm-cache/_cacache/index-v5/3f/dd"
     },
     {
         "type": "inline",
@@ -2887,9 +2887,9 @@
     },
     {
         "type": "inline",
-        "contents": "e23aa147941e52d8f8cbacfec0752a32f258d58f\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/@glimstone/core/-/core-4.9.1.tgz\", \"integrity\": \"sha512-4kLejUOm2C3HzG778wjM6GnsDgrBoQHGwWNQZBwBD9Yghda6jk2T8IVx2fzMWl/YouViaS5429GB6wHyjg2L9Q==\", \"time\": 0, \"size\": 1193719, \"metadata\": {\"url\": \"https://registry.npmjs.org/@glimstone/core/-/core-4.9.1.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
-        "dest-filename": "30535ea29df03c9e204330232ecffcc3e2f04bd56e520a897d7a3a65a0fb",
-        "dest": "flatpak-node/npm-cache/_cacache/index-v5/92/c5"
+        "contents": "b0f85f9f648ea4b8da671eaf70f159d130fa48e1\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/@glimstone/core/-/core-4.9.2.tgz\", \"integrity\": \"sha512-ZUzrJW9yIe/cjl4v0SdOXn4KN7b2FqpQ5+DS6MV+qMruRq+kIKBHaif1ZbjhG6Il/W6TN2nY+FCumXjm2/7a2w==\", \"time\": 0, \"size\": 1206135, \"metadata\": {\"url\": \"https://registry.npmjs.org/@glimstone/core/-/core-4.9.2.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
+        "dest-filename": "f7a50bb1c1d82bab786ef5a572a291c4cc1896b56e6e200744edcbdada47",
+        "dest": "flatpak-node/npm-cache/_cacache/index-v5/25/5f"
     },
     {
         "type": "inline",
