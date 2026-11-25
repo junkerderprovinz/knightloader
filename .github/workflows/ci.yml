@@ -2,9 +2,9 @@ name: ci
 
 on:
   push:
-    # pin-updates.yml opens its pull requests with GITHUB_TOKEN, which starts no
-    # workflow, so CI runs on the push of the branch instead.
-    branches: [main, "pins/**"]
+    # Every branch, so a fix is tested before it lands on main. Renovate's
+    # branches are left out because their pull requests start a run of their own.
+    branches: ["**", "!renovate/**"]
   pull_request:
   workflow_dispatch:
 
