@@ -79,6 +79,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.9.7" date="2026-11-25">
+      <description>
+        <p>The Security tile takes GlimStone 4.9.2, KnightLoader starts on a fresh Proxmox mount point, and a fetched yt-dlp that no longer starts gets replaced.</p>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.9.7</url>
+    </release>
     <release version="2.9.6" date="2026-11-24">
       <description>
         <p>Sign in through Pocket ID, authentik, Keycloak or any other OpenID Connect service, join your fortress and open your other apps from anywhere. When you block an account, your group gets a new phrase by itself.</p>

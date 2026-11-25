@@ -1,0 +1,1 @@
+Die Sicherheitskachel übernimmt GlimStone 4.9.2 mit aufgeräumten Zeilen, KnightLoader startet auf einem frischen Proxmox-Mountpoint, und ein geladenes yt-dlp, das nicht mehr startet, wird ersetzt.

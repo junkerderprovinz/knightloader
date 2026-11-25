@@ -36,7 +36,23 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.9.7] - 2026-11-25
+
+### Design
+
+- **The Security tile takes GlimStone 4.9.2.** Tokens, passkeys, sessions,
+  sign-in services and accounts stand in the same rows as your connections:
+  the service's logo or the kind's glyph on a tile, the name over a quiet
+  line, and the buttons at the end. A long passkey or device name wraps, so
+  two that start alike stay apart.
+- **The password question sits in the password card,** as a switch under the
+  password.
+- **A sign-in service's switch speaks for itself.** It sits at the end of the
+  name's line, above its buttons, and no On badge repeats it.
+- **Empty cards look like an empty list.** Without a password, the password
+  card says "No password yet" over Set a password, and two-factor that is off
+  says "Not set up yet" over Set up, the way the passkeys card does without a
+  passkey.
 
 ### Fixed
 
@@ -51,6 +67,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   carries, so KnightLoader fell back to the yt-dlp in the image. The daily
   update now fetches a build that runs in its place, even when no newer
   yt-dlp is out.
+
+### Translations
+
+- **The empty password and two-factor cards in all 42 languages.**
 
 ## [2.9.6] - 2026-11-24
 

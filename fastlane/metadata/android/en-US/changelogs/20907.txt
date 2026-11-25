@@ -1,0 +1,1 @@
+The Security tile takes GlimStone 4.9.2 with tidier rows, KnightLoader starts on a fresh Proxmox mount point, and a fetched yt-dlp that no longer starts gets replaced.
