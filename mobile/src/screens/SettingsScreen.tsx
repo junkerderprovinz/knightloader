@@ -93,6 +93,7 @@ const APP_URLS = {
   linuxArm: `${RELEASE}linux-arm64.zip`,
   chromeWebStore: 'https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf',
   edgeAddons: 'https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl',
+  firefoxAddons: 'https://addons.mozilla.org/addon/knightloader/',
 };
 
 /** The source of this app's version where it is a release, the newest
@@ -960,7 +961,13 @@ export default function SettingsScreen({
             mark={({ mark, lit }) => <VivaldiMark lit={lit} color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.chromeWebStore)}
           />
-          <ReadmeButton brand="firefox" label="Firefox" soon={t('settings.appsSoon')} mark={() => <FirefoxMark />} />
+          <ReadmeButton
+            brand="firefox"
+            label="Firefox"
+            sub={t('settings.appsExtensionSub')}
+            mark={() => <FirefoxMark />}
+            onPress={() => Linking.openURL(APP_URLS.firefoxAddons)}
+          />
         </View>
       </NotchCard>
 
