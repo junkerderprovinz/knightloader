@@ -1394,6 +1394,16 @@ body {
 .glim-btn-bare:is(:hover, :focus-visible) {
   background-color: transparent;
 }
+/* A lit list row already wears --hover, which a quiet button in it would hover
+   to and vanish into, so there it fills with the accent, as the row's tile
+   does. */
+.glim-list-row:is(:hover, :focus-within) > .glim-list-row-actions .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+.glim-list-row:is(:hover, :focus-within) > .glim-list-row-actions .glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) > .glim-btn-glyph {
+  color: var(--accent-contrast);
+}
 
 /* The wash at the stronger badge tier, for a small badge that needs colour at
    rest and has no active state of its own. A toggle badge carries only
@@ -3250,6 +3260,12 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--carbon-text);
+}
+/* A person's passkeys and devices often start alike, "iPhone von ...", so
+   their names wrap rather than end in an ellipsis. */
+.glim-signin-tile-rows .glim-connection-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .glim-connection-badges,
 .glim-connection-actions {
@@ -6499,6 +6515,21 @@ a.glim-version-number {
     width: 1.6rem;
     height: 1.6rem;
   }
+  /* A small holder for a glyph (GlyphTile). It fills with the accent while the
+     row, button or link around it is reached. */
+  .glim-tile {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radius-control);
+    color: var(--accent-glyph);
+  }
+  .glim-tile > svg {
+    width: 1rem;
+    height: 1rem;
+  }
   .glim-tile--quiet { color: var(--carbon-text-sub); }
   .glim-tile--ground { background-color: var(--carbon-surface3); }
   .glim-tile--active,
@@ -6573,6 +6604,9 @@ a.glim-version-number {
     opacity: 0;
   }
   .glim-list-row:is(:hover, :focus-within) > .glim-list-row-actions { opacity: 1; }
+  /* A switch among the buttons is a setting, not one more button, so it keeps
+     its distance from them. */
+  .glim-list-row-actions > .glim-toggle:not(:last-child) { margin-inline-end: var(--space-6); }
   .glim-list-row--steady { flex-wrap: wrap; }
   .glim-list-row--steady > .glim-list-row-text { flex: 1 1 12rem; }
   .glim-list-row--steady > .glim-list-row-actions {
