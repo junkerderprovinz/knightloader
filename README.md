@@ -362,6 +362,6 @@ You do not have to take my word for it. The code is open and every release note 
 
 <br>
 
-Problems, wishes or suggestions? Don't hesitate to open an [issue](https://github.com/junkerderprovinz/knightloader/issues). On Unraid there is also the [support thread](https://forums.unraid.net/topic/200895-support-junkerderprovinz-knightloader/).
+Problems, wishes or suggestions? Don't hesitate to open an [issue](https://github.com/junkerderprovinz/knightloader/issues).
 
 The code and the knight logo are licensed under [AGPL-3.0](LICENSE). The RSDF and CCF readers follow [JDownloader](https://jdownloader.org/)'s GPL-3.0 container plugins. The KnightLoader name and logo stay my trademarks, so a fork needs a name and logo of its own.
