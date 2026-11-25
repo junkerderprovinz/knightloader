@@ -406,11 +406,13 @@ and cannot be explained.
   nothing extra here. The field reads a paste the way the web UI's does: twelve
   numbered slots fill as the words arrive, a word not on the list is named with
   its position, and **Connect** stays off until all twelve are known words.
-- **Which relay** comes from the QR code. Typed or pasted words pair on the
-  default relay. An instance set to its own relay adds that relay's address to
-  its QR code on a line under the words, and a phone that scans the code pairs
-  there. The app takes such an address only if it starts with `wss://`, and
-  says so when it does not. On the default relay the code holds the twelve
+- **Which relay** is the **Relay** field under the words, as in the browser
+  extension: empty is the default relay, and an own relay's `https://` or
+  `wss://` address is dialled at `/relay/connect` below it. An instance set to
+  its own relay adds that relay's address to its QR code on a line under the
+  words, and scanning the code fills the field and pairs there. The app takes
+  such an address only if it starts with `wss://`, and says so when it does
+  not. On the default relay the code holds the twelve
   words alone, so every build of the app reads it; a build too old for the
   second line refuses the longer code because it counts thirteen words.
 - **The phone has a card of its own** on the Instances page of every instance

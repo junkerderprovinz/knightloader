@@ -61,7 +61,9 @@ phrase to twelve words instead of a URL plus a key. A group on a self-hosted
 relay reaches the app through the QR code: an instance on its own relay puts
 that relay's address on a second line under the words (`relay.PairingCode`),
 and `src/api/pairingCode.ts` reads it back and takes it only at a `wss://`
-address. Typed words always pair on the default relay.
+address. The scan fills the Relay field under the words, which can also be
+typed: empty is the default relay, and an `https://` or `wss://` address is
+dialled as the browser extension dials it (`relayAddress`).
 
 From there every screen makes ordinary calls, and `src/api/client.ts`'s
 `request()` sends each one as a relay frame.

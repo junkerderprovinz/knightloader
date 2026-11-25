@@ -4,7 +4,7 @@ import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, WORD_COUNT, frameKeyFromPhrase, keyFromPhrase, peerAuthFromPhrase } from '../api/seedphrase';
 import { checkPhrase, splitPhrase } from '../api/phraseWords';
-import { readPairingCode } from '../api/pairingCode';
+import { readPairingCode, relayAddress } from '../api/pairingCode';
 import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
 import { memberOptions } from '../storage/relayIdentity';
@@ -21,12 +21,8 @@ import { MovingScroll } from '../components/Moving';
 import * as Clipboard from 'expo-clipboard';
 import { Text, TextInput } from '../components/Text';
 
-// Joining the group, which is the whole of connecting this app now: twelve
+// Joining the group, which is all that connecting this app takes: twelve
 // words, and every instance the person runs appears.
-//
-// It replaces a screen that asked for a relay address, a relay key and a
-// per-instance API token and saved one instance per visit, so three instances
-// were three trips through the same form.
 //
 // The phone is a full group member rather than a client of one instance. It
 // derives the same key its siblings derive (api/seedphrase.ts, a port of
@@ -57,9 +53,9 @@ export default function RelayConnectScreen({
   const { t } = useT();
   const { c, accent, corners } = useAppearance();
   const [phrase, setPhrase] = useState('');
-  // The relay the last scanned code named, kept for Connect pressed after the
-  // scan, and dropped once the words are typed or pasted.
-  const [codeRelay, setCodeRelay] = useState(DEFAULT_RELAY_URL);
+  // The relay field as typed, or as the last scanned code filled it. Empty is
+  // the project relay, as in the browser extension.
+  const [relayText, setRelayText] = useState('');
   const [searching, setSearching] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,11 +108,16 @@ export default function RelayConnectScreen({
   //
   // `entered` exists for the scan path. The caller has just set state this
   // render does not see yet, so it passes the scanned words in directly; the
-  // button path passes nothing and reads state. `relay` is the relay a scanned
-  // code names; typed words always pair on the project relay.
-  const join = async (entered?: string, relay = codeRelay) => {
+  // button path passes nothing and reads state, the relay field included.
+  const join = async (entered?: string, address = relayText) => {
     const words = splitPhrase(entered ?? phrase).join(' ');
     setError(null);
+    const relay = address.trim() ? relayAddress(address) : DEFAULT_RELAY_URL;
+    if (!relay) {
+      setError(t('relay.errRelayAddress'));
+      zittern();
+      return;
+    }
     let key: string;
     // Both keys come out of the phrase here, in the one place it exists, and
     // the words are then gone. The frame key travels alongside the relay key
@@ -255,7 +256,6 @@ export default function RelayConnectScreen({
         value={phrase}
         onChangeText={(text) => {
           setPhrase(text);
-          setCodeRelay(DEFAULT_RELAY_URL);
           setError(null);
         }}
         autoCapitalize="none"
@@ -288,6 +288,29 @@ export default function RelayConnectScreen({
       </View>
       {problem && <Text style={[styles.error, { color: c.statusFailSolid }]}>{problem}</Text>}
 
+      {/* A scanned code fills it, and typed words pair on what it says. */}
+      <View style={styles.labelRow}>
+        <View style={styles.labelWithTip}>
+          <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.relayLabel')}</Text>
+          <InfoTip text={t('relay.relayHint')} />
+        </View>
+      </View>
+      <TextInput
+        style={[styles.input, inputStyle]}
+        placeholder={t('relay.relayPlaceholder')}
+        placeholderTextColor={c.textMuted}
+        value={relayText}
+        onChangeText={(text) => {
+          setRelayText(text);
+          setError(null);
+        }}
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoComplete="off"
+        keyboardType="url"
+        accessibilityLabel={t('relay.relayLabel')}
+      />
+
       {/* Paste, because twelve words is the input a phone keyboard is worst at
           and the phrase usually arrives in a message somebody already copied.
           Between the field and Connect, in the order the hands move.
@@ -308,7 +331,6 @@ export default function RelayConnectScreen({
           const text = await Clipboard.getStringAsync();
           if (text.trim()) {
             setPhrase(text.trim());
-            setCodeRelay(DEFAULT_RELAY_URL);
           }
         }}
       />
@@ -394,9 +416,9 @@ export default function RelayConnectScreen({
         onScanned={(data) => {
           setScanning(false);
           const code = readPairingCode(data);
-          const relay = ('refused' in code ? undefined : code.relay) ?? DEFAULT_RELAY_URL;
+          const relay = 'refused' in code ? code.refused : (code.relay ?? '');
           setPhrase(code.words);
-          setCodeRelay(relay);
+          setRelayText(relay);
           if ('refused' in code) {
             setError(t('relay.errInsecureRelay', { address: code.refused }));
             zittern();
@@ -421,6 +443,7 @@ const styles = StyleSheet.create({
   title: { fontSize: TYPE.status, fontWeight: '600', flexShrink: 1 },
   labelRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 6 },
   label: { fontSize: TYPE.subline, flexShrink: 1 },
+  labelWithTip: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   count: { fontSize: TYPE.subline },
   // Three to a row, so a word of eight letters still fits its slot on a
   // narrow phone.

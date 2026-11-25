@@ -5,8 +5,9 @@
 // TestPairingCode in internal/federation/wire_test.go, is scanned here: a code
 // without a second line pairs on the project relay, a wss:// relay is taken
 // over, and anything else is refused rather than dialled, since the app
-// permits no cleartext traffic. The connect screen then keeps searching the
-// relay a scanned code named until the words are typed or pasted.
+// permits no cleartext traffic. The connect screen puts a scanned relay into
+// its Relay field, which a typed address goes through by the same rule as the
+// browser extension's.
 //
 // Run by hand and by CI, from mobile/: `node check-pairing-code.mjs`
 import { readFileSync } from 'node:fs';
@@ -15,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { compile, mount } from './stand-in-react.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { readPairingCode } = await import(pathToFileURL(join(here, 'src', 'api', 'pairingCode.ts')).href);
+const { readPairingCode, relayAddress } = await import(pathToFileURL(join(here, 'src', 'api', 'pairingCode.ts')).href);
 const goTest = readFileSync(join(here, '..', 'internal', 'federation', 'wire_test.go'), 'utf8');
 
 const problems = [];
@@ -66,10 +67,22 @@ for (const address of [
   expect(`${address} is refused`, readPairingCode(`${phrase}\n${address}`), { words: phrase, refused: address });
 }
 
+// A typed relay address dials what the server dials for it over TLS, and
+// nothing else, the rule the browser extension's relayDialURL keeps against the
+// same rows.
+const connectTable = goTest.match(/^func TestConnectURL\([\s\S]*?^\}$/m);
+const connectRows = connectTable ? [...connectTable[0].matchAll(/\{"([^"]*)", "([^"]*)", "([^"]*)"\}/g)] : [];
+if (connectRows.length === 0) problems.push('TestConnectURL has no rows this check can read');
+for (const [, name, input, want] of connectRows) {
+  expect(`a typed ${JSON.stringify(input)}: ${name}`, relayAddress(input), want.startsWith('wss://') ? want : null);
+}
+expect('a typed address with a name in it', relayAddress('wss://user@relay.example.com'), null);
+
 // The connect screen keeps the relay a scanned code names. When the instance
 // has not answered by the time the spinner stops, Connect is what somebody
 // presses next, and it has to search the same relay again rather than the
-// project relay, where that instance never shows up.
+// project relay, where that instance never shows up. The code fills the relay
+// field, so words typed after it pair there too until the field is cleared.
 {
   const DEFAULT = 'wss://project.example/relay/connect';
   const dialled = [];
@@ -98,7 +111,7 @@ for (const address of [
       splitPhrase: split,
       checkPhrase: (p) => ({ words: split(p), unknown: [], complete: split(p).length === 12 }),
     },
-    '../api/pairingCode': { readPairingCode },
+    '../api/pairingCode': { readPairingCode, relayAddress },
     '../api/deviceName': { deviceName: () => 'Phone' },
     '../api/sha256': { toHex: () => '' },
     '../storage/relayIdentity': { memberOptions: async () => ({ selfId: 'phone', memberSeed: null }) },
@@ -133,6 +146,11 @@ for (const address of [
     return screen.settle();
   };
   const last = () => dialled.at(-1);
+  const field = (placeholder) => find(screen.shown(), (type, props) => type === 'TextInput' && props.placeholder === placeholder);
+  const type = async (placeholder, text) => {
+    field(placeholder).onChangeText(text);
+    return screen.settle();
+  };
 
   await screen.settle();
   await scan(`${phrase}\n${relay}`);
@@ -143,15 +161,29 @@ for (const address of [
   await press('relay.joinButton');
   expect('Connect after a code without a relay searches the project relay', last(), DEFAULT);
   await scan(`${phrase}\n${relay}`);
-  find(screen.shown(), (type) => type === 'TextInput').onChangeText(phrase);
-  await screen.settle();
+  expect('a scanned code fills the relay field', field('relay.relayPlaceholder').value, relay);
+  await type('relay.phrasePlaceholder', phrase);
   await press('relay.joinButton');
-  expect('typed words search the project relay', last(), DEFAULT);
-  await scan(`${phrase}\n${relay}`);
+  expect('typed words search the relay in the field', last(), relay);
   clipboard = phrase;
   await press('relay.pasteButton');
   await press('relay.joinButton');
-  expect('pasted words search the project relay', last(), DEFAULT);
+  expect('pasted words search the relay in the field', last(), relay);
+  await type('relay.relayPlaceholder', '');
+  await press('relay.joinButton');
+  expect('an emptied field searches the project relay', last(), DEFAULT);
+  await type('relay.relayPlaceholder', 'https://kl.example.org/kl');
+  await press('relay.joinButton');
+  expect('a typed instance address searches the relay below it', last(), 'wss://kl.example.org/kl/relay/connect');
+  const before = dialled.length;
+  await type('relay.relayPlaceholder', 'ws://kl.example.org');
+  await press('relay.joinButton');
+  expect('a cleartext address searches nothing', dialled.length, before);
+  expect(
+    'and says why',
+    screen.shown().elements.some((e) => e.type === 'Text' && [e.props.children].flat().includes('relay.errRelayAddress')),
+    true,
+  );
   screen.unmount();
 }
 
@@ -159,4 +191,4 @@ if (problems.length) {
   console.error('The app reads the pairing code differently from how the server writes it:\n' + problems.map((p) => '  ' + p).join('\n'));
   process.exit(1);
 }
-console.log(`Pairing codes: ${rows.length} server cases and the app's own read as written, and Connect keeps the scanned relay.`);
+console.log(`Pairing codes: ${rows.length} server cases and the app's own read as written, and the relay field dials what the server dials.`);

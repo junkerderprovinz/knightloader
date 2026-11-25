@@ -23,6 +23,17 @@ export function readPairingCode(text: string): PairingCode {
   return relay ? { words, relay } : { words, refused: m[1] };
 }
 
+// The socket a typed relay address dials, or null for one the app will not
+// dial, the same rule as the extension's relayDialURL: https becomes wss, and a
+// path that does not end in /connect gets /relay/connect below it, which is
+// what relay.PairingCode writes for the same address.
+export function relayAddress(address: string): string | null {
+  const m = address.trim().match(/^(?:https|wss):\/\/([^/?#@\s]+)((?:\/[^?#\s]*)?)$/i);
+  if (!m) return null;
+  const path = m[2].replace(/\/+$/, '');
+  return `wss://${m[1]}${path.endsWith('/connect') ? path : `${path}/relay/connect`}`;
+}
+
 // wss only. The app permits no cleartext traffic, and an address that arrives
 // in a QR code is one nobody on the phone typed or looked at.
 function secureRelay(address: string): string | null {

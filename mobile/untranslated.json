@@ -431,7 +431,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "id": [
       "addDownload.placeholder",
@@ -442,7 +443,8 @@
       "settings.aboutDiscord",
       "speed.legend.seeding",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "is": [
       "addDownload.placeholder",
@@ -451,7 +453,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "it": [
       "addDownload.placeholder",
@@ -465,7 +468,8 @@
       "speed.legend.download",
       "notify.watchOne",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "ja": [
       "addDownload.placeholder",
@@ -489,7 +493,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "lv": [
       "addDownload.placeholder",
@@ -498,7 +503,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "ms": [
       "addDownload.placeholder",
@@ -508,7 +514,8 @@
       "settings.aboutDiscord",
       "speed.legend.seeding",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "nl": [
       "downloads.tabDownloads",
@@ -528,7 +535,8 @@
       "notify.watchOne",
       "notify.watchMany",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "no": [
       "downloads.start",
@@ -543,7 +551,8 @@
       "settings.theme.system",
       "speed.legend.seeding",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "pl": [
       "addDownload.placeholder",
@@ -553,7 +562,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "pt": [
       "captcha.screenTitle",
@@ -566,7 +576,8 @@
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "ro": [
       "downloads.queueActive",
@@ -579,7 +590,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "ru": [
       "addDownload.placeholder",
@@ -587,7 +599,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "sk": [
       "addDownload.placeholder",
@@ -597,7 +610,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "sl": [
       "addDownload.placeholder",
@@ -606,7 +620,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "sr": [
       "addDownload.placeholder",
@@ -666,7 +681,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "relay.relayLabel"
     ],
     "zh": [
       "addDownload.placeholder",
