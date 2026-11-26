@@ -713,6 +713,9 @@ jobs:
       - name: Shared links
         run: node check-share.mjs
 
+      - name: Files picked on the phone
+        run: node check-file-intake.mjs
+
       - name: Failure wording
         run: node check-failures.mjs
 

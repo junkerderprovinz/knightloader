@@ -105,7 +105,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/connections/import":           apitoken.ScopeAdmin,
 	"POST /api/connections/test":             apitoken.ScopeAdmin,
 
-	"POST /api/containers": apitoken.ScopeAdd,
+	"POST /api/containers":       apitoken.ScopeAdd,
+	"POST /api/containers/phone": apitoken.ScopeAdd,
 
 	// The log names hosts, folders and addresses, and the bundle carries the
 	// settings.
@@ -342,6 +343,7 @@ var routeScopes = map[string]apitoken.Scope{
 	// Parsing a .torrent is the first half of adding one.
 	"POST /api/torrents":                  apitoken.ScopeAdd,
 	"POST /api/torrents/parse":            apitoken.ScopeAdd,
+	"POST /api/torrents/parse/phone":      apitoken.ScopeAdd,
 	"POST /api/torrents/portmap":          apitoken.ScopeAdmin,
 	"POST /api/torrents/qbittorrent/test": apitoken.ScopeAdmin,
 	// The log names the trackers somebody is a member of.

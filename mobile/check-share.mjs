@@ -119,6 +119,7 @@ const modules = {
   '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, corners: { card: {} } }) },
   '../theme/tokens': { TYPE: {} },
   '../i18n/I18nContext': { useT: () => ({ t }) },
+  '../components/AddFileSection': { AddFileSection: 'AddFileSection' },
   '../components/glim': { CardButton: 'CardButton', DefaultBadge: 'DefaultBadge', GlimButton: 'GlimButton' },
   '../components/IconBadge': { Connect: 'Connect', Cross: 'Cross', Plus: 'Plus' },
   '../components/InfoTip': { InfoTip: 'InfoTip' },

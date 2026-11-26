@@ -5,6 +5,7 @@ import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { AddFileSection } from '../components/AddFileSection';
 import { GlimButton } from '../components/glim';
 import { Cross, Plus } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
@@ -77,6 +78,8 @@ export default function AddDownloadScreen({
         autoCorrect={false}
         textAlignVertical="top"
       />
+
+      <AddFileSection conn={conn} base={base} onAdded={() => void startWatch()} />
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 

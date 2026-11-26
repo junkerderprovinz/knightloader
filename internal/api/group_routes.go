@@ -43,6 +43,11 @@ var groupRoutes = map[string]bool{
 	// The extension's video menu first asks what a video offers.
 	"POST /api/links":     true,
 	"GET /api/ytdlp/link": true,
+	// A container or a .torrent picked on the phone, as JSON. The web
+	// interface's multipart uploads stay its own.
+	"POST /api/containers/phone":     true,
+	"POST /api/torrents/parse/phone": true,
+	"POST /api/torrents":             true,
 
 	// The list and what the rows do. Showing a member's downloads without
 	// being able to stop them would be half a connection.
