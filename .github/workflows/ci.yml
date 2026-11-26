@@ -719,6 +719,9 @@ jobs:
       - name: Row and package words
         run: node check-task-state.mjs
 
+      - name: What a link's More sheet offers
+        run: node check-task-actions.mjs
+
       - name: Play buttons
         run: node check-play.mjs
 

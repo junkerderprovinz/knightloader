@@ -306,7 +306,8 @@
       "notify.watchOne",
       "notify.watchMany",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "actions.pause"
     ],
     "el": [
       "addDownload.placeholder",
@@ -552,7 +553,8 @@
       "speed.legend.seeding",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "actions.pause"
     ],
     "pl": [
       "addDownload.placeholder",
