@@ -60,13 +60,8 @@ func TestAnAccountThatEndsTakesNoWorkingPhraseAlong(t *testing.T) {
 			if code != http.StatusOK || moved.Group != want.Group || !bytes.Equal(moved.Frame, want.Frame) || !bytes.Equal(moved.PeerAuth, want.PeerAuth) {
 				t.Fatalf("the phone on the old phrase was answered %d %s, want the new keys", code, raw)
 			}
-			waitFor(t, "the instance on the relay under the new phrase", a.Federation.RelayConnected)
-			code, raw = relayCall(t, relayURL, secret, phone, instance, keyOf("phone"),
-				relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: phone, Kind: member.KindMobile})
-			if code != http.StatusOK {
-				t.Errorf("the phone on the new keys was answered %d %s", code, raw)
-			}
-
+			// Asked before the phone follows, since the group on the old
+			// phrase closes once every member it let in has.
 			stranger := idAs("phone-of-the-blocked", member.KindMobile)
 			code, raw = relayCall(t, relayURL, old, stranger, instance, keyOf("phone-of-the-blocked"),
 				relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: stranger, Kind: member.KindMobile})
@@ -75,6 +70,13 @@ func TestAnAccountThatEndsTakesNoWorkingPhraseAlong(t *testing.T) {
 			}
 			if _, waits := memberOfGroup(a, stranger); waits {
 				t.Error("a newcomer on the old phrase waits for approval")
+			}
+
+			waitFor(t, "the instance on the relay under the new phrase", a.Federation.RelayConnected)
+			code, raw = relayCall(t, relayURL, secret, phone, instance, keyOf("phone"),
+				relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: phone, Kind: member.KindMobile})
+			if code != http.StatusOK {
+				t.Errorf("the phone on the new keys was answered %d %s", code, raw)
 			}
 		})
 	}

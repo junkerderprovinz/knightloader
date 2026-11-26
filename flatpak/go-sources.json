@@ -575,17 +575,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/junkerderprovinz/parleyport/@v/v1.3.6.mod",
+        "url": "https://proxy.golang.org/github.com/junkerderprovinz/parleyport/@v/v1.3.7.mod",
         "sha256": "38a198e0d7db2a6c69579eae0d0f3e6d723f0fc0cb61c6c3f593e4fd5cfaa381",
         "dest": "gomod/github.com/junkerderprovinz/parleyport/@v",
-        "dest-filename": "v1.3.6.mod"
+        "dest-filename": "v1.3.7.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/junkerderprovinz/parleyport/@v/v1.3.6.zip",
-        "sha256": "cbdd878bab7ae79bfbf0a7fa42ae60203ba28486150a84b457fd1f6efc151362",
+        "url": "https://proxy.golang.org/github.com/junkerderprovinz/parleyport/@v/v1.3.7.zip",
+        "sha256": "0c63fbb1fa70c9dfa292aa84fe75760fefa795f9713c9cebf53e12e7c30735a7",
         "dest": "gomod/github.com/junkerderprovinz/parleyport/@v",
-        "dest-filename": "v1.3.6.zip"
+        "dest-filename": "v1.3.7.zip"
     },
     {
         "type": "file",
