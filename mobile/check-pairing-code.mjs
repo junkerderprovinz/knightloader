@@ -7,7 +7,8 @@
 // over, and anything else is refused rather than dialled, since the app
 // permits no cleartext traffic. The connect screen puts a scanned relay into
 // its Relay field, which a typed address goes through by the same rule as the
-// browser extension's.
+// browser extension's, and a second press on Add while the first one saves
+// adds nothing.
 //
 // Run by hand and by CI, from mobile/: `node check-pairing-code.mjs`
 import { readFileSync } from 'node:fs';
@@ -78,27 +79,14 @@ for (const [, name, input, want] of connectRows) {
 }
 expect('a typed address with a name in it', relayAddress('wss://user@relay.example.com'), null);
 
-// The connect screen keeps the relay a scanned code names. When the instance
-// has not answered by the time the spinner stops, Connect is what somebody
-// presses next, and it has to search the same relay again rather than the
-// project relay, where that instance never shows up. The code fills the relay
-// field, so words typed after it pair there too until the field is cleared.
-{
-  const DEFAULT = 'wss://project.example/relay/connect';
-  const dialled = [];
-  let clipboard = '';
-  const split = (p) => p.split(/[\s,]+/).filter(Boolean);
-  const { default: RelayConnectScreen } = compile(join(here, 'src', 'screens', 'RelayConnectScreen.tsx'), {
+const DEFAULT = 'wss://project.example/relay/connect';
+const split = (p) => p.split(/[\s,]+/).filter(Boolean);
+const connectScreen = ({ relayClientFor, clipboard = () => '', connections }) =>
+  compile(join(here, 'src', 'screens', 'RelayConnectScreen.tsx'), {
     'react-native': { Animated: { View: 'Animated.View' }, StyleSheet: { create: (s) => s }, View: 'View' },
-    'expo-clipboard': { getStringAsync: async () => clipboard },
+    'expo-clipboard': { getStringAsync: async () => clipboard() },
     '../components/QRScanner': { __esModule: true, default: 'QRScanner' },
-    '../api/relayClient': {
-      closeRelayClient() {},
-      relayClientFor: ({ url }) => {
-        dialled.push(url);
-        return { subscribe: () => () => {}, siblings: () => [] };
-      },
-    },
+    '../api/relayClient': { closeRelayClient() {}, relayClientFor },
     '../api/seedphrase': {
       DEFAULT_RELAY_URL: DEFAULT,
       PhraseError: class extends Error {},
@@ -115,7 +103,12 @@ expect('a typed address with a name in it', relayAddress('wss://user@relay.examp
     '../api/deviceName': { deviceName: () => 'Phone' },
     '../api/sha256': { toHex: () => '' },
     '../storage/relayIdentity': { memberOptions: async () => ({ selfId: 'phone', memberSeed: null }) },
-    '../storage/connections': { addConnection: async () => {}, listConnections: async () => [], setActiveConnectionId: async () => {} },
+    '../storage/connections': {
+      addConnection: connections?.add ?? (async () => {}),
+      listConnections: connections?.list ?? (async () => []),
+      newConnectionId: () => Math.random().toString(36).slice(2),
+      setActiveConnectionId: async () => {},
+    },
     '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, accent: '', corners: {} }) },
     '../theme/MotionContext': { useShake: () => ({ style: {}, shake() {} }) },
     '../theme/tokens': { NUM: {}, TYPE: {} },
@@ -133,6 +126,22 @@ expect('a typed address with a name in it', relayAddress('wss://user@relay.examp
     '../components/InfoTip': { InfoTip: 'InfoTip' },
     '../components/Moving': { MovingScroll: 'MovingScroll' },
     '../components/Text': { Text: 'Text', TextInput: 'TextInput' },
+  }).default;
+
+// The connect screen keeps the relay a scanned code names. When the instance
+// has not answered by the time the spinner stops, Connect is what somebody
+// presses next, and it has to search the same relay again rather than the
+// project relay, where that instance never shows up. The code fills the relay
+// field, so words typed after it pair there too until the field is cleared.
+{
+  const dialled = [];
+  let clipboard = '';
+  const RelayConnectScreen = connectScreen({
+    clipboard: () => clipboard,
+    relayClientFor: ({ url }) => {
+      dialled.push(url);
+      return { subscribe: () => () => {}, siblings: () => [] };
+    },
   });
 
   const screen = mount(() => RelayConnectScreen({ onConnected() {}, onBack() {} }));
@@ -187,8 +196,45 @@ expect('a typed address with a name in it', relayAddress('wss://user@relay.examp
   screen.unmount();
 }
 
+// A second press on Add while the first save still runs saves nothing more:
+// both presses would read the list before either wrote to it, and the instance
+// would be on the overview twice.
+{
+  const saved = [];
+  let connected = 0;
+  const RelayConnectScreen = connectScreen({
+    relayClientFor: () => ({
+      subscribe: () => () => {},
+      siblings: () => [{ instanceId: 'instance-1', name: 'Bottich', deployment: 'container' }],
+    }),
+    connections: {
+      list: async () => [...saved],
+      add: async (conn) => {
+        await new Promise((r) => setTimeout(r, 5));
+        saved.push(conn);
+      },
+    },
+  });
+  const screen = mount(() => RelayConnectScreen({ onConnected: () => connected++, onBack() {} }));
+  const button = (label) => screen.shown().elements.find((e) => e.type === 'GlimButton' && e.props.label === label)?.props;
+  await screen.settle();
+  screen.shown().elements.find((e) => e.type === 'TextInput' && e.props.placeholder === 'relay.phrasePlaceholder').props.onChangeText(phrase);
+  await screen.settle();
+  button('relay.joinButton').onPress();
+  await screen.settle();
+  const add = button('relay.saveOneButton');
+  add.onPress();
+  add.onPress();
+  await screen.settle();
+  await new Promise((r) => setTimeout(r, 30));
+  await screen.settle();
+  expect('a double press on Add saves the instance once', saved.map((c) => c.instanceId), ['instance-1']);
+  expect('and opens it once', connected, 1);
+  screen.unmount();
+}
+
 if (problems.length) {
   console.error('The app reads the pairing code differently from how the server writes it:\n' + problems.map((p) => '  ' + p).join('\n'));
   process.exit(1);
 }
-console.log(`Pairing codes: ${rows.length} server cases and the app's own read as written, and the relay field dials what the server dials.`);
+console.log(`Pairing codes: ${rows.length} server cases and the app's own read as written, the relay field dials what the server dials, and Add saves once.`);
