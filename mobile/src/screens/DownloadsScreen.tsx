@@ -176,8 +176,8 @@ export default function DownloadsScreen({
   // Read now and then while the collector is on screen, since a link folded
   // into another leaves no trace in the task list.
   const collectorOnScreen = tab === 'collector';
+  useEffect(() => setSkipped([]), [conn, peer]);
   useEffect(() => {
-    setSkipped([]);
     if (peer) return;
     let alive = true;
     const load = () => fetchSkipped(conn).then((s) => alive && setSkipped(s)).catch(() => {});
