@@ -105,7 +105,7 @@ function SaveCard({ state, onStop }: { state: State; onStop: () => void }) {
   return (
     <Arrive style={[styles.card, { backgroundColor: c.surface, ...corners.card }]}>
       <View style={styles.body}>
-        <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>
+        <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>
           {t('task.saving', { name: state.name })}
         </Text>
         <View style={[styles.track, { backgroundColor: c.surface2, ...corners.pill }]}>

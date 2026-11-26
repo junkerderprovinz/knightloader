@@ -510,7 +510,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
+  // Two lines before an ellipsis: a German label in half a row would
+  // otherwise lose the word that says what the button does.
+  buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1, textAlign: 'center' },
   buttonOff: { opacity: 0.45 },
   // The README's proportions: the mark's 32 by 25 box 24 in from the start,
   // the name from 63 to 10 short of the end. A name and a second line wrapped
@@ -788,7 +790,7 @@ export function GlimButton({
       accessibilityLabel={label}
     >
       {busy ? <ActivityIndicator color={ink} /> : icon?.(ink)}
-      <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={1}>
+      <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={2}>
         {label}
       </Text>
     </TouchableOpacity>
