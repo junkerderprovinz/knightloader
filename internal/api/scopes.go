@@ -371,7 +371,10 @@ var routeScopes = map[string]apitoken.Scope{
 	// whatever the scope (serverBuckets).
 	"GET /api/uistate": apitoken.ScopeRead,
 	"PUT /api/uistate": apitoken.ScopeAdmin,
-	"GET /api/ws":      apitoken.ScopeRead,
+	// The saved views alone are a list's own business, as halting it is.
+	"GET /api/uistate/views": apitoken.ScopeRead,
+	"PUT /api/uistate/views": apitoken.ScopeControl,
+	"GET /api/ws":            apitoken.ScopeRead,
 
 	"GET /api/ytdlp/formats": apitoken.ScopeAdmin,
 	"GET /api/ytdlp/link":    apitoken.ScopeAdd,

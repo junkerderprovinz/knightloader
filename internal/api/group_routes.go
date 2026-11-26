@@ -53,6 +53,11 @@ var groupRoutes = map[string]bool{
 	"GET /api/collector/skipped":           true,
 	"DELETE /api/collector/skipped":        true,
 
+	// The saved views of those two lists, and nothing else of the interface
+	// state, which holds whatever a browser put there.
+	"GET /api/uistate/views": true,
+	"PUT /api/uistate/views": true,
+
 	// The list and what the rows do. Showing a member's downloads without
 	// being able to stop them would be half a connection.
 	"GET /api/tasks":                     true,

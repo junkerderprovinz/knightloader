@@ -13,8 +13,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"sync"
+	"unicode/utf8"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/store"
@@ -115,5 +119,160 @@ func registerUIState(reg *Registry, a *app.App) {
 				return
 			}
 			w.WriteHeader(http.StatusNoContent)
+		})
+}
+
+// savedViewFields are the lists whose saved views /api/uistate/views reaches,
+// by the field the web keeps each under in the shared bucket
+// (web/src/lib/savedViews.ts).
+var savedViewFields = []struct{ list, field string }{
+	{"downloads", "list.views.downloads"},
+	{"collector", "list.views.collector"},
+}
+
+// The web's own bounds on saved views, so a member cannot store what the web
+// would refuse to save.
+const (
+	maxSavedViews     = 12
+	maxSavedViewBytes = 4096
+	maxSavedViewName  = 60
+)
+
+type savedView struct {
+	ID    string          `json:"id"`
+	Name  string          `json:"name"`
+	State json.RawMessage `json:"state"`
+}
+
+// checkViews trims the names and reports what is wrong with a list of views,
+// if anything.
+func checkViews(views []savedView) error {
+	if len(views) > maxSavedViews {
+		return fmt.Errorf("a list keeps at most %d saved views", maxSavedViews)
+	}
+	seen := map[string]bool{}
+	for i := range views {
+		v := &views[i]
+		v.Name = strings.TrimSpace(v.Name)
+		switch {
+		case v.ID == "" || seen[v.ID]:
+			return errors.New("every saved view needs an id of its own")
+		case v.Name == "" || utf8.RuneCountInString(v.Name) > maxSavedViewName:
+			return fmt.Errorf("a saved view needs a name of 1 to %d characters", maxSavedViewName)
+		case !isJSONDocument(v.State):
+			return errors.New("a saved view's state has to be a JSON object")
+		}
+		seen[v.ID] = true
+		if b, _ := json.Marshal(v); len(b) > maxSavedViewBytes {
+			return errors.New("a saved view holds more than can be stored")
+		}
+	}
+	return nil
+}
+
+// savedViewsOf is the saved views of each list in a stored document, an empty
+// list for one that has none.
+func savedViewsOf(doc map[string]json.RawMessage) map[string]json.RawMessage {
+	out := map[string]json.RawMessage{}
+	for _, f := range savedViewFields {
+		raw := bytes.TrimSpace(doc[f.field])
+		if len(raw) == 0 || raw[0] != '[' {
+			raw = json.RawMessage("[]")
+		}
+		out[f.list] = raw
+	}
+	return out
+}
+
+func writeSavedViews(w http.ResponseWriter, doc map[string]json.RawMessage) {
+	views := savedViewsOf(doc)
+	// Written out by hand, since a map would put the collector first.
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = fmt.Fprintf(w, "{\"downloads\":%s,\"collector\":%s}\n", views["downloads"], views["collector"])
+}
+
+// sharedDoc reads the bucket the browsers share as its fields.
+func sharedDoc(a *app.App) (map[string]json.RawMessage, error) {
+	value, err := a.UIState(store.UIStateKey)
+	if err != nil {
+		return nil, err
+	}
+	doc := map[string]json.RawMessage{}
+	if value != "" {
+		if err := json.Unmarshal([]byte(value), &doc); err != nil {
+			return nil, err
+		}
+	}
+	return doc, nil
+}
+
+// savedViewsMu keeps two calls of the views route from writing over each
+// other's read of the bucket.
+var savedViewsMu sync.Mutex
+
+func registerSavedViews(reg *Registry, a *app.App) {
+	// The saved views alone, for a client that may not reach the rest of the
+	// interface state, which can hold anything a browser put there.
+	reg.Add(http.MethodGet, "/api/uistate/views", "the saved views of the download list and the collector",
+		func(w http.ResponseWriter, r *http.Request) {
+			doc, err := sharedDoc(a)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			writeSavedViews(w, doc)
+		})
+	reg.Add(http.MethodPut, "/api/uistate/views", "replace the saved views of the download list, the collector or both; anything else is refused",
+		func(w http.ResponseWriter, r *http.Request) {
+			var in struct {
+				Downloads *[]savedView `json:"downloads"`
+				Collector *[]savedView `json:"collector"`
+			}
+			dec := json.NewDecoder(http.MaxBytesReader(w, io.NopCloser(body(r)), maxJSONBody))
+			dec.DisallowUnknownFields()
+			if err := dec.Decode(&in); err != nil {
+				http.Error(w, "this takes the saved views of downloads and collector and nothing else", http.StatusBadRequest)
+				return
+			}
+			lists := map[string]*[]savedView{"downloads": in.Downloads, "collector": in.Collector}
+			named := 0
+			for _, views := range lists {
+				if views == nil {
+					continue
+				}
+				named++
+				if err := checkViews(*views); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+			if named == 0 {
+				http.Error(w, "this needs the saved views of downloads, collector or both", http.StatusBadRequest)
+				return
+			}
+
+			savedViewsMu.Lock()
+			defer savedViewsMu.Unlock()
+			doc, err := sharedDoc(a)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			for _, f := range savedViewFields {
+				if views := lists[f.list]; views != nil {
+					doc[f.field], _ = json.Marshal(*views)
+				}
+			}
+			value, _ := json.Marshal(doc)
+			// The web's own write, so both keep one document.
+			if err := a.SetUIState(store.UIStateKey, string(value)); err != nil {
+				code := http.StatusBadRequest
+				if errors.Is(err, store.ErrUIStateTooBig) {
+					code = http.StatusRequestEntityTooLarge
+				}
+				http.Error(w, err.Error(), code)
+				return
+			}
+			writeSavedViews(w, doc)
 		})
 }
