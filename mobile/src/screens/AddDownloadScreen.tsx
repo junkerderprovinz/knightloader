@@ -73,7 +73,13 @@ export default function AddDownloadScreen({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: c.bg }]}>
+    // It scrolls once a torrent's files or a video's choices open below the
+    // field, so the button that adds stays within reach.
+    <ScrollView
+      style={{ flex: 1, backgroundColor: c.bg }}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* How the field wants its links is an explanation, so it hangs off an
           (i) beside the title rather than standing under it as a paragraph
           (GlimStone rule 8). */}
@@ -118,7 +124,7 @@ export default function AddDownloadScreen({
           onPress={submit}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -247,11 +253,12 @@ export function AddOptionsSection({
 // Colours and radii are applied inline from the resolved tokens rather than
 // baked in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, paddingTop: 56 },
+  container: { flexGrow: 1, padding: 24, paddingTop: 56 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   title: { fontSize: TYPE.status, fontWeight: '600', flexShrink: 1 },
   textArea: {
     flex: 1,
+    minHeight: 160,
     padding: 14,
     fontSize: TYPE.body,
   },

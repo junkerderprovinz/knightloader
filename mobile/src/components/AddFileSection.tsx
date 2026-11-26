@@ -187,10 +187,9 @@ export function AddFileSection({
               </View>
             ))}
           </ScrollView>
-          <View style={styles.actions}>
+          <View style={styles.confirm}>
             <GlimButton
               tone="quiet"
-              grow
               label={t('addDownload.cancel')}
               icon={(ink) => <Cross color={ink} />}
               disabled={busy}
@@ -198,7 +197,6 @@ export function AddFileSection({
             />
             <GlimButton
               hue={1}
-              grow
               label={busy ? t('addFile.adding') : t('addFile.treeAdd')}
               icon={(ink) => <Plus color={ink} />}
               busy={busy}
@@ -233,6 +231,8 @@ const styles = StyleSheet.create({
   name: { fontSize: TYPE.body, fontWeight: '600' },
   badge: { fontSize: TYPE.meta, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   actions: { flexDirection: 'row', gap: 10 },
+  // One above the other: the adding label is too long to share a row.
+  confirm: { gap: 10 },
   files: { maxHeight: 240 },
   file: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
   fileText: { flex: 1, minWidth: 0, gap: 2 },
