@@ -719,6 +719,9 @@ jobs:
       - name: Row and package words
         run: node check-task-state.mjs
 
+      - name: Search, filters and limits
+        run: node check-narrowing.mjs
+
       - name: Play buttons
         run: node check-play.mjs
 
