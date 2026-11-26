@@ -22,12 +22,7 @@ import (
 // on the same computer would, and returns the port.
 func otherKnightLoader(t *testing.T, name, instance string) int {
 	t.Helper()
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	port := ln.Addr().(*net.TCPAddr).Port
-	ln.Close()
+	port := freeLoopbackPort(t)
 	l := cnl.NewListener(nil, port)
 	l.SetIdentity(func() cnl.Identity { return cnl.Identity{Name: name, Instance: instance, Kind: "desktop"} })
 	if err := l.Start(); err != nil {
@@ -160,12 +155,7 @@ func TestATakeOverFromAKnightLoaderOutsideTheGroupIsRefused(t *testing.T) {
 }
 
 func TestAFreePortIsTakenOverAtOnce(t *testing.T) {
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	port := ln.Addr().(*net.TCPAddr).Port
-	ln.Close()
+	port := freeLoopbackPort(t)
 	a := testApp(t)
 	a.CnL = cnl.NewListener(a, port)
 	t.Cleanup(a.CnL.Stop)
@@ -198,12 +188,7 @@ func TestReleaseLetsGoOfThePortAndTheRefusalCarriesItsCode(t *testing.T) {
 }
 
 func TestReleaseClosesThisListener(t *testing.T) {
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	port := ln.Addr().(*net.TCPAddr).Port
-	ln.Close()
+	port := freeLoopbackPort(t)
 	a := testApp(t)
 	a.CnL = cnl.NewListener(a, port)
 	t.Cleanup(a.CnL.Stop)
