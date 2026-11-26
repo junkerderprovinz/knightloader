@@ -243,6 +243,7 @@ export const et: Dict = {
   'video.quality': 'Kvaliteet',
   'video.audioFormat': 'Helivorming',
   'video.audioBitrate': 'Heli bitikiirus',
+  'video.convertTo': 'Teisenda vormingusse',
   'settings.aboutTitle': 'Teave KnightLoaderi kohta',
   'settings.aboutBody': 'Üks rüütel, üks ristisõda: korralikud avatud lähtekoodiga tööriistad, mida sellisel kujul, nagu tahtsin, ei olnud, ehitatud seni, kuni midagi puudu ei ole. Kõik tasuta, ilma kontodeta, ilma reklaamideta ja ilma tasuliste tasemeteta. Rakendus ise ei kogu midagi ja miski loetav ei lahku kunagi sinu enda müüride vahelt. Sepistatud õhtuti ja nädalavahetustel, südame ja kangekaelsusega.',
   'settings.accentReset': 'Vaikimisi',

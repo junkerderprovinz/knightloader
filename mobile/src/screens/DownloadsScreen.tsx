@@ -419,6 +419,7 @@ export default function DownloadsScreen({
           }
         }}
         onSave={saving.save}
+        onSaveFile={saving.saveFile}
         onSetEnabled={async (links, enabled) => {
           setStartError('');
           try {

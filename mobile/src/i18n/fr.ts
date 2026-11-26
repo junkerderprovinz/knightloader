@@ -243,6 +243,7 @@ export const fr: Dict = {
   'video.quality': 'Qualité',
   'video.audioFormat': 'Format audio',
   'video.audioBitrate': 'Débit audio',
+  'video.convertTo': 'Convertir en',
   'settings.aboutTitle': 'À propos de KnightLoader',
   'settings.aboutBody': "Un seul chevalier, une croisade : des outils open source soignés qui n'existaient pas sous la forme que je voulais, construits jusqu'à ce que plus rien ne manque. Tout est gratuit, sans comptes, sans publicité et sans formule payante. L'appli elle-même ne collecte rien, et rien de lisible ne quitte jamais tes propres murs. Forgé le soir et le week-end, avec du cœur et de l'entêtement.",
   'settings.accentReset': 'Par défaut',

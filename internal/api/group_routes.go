@@ -40,9 +40,11 @@ var groupRoutes = map[string]bool{
 	"/api/fortress/v1/log":    true,
 
 	// Adding links. A folder outside the download folders is refused below.
-	// The extension's video menu first asks what a video offers.
-	"POST /api/links":     true,
-	"GET /api/ytdlp/link": true,
+	// The extension's video menu first asks what a video offers, and the
+	// phone what an audio row can be converted to.
+	"POST /api/links":            true,
+	"GET /api/ytdlp/link":        true,
+	"GET /api/ytdlp/conversions": true,
 
 	// The list and what the rows do. Showing a member's downloads without
 	// being able to stop them would be half a connection.

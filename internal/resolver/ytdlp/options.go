@@ -354,17 +354,19 @@ func (p HosterPreset) HasVariant(v Variant) bool {
 // empty Quality or AudioFormat keeps the preset's, and an empty
 // ThumbnailFormat takes the picture as the host serves it.
 type LinkChoice struct {
-	Variants        []Variant `json:"variants"`
-	Quality         Quality   `json:"quality"`
-	VideoTrack      string    `json:"videoTrack"`
-	AudioFormat     string    `json:"audioFormat"`
-	AudioTrack      string    `json:"audioTrack"`
-	AudioLang       string    `json:"audioLang"`
-	SubtitleLangs   []string  `json:"subtitleLangs"`
-	SubtitleAuto    bool      `json:"subtitleAuto"`
-	SubtitleFormat  string    `json:"subtitleFormat"`
-	ThumbnailFormat string    `json:"thumbnailFormat"`
-	VideoConvert    string    `json:"videoConvert"`
+	Variants    []Variant `json:"variants"`
+	Quality     Quality   `json:"quality"`
+	VideoTrack  string    `json:"videoTrack"`
+	AudioFormat string    `json:"audioFormat"`
+	// AudioBitrate is what AudioFormat is converted at, "" for the host's.
+	AudioBitrate    string   `json:"audioBitrate"`
+	AudioTrack      string   `json:"audioTrack"`
+	AudioLang       string   `json:"audioLang"`
+	SubtitleLangs   []string `json:"subtitleLangs"`
+	SubtitleAuto    bool     `json:"subtitleAuto"`
+	SubtitleFormat  string   `json:"subtitleFormat"`
+	ThumbnailFormat string   `json:"thumbnailFormat"`
+	VideoConvert    string   `json:"videoConvert"`
 }
 
 // ConvertHEVC is the one conversion a video row offers: its video encoded
@@ -414,7 +416,7 @@ func (c LinkChoice) Valid() bool {
 	if _, capped := ResCap(c.Quality); c.Quality != "" && c.Quality != QualityBest && !capped {
 		return false
 	}
-	if c.AudioFormat != "" && !validAudioFormat(c.AudioFormat) {
+	if (c.AudioFormat != "" && !validAudioFormat(c.AudioFormat)) || !validAudioBitrate(c.AudioBitrate) {
 		return false
 	}
 	if (c.VideoTrack != "" && !IsVideoTrack(c.VideoTrack)) || (c.AudioTrack != "" && !IsAudioTrack(c.AudioTrack)) {
@@ -458,7 +460,8 @@ func FormatChoice(format string) (LinkChoice, bool) {
 }
 
 // ForChoice is the preset for one link that arrived with a choice of its own.
-// The container and the audio bitrate stay the host's.
+// The container stays the host's, and so does the audio bitrate unless the
+// choice names one.
 func (p HosterPreset) ForChoice(c LinkChoice) HosterPreset {
 	p.Variants = c.Variants
 	if c.Quality != "" {
@@ -466,6 +469,9 @@ func (p HosterPreset) ForChoice(c LinkChoice) HosterPreset {
 	}
 	if c.AudioFormat != "" {
 		p.AudioFormat = c.AudioFormat
+	}
+	if c.AudioBitrate != "" {
+		p.AudioBitrate = c.AudioBitrate
 	}
 	return p.Sanitize()
 }

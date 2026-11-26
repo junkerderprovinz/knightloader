@@ -243,6 +243,7 @@ export const pl: Dict = {
   'video.quality': 'Jakość',
   'video.audioFormat': 'Format audio',
   'video.audioBitrate': 'Przepływność audio',
+  'video.convertTo': 'Konwertuj na',
   'settings.aboutTitle': 'O KnightLoaderze',
   'settings.aboutBody': 'Jeden rycerz, jedna krucjata: dopracowane narzędzia open source, których nie było w takiej postaci, jakiej chciałem, budowane, aż niczego nie zabraknie. Wszystko za darmo, bez kont, bez reklam i bez płatnych wersji. Sama aplikacja niczego nie zbiera i nic czytelnego nigdy nie opuszcza twoich własnych murów. Kute wieczorami i w weekendy, z sercem i uporem.',
   'settings.accentReset': 'Domyślny',

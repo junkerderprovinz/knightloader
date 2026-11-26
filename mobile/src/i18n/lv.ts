@@ -243,6 +243,7 @@ export const lv: Dict = {
   'video.quality': 'Kvalitāte',
   'video.audioFormat': 'Audio formāts',
   'video.audioBitrate': 'Audio bitu ātrums',
+  'video.convertTo': 'Pārveidot uz',
   'settings.aboutTitle': 'Par KnightLoader',
   'settings.aboutBody': 'Viens bruņinieks, viens karagājiens: glīti atvērtā koda rīki, kuru tādā veidā, kādu es gribēju, nebija, un tie tiek būvēti, līdz nekā netrūkst. Viss bez maksas, bez kontiem, bez reklāmām un bez maksas līmeņiem. Pati lietotne neko nevāc, un nekas lasāms nekad neatstāj tavus paša mūrus. Kalts vakaros un nedēļas nogalēs, ar sirdi un spītību.',
   'settings.accentReset': 'Noklusējums',

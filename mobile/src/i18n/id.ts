@@ -243,6 +243,7 @@ export const id: Dict = {
   'video.quality': 'Kualitas',
   'video.audioFormat': 'Format audio',
   'video.audioBitrate': 'Bitrate audio',
+  'video.convertTo': 'Ubah ke',
   'settings.aboutTitle': 'Tentang KnightLoader',
   'settings.aboutBody': 'Satu ksatria, satu perjalanan: perkakas sumber terbuka yang rapi, yang tidak ada dalam bentuk yang saya inginkan, dibangun sampai tidak ada yang kurang. Semuanya gratis, tanpa akun, tanpa iklan dan tanpa tingkatan berbayar. Aplikasinya sendiri tidak mengumpulkan apa pun, dan tidak ada yang terbaca pernah meninggalkan tembokmu sendiri. Ditempa pada malam hari dan akhir pekan, dengan hati dan kekeraskepalaan.',
   'settings.accentReset': 'Bawaan',

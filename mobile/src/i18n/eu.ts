@@ -243,6 +243,7 @@ export const eu: Dict = {
   'video.quality': 'Kalitatea',
   'video.audioFormat': 'Audio formatua',
   'video.audioBitrate': 'Audioaren bit-emaria',
+  'video.convertTo': 'Bihurtu hona',
   'settings.aboutTitle': 'KnightLoader-i buruz',
   'settings.aboutBody': 'Zaldun bakarra, gurutzada bakarra: nahi nuen moduan existitzen ez ziren kode irekiko tresna dotoreak, ezer falta ez den arte eraikiak. Dena doan, konturik gabe, iragarkirik gabe eta ordainpeko mailarik gabe. Aplikazioak berak ez du ezer biltzen, eta irakurgai denik ez da inoiz zure harresietatik ateratzen. Arratsaldeetan eta asteburuetan forjatua, bihotzez eta setaz.',
   'settings.accentReset': 'Lehenetsia',

@@ -35,6 +35,19 @@ expect('a song offers audio alone', v.partsOf({ audio: true, audioTracks: ['opus
 expect('an answer with nothing in it offers no choice', v.offersChoice({ qualities: [], videoTracks: [], audioTracks: [] }), false);
 expect('the video formats', v.formatsOf(menus, 'video'), ['best', 'webm vp9', 'mp4 avc1']);
 expect('the audio formats', v.formatsOf(menus, 'audio'), ['best', 'opus', 'aac']);
+const converting = { ...menus, conversions: { audioFormats: ['best', 'aac', 'mp3', 'opus', 'flac'], audioBitrates: ['', '128', '160', '192'] } };
+expect('the formats the source lacks follow its own', v.formatsOf(converting, 'audio'), ['best', 'opus', 'aac', 'mp3', 'flac']);
+expect('they are the conversions', v.convertedFormats(converting), ['mp3', 'flac']);
+expect('a conversion offers no more than the best track has', v.qualitiesOf(converting, 'audio', 'mp3'), ['', '128', '160']);
+expect('a conversion goes with its bitrate', v.choiceOf(converting, { part: 'audio', format: 'mp3', quality: '160' }), {
+  variants: ['audio'],
+  audioFormat: 'mp3',
+  audioBitrate: '160',
+});
+expect('a conversion at its best goes as the format', v.choiceOf(converting, { part: 'audio', format: 'mp3', quality: '' }), {
+  variants: ['audio'],
+  audioFormat: 'mp3',
+});
 expect('Auto offers the caps', v.qualitiesOf(menus, 'video', 'best'), ['best', '2160p', '1080p', '720p']);
 expect('a format offers its own tracks', v.qualitiesOf(menus, 'video', 'webm vp9'), ['2160p60hdr', '1080p60']);
 expect('an audio format offers its bitrates', v.qualitiesOf(menus, 'audio', 'opus'), ['', '160', '70']);
@@ -50,19 +63,19 @@ expect('another format drops to the nearest quality below', v.withFormat(menus, 
 });
 expect('another format with nothing below takes its first', v.withFormat(menus, { ...capped, quality: '480p' }, 'webm vp9').quality, '2160p60hdr');
 
-expect('Auto sends best', v.choiceOf({ part: 'video', format: 'best', quality: 'best' }), { variants: ['video'], quality: 'best' });
-expect('a cap goes as the quality', v.choiceOf(capped), { variants: ['video'], quality: '1080p' });
-expect('a track goes as the track', v.choiceOf({ part: 'video', format: 'webm vp9', quality: '1080p60' }), {
+expect('Auto sends best', v.choiceOf(menus, { part: 'video', format: 'best', quality: 'best' }), { variants: ['video'], quality: 'best' });
+expect('a cap goes as the quality', v.choiceOf(menus, capped), { variants: ['video'], quality: '1080p' });
+expect('a track goes as the track', v.choiceOf(menus, { part: 'video', format: 'webm vp9', quality: '1080p60' }), {
   variants: ['video'],
   quality: 'best',
   videoTrack: '1080p60 webm vp9',
 });
-expect('audio on Auto', v.choiceOf({ part: 'audio', format: 'best', quality: '' }), { variants: ['audio'] });
-expect('an audio format at its best', v.choiceOf({ part: 'audio', format: 'opus', quality: '' }), {
+expect('audio on Auto', v.choiceOf(menus, { part: 'audio', format: 'best', quality: '' }), { variants: ['audio'] });
+expect('an audio format at its best', v.choiceOf(menus, { part: 'audio', format: 'opus', quality: '' }), {
   variants: ['audio'],
   audioFormat: 'opus',
 });
-expect('an audio track', v.choiceOf({ part: 'audio', format: 'opus', quality: '160' }), {
+expect('an audio track', v.choiceOf(menus, { part: 'audio', format: 'opus', quality: '160' }), {
   variants: ['audio'],
   audioTrack: 'opus 160k',
 });
@@ -132,6 +145,16 @@ const { VideoChoice, VideoPicker } = compile(join(here, 'src', 'components', 'Vi
   expect('audio on Auto has no bitrate to pick', wells().length, 2);
   expect('switching to audio sends audio', choices.at(-1), { variants: ['audio'] });
   picked.unmount();
+
+  const convert = mount(() => VideoPicker({ menus: converting, onChoice }));
+  shown = await convert.settle();
+  wells()[0].props.onPick('audio');
+  shown = await convert.settle();
+  expect('a conversion reads as one', wells()[1].props.options.map((o) => o.label).slice(-2), [
+    'video.convertTo MP3',
+    'video.convertTo FLAC',
+  ]);
+  convert.unmount();
 
   answer = null;
   url = 'https://files.example/a.zip';

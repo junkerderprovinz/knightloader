@@ -1,6 +1,6 @@
 import { request } from './client';
 import type { ServerConnection, Task } from './types';
-import type { LinkChoice, LinkMenus } from './videoPick';
+import type { Conversions, LinkChoice, LinkMenus } from './videoPick';
 
 /**
  * What one video link offers, from a probe on the instance, or null for a
@@ -8,12 +8,17 @@ import type { LinkChoice, LinkMenus } from './videoPick';
  * other failure is thrown, so the caller can still add the link as it is.
  */
 export async function fetchLinkMenus(conn: ServerConnection, url: string, base = '/api'): Promise<LinkMenus | null> {
+  // An instance from before the conversions route offers the source's own
+  // formats alone.
+  const conversions = request<Conversions>(conn, base, '/ytdlp/conversions').catch(() => undefined);
+  let menus: LinkMenus;
   try {
-    return await request<LinkMenus>(conn, base, `/ytdlp/link?url=${encodeURIComponent(url)}`);
+    menus = await request<LinkMenus>(conn, base, `/ytdlp/link?url=${encodeURIComponent(url)}`);
   } catch (e) {
     if ((e as { status?: number }).status === 400) return null;
     throw e;
   }
+  return { ...menus, conversions: await conversions };
 }
 
 /** Adds one video link with the rows and qualities picked for it. */

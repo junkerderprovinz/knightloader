@@ -371,10 +371,11 @@ var routeScopes = map[string]apitoken.Scope{
 	"PUT /api/uistate": apitoken.ScopeAdmin,
 	"GET /api/ws":      apitoken.ScopeRead,
 
-	"GET /api/ytdlp/formats": apitoken.ScopeAdmin,
-	"GET /api/ytdlp/link":    apitoken.ScopeAdd,
-	"GET /api/ytdlp/preset":  apitoken.ScopeAdmin,
-	"POST /api/ytdlp/preset": apitoken.ScopeAdmin,
+	"GET /api/ytdlp/conversions": apitoken.ScopeAdd,
+	"GET /api/ytdlp/formats":     apitoken.ScopeAdmin,
+	"GET /api/ytdlp/link":        apitoken.ScopeAdd,
+	"GET /api/ytdlp/preset":      apitoken.ScopeAdmin,
+	"POST /api/ytdlp/preset":     apitoken.ScopeAdmin,
 }
 
 // sabnzbdScopes is the right each operation of the SABnzbd bridge needs. The

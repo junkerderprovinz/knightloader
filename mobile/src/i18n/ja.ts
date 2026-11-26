@@ -242,6 +242,7 @@ export const ja: Dict = {
   'video.quality': '画質',
   'video.audioFormat': '音声フォーマット',
   'video.audioBitrate': '音声ビットレート',
+  'video.convertTo': '変換先',
   'settings.aboutTitle': 'KnightLoader について',
   'settings.aboutBody': '騎士はひとり、遠征もひとつ。欲しかった形では存在しなかった、見栄えのするオープンソースの道具を、足りないものがなくなるまで作り続けています。すべて無料で、アカウントも、広告も、有料プランもありません。アプリ自体は何も収集せず、読めるものがあなたの城壁の外へ出ることは決してありません。夜と週末に、心と意地で鍛えました。',
   'settings.accentReset': '既定',

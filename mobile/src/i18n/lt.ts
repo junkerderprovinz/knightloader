@@ -243,6 +243,7 @@ export const lt: Dict = {
   'video.quality': 'Kokybė',
   'video.audioFormat': 'Garso formatas',
   'video.audioBitrate': 'Garso pralaidumas',
+  'video.convertTo': 'Konvertuoti į',
   'settings.aboutTitle': 'Apie KnightLoader',
   'settings.aboutBody': 'Vienas riteris, vienas žygis: tvarkingi atvirojo kodo įrankiai, kurių tokios formos, kokios norėjau, nebuvo, statomi tol, kol nieko netrūks. Viskas nemokama, be paskyrų, be reklamų ir be mokamų lygių. Pati programėlė nieko nerenka, ir niekas skaitomo niekada neišeina už tavo paties sienų. Kalta vakarais ir savaitgaliais, su širdimi ir užsispyrimu.',
   'settings.accentReset': 'Numatytoji',

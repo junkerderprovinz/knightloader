@@ -243,6 +243,7 @@ export const nl: Dict = {
   'video.quality': 'Kwaliteit',
   'video.audioFormat': 'Audioformaat',
   'video.audioBitrate': 'Audiobitrate',
+  'video.convertTo': 'Omzetten naar',
   'settings.aboutTitle': 'Over KnightLoader',
   'settings.aboutBody': 'Eén ridder, één kruistocht: verzorgde opensourcetools die niet bestonden in de vorm die ik wilde, gebouwd tot er niets meer ontbreekt. Alles gratis, zonder accounts, zonder advertenties en zonder betaalde versie. De app zelf verzamelt niets, en niets leesbaars verlaat ooit je eigen muren. Gesmeed op avonden en weekenden, met hart en koppigheid.',
   'settings.accentReset': 'Standaard',

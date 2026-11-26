@@ -143,7 +143,9 @@ different ones.
 
 ## Saving a file and choosing a video's format
 
-A finished download of one file can be saved onto the phone. The folder comes
+A finished download can be saved onto the phone: its file, every file of a
+torrent of several in a folder of the torrent's name, or one file from the
+torrent's list. The folder comes
 from Android's own picker (the Storage Access Framework, through
 `expo-file-system`), which grants the app that folder alone, so the app asks
 for no storage permission. The file comes through `GET /api/tasks/{id}/range`
@@ -154,8 +156,11 @@ stopped or fails removes what it wrote.
 
 A single video link, typed or shared, is first shown to the instance with
 `GET /api/ytdlp/link`, and the app offers what the web's pickers offer a
-yt-dlp row: video or audio, a format, and a quality or bitrate within it. A
-link the instance does not give yt-dlp is added as it is.
+yt-dlp row: video or audio, a format, and a quality or bitrate within it. The
+audio formats the source has no track in come from `GET /api/ytdlp/conversions`,
+which answers only the formats and bitrates the web reads from `/api/options`,
+and are offered as conversions. A link the instance does not give yt-dlp is
+added as it is.
 
 ## Live updates
 
@@ -270,7 +275,9 @@ look after, and when a download has just finished) and announces an archive
 that finished or failed unpacking, and once a minute it reads
 `/api/accounts/paused`, which names only the service, the hoster and the end
 of each bench, never the account, to say when an account stops being used and
-when it is back. Each kind has its own switch and its own Android channel. A failure the instance retries by
+when it is back. It also lists a hash of every account that is switched on, so
+a bench that disappears because its account was switched off or removed is not
+taken for an account back in use. Each kind has its own switch and its own Android channel. A failure the instance retries by
 itself is no news yet. `/api/tasks/watch` sends each task's state without its
 progress, and given the tag of its last answer it sends only the tag until
 something changes, so a long history costs a few bytes a look. An instance from

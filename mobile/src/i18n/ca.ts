@@ -243,6 +243,7 @@ export const ca: Dict = {
   'video.quality': 'Qualitat',
   'video.audioFormat': 'Format d’àudio',
   'video.audioBitrate': 'Taxa de bits d’àudio',
+  'video.convertTo': 'Converteix a',
   'settings.aboutTitle': 'Quant a KnightLoader',
   'settings.aboutBody': 'Un sol cavaller, una croada: eines de codi obert ben fetes que no existien en la forma que jo volia, construïdes fins que no hi falti res. Tot gratuït, sense comptes, sense anuncis i sense plans de pagament. L’aplicació mateixa no recull res, i res llegible no surt mai de les teves pròpies muralles. Forjat als vespres i els caps de setmana, amb cor i tossuderia.',
   'settings.accentReset': 'Per defecte',

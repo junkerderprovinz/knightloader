@@ -243,6 +243,7 @@ export const ms: Dict = {
   'video.quality': 'Kualiti',
   'video.audioFormat': 'Format audio',
   'video.audioBitrate': 'Kadar bit audio',
+  'video.convertTo': 'Tukar kepada',
   'settings.aboutTitle': 'Perihal KnightLoader',
   'settings.aboutBody': 'Satu kesateria, satu ekspedisi: alat sumber terbuka yang kemas, yang tidak wujud dalam bentuk yang saya mahukan, dibina sehingga tiada apa yang kurang. Semuanya percuma, tanpa akaun, tanpa iklan dan tanpa peringkat berbayar. Aplikasi itu sendiri tidak mengumpul apa-apa, dan tiada apa yang boleh dibaca pernah meninggalkan tembokmu sendiri. Ditempa pada waktu malam dan hujung minggu, dengan hati dan sifat degil.',
   'settings.accentReset': 'Lalai',

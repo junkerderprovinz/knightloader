@@ -244,7 +244,7 @@ const s = {
   fetchWatch: async () => ({ tag: '', tasks: [] }),
   fetchTasks: async () => [],
   jobs: () => [],
-  benches: () => [],
+  benches: () => ({ benches: [], on: [] }),
   ApiError: class extends Error {
     constructor(message, status) {
       super(message);
@@ -560,12 +560,17 @@ const aa = await import(pathToFileURL(join(here, 'src', 'watch', 'archiveAccount
   expect('the first read of the unpackings finds nothing new', aa.compareJobs(null, [job('j1', 'done')]), { unpacked: [], failed: [] });
   expect('a job without a name goes by its package', aa.jobName({ id: 'x', status: 'done', package: 'Pkg' }), 'Pkg');
 
-  const p = (id, host) => ({ id, service: 'AllDebrid', until: '2030-01-01T00:00:00Z', ...(host ? { host } : {}) });
-  const benches = aa.benchLookOf([p('b1')]);
-  const moved = aa.compareBenches(benches, [p('b2', 'rapidgator.net')]);
+  const p = (id, account, host) => ({ id, account, service: 'AllDebrid', until: '2030-01-01T00:00:00Z', ...(host ? { host } : {}) });
+  const benches = aa.benchLookOf({ benches: [p('b1', 'a1')], on: ['a1', 'a2'] });
+  const moved = aa.compareBenches(benches, { benches: [p('b2', 'a2', 'rapidgator.net')], on: ['a1', 'a2'] });
   expect('a new bench is news', moved.paused.map((x) => x.id), ['b2']);
   expect('a bench that ended is news', moved.back.map((x) => x.id), ['b1']);
-  expect('the first read of the benches finds nothing new', aa.compareBenches(null, [p('b1')]), { paused: [], back: [] });
+  const off = aa.compareBenches(benches, { benches: [], on: ['a2'] });
+  expect('a benched account switched off is not back in use', off, { paused: [], back: [] });
+  expect('the first read of the benches finds nothing new', aa.compareBenches(null, { benches: [p('b1', 'a1')], on: ['a1'] }), {
+    paused: [],
+    back: [],
+  });
   expect('the benches are read once a minute', [aa.benchesDue(0, aa.BENCH_MS - 1), aa.benchesDue(0, aa.BENCH_MS)], [false, true]);
 }
 
@@ -576,7 +581,7 @@ const aa = await import(pathToFileURL(join(here, 'src', 'watch', 'archiveAccount
   let jobReads = 0;
   let benchReads = 0;
   let jobs = [{ id: 'j1', status: 'running', name: 'film.rar' }];
-  let benches = [{ id: 'b1', service: 'AllDebrid', until: '2030-01-01T00:00:00Z' }];
+  let benches = { benches: [{ id: 'b1', account: 'a1', service: 'AllDebrid', until: '2030-01-01T00:00:00Z' }], on: ['a1', 'a2', 'a3'] };
   s.jobs = () => (jobReads++, jobs);
   s.benches = () => (benchReads++, benches);
   mock.timers.enable({ apis: ['Date'], now: 1_000_000 });
@@ -584,7 +589,10 @@ const aa = await import(pathToFileURL(join(here, 'src', 'watch', 'archiveAccount
   await watch.watchPass();
   expect('the first look announces no unpacking and no bench', notices(), []);
   jobs = [{ id: 'j1', status: 'done', name: 'film.rar' }];
-  benches = [{ id: 'b2', service: 'Real-Debrid', host: 'rapidgator.net', volume: true, until: '2030-01-01T00:00:00Z' }];
+  benches = {
+    benches: [{ id: 'b2', account: 'a2', service: 'Real-Debrid', host: 'rapidgator.net', volume: true, until: '2030-01-01T00:00:00Z' }],
+    on: ['a1', 'a2', 'a3'],
+  };
   answer([task('a', 'done')]);
   await watch.watchPass();
   const more = () => notices().filter((c) => c.notify !== 'finished').map((c) => [c.notify, c.text]);
@@ -602,6 +610,10 @@ const aa = await import(pathToFileURL(join(here, 'src', 'watch', 'archiveAccount
   ]);
   const ids = notices().filter((c) => c.notify.startsWith('account')).map((c) => c.id);
   expect('a bench and its end share one notice', ids[1] === w.noticeId('account', s.conns[0].id, 'b1'), true);
+  benches = { benches: [], on: ['a1', 'a3'] };
+  mock.timers.tick(aa.BENCH_MS);
+  await watch.watchPass();
+  expect('a benched account switched off is not announced as back', more().length, 3);
   mock.timers.reset();
 
   fresh();
@@ -629,7 +641,7 @@ const aa = await import(pathToFileURL(join(here, 'src', 'watch', 'archiveAccount
   expect('an instance from before the routes is asked once', jobReads, 1);
   expect('and its downloads are still announced', notices().map((c) => c.notify), ['failed']);
   s.jobs = () => [];
-  s.benches = () => [];
+  s.benches = () => ({ benches: [], on: [] });
 }
 
 // Last, since a pass that never ends holds up every pass after it.

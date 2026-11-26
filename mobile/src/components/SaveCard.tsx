@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { errorText } from '../api/client';
-import { SaveStopped, saveName } from '../api/saveCopy';
-import { saveTask } from '../api/saveFile';
+import { SaveStopped } from '../api/saveCopy';
+import { saveTask, saveTorrentFile, type SaveProgress } from '../api/saveFile';
 import { fmtBytes } from '../api/stats';
-import type { ServerConnection, Task } from '../api/types';
+import type { ServerConnection, Task, TorrentFileView } from '../api/types';
 import { useT } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
@@ -26,9 +26,16 @@ const SAVED_MS = 6000;
 /**
  * useSaveToPhone is what a row's Save badge does, and the card above the list
  * that follows the copy: how far it has got, a way to stop it, and how it
- * ended. One file at a time, so a press while a copy runs is let go.
+ * ended. One save at a time, so a press while a copy runs is let go.
  */
-export function useSaveToPhone(conn: ServerConnection, base: string): { save: (task: Task) => void; card: ReactNode } {
+export function useSaveToPhone(
+  conn: ServerConnection,
+  base: string,
+): {
+  save: (task: Task) => void;
+  saveFile: (task: Task, files: TorrentFileView[], index: number) => void;
+  card: ReactNode;
+} {
   const { t } = useT();
   const [state, setState] = useState<State>({ kind: 'idle' });
   const stop = useRef<AbortController | null>(null);
@@ -42,14 +49,18 @@ export function useSaveToPhone(conn: ServerConnection, base: string): { save: (t
   // A screen that goes away takes its copy with it, half a file included.
   useEffect(() => () => stop.current?.abort(), []);
 
-  const save = useCallback(
-    (task: Task) => {
+  const run = useCallback(
+    (copy: (signal: AbortSignal, onProgress: (p: SaveProgress) => void) => Promise<boolean>) => {
       if (stop.current) return;
       const abort = new AbortController();
       stop.current = abort;
+      let name = '';
       setState({ kind: 'idle' });
-      saveTask(conn, task, t('task.save'), abort.signal, (p) => setState({ kind: 'saving', ...p }), base)
-        .then((saved) => setState(saved ? { kind: 'saved', name: saveName(task) } : { kind: 'idle' }))
+      copy(abort.signal, (p) => {
+        name = p.name;
+        setState({ kind: 'saving', ...p });
+      })
+        .then((saved) => setState(saved ? { kind: 'saved', name } : { kind: 'idle' }))
         .catch((e: unknown) =>
           setState(e instanceof SaveStopped ? { kind: 'idle' } : { kind: 'failed', message: errorText(t, e) }),
         )
@@ -57,10 +68,19 @@ export function useSaveToPhone(conn: ServerConnection, base: string): { save: (t
           stop.current = null;
         });
     },
-    [conn, base, t],
+    [t],
+  );
+  const save = useCallback(
+    (task: Task) => run((signal, onProgress) => saveTask(conn, task, t('task.save'), signal, onProgress, base)),
+    [run, conn, base, t],
+  );
+  const saveFile = useCallback(
+    (task: Task, files: TorrentFileView[], index: number) =>
+      run((signal, onProgress) => saveTorrentFile(conn, task, files, index, t('task.save'), signal, onProgress, base)),
+    [run, conn, base, t],
   );
 
-  return { save, card: <SaveCard state={state} onStop={() => stop.current?.abort()} /> };
+  return { save, saveFile, card: <SaveCard state={state} onStop={() => stop.current?.abort()} /> };
 }
 
 function SaveCard({ state, onStop }: { state: State; onStop: () => void }) {

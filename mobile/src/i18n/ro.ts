@@ -243,6 +243,7 @@ export const ro: Dict = {
   'video.quality': 'Calitate',
   'video.audioFormat': 'Format audio',
   'video.audioBitrate': 'Bitrate audio',
+  'video.convertTo': 'Convertește în',
   'settings.aboutTitle': 'Despre KnightLoader',
   'settings.aboutBody': 'Un singur cavaler, o cruciadă: unelte open source îngrijite, care nu existau în forma pe care o voiam, construite până nu mai lipsește nimic. Totul gratuit, fără conturi, fără reclame și fără abonamente. Aplicația însăși nu colectează nimic, iar nimic lizibil nu părăsește vreodată zidurile tale. Făurit seara și în weekend, cu inimă și încăpățânare.',
   'settings.accentReset': 'Implicit',

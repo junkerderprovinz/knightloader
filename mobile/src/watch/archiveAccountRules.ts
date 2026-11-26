@@ -17,6 +17,8 @@ export interface WatchJob {
 export interface PausedAccount {
   /** The same for the same bench from one read to the next. */
   id: string;
+  /** The account's own hash, as PausedAccounts.on lists it. */
+  account: string;
   service: string;
   /** The hoster the bench covers, absent for every hoster. */
   host?: string;
@@ -24,6 +26,13 @@ export interface PausedAccount {
   volume?: boolean;
   /** RFC3339. */
   until: string;
+}
+
+/** What GET /api/accounts/paused answers: the benches, and every account
+ *  that is switched on. */
+export interface PausedAccounts {
+  benches: PausedAccount[];
+  on: string[];
 }
 
 /** Each unpacking's status at the last read of the list, by id. */
@@ -76,20 +85,25 @@ export const jobName = (j: WatchJob): string => j.name || j.package || '';
 /** The benches at the last read, by id. */
 export type BenchLook = Record<string, PausedAccount>;
 
-export const benchLookOf = (list: PausedAccount[]): BenchLook => Object.fromEntries(list.map((p) => [p.id, p]));
+export const benchLookOf = (read: PausedAccounts): BenchLook => Object.fromEntries(read.benches.map((p) => [p.id, p]));
 
 export interface BenchNews {
   paused: PausedAccount[];
   back: PausedAccount[];
 }
 
-/** The benches that began and the ones that ended since the last read. */
-export function compareBenches(before: BenchLook | null, list: PausedAccount[]): BenchNews {
+/**
+ * The benches that began and the ones that ended since the last read. A bench
+ * that is gone because its account was switched off or removed did not end:
+ * that account is not in use again, so only one still switched on is back.
+ */
+export function compareBenches(before: BenchLook | null, read: PausedAccounts): BenchNews {
   if (!before) return { paused: [], back: [] };
-  const still = new Set(list.map((p) => p.id));
+  const still = new Set(read.benches.map((p) => p.id));
+  const on = new Set(read.on);
   return {
-    paused: list.filter((p) => !before[p.id]),
-    back: Object.values(before).filter((p) => !still.has(p.id)),
+    paused: read.benches.filter((p) => !before[p.id]),
+    back: Object.values(before).filter((p) => !still.has(p.id) && on.has(p.account)),
   };
 }
 

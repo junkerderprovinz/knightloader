@@ -95,6 +95,7 @@ export default function PackageList({
   onSeeding,
   onPlay,
   onSave,
+  onSaveFile,
   sections = [],
   unpacking,
 }: {
@@ -143,8 +144,10 @@ export default function PackageList({
   /** Opens a link's file in a player app. The row offers it only for audio
    *  and video with something to play (mediaKind, hasSomethingToPlay). */
   onPlay?: (task: Task) => void;
-  /** Copies a link's finished file onto this phone (canSave). */
+  /** Copies what a link downloaded onto this phone (canSave). */
   onSave?: (task: Task) => void;
+  /** Copies one file of a finished torrent, by its place in the list. */
+  onSaveFile?: (task: Task, files: TorrentFileView[], index: number) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -262,6 +265,11 @@ export default function PackageList({
                         onToggle={() => scharf || setFilesOpen((o) => ({ ...o, [r.task.id]: !o[r.task.id] }))}
                         files={fileLists[r.task.id]}
                         onFlip={(f) => scharf || void flipFile(r.task, f)}
+                        onSave={
+                          onSaveFile && fileLists[r.task.id]
+                            ? (i) => scharf || onSaveFile(r.task, fileLists[r.task.id], i)
+                            : undefined
+                        }
                         hue={hue}
                       />
                     )

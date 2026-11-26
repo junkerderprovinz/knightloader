@@ -243,6 +243,7 @@ export const pt: Dict = {
   'video.quality': 'Qualidade',
   'video.audioFormat': 'Formato de áudio',
   'video.audioBitrate': 'Taxa de bits do áudio',
+  'video.convertTo': 'Converter para',
   'settings.aboutTitle': 'Sobre o KnightLoader',
   'settings.aboutBody': 'Um único cavaleiro, uma cruzada: ferramentas de código aberto bem feitas que não existiam na forma que eu queria, construídas até não faltar nada. Tudo gratuito, sem contas, sem anúncios e sem planos pagos. A própria app não recolhe nada, e nada legível sai das tuas próprias muralhas. Forjado em noites e fins de semana, com coração e teimosia.',
   'settings.accentReset': 'Predefinição',

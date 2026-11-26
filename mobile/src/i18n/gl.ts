@@ -243,6 +243,7 @@ export const gl: Dict = {
   'video.quality': 'Calidade',
   'video.audioFormat': 'Formato de audio',
   'video.audioBitrate': 'Taxa de bits do audio',
+  'video.convertTo': 'Converter a',
   'settings.aboutTitle': 'Sobre KnightLoader',
   'settings.aboutBody': 'Un só cabaleiro, unha cruzada: ferramentas de código aberto ben feitas que non existían na forma que eu quería, construídas ata que non falte nada. Todo de balde, sen contas, sen anuncios e sen plans de pago. A app en si non recolle nada, e nada lexible sae nunca das túas propias murallas. Forxado polas noites e as fins de semana, con corazón e teimosía.',
   'settings.accentReset': 'Por defecto',

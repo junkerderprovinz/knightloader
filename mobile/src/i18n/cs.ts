@@ -243,6 +243,7 @@ export const cs: Dict = {
   'video.quality': 'Kvalita',
   'video.audioFormat': 'Formát zvuku',
   'video.audioBitrate': 'Datový tok zvuku',
+  'video.convertTo': 'Převést na',
   'settings.aboutTitle': 'O KnightLoaderu',
   'settings.aboutBody': 'Jeden rytíř, jedna výprava: pěkné open source nástroje, které v podobě, jakou jsem chtěl, neexistovaly, stavěné, dokud nic nechybí. Všechno zdarma, bez účtů, bez reklam a bez placených verzí. Aplikace sama nic nesbírá a nic čitelného nikdy neopustí tvoje vlastní zdi. Kováno po večerech a o víkendech, se srdcem a tvrdohlavostí.',
   'settings.accentReset': 'Výchozí',

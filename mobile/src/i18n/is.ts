@@ -243,6 +243,7 @@ export const is: Dict = {
   'video.quality': 'Gæði',
   'video.audioFormat': 'Hljóðsnið',
   'video.audioBitrate': 'Bitahraði hljóðs',
+  'video.convertTo': 'Umbreyta í',
   'settings.aboutTitle': 'Um KnightLoader',
   'settings.aboutBody': 'Einn riddari, ein krossferð: falleg opin verkfæri sem voru ekki til í þeirri mynd sem ég vildi, smíðuð þar til ekkert vantar. Allt ókeypis, án aðganga, án auglýsinga og án greiddra þrepa. Appið sjálft safnar engu og ekkert læsilegt fer nokkurn tíma út fyrir þína eigin múra. Smíðað á kvöldin og um helgar, með hjarta og þrjósku.',
   'settings.accentReset': 'Sjálfgefið',

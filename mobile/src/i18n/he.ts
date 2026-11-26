@@ -243,6 +243,7 @@ export const he: Dict = {
   'video.quality': 'איכות',
   'video.audioFormat': 'פורמט שמע',
   'video.audioBitrate': 'קצב סיביות לשמע',
+  'video.convertTo': 'המרה אל',
   'settings.aboutTitle': 'על KnightLoader',
   'settings.aboutBody': 'אביר אחד, מסע צלב אחד: כלים נאים בקוד פתוח שלא היו קיימים בצורה שרציתי, נבנים עד שלא חסר דבר. הכול בחינם, בלי חשבונות, בלי פרסומות ובלי מסלולים בתשלום. האפליקציה עצמה לא אוספת כלום, ושום דבר קריא לא עוזב אף פעם את החומות שלך. מחושל בערבים ובסופי שבוע, עם לב ועקשנות.',
   'settings.accentReset': 'ברירת מחדל',

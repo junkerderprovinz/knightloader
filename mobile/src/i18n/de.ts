@@ -372,6 +372,7 @@ export const de: Dict = {
   'video.quality': 'Qualität',
   'video.audioFormat': 'Audioformat',
   'video.audioBitrate': 'Audio-Bitrate',
+  'video.convertTo': 'Umwandeln in',
   'settings.aboutTitle': 'Über KnightLoader',
   'settings.aboutBody': 'Ein einzelner Ritter, ein Feldzug: ansehnliche quelloffene Werkzeuge, die es in der Form, die ich wollte, nicht gab, gebaut, bis nichts mehr fehlt. Alles kostenlos, ohne Konten, ohne Werbung, ohne Bezahlstufen. Die App selbst sammelt nichts, und nichts Lesbares verlässt je deine eigenen Mauern. An Abenden und Wochenenden geschmiedet, mit Herz und Dickkopf.',
   'settings.accentReset': 'Standard',

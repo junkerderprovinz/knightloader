@@ -243,6 +243,7 @@ export const vi: Dict = {
   'video.quality': 'Chất lượng',
   'video.audioFormat': 'Định dạng âm thanh',
   'video.audioBitrate': 'Bitrate âm thanh',
+  'video.convertTo': 'Chuyển sang',
   'settings.aboutTitle': 'Giới thiệu về KnightLoader',
   'settings.aboutBody': 'Một hiệp sĩ, một cuộc viễn chinh: những công cụ mã nguồn mở gọn đẹp vốn không tồn tại theo hình dạng tôi muốn, được xây cho đến khi không còn thiếu gì. Tất cả miễn phí, không tài khoản, không quảng cáo và không gói trả phí. Bản thân ứng dụng không thu thập gì, và không có gì đọc được rời khỏi bức tường của bạn. Được rèn vào buổi tối và cuối tuần, bằng trái tim và sự cứng đầu.',
   'settings.accentReset': 'Mặc định',

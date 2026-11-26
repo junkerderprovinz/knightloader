@@ -243,6 +243,7 @@ export const no: Dict = {
   'video.quality': 'Kvalitet',
   'video.audioFormat': 'Lydformat',
   'video.audioBitrate': 'Lydbitrate',
+  'video.convertTo': 'Konverter til',
   'settings.aboutTitle': 'Om KnightLoader',
   'settings.aboutBody': 'Én ridder, ett korstog: pene åpen kildekode-verktøy som ikke fantes i den formen jeg ville ha, bygget til ingenting mangler. Alt gratis, uten kontoer, uten reklame og uten betalte nivåer. Selve appen samler ikke inn noe, og ingenting lesbart forlater noen gang dine egne murer. Smidd på kvelder og helger, med hjerte og stahet.',
   'settings.accentReset': 'Standard',

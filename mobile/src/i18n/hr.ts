@@ -243,6 +243,7 @@ export const hr: Dict = {
   'video.quality': 'Kvaliteta',
   'video.audioFormat': 'Format zvuka',
   'video.audioBitrate': 'Bitrate zvuka',
+  'video.convertTo': 'Pretvori u',
   'settings.aboutTitle': 'O KnightLoaderu',
   'settings.aboutBody': 'Jedan vitez, jedan pohod: uredni alati otvorenog koda kojih u obliku kakav sam želio nije bilo, građeni dok ništa ne nedostaje. Sve besplatno, bez računa, bez reklama i bez plaćenih razina. Sama aplikacija ništa ne prikuplja i ništa čitljivo nikada ne napušta tvoje zidove. Kovano navečer i vikendima, sa srcem i tvrdoglavošću.',
   'settings.accentReset': 'Zadano',

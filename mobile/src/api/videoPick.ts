@@ -14,6 +14,16 @@ export interface LinkMenus {
   videoTracks?: string[];
   /** "opus 160k", highest bitrate first. */
   audioTracks?: string[];
+  /** What an audio row can be converted to (GET /api/ytdlp/conversions),
+   *  absent from an instance without that route. */
+  conversions?: Conversions;
+}
+
+export interface Conversions {
+  /** "best" and the formats, as the web's /api/options lists them. */
+  audioFormats: string[];
+  /** In kbit/s, "" for the best the encoder gives. */
+  audioBitrates: string[];
 }
 
 /** What POST /api/links takes as a link's rows and qualities (ytdlp.LinkChoice). */
@@ -22,6 +32,7 @@ export interface LinkChoice {
   quality?: string;
   videoTrack?: string;
   audioFormat?: string;
+  audioBitrate?: string;
   audioTrack?: string;
 }
 
@@ -67,9 +78,27 @@ export function partsOf(m: LinkMenus): Part[] {
 /** Whether there is anything to choose beyond Auto. */
 export const offersChoice = (m: LinkMenus): boolean => partsOf(m).length > 0;
 
-export function formatsOf(m: LinkMenus, part: Part): string[] {
+function ownFormats(m: LinkMenus, part: Part): string[] {
   const own = part === 'video' ? videoTracks(m).map((t) => t.format) : audioTracks(m).map((t) => t.format);
   return unique(['best', ...own]);
+}
+
+/** The audio formats the source has no track in, which yt-dlp converts to with ffmpeg. */
+export function convertedFormats(m: LinkMenus): string[] {
+  const own = ownFormats(m, 'audio');
+  return (m.conversions?.audioFormats ?? []).filter((f) => f !== 'best' && !own.includes(f));
+}
+
+/** A format's menu: the source's own, then for audio the ones it converts to, below them as on the web. */
+export function formatsOf(m: LinkMenus, part: Part): string[] {
+  return part === 'video' ? ownFormats(m, part) : [...ownFormats(m, part), ...convertedFormats(m)];
+}
+
+// A conversion promises no more than the best track the source has, as the
+// instance narrows a row's bitrates (ytdlp.AvailableAudioBitrates).
+function conversionBitrates(m: LinkMenus): string[] {
+  const best = Math.max(0, ...audioTracks(m).map((t) => Number(t.bitrate)));
+  return (m.conversions?.audioBitrates ?? []).filter((b) => b === '' || best === 0 || Number(b) <= best);
 }
 
 /** The qualities a format offers: the caps under best, and a format's own tracks otherwise. */
@@ -79,6 +108,7 @@ export function qualitiesOf(m: LinkMenus, part: Part, format: string): string[] 
     return unique(videoTracks(m).filter((t) => t.format === format).map((t) => t.quality));
   }
   if (format === 'best') return [];
+  if (convertedFormats(m).includes(format)) return unique(['', ...conversionBitrates(m)]);
   return unique(['', ...audioTracks(m).filter((t) => t.format === format).map((t) => t.bitrate)]);
 }
 
@@ -109,10 +139,13 @@ export const withPart = (part: Part): Pick => ({
 });
 
 /** The choice POST /api/links takes for a pick. */
-export function choiceOf(pick: Pick): LinkChoice {
+export function choiceOf(m: LinkMenus, pick: Pick): LinkChoice {
   if (pick.part === 'audio') {
     if (pick.format === 'best') return { variants: ['audio'] };
     if (!pick.quality) return { variants: ['audio'], audioFormat: pick.format };
+    if (convertedFormats(m).includes(pick.format)) {
+      return { variants: ['audio'], audioFormat: pick.format, audioBitrate: pick.quality };
+    }
     return { variants: ['audio'], audioTrack: `${pick.format} ${pick.quality}k` };
   }
   if (pick.format === 'best') return { variants: ['video'], quality: pick.quality || 'best' };

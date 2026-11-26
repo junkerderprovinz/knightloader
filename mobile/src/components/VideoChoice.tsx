@@ -4,6 +4,7 @@ import type { ServerConnection } from '../api/types';
 import { fetchLinkMenus } from '../api/videoLink';
 import {
   choiceOf,
+  convertedFormats,
   firstPick,
   formatLabel,
   formatsOf,
@@ -93,12 +94,13 @@ export function VideoPicker({ menus, onChoice }: { menus: LinkMenus; onChoice: (
   const [pick, setPick] = useState<Pick>(() => firstPick(menus));
 
   useEffect(() => {
-    onChoice(choiceOf(pick));
-  }, [pick, onChoice]);
+    onChoice(choiceOf(menus, pick));
+  }, [menus, pick, onChoice]);
 
   const parts = partsOf(menus);
   const qualities = qualitiesOf(menus, pick.part, pick.format);
   const video = pick.part === 'video';
+  const converted = video ? [] : convertedFormats(menus);
   return (
     <NotchCard title={t('video.variant')} info={t('video.hint')} hue={0} style={styles.card}>
       {parts.length > 1 && (
@@ -113,7 +115,11 @@ export function VideoPicker({ menus, onChoice }: { menus: LinkMenus; onChoice: (
         {t(video ? 'video.videoFormat' : 'video.audioFormat')}
       </Text>
       <WellSelector
-        options={formatsOf(menus, pick.part).map((f) => ({ value: f, label: formatLabel(f, t('video.auto')) }))}
+        options={formatsOf(menus, pick.part).map((f) => ({
+          value: f,
+          // A conversion reads as one, as the web's menu has them under "Convert to".
+          label: converted.includes(f) ? `${t('video.convertTo')} ${formatLabel(f, '')}` : formatLabel(f, t('video.auto')),
+        }))}
         value={pick.format}
         onPick={(f) => setPick(withFormat(menus, pick, f))}
         hue={1}

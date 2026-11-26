@@ -243,6 +243,7 @@ export const tr: Dict = {
   'video.quality': 'Kalite',
   'video.audioFormat': 'Ses biçimi',
   'video.audioBitrate': 'Ses bit hızı',
+  'video.convertTo': 'Şuna dönüştür',
   'settings.aboutTitle': 'KnightLoader hakkında',
   'settings.aboutBody': 'Tek şövalye, tek sefer: istediğim biçimde var olmayan, düzgün görünen açık kaynak araçlar, hiçbir şey eksik kalmayana kadar inşa ediliyor. Hepsi ücretsiz, hesap yok, reklam yok, ücretli katman yok. Uygulamanın kendisi hiçbir şey toplamaz ve okunabilir hiçbir şey kendi duvarlarından dışarı çıkmaz. Akşamları ve hafta sonları, yürekle ve inatla dövüldü.',
   'settings.accentReset': 'Varsayılan',
