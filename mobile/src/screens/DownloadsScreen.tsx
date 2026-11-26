@@ -19,6 +19,7 @@ import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
 import { uploadOf } from '../components/speedPlot';
 import {
+  ApiError,
   errorText,
   fetchTorrentFiles,
   reorderTasks,
@@ -85,6 +86,9 @@ export default function DownloadsScreen({
   const [jobs, setJobs] = useState<ExtractJob[]>([]);
   const unpacking = useMemo(() => unpackingByTask(jobs), [jobs]);
   const [connected, setConnected] = useState(false);
+  // Why the instance turned the list down, such as a phone still waiting for
+  // approval. A call that never reached it leaves this empty.
+  const [refused, setRefused] = useState<ApiError | null>(null);
   // Counts the times the list came through after it did not. What is read
   // once per screen is read again on each, since a phone waiting for approval
   // is refused everything until then.
@@ -185,19 +189,22 @@ export default function DownloadsScreen({
 
   useEffect(() => {
     setConnected(false);
+    setRefused(null);
     setTasks([]);
     setJobs([]);
     reachedNow.current = false;
     const onSnapshot = (snapshot: Task[]) => {
       setConnected(true);
+      setRefused(null);
       setTasks(snapshot);
       if (reachedNow.current) return;
       reachedNow.current = true;
       setReached((n) => n + 1);
       onReachedRef.current?.();
     };
-    const onError = () => {
+    const onError = (e: unknown) => {
       setConnected(false);
+      setRefused(e instanceof ApiError ? e : null);
       reachedNow.current = false;
     };
     const handle = pollTasks(conn, base, onSnapshot, onError, setJobs);
@@ -314,6 +321,9 @@ export default function DownloadsScreen({
             <Text style={[styles.connState, { color: c.statusWarnSolid }]}>
               {t('downloads.connecting')}
             </Text>
+          )}
+          {!connected && !needsAddingAgain(conn) && refused && (
+            <Text style={[styles.connState, { color: c.textSub }]}>{errorText(t, refused)}</Text>
           )}
         </View>
         <View style={styles.topBarRight}>

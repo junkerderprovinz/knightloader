@@ -1,10 +1,12 @@
-// The downloads screen reads what it could not read before once it is
-// connected.
+// The downloads screen says why it is not connected, and reads what it could
+// not read before once it is.
 //
 // A phone that waits for approval gets every call refused with memberPending.
-// When the list comes through after the approval, the screen reads the saved
-// views, the card switches and the skipped links again, and tells the app,
-// which reads the instance's look again.
+// The screen shows that refusal under its "connecting" line rather than
+// "connecting" alone, and when the list comes through after the approval it
+// reads the saved views, the card switches and the skipped links again, and
+// tells the app, which reads the instance's look again. A transport failure
+// leaves the line as it is.
 //
 // Run by hand and by CI, from mobile/: `node check-downloads-connect.mjs`
 import { dirname, join } from 'node:path';
@@ -106,12 +108,14 @@ await screen.settle();
 
 poll.onError(new ApiError('this device waits for approval on an instance of the group', 403, 'memberPending'));
 await screen.settle();
-expect('a pending phone reads as connecting', words().includes('downloads.connecting'), true);
+expect('a pending phone is told so under the connecting line', words().includes('error.memberPending'), true);
+expect('and still reads as connecting', words().includes('downloads.connecting'), true);
 const before = { ...reads };
 
 poll.onSnapshot([]);
 await screen.settle();
 expect('the approved phone is connected', words().includes('downloads.connecting'), false);
+expect('and the refusal is gone', words().includes('error.memberPending'), false);
 expect('the saved views are read again', reads.views > before.views, true);
 expect('the card switches are read again', reads.cards > before.cards, true);
 expect('the skipped links are read again', reads.skipped > before.skipped, true);
@@ -126,6 +130,7 @@ expect('and the app hears nothing more', reached, 1);
 poll.onError(new Error('relay: not connected'));
 await screen.settle();
 expect('a dropped connection says connecting', words().includes('downloads.connecting'), true);
+expect('with no refusal under it', words().some((w) => w.startsWith('error.')), false);
 poll.onSnapshot([]);
 await screen.settle();
 expect('coming back reads them again', reads.views > settled.views, true);
@@ -133,7 +138,7 @@ expect('and tells the app again', reached, 2);
 screen.unmount();
 
 if (problems.length) {
-  console.error('The downloads screen misses what it was refused before it connected:\n' + problems.map((p) => '  ' + p).join('\n'));
+  console.error('The downloads screen hides why it is not connected or misses what came after:\n' + problems.map((p) => '  ' + p).join('\n'));
   process.exit(1);
 }
-console.log('Downloads connecting: views, cards, skipped links and the look are read again once connected.');
+console.log('Downloads connecting: a refusal is named, and views, cards, skipped links and the look are read again once connected.');
