@@ -18,6 +18,7 @@ import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { AddFileSection } from '../components/AddFileSection';
 import { CardButton, GlimButton, GlimRow, GlimToggle, WellSelector } from '../components/glim';
 import { Cross, Plus } from '../components/IconBadge';
 import { EditBox, EditField, PickChips, categoryOptions } from '../components/TaskEdit';
@@ -94,6 +95,7 @@ export default function AddDownloadScreen({
       />
 
       <AddOptionsSection conn={conn} base={base} value={options} onChange={setOptions} />
+      <AddFileSection conn={conn} base={base} pkg={options.package} onAdded={() => void startWatch()} />
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 

@@ -132,6 +132,7 @@ const modules = {
     WellSelector: 'WellSelector',
   },
   '../components/TaskEdit': {},
+  '../components/AddFileSection': { AddFileSection: 'AddFileSection' },
   '../components/IconBadge': { Connect: 'Connect', Cross: 'Cross', Plus: 'Plus' },
   '../components/InfoTip': { InfoTip: 'InfoTip' },
   '../components/Moving': { Arrive: 'Arrive' },

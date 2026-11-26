@@ -716,6 +716,9 @@ jobs:
       - name: Link and package properties
         run: node check-task-edit.mjs
 
+      - name: Files picked on the phone
+        run: node check-file-intake.mjs
+
       - name: Failure wording
         run: node check-failures.mjs
 

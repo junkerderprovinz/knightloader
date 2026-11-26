@@ -225,7 +225,6 @@ var groupRefused = []string{
 	// interface's own captcha calls.
 	"POST /api/containers",
 	"GET /api/containers/relay/{token}",
-	"POST /api/torrents",
 	"POST /api/torrents/parse",
 	"DELETE /api/history",
 	"GET /api/history",

@@ -79,7 +79,8 @@ Three things follow from the transport rather than from a choice:
   socket the relay only joins to connections presenting the same key, so the
   instance accepts it. This is what the phrase bought. What it admits is an
   allowlist, not the whole API (`groupRoutes` in
-  `internal/api/group_routes.go`): tasks, links, the queue and the captchas
+  `internal/api/group_routes.go`): tasks, links, a container or .torrent
+  picked on the phone and sent as JSON, the queue and the captchas
   holding it up, the instance's look to read and to set, plus reading the auth
   state, the peer list, the addresses the instance answers on, and the
   download folders and category names a link can be put under. Not the

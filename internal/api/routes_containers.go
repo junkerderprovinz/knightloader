@@ -22,13 +22,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/container"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
@@ -180,50 +183,22 @@ func registerContainers(reg *Registry, a *app.App) {
 			}
 			defer file.Close()
 			name := path.Base(header.Filename)
-			limit, tooBig := container.MaxBytes, "a container over %d bytes is not one"
-			if strings.EqualFold(path.Ext(name), ".nzb") {
-				limit, tooBig = usenet.MaxNZBBytes, "an .nzb over %d bytes is refused"
-			}
-			data, err := io.ReadAll(io.LimitReader(file, int64(limit)+1))
+			data, err := io.ReadAll(io.LimitReader(file, int64(containerLimit(name))+1))
 			if err != nil {
 				http.Error(w, "could not read the uploaded file", http.StatusBadRequest)
 				return
 			}
-			if len(data) > limit {
-				http.Error(w, fmt.Sprintf(tooBig, limit), http.StatusRequestEntityTooLarge)
-				return
-			}
-			pkg := r.FormValue("package")
+			takeContainer(w, r, a, relay, name, data, r.FormValue("package"))
+		})
 
-			if usenet.IsNZB(data) {
-				sendNZB(w, a, name, data, pkg)
+	reg.Add(http.MethodPost, "/api/containers/phone",
+		"upload a link container as the phone app sends one, JSON with the file's name and its bytes in base64; handled as POST /api/containers handles the multipart upload",
+		func(w http.ResponseWriter, r *http.Request) {
+			var f phoneFile
+			if !decodePhoneFile(w, r, &f) {
 				return
 			}
-			links, err := container.Open(r.Context(), name, data)
-			kind := container.Detect(name, data)
-			switch {
-			case err == nil:
-				if kind != container.KindText {
-					log.Printf("container %q: opened here as %s, %d links", name, kind, len(links))
-				}
-				created := a.AddLinksFrom(links, pkg, app.OriginContainer)
-				if created == nil {
-					created = []*core.Task{} // an empty result is [] for clients, never null
-				}
-				writeJSON(w, map[string]any{
-					"kind":    kind,
-					"links":   len(links),
-					"created": created,
-				})
-			case errors.Is(err, container.ErrNeedsBackend):
-				log.Printf("container %q: handing %s to JDownloader: %v", name, kind, err)
-				handToJD(w, r, a, relay, name, data, pkg)
-			default:
-				// Verbatim: the container package's errors say which check
-				// failed, and a generic failure leaves somebody re-downloading
-				// the same broken file.
-				http.Error(w, err.Error(), http.StatusBadRequest)
-			}
+			takeContainer(w, r, a, relay, path.Base(f.Name), f.Data, f.Package)
 		})
 
 	// The collection address. Open, because the fetch comes from the JD backend
@@ -246,6 +221,78 @@ func registerContainers(reg *Registry, a *app.App) {
 		})
 }
 
+// phoneFile is a file as the phone app sends it. The group carries a call's
+// body as JSON, so the file comes as base64 rather than as a multipart part.
+type phoneFile struct {
+	Name    string `json:"name"`
+	Data    []byte `json:"data"`
+	Package string `json:"package"`
+}
+
+// decodePhoneFile reads a phoneFile and answers 400 itself when the body holds
+// none.
+func decodePhoneFile(w http.ResponseWriter, r *http.Request, f *phoneFile) bool {
+	if !decodeJSON(w, r, f) {
+		return false
+	}
+	if len(f.Data) == 0 {
+		http.Error(w, "send the file as JSON with its name and its bytes in base64 under \"data\"", http.StatusBadRequest)
+		return false
+	}
+	return true
+}
+
+// containerLimit is the most an uploaded file named name may hold: an .nzb
+// lists a whole release, a container only links.
+func containerLimit(name string) int {
+	if strings.EqualFold(path.Ext(name), ".nzb") {
+		return usenet.MaxNZBBytes
+	}
+	return container.MaxBytes
+}
+
+// takeContainer stages, hands on or refuses an uploaded container, however it
+// arrived.
+func takeContainer(w http.ResponseWriter, r *http.Request, a *app.App, relay *containerRelay, name string, data []byte, pkg string) {
+	if limit := containerLimit(name); len(data) > limit {
+		tooBig := "a container over %d bytes is not one"
+		if limit == usenet.MaxNZBBytes {
+			tooBig = "an .nzb over %d bytes is refused"
+		}
+		http.Error(w, fmt.Sprintf(tooBig, limit), http.StatusRequestEntityTooLarge)
+		return
+	}
+	if usenet.IsNZB(data) {
+		sendNZB(w, a, name, data, pkg)
+		return
+	}
+	links, err := container.Open(r.Context(), name, data)
+	kind := container.Detect(name, data)
+	switch {
+	case err == nil:
+		if kind != container.KindText {
+			log.Printf("container %q: opened here as %s, %d links", name, kind, len(links))
+		}
+		created := a.AddLinksFrom(links, pkg, app.OriginContainer)
+		if created == nil {
+			created = []*core.Task{} // an empty result is [] for clients, never null
+		}
+		writeJSON(w, map[string]any{
+			"kind":    kind,
+			"links":   len(links),
+			"created": created,
+		})
+	case errors.Is(err, container.ErrNeedsBackend):
+		log.Printf("container %q: handing %s to JDownloader: %v", name, kind, err)
+		handToJD(w, r, a, relay, name, data, pkg)
+	default:
+		// Verbatim: the container package's errors say which check
+		// failed, and a generic failure leaves somebody re-downloading
+		// the same broken file.
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
 // handToJD publishes the container at a fetchable address and points JD at it.
 func handToJD(w http.ResponseWriter, r *http.Request, a *app.App, relay *containerRelay, name string, data []byte, pkg string) {
 	// Asked before anything is stored, so an instance with no JD says so
@@ -256,12 +303,17 @@ func handToJD(w http.ResponseWriter, r *http.Request, a *app.App, relay *contain
 			map[string]string{"error": app.ErrNoContainerBackend.Error(), "code": "noJD"})
 		return
 	}
+	origin, ok := handoverOrigin(r)
+	if !ok {
+		http.Error(w, "this instance has no network address the JDownloader backend could fetch the container from", http.StatusServiceUnavailable)
+		return
+	}
 	token, err := relay.put(name, data)
 	if err != nil {
 		http.Error(w, "could not prepare the handover", http.StatusInternalServerError)
 		return
 	}
-	url := requestOrigin(r) + requestBasePath(r) + "/api/containers/relay/" + token
+	url := origin + "/api/containers/relay/" + token
 	if err := a.HandContainerToJD(url, name, pkg); err != nil {
 		_, _ = relay.take(token) // nothing is going to collect it now
 		http.Error(w, "the JDownloader backend refused the container: "+err.Error(), http.StatusBadGateway)
@@ -310,6 +362,21 @@ func requestOrigin(r *http.Request) string {
 		scheme = "https"
 	}
 	return scheme + "://" + r.Host
+}
+
+// handoverOrigin is where the JD backend fetches a handed-over container. A
+// browser's upload names the address it reached this instance on. A call from
+// the group carries no Host, so it falls back to this machine's own listener
+// on its first network address, which a backend beside it reaches too.
+func handoverOrigin(r *http.Request) (string, bool) {
+	if r.Host != "" {
+		return requestOrigin(r) + requestBasePath(r), true
+	}
+	ips := localIPv4s()
+	if buildinfo.ListenPort == 0 || len(ips) == 0 {
+		return "", false
+	}
+	return "http://" + net.JoinHostPort(ips[0], strconv.Itoa(buildinfo.ListenPort)) + buildinfo.BasePath, true
 }
 
 // quoteFilename puts a name in a Content-Disposition header without letting it
