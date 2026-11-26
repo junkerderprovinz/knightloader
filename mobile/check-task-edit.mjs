@@ -246,6 +246,8 @@ const add = compile(join(here, 'src', 'screens', 'AddDownloadScreen.tsx'), {
   '../components/IconBadge': { Cross: 'Cross', Plus: 'Plus' },
   '../components/TaskEdit': edit,
   '../components/AddFileSection': { AddFileSection: 'AddFileSection' },
+  '../api/videoPick': { singleLink: () => null },
+  '../components/VideoChoice': { VideoChoice: 'VideoChoice' },
   '../components/InfoTip': { InfoTip: 'InfoTip' },
   '../components/Text': { Text: 'Text', TextInput: 'TextInput' },
   '../watch/watch': { startWatch: async () => {} },

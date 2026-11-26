@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState, Linking, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { KnightWatch } from '../../modules/watch';
-import { useT } from '../i18n/I18nContext';
+import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { anyKind, loadNotifyPrefs, saveNotifyPrefs, type NotifyPrefs } from '../watch/prefs';
@@ -11,12 +11,16 @@ import { GlimButton, GlimRow, GlimToggle, NotchCard } from './glim';
 import { Confirm, Gear } from './IconBadge';
 import { Text } from './Text';
 
-type Kind = 'captcha' | 'finished' | 'failed';
+type Kind = 'captcha' | 'finished' | 'failed' | 'unpacked' | 'unpackFailed' | 'accountPaused' | 'accountBack';
 
-const KINDS: { kind: Kind; label: 'settings.notifyCaptcha' | 'settings.notifyFinished' | 'settings.notifyFailed' }[] = [
+const KINDS: { kind: Kind; label: TranslationKey }[] = [
   { kind: 'captcha', label: 'settings.notifyCaptcha' },
   { kind: 'finished', label: 'settings.notifyFinished' },
   { kind: 'failed', label: 'settings.notifyFailed' },
+  { kind: 'unpacked', label: 'settings.notifyUnpacked' },
+  { kind: 'unpackFailed', label: 'settings.notifyUnpackFailed' },
+  { kind: 'accountPaused', label: 'settings.notifyAccountPaused' },
+  { kind: 'accountBack', label: 'settings.notifyAccountBack' },
 ];
 
 /**
@@ -104,7 +108,7 @@ export function NotificationsCard({ hue }: { hue: number }) {
           <GlimRow
             label={t('settings.notifyStay')}
             info={t('settings.notifyStayHint')}
-            control={<GlimToggle hue={3} value={prefs.stay} onChange={flipStay} />}
+            control={<GlimToggle hue={KINDS.length} value={prefs.stay} onChange={flipStay} />}
           />
           {!exempt && (
             <View style={styles.extra}>

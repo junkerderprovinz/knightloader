@@ -737,6 +737,12 @@ jobs:
       - name: Play buttons
         run: node check-play.mjs
 
+      - name: Saving a file to the phone
+        run: node check-save.mjs
+
+      - name: The format of a video link
+        run: node check-video-pick.mjs
+
       - name: The player's way in
         run: node check-loopback.mjs
 

@@ -14,6 +14,7 @@ import {
   type Category,
   type PriorityChoice,
 } from '../api/taskEdit';
+import { singleLink, type LinkChoice } from '../api/videoPick';
 import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
@@ -24,6 +25,7 @@ import { Cross, Plus } from '../components/IconBadge';
 import { EditBox, EditField, PickChips, categoryOptions } from '../components/TaskEdit';
 import { InfoTip } from '../components/InfoTip';
 import { Text, TextInput } from '../components/Text';
+import { VideoChoice } from '../components/VideoChoice';
 import { startWatch } from '../watch/watch';
 
 export default function AddDownloadScreen({
@@ -42,6 +44,8 @@ export default function AddDownloadScreen({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [options, setOptions] = useState<AddOptions>(NO_ADD_OPTIONS);
+  const [choice, setChoice] = useState<LinkChoice | null>(null);
+  const video = singleLink(text);
 
   const submit = async () => {
     const links = text
@@ -55,7 +59,7 @@ export default function AddDownloadScreen({
     setBusy(true);
     setError(null);
     try {
-      await addLinksWithOptions(conn, links, options, base);
+      await addLinksWithOptions(conn, links, options, base, video ? (choice ?? undefined) : undefined);
       void startWatch();
       onDone();
     } catch (err) {
@@ -96,6 +100,7 @@ export default function AddDownloadScreen({
 
       <AddOptionsSection conn={conn} base={base} value={options} onChange={setOptions} />
       <AddFileSection conn={conn} base={base} pkg={options.package} onAdded={() => void startWatch()} />
+      <VideoChoice conn={conn} base={base} url={video} onChoice={setChoice} />
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 

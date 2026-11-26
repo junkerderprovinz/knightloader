@@ -1059,7 +1059,8 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "ca": [
       "captcha.screenTitle",
@@ -1076,7 +1077,9 @@
       "settings.oled",
       "componentsCard.title",
       "collector.facets.type.document",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.variant",
+      "video.kbps"
     ],
     "cs": [
       "addDownload.placeholder",
@@ -1088,7 +1091,9 @@
       "notify.watchSpeed",
       "settings.oled",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.kbps"
     ],
     "da": [
       "downloads.start",
@@ -1118,7 +1123,10 @@
       "filter.offline",
       "collector.facets.type.video",
       "collector.filtered.origin.cnl",
-      "search.url"
+      "search.url",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "el": [
       "addDownload.placeholder",
@@ -1130,7 +1138,8 @@
       "speed.legend.seeding",
       "notify.watchSpeed",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "es": [
       "captcha.screenTitle",
@@ -1145,7 +1154,9 @@
       "notify.watchSpeed",
       "settings.oled",
       "collector.facets.type.audio",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.audio",
+      "video.kbps"
     ],
     "et": [
       "addDownload.placeholder",
@@ -1158,7 +1169,10 @@
       "settings.oled",
       "collector.facets.type.video",
       "collector.filtered.origin.cnl",
-      "search.url"
+      "search.url",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "eu": [
       "addDownload.placeholder",
@@ -1168,7 +1182,8 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "fa": [
       "addDownload.placeholder",
@@ -1187,7 +1202,9 @@
       "notify.watchSpeed",
       "settings.oled",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.kbps"
     ],
     "fr": [
       "edit.destination",
@@ -1214,7 +1231,9 @@
       "collector.facets.type.audio",
       "collector.facets.type.image",
       "collector.facets.type.document",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.audio",
+      "video.kbps"
     ],
     "gl": [
       "captcha.screenTitle",
@@ -1228,7 +1247,9 @@
       "notify.channelCaptcha",
       "notify.watchSpeed",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.audio",
+      "video.kbps"
     ],
     "he": [
       "addDownload.placeholder",
@@ -1257,7 +1278,9 @@
       "notify.watchSpeed",
       "settings.oled",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.kbps"
     ],
     "hu": [
       "addDownload.placeholder",
@@ -1268,7 +1291,8 @@
       "settings.oled",
       "relay.relayLabel",
       "collector.filtered.origin.cnl",
-      "search.url"
+      "search.url",
+      "video.kbps"
     ],
     "id": [
       "edit.folder",
@@ -1285,7 +1309,10 @@
       "search.host",
       "collector.facets.type.video",
       "collector.facets.type.audio",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "is": [
       "addDownload.placeholder",
@@ -1296,7 +1323,8 @@
       "notify.watchSpeed",
       "settings.oled",
       "relay.relayLabel",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "it": [
       "addDownload.placeholder",
@@ -1318,7 +1346,10 @@
       "collector.facets.type.video",
       "collector.facets.type.audio",
       "collector.filtered.origin.cnl",
-      "search.url"
+      "search.url",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "ja": [
       "addDownload.placeholder",
@@ -1326,7 +1357,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "ko": [
       "addDownload.placeholder",
@@ -1335,7 +1367,8 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "lt": [
       "addDownload.placeholder",
@@ -1346,7 +1379,8 @@
       "notify.watchSpeed",
       "settings.oled",
       "relay.relayLabel",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "lv": [
       "addDownload.placeholder",
@@ -1359,7 +1393,10 @@
       "relay.relayLabel",
       "collector.facets.type.video",
       "collector.facets.type.audio",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "ms": [
       "edit.folder",
@@ -1374,7 +1411,10 @@
       "relay.relayLabel",
       "collector.facets.type.video",
       "collector.facets.type.audio",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "nl": [
       "downloads.tabDownloads",
@@ -1404,7 +1444,11 @@
       "collector.facets.type.audio",
       "collector.filtered.origin.cnl",
       "collector.filtered.origin.container",
-      "search.url"
+      "search.url",
+      "video.variant",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "no": [
       "downloads.start",
@@ -1425,7 +1469,10 @@
       "filter.online",
       "filter.offline",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "pl": [
       "edit.folder",
@@ -1439,7 +1486,9 @@
       "settings.oled",
       "relay.relayLabel",
       "collector.filtered.origin.cnl",
-      "search.url"
+      "search.url",
+      "video.audio",
+      "video.kbps"
     ],
     "pt": [
       "captcha.screenTitle",
@@ -1458,7 +1507,8 @@
       "filter.offline",
       "search.host",
       "collector.filtered.origin.cnl",
-      "search.url"
+      "search.url",
+      "video.kbps"
     ],
     "ro": [
       "downloads.queueActive",
@@ -1477,7 +1527,10 @@
       "collector.facets.type.audio",
       "collector.filtered.origin.cnl",
       "collector.filtered.origin.container",
-      "search.url"
+      "search.url",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "ru": [
       "addDownload.placeholder",
@@ -1500,7 +1553,10 @@
       "settings.oled",
       "relay.relayLabel",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "sl": [
       "addDownload.placeholder",
@@ -1512,7 +1568,9 @@
       "settings.oled",
       "relay.relayLabel",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.kbps"
     ],
     "sr": [
       "addDownload.placeholder",
@@ -1521,7 +1579,8 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "sv": [
       "addDownload.placeholder",
@@ -1543,7 +1602,10 @@
       "filter.online",
       "filter.offline",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "th": [
       "addDownload.placeholder",
@@ -1551,7 +1613,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ],
     "tr": [
       "addDownload.placeholder",
@@ -1562,7 +1625,8 @@
       "notify.watchSpeed",
       "settings.oled",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video"
     ],
     "uk": [
       "addDownload.placeholder",
@@ -1584,7 +1648,9 @@
       "settings.oled",
       "relay.relayLabel",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.video",
+      "video.kbps"
     ],
     "zh": [
       "addDownload.placeholder",
@@ -1592,7 +1658,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "settings.oled",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "video.kbps"
     ]
   }
 }

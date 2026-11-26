@@ -243,6 +243,8 @@ const s = {
   speed: 0,
   fetchWatch: async () => ({ tag: '', tasks: [] }),
   fetchTasks: async () => [],
+  jobs: () => [],
+  benches: () => ({ benches: [], on: [] }),
   ApiError: class extends Error {
     constructor(message, status) {
       super(message);
@@ -262,7 +264,7 @@ s.native = {
   next: (ms, awake) => s.calls.push({ next: ms, awake }),
   autostart: (on) => s.calls.push({ autostart: on }),
   batteryExempt: () => true,
-  notify: (n) => s.calls.push({ notify: n.channel, text: n.text }),
+  notify: (n) => s.calls.push({ notify: n.channel, text: n.text, id: n.id }),
   cancel: (id) => s.calls.push({ cancel: id }),
   enabled: () => true,
   takeOpen: () => null,
@@ -286,6 +288,10 @@ const stubs = {
     'export const fetchTasks = (...a) => s.fetchTasks(...a);\n' +
     'export const fetchCaptchasUnwatched = async () => s.captchas;\n' +
     'export const fetchSpeed = async () => s.speed;',
+  '../api/watchExtras':
+    'const s = globalThis.watchStandIns;\n' +
+    'export const fetchWatchJobs = async () => s.jobs();\n' +
+    'export const fetchPausedAccounts = async () => s.benches();',
   '../api/stats': 'export const fmtSpeed = (n) => `${n} B/s`;',
   '../i18n': "export const AVAILABLE = ['en'];\nexport const load = async () => ({});",
   '../i18n/I18nContext': "export const detectDeviceLanguage = () => 'en';\nexport const translate = (_, key) => key;",
@@ -509,6 +515,16 @@ const lastNext = () => s.calls.filter((c) => c.next).at(-1);
     return notifyPrefs.loadNotifyPrefs();
   };
   await card.settle();
+  expect(
+    'the card has a switch for each kind of news',
+    ['settings.notifyUnpacked', 'settings.notifyUnpackFailed', 'settings.notifyAccountPaused', 'settings.notifyAccountBack'].map(
+      (l) => toggle(l)?.value,
+    ),
+    [false, true, true, false],
+  );
+  toggle('settings.notifyUnpacked')?.onChange(true);
+  await card.settle();
+  expect('switching unpacking on stores it', (await stored()).unpacked, true);
   toggle('settings.notifyStay')?.onChange(true);
   await card.settle();
   expect('staying connected offers battery optimisation once', offered, 1);
@@ -523,6 +539,109 @@ const lastNext = () => s.calls.filter((c) => c.next).at(-1);
   expect('a switch flipped after the question keeps it asked', (await stored()).asked, true);
   card.unmount();
   s.native.batteryExempt = () => true;
+}
+
+// Unpacking and accounts.
+const aa = await import(pathToFileURL(join(here, 'src', 'watch', 'archiveAccountRules.ts')).href);
+{
+  const job = (id, status) => ({ id, status, name: `${id}.rar` });
+  expect('the first read of the unpackings is always made', aa.readsJobs(null, null, []), true);
+  const calm = aa.jobLookOf([job('j1', 'done')]);
+  expect('nothing unpacking and nothing new is not worth a read', aa.readsJobs(calm, { a: 'done' }, [task('a', 'done')]), false);
+  expect('an archive unpacking is read', aa.readsJobs(calm, { a: 'done' }, [task('a', 'extracting')]), true);
+  expect('the look after an unpacking is read', aa.readsJobs(calm, { a: 'extracting' }, [task('a', 'done')]), true);
+  expect('a download that just finished is read', aa.readsJobs(calm, { a: 'running' }, [task('a', 'done')]), true);
+  expect('a job still running at the last read is read', aa.readsJobs(aa.jobLookOf([job('j1', 'running')]), {}, []), true);
+
+  const before = aa.jobLookOf([job('j1', 'running'), job('j2', 'done')]);
+  const news = aa.compareJobs(before, [job('j1', 'done'), job('j2', 'done'), job('j3', 'error'), job('j4', 'cancelled')]);
+  expect('an unpacking that ends is news once', news.unpacked.map((j) => j.id), ['j1']);
+  expect('a job started and failed between reads is news', news.failed.map((j) => j.id), ['j3']);
+  expect('the first read of the unpackings finds nothing new', aa.compareJobs(null, [job('j1', 'done')]), { unpacked: [], failed: [] });
+  expect('a job without a name goes by its package', aa.jobName({ id: 'x', status: 'done', package: 'Pkg' }), 'Pkg');
+
+  const p = (id, account, host) => ({ id, account, service: 'AllDebrid', until: '2030-01-01T00:00:00Z', ...(host ? { host } : {}) });
+  const benches = aa.benchLookOf({ benches: [p('b1', 'a1')], on: ['a1', 'a2'] });
+  const moved = aa.compareBenches(benches, { benches: [p('b2', 'a2', 'rapidgator.net')], on: ['a1', 'a2'] });
+  expect('a new bench is news', moved.paused.map((x) => x.id), ['b2']);
+  expect('a bench that ended is news', moved.back.map((x) => x.id), ['b1']);
+  const off = aa.compareBenches(benches, { benches: [], on: ['a2'] });
+  expect('a benched account switched off is not back in use', off, { paused: [], back: [] });
+  expect('the first read of the benches finds nothing new', aa.compareBenches(null, { benches: [p('b1', 'a1')], on: ['a1'] }), {
+    paused: [],
+    back: [],
+  });
+  expect('the benches are read once a minute', [aa.benchesDue(0, aa.BENCH_MS - 1), aa.benchesDue(0, aa.BENCH_MS)], [false, true]);
+}
+
+// The watch announces what ends among the unpackings and the benches.
+{
+  fresh();
+  prefs({ unpacked: true, accountBack: true });
+  let jobReads = 0;
+  let benchReads = 0;
+  let jobs = [{ id: 'j1', status: 'running', name: 'film.rar' }];
+  let benches = { benches: [{ id: 'b1', account: 'a1', service: 'AllDebrid', until: '2030-01-01T00:00:00Z' }], on: ['a1', 'a2', 'a3'] };
+  s.jobs = () => (jobReads++, jobs);
+  s.benches = () => (benchReads++, benches);
+  mock.timers.enable({ apis: ['Date'], now: 1_000_000 });
+  answer([task('a', 'extracting')]);
+  await watch.watchPass();
+  expect('the first look announces no unpacking and no bench', notices(), []);
+  jobs = [{ id: 'j1', status: 'done', name: 'film.rar' }];
+  benches = {
+    benches: [{ id: 'b2', account: 'a2', service: 'Real-Debrid', host: 'rapidgator.net', volume: true, until: '2030-01-01T00:00:00Z' }],
+    on: ['a1', 'a2', 'a3'],
+  };
+  answer([task('a', 'done')]);
+  await watch.watchPass();
+  const more = () => notices().filter((c) => c.notify !== 'finished').map((c) => [c.notify, c.text]);
+  expect('a finished unpacking is announced', more(), [
+    ['unpacked', 'notify.unpackedText'],
+  ]);
+  expect('the benches wait for their minute', benchReads, 1);
+  mock.timers.tick(aa.BENCH_MS);
+  await watch.watchPass();
+  expect('nothing unpacking is read no more', jobReads, 2);
+  expect('a bench and the end of another are announced as switched on', more(), [
+    ['unpacked', 'notify.unpackedText'],
+    ['account-paused', 'Real-Debrid'],
+    ['account-back', 'notify.accountBack'],
+  ]);
+  const ids = notices().filter((c) => c.notify.startsWith('account')).map((c) => c.id);
+  expect('a bench and its end share one notice', ids[1] === w.noticeId('account', s.conns[0].id, 'b1'), true);
+  benches = { benches: [], on: ['a1', 'a3'] };
+  mock.timers.tick(aa.BENCH_MS);
+  await watch.watchPass();
+  expect('a benched account switched off is not announced as back', more().length, 3);
+  mock.timers.reset();
+
+  fresh();
+  prefs({ unpacked: false, unpackFailed: false, accountPaused: false, accountBack: false });
+  jobReads = 0;
+  benchReads = 0;
+  answer([task('a', 'extracting')]);
+  await watch.watchPass();
+  expect('with their switches off neither list is read', [jobReads, benchReads], [0, 0]);
+
+  fresh();
+  prefs({});
+  jobReads = 0;
+  s.jobs = () => {
+    jobReads++;
+    throw new s.ApiError('no such endpoint', 404);
+  };
+  s.benches = () => {
+    throw new s.ApiError('sign in at this instance', 403);
+  };
+  answer([task('a', 'extracting')]);
+  await watch.watchPass();
+  answer([task('a', 'extracting'), task('b', 'error')]);
+  await watch.watchPass();
+  expect('an instance from before the routes is asked once', jobReads, 1);
+  expect('and its downloads are still announced', notices().map((c) => c.notify), ['failed']);
+  s.jobs = () => [];
+  s.benches = () => ({ benches: [], on: [] });
 }
 
 // Last, since a pass that never ends holds up every pass after it.

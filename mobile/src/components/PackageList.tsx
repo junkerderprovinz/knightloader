@@ -26,6 +26,7 @@ import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
 import { hasSomethingToPlay, mediaKind } from '../api/media';
 import type { EditTarget } from '../api/taskEdit';
 import { Pencil } from './TaskEdit';
+import { canSave } from '../api/saveCopy';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
@@ -97,6 +98,8 @@ export default function PackageList({
   onPlay,
   onActions,
   onEdit,
+  onSave,
+  onSaveFile,
   sections = [],
   unpacking,
 }: {
@@ -150,6 +153,10 @@ export default function PackageList({
   onActions?: (tasks: Task[], title: string, where: { settled: boolean; pkg: boolean }) => void;
   /** Opens the properties of a link or of a whole package. */
   onEdit?: (target: EditTarget) => void;
+  /** Copies what a link downloaded onto this phone (canSave). */
+  onSave?: (task: Task) => void;
+  /** Copies one file of a finished torrent, by its place in the list. */
+  onSaveFile?: (task: Task, files: TorrentFileView[], index: number) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -262,6 +269,7 @@ export default function PackageList({
                 (() => scharf || onActions([r.task], r.task.name || r.task.url, { settled: !!r.section, pkg: false }))
               }
               onEdit={onEdit && (() => scharf || onEdit({ kind: 'link', task: r.task }))}
+              onSave={onSave && canSave(r.task) ? () => scharf || onSave(r.task) : undefined}
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
                   ? (hue) => (
@@ -271,6 +279,11 @@ export default function PackageList({
                         onToggle={() => scharf || setFilesOpen((o) => ({ ...o, [r.task.id]: !o[r.task.id] }))}
                         files={fileLists[r.task.id]}
                         onFlip={(f) => scharf || void flipFile(r.task, f)}
+                        onSave={
+                          onSaveFile && fileLists[r.task.id]
+                            ? (i) => scharf || onSaveFile(r.task, fileLists[r.task.id], i)
+                            : undefined
+                        }
                         hue={hue}
                       />
                     )

@@ -45,6 +45,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/accounts":           apitoken.ScopeAdmin,
 	"POST /api/accounts":          apitoken.ScopeAdmin,
 	"GET /api/accounts/catalogue": apitoken.ScopeAdmin,
+	"GET /api/accounts/paused":    apitoken.ScopeRead,
 	"POST /api/accounts/enabled":  apitoken.ScopeAdmin,
 	"POST /api/accounts/label":    apitoken.ScopeAdmin,
 	"POST /api/accounts/test":     apitoken.ScopeAdmin,
@@ -384,10 +385,11 @@ var routeScopes = map[string]apitoken.Scope{
 	"PUT /api/uistate/views": apitoken.ScopeControl,
 	"GET /api/ws":            apitoken.ScopeRead,
 
-	"GET /api/ytdlp/formats": apitoken.ScopeAdmin,
-	"GET /api/ytdlp/link":    apitoken.ScopeAdd,
-	"GET /api/ytdlp/preset":  apitoken.ScopeAdmin,
-	"POST /api/ytdlp/preset": apitoken.ScopeAdmin,
+	"GET /api/ytdlp/conversions": apitoken.ScopeAdd,
+	"GET /api/ytdlp/formats":     apitoken.ScopeAdmin,
+	"GET /api/ytdlp/link":        apitoken.ScopeAdd,
+	"GET /api/ytdlp/preset":      apitoken.ScopeAdmin,
+	"POST /api/ytdlp/preset":     apitoken.ScopeAdmin,
 }
 
 // sabnzbdScopes is the right each operation of the SABnzbd bridge needs. The

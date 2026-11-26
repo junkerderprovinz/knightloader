@@ -34,6 +34,10 @@ object Notices {
   const val CHANNEL_CAPTCHA = "captcha"
   const val CHANNEL_FINISHED = "finished"
   const val CHANNEL_FAILED = "failed"
+  const val CHANNEL_UNPACKED = "unpacked"
+  const val CHANNEL_UNPACK_FAILED = "unpack-failed"
+  const val CHANNEL_ACCOUNT_PAUSED = "account-paused"
+  const val CHANNEL_ACCOUNT_BACK = "account-back"
   // A channel's importance cannot be lowered once it exists, so the quiet one
   // has a new id and the old one is deleted.
   const val CHANNEL_WATCH = "watch-quiet"
@@ -42,26 +46,35 @@ object Notices {
   private const val EXTRA_OPEN = "knightloader.open"
   private const val EXTRA_CONNECTION = "knightloader.connection"
 
-  /** Creates the channels, or renames them after a change of language. */
-  fun channels(context: Context, captcha: String, finished: String, failed: String, watch: String) {
-    val manager = NotificationManagerCompat.from(context)
-    manager.createNotificationChannelsCompat(
-      listOf(
-        NotificationChannelCompat.Builder(CHANNEL_CAPTCHA, NotificationManagerCompat.IMPORTANCE_HIGH)
-          .setName(captcha)
-          .build(),
-        NotificationChannelCompat.Builder(CHANNEL_FINISHED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-          .setName(finished)
-          .build(),
-        NotificationChannelCompat.Builder(CHANNEL_FAILED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-          .setName(failed)
-          .build(),
-        NotificationChannelCompat.Builder(CHANNEL_WATCH, NotificationManagerCompat.IMPORTANCE_MIN)
-          .setName(watch)
-          .setShowBadge(false)
-          .build(),
-      ),
+  // How loud each kind of news is. A captcha holds a download up until somebody
+  // answers it, and the rest can wait for a look.
+  private val importance =
+    mapOf(
+      CHANNEL_CAPTCHA to NotificationManagerCompat.IMPORTANCE_HIGH,
+      CHANNEL_FINISHED to NotificationManagerCompat.IMPORTANCE_DEFAULT,
+      CHANNEL_FAILED to NotificationManagerCompat.IMPORTANCE_DEFAULT,
+      CHANNEL_UNPACKED to NotificationManagerCompat.IMPORTANCE_DEFAULT,
+      CHANNEL_UNPACK_FAILED to NotificationManagerCompat.IMPORTANCE_DEFAULT,
+      CHANNEL_ACCOUNT_PAUSED to NotificationManagerCompat.IMPORTANCE_DEFAULT,
+      CHANNEL_ACCOUNT_BACK to NotificationManagerCompat.IMPORTANCE_DEFAULT,
     )
+
+  /** Creates the channels under `names`, keyed by channel id with "watch" for
+   *  the service's own, or renames them after a change of language. */
+  fun channels(context: Context, names: Map<String, String>) {
+    val manager = NotificationManagerCompat.from(context)
+    val news =
+      importance.mapNotNull { (id, level) ->
+        names[id]?.let { NotificationChannelCompat.Builder(id, level).setName(it).build() }
+      }
+    val watch =
+      names["watch"]?.let {
+        NotificationChannelCompat.Builder(CHANNEL_WATCH, NotificationManagerCompat.IMPORTANCE_MIN)
+          .setName(it)
+          .setShowBadge(false)
+          .build()
+      }
+    manager.createNotificationChannelsCompat(news + listOfNotNull(watch))
     manager.deleteNotificationChannel(CHANNEL_WATCH_OLD)
   }
 

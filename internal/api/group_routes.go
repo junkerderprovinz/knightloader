@@ -40,9 +40,11 @@ var groupRoutes = map[string]bool{
 	"/api/fortress/v1/log":    true,
 
 	// Adding links. A folder outside the download folders is refused below.
-	// The extension's video menu first asks what a video offers.
-	"POST /api/links":     true,
-	"GET /api/ytdlp/link": true,
+	// The extension's video menu first asks what a video offers, and the
+	// phone what an audio row can be converted to.
+	"POST /api/links":            true,
+	"GET /api/ytdlp/link":        true,
+	"GET /api/ytdlp/conversions": true,
 	// What a folder and a category are picked from, read apart from the
 	// settings.
 	"GET /api/download-folders": true,
@@ -101,6 +103,11 @@ var groupRoutes = map[string]bool{
 	"GET /api/tasks/{id}/torrent-files":  true,
 	"POST /api/tasks/{id}/torrent-files": true,
 	"GET /api/extract":                   true,
+
+	// Which accounts stand benched, for the phone to say when one stops being
+	// used and when it is back. Only the service and the hoster: the
+	// accounts themselves stay off.
+	"GET /api/accounts/paused": true,
 
 	// The speed the phone draws its meter from, a sum over every download
 	// that names none of them.

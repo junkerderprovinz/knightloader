@@ -1,6 +1,13 @@
 import { requireOptionalNativeModule, type NativeModule } from 'expo';
 
-export type NoticeChannel = 'captcha' | 'finished' | 'failed';
+export type NoticeChannel =
+  | 'captcha'
+  | 'finished'
+  | 'failed'
+  | 'unpacked'
+  | 'unpack-failed'
+  | 'account-paused'
+  | 'account-back';
 
 export interface Notice {
   /** The same id replaces the notification posted under it. */
@@ -27,7 +34,9 @@ export interface OpenRequest {
 }
 
 declare class KnightWatchModule extends NativeModule<{ onOpen: () => void }> {
-  channels(captcha: string, finished: string, failed: string, watch: string): void;
+  /** Creates the channels under these names, or renames them after a change
+   *  of language. */
+  channels(names: Record<NoticeChannel | 'watch', string>): void;
   /** False when Android refuses, which it does for an app that is not in front. */
   start(title: string, text: string): boolean;
   /** Rewrites the running service's notification; '' leaves out the text. */

@@ -1,6 +1,7 @@
 import { request } from './client';
 import { ApiError } from './refusal';
 import type { ServerConnection, Task } from './types';
+import type { LinkChoice } from './videoPick';
 import type { TranslationKey } from '../i18n/en';
 
 // What the properties window and the add screen's options send, on the routes
@@ -126,13 +127,18 @@ export function addLinksBody(links: string[], o: AddOptions): Record<string, unk
   };
 }
 
+/** `choice` is what was picked for a single video link, as the share sheet sends it. */
 export async function addLinksWithOptions(
   conn: ServerConnection,
   links: string[],
   o: AddOptions,
   base = '/api',
+  choice?: LinkChoice,
 ): Promise<Task[]> {
-  return request<Task[]>(conn, base, '/links', { method: 'POST', body: JSON.stringify(addLinksBody(links, o)) });
+  return request<Task[]>(conn, base, '/links', {
+    method: 'POST',
+    body: JSON.stringify({ ...addLinksBody(links, o), choice }),
+  });
 }
 
 /** What the properties window edits: one link, or every link of a package. */

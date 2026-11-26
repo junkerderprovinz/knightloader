@@ -141,6 +141,16 @@ func registerResolvers(reg *Registry, a *app.App) {
 			}
 		})
 
+	// What an audio row converts to when the source has no track in a format,
+	// for the phone's picker, which reaches no /api/options.
+	reg.Add(http.MethodGet, "/api/ytdlp/conversions", "the audio formats and bitrates an audio row can be converted to",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, map[string][]string{
+				"audioFormats":  ytdlp.AudioFormats(),
+				"audioBitrates": ytdlp.AudioBitrates(),
+			})
+		})
+
 	// The badge's write path. Through PatchSettings rather than the settings
 	// draft (see SetHosterPreset in app_ytdlp_variants.go): it fires from a
 	// popover reachable at any moment, not from that draft's Save button.
