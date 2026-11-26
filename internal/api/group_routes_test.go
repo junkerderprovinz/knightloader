@@ -220,20 +220,16 @@ var groupRefused = []string{
 	"GET /api/ws",
 
 	// Work the phone and the extension do not do: uploads, the history, the
-	// holding areas, cleanup by class, starting or stopping an unpacking,
-	// weighing a removal with files, which a member may not make, and the web
-	// interface's own captcha calls.
+	// holding area served apart from the task list, cleanup by class,
+	// starting or stopping an unpacking, weighing a removal with files, which a
+	// member may not make, and the web interface's own captcha calls.
 	"POST /api/containers",
 	"GET /api/containers/relay/{token}",
 	"POST /api/torrents",
 	"POST /api/torrents/parse",
 	"DELETE /api/history",
 	"GET /api/history",
-	"DELETE /api/collector/filtered",
 	"GET /api/collector/filtered",
-	"POST /api/collector/filtered/restore",
-	"DELETE /api/collector/skipped",
-	"GET /api/collector/skipped",
 	"GET /api/cleanup/{class}",
 	"POST /api/cleanup/{class}",
 	"POST /api/extract/start",

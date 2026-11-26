@@ -219,11 +219,14 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/playback/servers/{id}":    apitoken.ScopeAdmin,
 	"POST /api/playback/servers/{id}/test": apitoken.ScopeAdmin,
 
+	// Setting the limits changes less than halting the queue does.
 	"GET /api/queue":            apitoken.ScopeRead,
 	"POST /api/queue":           apitoken.ScopeControl,
 	"GET /api/queue/counters":   apitoken.ScopeRead,
 	"POST /api/queue/enabled":   apitoken.ScopeControl,
 	"POST /api/queue/force":     apitoken.ScopeControl,
+	"GET /api/queue/limits":     apitoken.ScopeRead,
+	"PUT /api/queue/limits":     apitoken.ScopeControl,
 	"POST /api/queue/move":      apitoken.ScopeControl,
 	"GET /api/queue/priorities": apitoken.ScopeRead,
 	"POST /api/queue/priority":  apitoken.ScopeControl,

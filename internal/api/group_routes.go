@@ -44,6 +44,15 @@ var groupRoutes = map[string]bool{
 	"POST /api/links":     true,
 	"GET /api/ytdlp/link": true,
 
+	// What became of links that did not make the list: the ones a filter
+	// rule, a banned tracker or the history rejected, which the phone reads
+	// off the task list and restores or clears, and the ones folded into a
+	// link already there, without their credentials.
+	"POST /api/collector/filtered/restore": true,
+	"DELETE /api/collector/filtered":       true,
+	"GET /api/collector/skipped":           true,
+	"DELETE /api/collector/skipped":        true,
+
 	// The list and what the rows do. Showing a member's downloads without
 	// being able to stop them would be half a connection.
 	"GET /api/tasks":                     true,
@@ -83,12 +92,16 @@ var groupRoutes = map[string]bool{
 	// that names none of them.
 	"GET /api/stats/speed": true,
 
-	// The queue, the master switch of that list.
+	// The queue, the master switch of that list. The limits are the two
+	// fields the web's quick settings change while downloads run, and no
+	// other setting.
 	"GET /api/queue":            true,
 	"POST /api/queue":           true,
 	"GET /api/queue/counters":   true,
 	"POST /api/queue/enabled":   true,
 	"POST /api/queue/force":     true,
+	"GET /api/queue/limits":     true,
+	"PUT /api/queue/limits":     true,
 	"POST /api/queue/move":      true,
 	"GET /api/queue/priorities": true,
 	"POST /api/queue/priority":  true,
