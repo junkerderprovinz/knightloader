@@ -146,6 +146,83 @@ export const fr: Dict = {
   'error.answerTooLarge': 'La réponse de l’instance est trop grande pour le relais. Sur le réseau de l’instance, elle passe.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',
+  'edit.title': 'Propriétés',
+  'edit.name': 'Nom',
+  'edit.nameHint':
+    'Le nom sous lequel le fichier est enregistré. Un téléchargement déjà terminé est aussi renommé sur le disque, pour que la liste et le dossier concordent. Un nom n’est pas un chemin, donc / et \\ ne sont pas permis.',
+  'edit.packageName': 'Nom du paquet',
+  'edit.packageNameHint':
+    'Si le dossier de téléchargement porte le nom du paquet, il prend le nouveau nom avec les fichiers qu’il contient déjà, et les téléchargements encore en cours s’y poursuivent. Un dossier de fichiers extraits portant le nom du paquet est déplacé lui aussi. Un nom n’est pas un chemin, donc / et \\ ne sont pas permis.',
+  'edit.package': 'Déplacer vers un paquet',
+  'edit.packageHint':
+    'Le paquet dans lequel se trouve ce lien. Choisis-en un autre ou tape un nouveau nom. Laissé vide, le lien reste seul.',
+  'edit.category': 'Catégorie',
+  'edit.categoryNone': 'Aucune',
+  'edit.categoryHint':
+    'La catégorie dans laquelle chaque lien de ce lot est rangé, avec son dossier, son dossier d\'extraction et ses autres réglages par défaut. Une règle Packagizer qui nomme une catégorie l\'emporte toujours.',
+  'edit.folder': 'Dossier',
+  'edit.destination': 'Destination',
+  'edit.folderHint':
+    'L’un des dossiers de téléchargement ci-dessous, ou un dossier à l’intérieur. Tout autre dossier ne se règle que dans l’interface web.',
+  'edit.folderRefused':
+    'Ce dossier est en dehors des dossiers de téléchargement. Choisis l’un d’eux, ou un dossier à l’intérieur.',
+  'edit.password': 'Mot de passe d\'archive',
+  'edit.passwordHint':
+    'Essayé avant la liste enregistrée dans les paramètres, quand une archive de ce lot est chiffrée.',
+  'edit.linkPassword': 'Mot de passe du lien',
+  'edit.linkPasswordHint':
+    'Le mot de passe que la page de l’hébergeur demande elle-même avant de livrer le fichier. Le mot de passe d’archive ci-dessus en est un autre.',
+  'edit.passwordHidden': 'Le téléphone n’affiche pas un mot de passe déjà défini. Laisse le champ vide pour le garder.',
+  'edit.comment': 'Commentaire',
+  'edit.commentHint':
+    'Ta propre note sur ce lien. Elle est enregistrée et affichée dans la liste ; rien dans l’application n’agit dessus.',
+  'edit.chunks': 'Connexions (0 = le réglage global)',
+  'edit.chunksHint':
+    'Combien de connexions ce téléchargement-ci ouvre. Il l’emporte sur le réglage global et sur toute règle qui l’a fixé, mais jamais sur l’hébergeur : un hôte qui en tolère moins en obtient quand même moins. 0 retire l’exception et rend la main sur le nombre.',
+  'edit.chunksRange': 'Saisis un nombre entier de 0 à 16.',
+  'edit.priority': 'Priorité',
+  'edit.priorityHint':
+    'Plus haut s’exécute en premier. Cela réordonne ce qui attend encore ; un téléchargement déjà en cours n’est pas renvoyé dans la file.',
+  'edit.autoExtract': 'Extraire les archives',
+  'edit.autoExtractHint':
+    'Si une archive est décompressée une fois le téléchargement terminé. « Hériter » laisse la décision à la page des réglages d’archives, ce qui n’est pas la même chose que « désactivé ». L’interrupteur est lu au moment de la décompression, donc l’activer maintenant décompresse aussi quelque chose de terminé plus tôt.',
+  'edit.inherit': 'Hériter',
+  'edit.on': 'Activé',
+  'edit.off': 'Désactivé',
+  'edit.overrule': 'Outrepasser une règle Packagizer correspondante',
+  'edit.overruleHint':
+    'Désactivé, une règle Packagizer correspondante l’emporte sur la priorité, la décompression et le commentaire ci-dessus. Activé, ce sont ces valeurs qui l’emportent. La destination n’en fait jamais partie : elle s’applique toujours telle que saisie.',
+  'edit.options': 'Options',
+  'edit.addPackage': 'Paquet (facultatif)',
+  'edit.mixed': 'Plusieurs valeurs',
+  'edit.save': 'Enregistrer',
+  'edit.cancel': 'Annuler',
+  'edit.priority.highest': 'La plus haute',
+  'edit.priority.higher': 'Plus haute',
+  'edit.priority.high': 'Haute',
+  'edit.priority.default': 'Par défaut',
+  'edit.priority.low': 'Basse',
+  'edit.priority.lower': 'Plus basse',
+  'edit.priority.lowest': 'La plus basse',
+  'edit.rename.whenDone': 'Ce téléchargement est encore en cours. Le fichier prend le nouveau nom une fois terminé.',
+  'edit.rename.torrent': 'Un torrent nomme ses propres fichiers, il ne peut donc pas être renommé.',
+  'edit.rename.remote':
+    'Le backend JDownloader télécharge ce fichier sur sa propre machine et le nomme lui-même, il ne peut donc pas être renommé d’ici.',
+  'edit.rename.unpacking':
+    'Ce fichier est en cours d’extraction. Il pourra être renommé une fois l’extraction terminée.',
+  'edit.rename.volume':
+    'Ce fichier est une partie d’une archive en plusieurs volumes. Les parties gardent leur nom, sinon l’archive ne pourrait pas être extraite.',
+  'edit.rename.empty': 'Un nom ne peut pas être vide.',
+  'edit.rename.separator': 'Un nom ne peut pas contenir / ni \\.',
+  'edit.rename.dots': 'Un nom doit contenir autre chose que des points.',
+  'edit.rename.exists': 'Un fichier nommé « {name} » se trouve déjà dans ce dossier. KnightLoader ne l’écrase pas.',
+  'edit.rename.busy':
+    'Une partie de ce paquet est en cours d’extraction, de déplacement vers son dossier ou d’enregistrement depuis un livestream. Réessayez une fois que c’est terminé.',
+  'edit.rename.folderExists': 'Un dossier nommé « {name} » existe déjà à cet endroit. Choisissez un autre nom.',
+  'edit.rename.dataFolder':
+    'Renommer en « {name} » le placerait dans le dossier de données de KnightLoader, et les téléchargements ne doivent pas y aller.',
+  'edit.rename.notMoved':
+    'Le dossier « {name} » n’a pas pu être renommé, donc rien n’a changé. Un autre programme garde peut-être un fichier de ce dossier ouvert. Fermez ce fichier et réessayez.',
 
   'share.title': 'Ajouter à KnightLoader',
   'share.hint': 'Les liens que tu partages depuis une autre app vont dans le collecteur, comme si tu les avais collés dans l’interface web.',

@@ -146,6 +146,80 @@ export const lt: Dict = {
   'error.answerTooLarge': 'Egzemplioriaus atsakymas per didelis relei. Egzemplioriaus tinkle jis praeina.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
+  'edit.title': 'Savybės',
+  'edit.name': 'Pavadinimas',
+  'edit.nameHint':
+    'Pavadinimas, kuriuo išsaugomas failas. Jau baigtas atsisiuntimas pervadinamas ir diske, kad sąrašas ir aplankas sutaptų. Pavadinimas nėra kelias, todėl / ir \\ neleidžiami.',
+  'edit.packageName': 'Paketo pavadinimas',
+  'edit.packageNameHint':
+    'Jei atsisiuntimų aplankas pavadintas pagal paketą, jis gauna naują pavadinimą kartu su jame jau esančiais failais, o dar vykstantys atsisiuntimai ten tęsiami. Pagal paketą pavadintas išpakuotų failų aplankas taip pat perkeliamas. Pavadinimas nėra kelias, todėl / ir \\ neleidžiami.',
+  'edit.package': 'Perkelti į paketą',
+  'edit.packageHint':
+    'Paketas, kuriame yra ši nuoroda. Pasirink kitą arba įvesk naują pavadinimą. Palikus tuščią, nuoroda lieka atskirai.',
+  'edit.category': 'Kategorija',
+  'edit.categoryNone': 'Nėra',
+  'edit.categoryHint':
+    'Kategorija, į kurią įrašoma kiekviena šios partijos nuoroda, su savo aplanku, išskleidimo aplanku ir kitomis numatytosiomis reikšmėmis. Packagizer taisyklė, nurodanti kategoriją, vis tiek turi pirmenybę.',
+  'edit.folder': 'Aplankas',
+  'edit.destination': 'Paskirties aplankas',
+  'edit.folderHint':
+    'Vienas iš toliau esančių atsisiuntimų aplankų arba aplankas jame. Bet kurį kitą aplanką galima nustatyti tik žiniatinklio sąsajoje.',
+  'edit.folderRefused': 'Šis aplankas yra už atsisiuntimų aplankų ribų. Pasirink vieną iš jų arba aplanką jame.',
+  'edit.password': 'Archyvo slaptažodis',
+  'edit.passwordHint': 'Bandomas prieš sąrašą, išsaugotą Nustatymuose, kai archyvas šioje partijoje yra užšifruotas.',
+  'edit.linkPassword': 'Nuorodos slaptažodis',
+  'edit.linkPasswordHint':
+    'Slaptažodis, kurio prašo paties hosterio puslapis prieš atiduodamas failą. Archyvo slaptažodis aukščiau yra kitas.',
+  'edit.passwordHidden': 'Jau nustatyto slaptažodžio telefonas nerodo. Palik laukelį tuščią, kad jis liktų.',
+  'edit.comment': 'Pastaba',
+  'edit.commentHint':
+    'Tavo paties pastaba apie šią nuorodą. Ji išsaugoma ir rodoma sąraše; programoje niekas pagal ją nesielgia.',
+  'edit.chunks': 'Ryšiai (0 = bendras nustatymas)',
+  'edit.chunksHint':
+    'Kiek ryšių atveria būtent šis atsisiuntimas. Jis nusveria bendrą nustatymą ir bet kurią taisyklę, kuri jį nustatė, bet niekada ne talpyklą: talpykla, kuri pakenčia mažiau, vis tiek gaus mažiau. Esant 0 išimtis nuimama ir skaičius vėl sprendžiamas kitur.',
+  'edit.chunksRange': 'Įvesk sveikąjį skaičių nuo 0 iki 16.',
+  'edit.priority': 'Pirmenybė',
+  'edit.priorityHint':
+    'Aukštesnė paleidžiama pirma. Ji perrikiuoja tai, kas dar laukia; jau vykstantis atsisiuntimas atgal į eilę nesiunčiamas.',
+  'edit.autoExtract': 'Išskleisti archyvus',
+  'edit.autoExtractHint':
+    'Ar archyvas išskleidžiamas, kai atsisiuntimas baigtas. „Paveldėti“ palieka sprendimą archyvų nustatymų puslapiui, o tai nėra tas pat kas išjungta. Jungiklis skaitomas išskleidimo metu, tad įjungęs jį dabar išskleisi ir tai, kas baigėsi anksčiau.',
+  'edit.inherit': 'Paveldėti',
+  'edit.on': 'Įjungta',
+  'edit.off': 'Išjungta',
+  'edit.overrule': 'Viršenybė prieš atitinkančią Packagizer taisyklę',
+  'edit.overruleHint':
+    'Išjungus atitinkanti Packagizer taisyklė nusveria pirmenybę, išpakavimą ir komentarą aukščiau. Įjungus vietoj jos laimi šios reikšmės. Paskirties aplankas su tuo nesusijęs: jis visada taikomas taip, kaip įvestas.',
+  'edit.options': 'Parinktys',
+  'edit.addPackage': 'Paketas (nebūtina)',
+  'edit.mixed': 'Kelios reikšmės',
+  'edit.save': 'Įrašyti',
+  'edit.cancel': 'Atsisakyti',
+  'edit.priority.highest': 'Aukščiausia',
+  'edit.priority.higher': 'Aukštesnė',
+  'edit.priority.high': 'Aukšta',
+  'edit.priority.default': 'Numatytoji',
+  'edit.priority.low': 'Žema',
+  'edit.priority.lower': 'Žemesnė',
+  'edit.priority.lowest': 'Žemiausia',
+  'edit.rename.whenDone': 'Šis atsisiuntimas dar vyksta. Failas gaus naują pavadinimą, kai jis baigsis.',
+  'edit.rename.torrent': 'Torentas pats pavadina savo failus, todėl jo pervadinti negalima.',
+  'edit.rename.remote':
+    'JDownloader posistemė šį failą siunčiasi savo kompiuteryje ir pati jam duoda pavadinimą, todėl iš čia jo pervadinti negalima.',
+  'edit.rename.unpacking': 'Šis failas išpakuojamas. Jį bus galima pervadinti, kai išpakavimas baigsis.',
+  'edit.rename.volume':
+    'Šis failas yra viena kelių tomų archyvo dalis. Dalys išlaiko savo pavadinimus, kitaip archyvo nepavyktų išpakuoti.',
+  'edit.rename.empty': 'Pavadinimas negali būti tuščias.',
+  'edit.rename.separator': 'Pavadinime negali būti / arba \\.',
+  'edit.rename.dots': 'Pavadinime turi būti ne vien taškai.',
+  'edit.rename.exists': 'Tame aplanke jau yra failas „{name}“. KnightLoader jo neperrašo.',
+  'edit.rename.busy':
+    'Dalis šio paketo šiuo metu išpakuojama, perkeliama į savo aplanką arba įrašoma iš tiesioginės transliacijos. Bandyk dar kartą, kai tai baigsis.',
+  'edit.rename.folderExists': 'Ten jau yra aplankas „{name}“. Pasirink kitą pavadinimą.',
+  'edit.rename.dataFolder':
+    'Pervadinus į „{name}“, jis atsidurtų KnightLoader duomenų aplanke, o atsisiuntimai ten negali patekti.',
+  'edit.rename.notMoved':
+    'Aplanko „{name}“ nepavyko pervadinti, todėl niekas nepasikeitė. Galbūt kita programa laiko jame atidarytą failą. Uždaryk tą failą ir bandyk dar kartą.',
 
   'share.title': 'Pridėti į KnightLoader',
   'share.hint': 'Nuorodos, kuriomis dalijiesi iš kitos programos, patenka į rinktuvą, lyg būtum jas įklijavęs žiniatinklio sąsajoje.',

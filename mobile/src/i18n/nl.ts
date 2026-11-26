@@ -146,6 +146,82 @@ export const nl: Dict = {
   'error.answerTooLarge': 'Het antwoord van de instantie is te groot voor de relay. Op het netwerk van de instantie komt het wel door.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',
+  'edit.title': 'Eigenschappen',
+  'edit.name': 'Naam',
+  'edit.nameHint':
+    'De naam waaronder het bestand wordt opgeslagen. Een download die al klaar is, wordt ook op de schijf hernoemd, zodat lijst en map overeenkomen. Een naam is geen pad, dus / en \\ zijn niet toegestaan.',
+  'edit.packageName': 'Pakketnaam',
+  'edit.packageNameHint':
+    'Als de downloadmap naar het pakket is genoemd, krijgt hij de nieuwe naam mee, samen met de bestanden die er al in staan, en downloads die nog lopen gaan daar verder. Een map met uitgepakte bestanden die naar het pakket is genoemd, verhuist ook mee. Een naam is geen pad, dus / en \\ zijn niet toegestaan.',
+  'edit.package': 'Naar een pakket verplaatsen',
+  'edit.packageHint':
+    'Het pakket waarin deze link zit. Kies een ander of typ een nieuwe naam. Laat je het leeg, dan staat de link op zichzelf.',
+  'edit.category': 'Categorie',
+  'edit.categoryNone': 'Geen',
+  'edit.categoryHint':
+    'De categorie waarin elke link van deze batch wordt opgeborgen, met haar map, uitpakmap en andere standaarden. Een Packagizer-regel die een categorie noemt, gaat nog steeds voor.',
+  'edit.folder': 'Map',
+  'edit.destination': 'Bestemming',
+  'edit.folderHint':
+    'Een van de downloadmappen hieronder, of een map daarin. Elke andere map kun je alleen in de webinterface instellen.',
+  'edit.folderRefused': 'Die map ligt buiten de downloadmappen. Kies er een van, of een map daarin.',
+  'edit.password': 'Archiefwachtwoord',
+  'edit.passwordHint':
+    'Wordt geprobeerd vóór de lijst die in Instellingen is opgeslagen, wanneer een archief in deze batch versleuteld is.',
+  'edit.linkPassword': 'Linkwachtwoord',
+  'edit.linkPasswordHint':
+    'Het wachtwoord dat de pagina van de hoster zelf vraagt voordat hij het bestand vrijgeeft. Het archiefwachtwoord hierboven is een ander.',
+  'edit.passwordHidden':
+    'Een wachtwoord dat al is ingesteld, toont de telefoon niet. Laat het veld leeg om het te houden.',
+  'edit.comment': 'Notitie',
+  'edit.commentHint':
+    'Je eigen notitie bij deze link. Hij wordt opgeslagen en in de lijst getoond; niets in de app doet er iets mee.',
+  'edit.chunks': 'Verbindingen (0 = de globale instelling)',
+  'edit.chunksHint':
+    'Hoeveel verbindingen deze ene download opent. Dit gaat vóór de globale instelling en vóór elke regel die die heeft gezet, maar nooit vóór de host: een host die er minder verdraagt krijgt er alsnog minder. Bij 0 vervalt de uitzondering en wordt het aantal weer elders bepaald.',
+  'edit.chunksRange': 'Vul een heel getal van 0 tot 16 in.',
+  'edit.priority': 'Prioriteit',
+  'edit.priorityHint':
+    'Hoger loopt eerst. Het herschikt wat nog wacht; een download die al loopt wordt niet terug de wachtrij in gestuurd.',
+  'edit.autoExtract': 'Archieven uitpakken',
+  'edit.autoExtractHint':
+    'Of een archief wordt uitgepakt zodra de download klaar is. „Erven“ laat de beslissing aan de pagina met archiefinstellingen, en dat is niet hetzelfde als uit. De schakelaar wordt gelezen op het moment van uitpakken, dus hem nu aanzetten pakt ook iets uit dat eerder klaar was.',
+  'edit.inherit': 'Overerven',
+  'edit.on': 'Aan',
+  'edit.off': 'Uit',
+  'edit.overrule': 'Een overeenkomende Packagizer-regel overstemmen',
+  'edit.overruleHint':
+    'Staat de schakelaar uit, dan wint een passende Packagizer-regel het van prioriteit, uitpakken en de opmerking hierboven. Staat hij aan, dan winnen deze waarden. De bestemming valt hier nooit onder: die geldt altijd zoals getypt.',
+  'edit.options': 'Opties',
+  'edit.addPackage': 'Pakket (optioneel)',
+  'edit.mixed': 'Meerdere waarden',
+  'edit.save': 'Opslaan',
+  'edit.cancel': 'Annuleren',
+  'edit.priority.highest': 'Hoogste',
+  'edit.priority.higher': 'Hoger',
+  'edit.priority.high': 'Hoog',
+  'edit.priority.default': 'Standaard',
+  'edit.priority.low': 'Laag',
+  'edit.priority.lower': 'Lager',
+  'edit.priority.lowest': 'Laagste',
+  'edit.rename.whenDone': 'Deze download loopt nog. Het bestand krijgt de nieuwe naam zodra hij klaar is.',
+  'edit.rename.torrent': 'Een torrent geeft zijn bestanden zelf een naam, dus het kan niet worden hernoemd.',
+  'edit.rename.remote':
+    'De JDownloader-backend downloadt dit bestand op zijn eigen machine en geeft het zelf een naam, dus het kan hier niet worden hernoemd.',
+  'edit.rename.unpacking': 'Dit bestand wordt uitgepakt. Het kan worden hernoemd zodra het uitpakken klaar is.',
+  'edit.rename.volume':
+    'Dit bestand is één deel van een archief in meerdere delen. De delen houden hun naam, anders kan het archief niet worden uitgepakt.',
+  'edit.rename.empty': 'Een naam mag niet leeg zijn.',
+  'edit.rename.separator': 'Een naam mag geen / of \\ bevatten.',
+  'edit.rename.dots': 'Een naam moet uit meer dan punten bestaan.',
+  'edit.rename.exists': 'Er staat al een bestand met de naam “{name}” in die map. KnightLoader overschrijft het niet.',
+  'edit.rename.busy':
+    'Een deel van dit pakket wordt uitgepakt, naar zijn map verplaatst of opgenomen van een livestream. Probeer het opnieuw zodra dat klaar is.',
+  'edit.rename.folderExists': 'Er staat daar al een map met de naam “{name}”. Kies een andere naam.',
+  'edit.rename.dataFolder':
+    'Hernoemen naar “{name}” zou het in de datamap van KnightLoader zetten, en daar mogen geen downloads heen.',
+  'edit.rename.notMoved':
+    'De map “{name}” kon niet worden hernoemd, dus er is niets veranderd. Misschien heeft een ander programma een bestand in die map open. Sluit dat bestand en probeer het opnieuw.',
 
   'share.title': 'Toevoegen aan KnightLoader',
   'share.hint': 'Links die je vanuit een andere app deelt, gaan naar de verzamelaar, alsof je ze in de webinterface had geplakt.',

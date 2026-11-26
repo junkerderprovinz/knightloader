@@ -146,6 +146,81 @@ export const da: Dict = {
   'error.answerTooLarge': 'Instansens svar er for stort til relæet. På instansens eget netværk kommer det igennem.',
   'addDownload.cancel': 'Annuller',
   'addDownload.button': 'Tilføj',
+  'edit.title': 'Egenskaber',
+  'edit.name': 'Navn',
+  'edit.nameHint':
+    'Navnet filen gemmes under. En download, der allerede er færdig, omdøbes også på disken, så listen og mappen passer sammen. Et navn er ikke en sti, så / og \\ er ikke tilladt.',
+  'edit.packageName': 'Pakkenavn',
+  'edit.packageNameHint':
+    'Hvis downloadmappen er opkaldt efter pakken, får den det nye navn sammen med de filer, der allerede ligger i den, og downloads, der stadig kører, fortsætter dér. En mappe med udpakkede filer, der er opkaldt efter pakken, flytter også med. Et navn er ikke en sti, så / og \\ er ikke tilladt.',
+  'edit.package': 'Flyt til en pakke',
+  'edit.packageHint':
+    'Den pakke, linket ligger i. Vælg en anden, eller skriv et nyt navn. Lader du feltet stå tomt, står linket for sig selv.',
+  'edit.category': 'Kategori',
+  'edit.categoryNone': 'Ingen',
+  'edit.categoryHint':
+    'Den kategori, som alle links i denne batch arkiveres under, med dens mappe, udpakningsmappe og øvrige standarder. En Packagizer-regel, der angiver en kategori, vinder stadig.',
+  'edit.folder': 'Mappe',
+  'edit.destination': 'Destinationsmappe',
+  'edit.folderHint':
+    'En af downloadmapperne herunder eller en mappe i en af dem. Alle andre mapper kan kun vælges i webgrænsefladen.',
+  'edit.folderRefused': 'Den mappe ligger uden for downloadmapperne. Vælg en af dem eller en mappe i en af dem.',
+  'edit.password': 'Arkivadgangskode',
+  'edit.passwordHint': 'Prøves før listen gemt i Indstillinger, når et arkiv i denne batch er krypteret.',
+  'edit.linkPassword': 'Linkadgangskode',
+  'edit.linkPasswordHint':
+    'Den adgangskode, hosterens egen side beder om, før den udleverer filen. Arkivadgangskoden ovenfor er en anden.',
+  'edit.passwordHidden':
+    'En adgangskode, der allerede er sat, vises ikke på telefonen. Lad feltet stå tomt for at beholde den.',
+  'edit.comment': 'Kommentar',
+  'edit.commentHint': 'Din egen note til dette link. Den gemmes og vises i listen; intet i appen retter sig efter den.',
+  'edit.chunks': 'Forbindelser (0 = den globale indstilling)',
+  'edit.chunksHint':
+    'Hvor mange forbindelser netop denne download åbner. Det går forud for den globale indstilling og for enhver regel, der har sat den, men aldrig forud for værten: en vært, der tåler færre, får alligevel færre. Ved 0 fjernes undtagelsen, og tallet bestemmes andetsteds igen.',
+  'edit.chunksRange': 'Skriv et helt tal fra 0 til 16.',
+  'edit.priority': 'Prioritet',
+  'edit.priorityHint':
+    'Højere kører først. Det omrokerer det, der stadig venter; en download, der allerede kører, sendes ikke tilbage i køen.',
+  'edit.autoExtract': 'Pak arkiver ud',
+  'edit.autoExtractHint':
+    'Om et arkiv pakkes ud, når downloaden er færdig. “Arv” overlader beslutningen til siden med arkivindstillinger, hvilket ikke er det samme som fra. Kontakten læses på udpakningstidspunktet, så hvis du slår den til nu, pakkes også noget ud, der blev færdigt tidligere.',
+  'edit.inherit': 'Nedarv',
+  'edit.on': 'Til',
+  'edit.off': 'Fra',
+  'edit.overrule': 'Tilsidesæt en matchende Packagizer-regel',
+  'edit.overruleHint':
+    'Slået fra vinder en passende Packagizer-regel over prioritet, udpakning og kommentaren ovenfor. Slået til vinder disse værdier i stedet. Destinationen er aldrig en del af dette: den gælder altid, som den er indtastet.',
+  'edit.options': 'Valgmuligheder',
+  'edit.addPackage': 'Pakke (valgfrit)',
+  'edit.mixed': 'Flere værdier',
+  'edit.save': 'Gem',
+  'edit.cancel': 'Annullér',
+  'edit.priority.highest': 'Højeste',
+  'edit.priority.higher': 'Højere',
+  'edit.priority.high': 'Høj',
+  'edit.priority.default': 'Standard',
+  'edit.priority.low': 'Lav',
+  'edit.priority.lower': 'Lavere',
+  'edit.priority.lowest': 'Laveste',
+  'edit.rename.whenDone': 'Denne download kører stadig. Filen får det nye navn, når den er færdig.',
+  'edit.rename.torrent': 'En torrent navngiver sine egne filer, så den kan ikke omdøbes.',
+  'edit.rename.remote':
+    'JDownloader-backenden downloader denne fil på sin egen maskine og navngiver den selv, så den kan ikke omdøbes herfra.',
+  'edit.rename.unpacking': 'Denne fil pakkes ud. Den kan omdøbes, når udpakningen er færdig.',
+  'edit.rename.volume':
+    'Denne fil er én del af et arkiv i flere dele. Delene beholder deres navne, ellers kunne arkivet ikke pakkes ud.',
+  'edit.rename.empty': 'Et navn må ikke være tomt.',
+  'edit.rename.separator': 'Et navn må ikke indeholde / eller \\.',
+  'edit.rename.dots': 'Et navn skal bestå af mere end punktummer.',
+  'edit.rename.exists':
+    'Der ligger allerede en fil med navnet „{name}“ i den mappe. KnightLoader overskriver den ikke.',
+  'edit.rename.busy':
+    'En del af denne pakke er ved at blive pakket ud, flyttet til sin mappe eller optaget fra en livestream. Prøv igen, når det er færdigt.',
+  'edit.rename.folderExists': 'Der findes allerede en mappe med navnet „{name}“. Vælg et andet navn.',
+  'edit.rename.dataFolder':
+    'At omdøbe til “{name}” ville lægge den i KnightLoaders datamappe, og downloads må ikke havne der.',
+  'edit.rename.notMoved':
+    'Mappen „{name}“ kunne ikke omdøbes, så intet er ændret. Måske har et andet program en fil i den åben. Luk filen, og prøv igen.',
 
   'share.title': 'Føj til KnightLoader',
   'share.hint': 'Links, du deler fra en anden app, havner i samleren, som om du havde indsat dem i webgrænsefladen.',

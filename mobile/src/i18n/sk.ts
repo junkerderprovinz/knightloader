@@ -146,6 +146,79 @@ export const sk: Dict = {
   'error.answerTooLarge': 'Odpoveď inštancie je pre relay príliš veľká. V sieti inštancie prejde.',
   'addDownload.cancel': 'Zrušiť',
   'addDownload.button': 'Pridať',
+  'edit.title': 'Vlastnosti',
+  'edit.name': 'Názov',
+  'edit.nameHint':
+    'Názov, pod ktorým sa súbor uloží. Sťahovanie, ktoré už skončilo, sa premenuje aj na disku, aby zoznam a priečinok súhlasili. Názov nie je cesta, takže / a \\ nie sú povolené.',
+  'edit.packageName': 'Názov balíka',
+  'edit.packageNameHint':
+    'Ak je priečinok na sťahovanie pomenovaný podľa balíka, dostane nový názov aj so súbormi, ktoré v ňom už sú, a sťahovania, ktoré ešte bežia, v ňom pokračujú. Priečinok s rozbalenými súbormi pomenovaný podľa balíka sa presunie tiež. Názov nie je cesta, takže / a \\ nie sú povolené.',
+  'edit.package': 'Presunúť do balíka',
+  'edit.packageHint':
+    'Balík, v ktorom je tento odkaz. Vyber iný alebo napíš nový názov. Keď pole necháš prázdne, odkaz zostane samostatne.',
+  'edit.category': 'Kategória',
+  'edit.categoryNone': 'Žiadna',
+  'edit.categoryHint':
+    'Kategória, do ktorej sa zaradí každý odkaz tejto dávky, s jej priečinkom, priečinkom na rozbalenie a ďalšími predvolenými hodnotami. Pravidlo Packagizera, ktoré určuje kategóriu, má aj tak prednosť.',
+  'edit.folder': 'Priečinok',
+  'edit.destination': 'Cieľový priečinok',
+  'edit.folderHint':
+    'Jeden z priečinkov na sťahovanie nižšie alebo priečinok v ňom. Akýkoľvek iný priečinok sa dá nastaviť iba vo webovom rozhraní.',
+  'edit.folderRefused': 'Tento priečinok je mimo priečinkov na sťahovanie. Vyber jeden z nich alebo priečinok v ňom.',
+  'edit.password': 'Heslo k archívu',
+  'edit.passwordHint': 'Skúša sa pred zoznamom uloženým v Nastaveniach, keď je archív v tejto dávke šifrovaný.',
+  'edit.linkPassword': 'Heslo odkazu',
+  'edit.linkPasswordHint': 'Heslo, ktoré si pýta samotná stránka hostera, kým vydá súbor. Heslo archívu vyššie je iné.',
+  'edit.passwordHidden': 'Heslo, ktoré je už nastavené, telefón nezobrazí. Nechaj pole prázdne a heslo zostane.',
+  'edit.comment': 'Poznámka',
+  'edit.commentHint':
+    'Tvoja vlastná poznámka k tomuto odkazu. Uloží sa a zobrazí v zozname; aplikácia sa podľa nej neriadi.',
+  'edit.chunks': 'Spojenia (0 = globálne nastavenie)',
+  'edit.chunksHint':
+    'Koľkými spojeniami beží toto jedno sťahovanie. Prebíja globálne nastavenie aj každé pravidlo, ktoré ho nastavilo, ale nikdy hostera: hoster, ktorý znesie menej, dostane aj tak menej. Pri 0 výnimka zaniká a číslo sa opäť rozhoduje inde.',
+  'edit.chunksRange': 'Zadaj celé číslo od 0 do 16.',
+  'edit.priority': 'Priorita',
+  'edit.priorityHint':
+    'Vyššia beží skôr. Preskladá to, čo ešte čaká; už bežiace sťahovanie sa späť do frontu neposiela.',
+  'edit.autoExtract': 'Rozbaliť archívy',
+  'edit.autoExtractHint':
+    'Či sa archív rozbalí po dokončení sťahovania. „Dediť“ necháva rozhodnutie na stránke nastavení archívov, čo nie je to isté ako vypnuté. Prepínač sa číta až pri rozbaľovaní, takže ak ho zapneš teraz, rozbalí sa aj niečo, čo skončilo skôr.',
+  'edit.inherit': 'Zdediť',
+  'edit.on': 'Zapnuté',
+  'edit.off': 'Vypnuté',
+  'edit.overrule': 'Uprednostniť pred zodpovedajúcim pravidlom Packagizeru',
+  'edit.overruleHint':
+    'Keď je vypnuté, zodpovedajúce pravidlo Packagizeru vyhráva nad prioritou, rozbalením a komentárom vyššie. Keď je zapnuté, vyhrávajú namiesto toho tieto hodnoty. Cieľa sa to nikdy netýka: vždy platí tak, ako bol zadaný.',
+  'edit.options': 'Možnosti',
+  'edit.addPackage': 'Balík (voliteľné)',
+  'edit.mixed': 'Niekoľko hodnôt',
+  'edit.save': 'Uložiť',
+  'edit.cancel': 'Zrušiť',
+  'edit.priority.highest': 'Najvyššia',
+  'edit.priority.higher': 'Vyššia',
+  'edit.priority.high': 'Vysoká',
+  'edit.priority.default': 'Predvolená',
+  'edit.priority.low': 'Nízka',
+  'edit.priority.lower': 'Nižšia',
+  'edit.priority.lowest': 'Najnižšia',
+  'edit.rename.whenDone': 'Toto sťahovanie ešte beží. Súbor dostane nový názov, keď skončí.',
+  'edit.rename.torrent': 'Torrent pomenúva svoje súbory sám, takže ho nemožno premenovať.',
+  'edit.rename.remote':
+    'Backend JDownloader sťahuje tento súbor na vlastnom stroji a sám mu dáva názov, takže ho odtiaľto nemožno premenovať.',
+  'edit.rename.unpacking': 'Tento súbor sa rozbaľuje. Premenovať ho pôjde, keď rozbaľovanie skončí.',
+  'edit.rename.volume':
+    'Tento súbor je jednou časťou viaczväzkového archívu. Časti si ponechávajú názvy, inak by archív nešiel rozbaliť.',
+  'edit.rename.empty': 'Názov nemôže byť prázdny.',
+  'edit.rename.separator': 'Názov nemôže obsahovať / ani \\.',
+  'edit.rename.dots': 'Názov musí obsahovať viac než bodky.',
+  'edit.rename.exists': 'V tom priečinku už je súbor s názvom „{name}“. KnightLoader ho neprepíše.',
+  'edit.rename.busy':
+    'Časť tohto balíka sa práve rozbaľuje, presúva do svojho priečinka alebo nahráva z livestreamu. Skús to znova, keď to skončí.',
+  'edit.rename.folderExists': 'Priečinok s názvom „{name}“ tam už je. Vyber iný názov.',
+  'edit.rename.dataFolder':
+    'Premenovanie na „{name}“ by ho dalo do dátového priečinka KnightLoadera a sťahovanie tam nesmie.',
+  'edit.rename.notMoved':
+    'Priečinok „{name}“ sa nepodarilo premenovať, takže sa nič nezmenilo. Možno má v ňom iný program otvorený súbor. Zatvor ten súbor a skús to znova.',
 
   'share.title': 'Pridať do KnightLoadera',
   'share.hint': 'Odkazy, ktoré zdieľaš z inej aplikácie, idú do zberača, akoby si ich vložil vo webovom rozhraní.',

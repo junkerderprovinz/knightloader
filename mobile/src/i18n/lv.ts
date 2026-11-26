@@ -146,6 +146,80 @@ export const lv: Dict = {
   'error.answerTooLarge': 'Instances atbilde relejam ir par lielu. Instances tīklā tā tiek cauri.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
+  'edit.title': 'Īpašības',
+  'edit.name': 'Nosaukums',
+  'edit.nameHint':
+    'Nosaukums, ar kādu fails tiek saglabāts. Jau pabeigta lejupielāde tiek pārdēvēta arī diskā, lai saraksts un mape sakristu. Nosaukums nav ceļš, tāpēc / un \\ nav atļauti.',
+  'edit.packageName': 'Pakas nosaukums',
+  'edit.packageNameHint':
+    'Ja lejupielāžu mape nosaukta pakotnes vārdā, tā saņem jauno nosaukumu kopā ar failiem, kas tajā jau ir, un vēl notiekošās lejupielādes turpinās tur. Arī pakotnes vārdā nosaukta izpakoto failu mape tiek pārvietota līdzi. Nosaukums nav ceļš, tāpēc / un \\ nav atļauti.',
+  'edit.package': 'Pārvietot uz paku',
+  'edit.packageHint':
+    'Pakete, kurā ir šī saite. Izvēlies citu vai ieraksti jaunu nosaukumu. Ja atstāsi tukšu, saite paliks atsevišķi.',
+  'edit.category': 'Kategorija',
+  'edit.categoryNone': 'Nav',
+  'edit.categoryHint':
+    'Kategorija, kurā tiek ievietota katra šīs partijas saite, ar tās mapi, izpakošanas mapi un pārējiem noklusējumiem. Packagizer kārtulai, kas nosauc kategoriju, tomēr ir priekšroka.',
+  'edit.folder': 'Mape',
+  'edit.destination': 'Mērķa mape',
+  'edit.folderHint':
+    'Viena no zemāk esošajām lejupielādes mapēm vai mape tajā. Jebkuru citu mapi var iestatīt tikai tīmekļa saskarnē.',
+  'edit.folderRefused': 'Šī mape ir ārpus lejupielādes mapēm. Izvēlies vienu no tām vai mapi tajā.',
+  'edit.password': 'Arhīva parole',
+  'edit.passwordHint': 'Tiek izmēģināta pirms Iestatījumos saglabātā saraksta, ja arhīvs šajā partijā ir šifrēts.',
+  'edit.linkPassword': 'Saites parole',
+  'edit.linkPasswordHint':
+    'Parole, ko prasa paša hostera lapa, pirms tā izsniedz failu. Arhīva parole augstāk ir cita.',
+  'edit.passwordHidden': 'Jau iestatītu paroli tālrunis nerāda. Atstāj lauku tukšu, lai to saglabātu.',
+  'edit.comment': 'Piezīme',
+  'edit.commentHint':
+    'Tava paša piezīme par šo saiti. Tā tiek saglabāta un rādīta sarakstā; lietotnē nekas pēc tās nerīkojas.',
+  'edit.chunks': 'Savienojumi (0 = globālais iestatījums)',
+  'edit.chunksHint':
+    'Cik savienojumus atver tieši šī lejupielāde. Tas pārspēj globālo iestatījumu un jebkuru noteikumu, kas to uzstādīja, bet nekad ne glabātāju: glabātājs, kas pacieš mazāk, tik un tā saņem mazāk. Ar 0 izņēmums tiek noņemts un skaitlis atkal tiek lemts citur.',
+  'edit.chunksRange': 'Ievadi veselu skaitli no 0 līdz 16.',
+  'edit.priority': 'Prioritāte',
+  'edit.priorityHint':
+    'Augstākā iet pirmā. Tā pārkārto to, kas vēl gaida; jau notiekoša lejupielāde atpakaļ rindā netiek sūtīta.',
+  'edit.autoExtract': 'Atpakot arhīvus',
+  'edit.autoExtractHint':
+    'Vai arhīvs tiek izpakots, kad lejupielāde pabeigta. „Mantot“ atstāj lēmumu arhīvu iestatījumu lapai, un tas nav tas pats, kas izslēgts. Slēdzi nolasa izpakošanas brīdī, tāpēc ieslēdzot to tagad, tiks izpakots arī kaut kas, kas beidzās agrāk.',
+  'edit.inherit': 'Mantot',
+  'edit.on': 'Ieslēgts',
+  'edit.off': 'Izslēgts',
+  'edit.overrule': 'Pārspēt atbilstošu Packagizer noteikumu',
+  'edit.overruleHint':
+    'Izslēgts: atbilstošs Packagizer noteikums uzvar pār prioritāti, izpakošanu un komentāru augstāk. Ieslēgts: tā vietā uzvar šīs vērtības. Mērķa mape uz to nekad neattiecas: tā vienmēr tiek piemērota tieši tā, kā ievadīta.',
+  'edit.options': 'Opcijas',
+  'edit.addPackage': 'Paka (nav obligāti)',
+  'edit.mixed': 'Vairākas vērtības',
+  'edit.save': 'Saglabāt',
+  'edit.cancel': 'Atcelt',
+  'edit.priority.highest': 'Augstākā',
+  'edit.priority.higher': 'Augstāka',
+  'edit.priority.high': 'Augsta',
+  'edit.priority.default': 'Noklusējuma',
+  'edit.priority.low': 'Zema',
+  'edit.priority.lower': 'Zemāka',
+  'edit.priority.lowest': 'Zemākā',
+  'edit.rename.whenDone': 'Šī lejupielāde vēl notiek. Fails saņems jauno nosaukumu, kad tā beigsies.',
+  'edit.rename.torrent': 'Torrents pats nosauc savus failus, tāpēc to nevar pārdēvēt.',
+  'edit.rename.remote':
+    'JDownloader aizmugure lejupielādē šo failu savā datorā un pati to nosauc, tāpēc no šejienes to nevar pārdēvēt.',
+  'edit.rename.unpacking': 'Šis fails tiek izpakots. To varēs pārdēvēt, kad izpakošana beigsies.',
+  'edit.rename.volume':
+    'Šis fails ir viena daļa no vairāku sējumu arhīva. Daļas saglabā savus nosaukumus, citādi arhīvu nevarētu izpakot.',
+  'edit.rename.empty': 'Nosaukums nevar būt tukšs.',
+  'edit.rename.separator': 'Nosaukumā nevar būt / vai \\.',
+  'edit.rename.dots': 'Nosaukumā jābūt kam vairāk par punktiem.',
+  'edit.rename.exists': 'Šajā mapē jau ir fails ar nosaukumu „{name}“. KnightLoader to nepārraksta.',
+  'edit.rename.busy':
+    'Daļa šīs pakotnes pašlaik tiek izpakota, pārvietota uz savu mapi vai ierakstīta no tiešraides. Mēģini vēlreiz, kad tas būs beidzies.',
+  'edit.rename.folderExists': 'Tur jau ir mape ar nosaukumu „{name}“. Izvēlies citu nosaukumu.',
+  'edit.rename.dataFolder':
+    'Pārdēvēšana par „{name}“ to ieliktu KnightLoader datu mapē, un lejupielādes tur nedrīkst nonākt.',
+  'edit.rename.notMoved':
+    'Mapi „{name}“ neizdevās pārdēvēt, tāpēc nekas nemainījās. Iespējams, cita programma tajā tur atvērtu failu. Aizver šo failu un mēģini vēlreiz.',
 
   'share.title': 'Pievienot KnightLoader',
   'share.hint': 'Saites, ko kopīgo no citas lietotnes, nonāk vācējā, it kā tu tās būtu ielīmējis tīmekļa saskarnē.',

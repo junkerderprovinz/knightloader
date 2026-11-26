@@ -1257,21 +1257,31 @@ func (a *App) InsideDownloadFolders(dir string) bool {
 	if !filepath.IsAbs(dir) || slices.Contains(strings.FieldsFunc(dir, isSlash), "..") {
 		return false
 	}
-	roots := []string{a.defaultDir()}
-	for _, c := range a.Settings.Get().Categories {
-		roots = append(roots, strings.TrimSpace(c.Dir))
-	}
 	want := filepath.Clean(settings.FixedPrefix(dir))
-	for _, root := range roots {
-		if root == "" || !filepath.IsAbs(root) {
-			continue
-		}
+	for _, root := range a.DownloadFolders() {
 		rel, err := filepath.Rel(filepath.Clean(settings.FixedPrefix(root)), want)
 		if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 			return true
 		}
 	}
 	return false
+}
+
+// DownloadFolders are the folders InsideDownloadFolders measures against, the
+// download folder first and then each category's, as they were set up and
+// each once.
+func (a *App) DownloadFolders() []string {
+	roots := []string{a.defaultDir()}
+	for _, c := range a.Settings.Get().Categories {
+		roots = append(roots, strings.TrimSpace(c.Dir))
+	}
+	out := make([]string, 0, len(roots))
+	for _, root := range roots {
+		if root != "" && filepath.IsAbs(root) && !slices.Contains(out, root) {
+			out = append(out, root)
+		}
+	}
+	return out
 }
 
 func isSlash(r rune) bool { return r == '/' || r == '\\' }

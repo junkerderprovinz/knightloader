@@ -43,6 +43,10 @@ var groupRoutes = map[string]bool{
 	// The extension's video menu first asks what a video offers.
 	"POST /api/links":     true,
 	"GET /api/ytdlp/link": true,
+	// What a folder and a category are picked from, read apart from the
+	// settings.
+	"GET /api/download-folders": true,
+	"GET /api/categories":       true,
 
 	// The list and what the rows do. Showing a member's downloads without
 	// being able to stop them would be half a connection.

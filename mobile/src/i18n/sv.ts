@@ -146,6 +146,81 @@ export const sv: Dict = {
   'error.answerTooLarge': 'Instansens svar är för stort för relät. På instansens eget nätverk kommer det fram.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',
+  'edit.title': 'Egenskaper',
+  'edit.name': 'Namn',
+  'edit.nameHint':
+    'Namnet som filen sparas under. En nedladdning som redan är klar byter namn på disken också, så att listan och mappen stämmer. Ett namn är ingen sökväg, så / och \\ är inte tillåtna.',
+  'edit.packageName': 'Paketnamn',
+  'edit.packageNameHint':
+    'Om nedladdningsmappen har paketets namn får den det nya namnet tillsammans med filerna som redan ligger i den, och nedladdningar som fortfarande pågår fortsätter där. En mapp med uppackade filer som har paketets namn flyttar också med. Ett namn är ingen sökväg, så / och \\ är inte tillåtna.',
+  'edit.package': 'Flytta till ett paket',
+  'edit.packageHint':
+    'Paketet som länken ligger i. Välj ett annat eller skriv ett nytt namn. Lämnar du fältet tomt står länken för sig själv.',
+  'edit.category': 'Kategori',
+  'edit.categoryNone': 'Ingen',
+  'edit.categoryHint':
+    'Kategorin som varje länk i den här omgången arkiveras under, med dess mapp, uppackningsmapp och övriga standardvärden. En Packagizer-regel som anger en kategori vinner ändå.',
+  'edit.folder': 'Mapp',
+  'edit.destination': 'Målmapp',
+  'edit.folderHint':
+    'En av nedladdningsmapparna nedan, eller en mapp i en av dem. Alla andra mappar kan bara anges i webbgränssnittet.',
+  'edit.folderRefused': 'Den mappen ligger utanför nedladdningsmapparna. Välj en av dem, eller en mapp i en av dem.',
+  'edit.password': 'Arkivlösenord',
+  'edit.passwordHint': 'Provas före listan som sparats i Inställningar, när ett arkiv i den här omgången är krypterat.',
+  'edit.linkPassword': 'Länklösenord',
+  'edit.linkPasswordHint':
+    'Lösenordet som värdens egen sida frågar efter innan den lämnar ut filen. Arkivlösenordet ovan är ett annat.',
+  'edit.passwordHidden':
+    'Ett lösenord som redan är satt visas inte på telefonen. Lämna fältet tomt för att behålla det.',
+  'edit.comment': 'Kommentar',
+  'edit.commentHint':
+    'Din egen anteckning om den här länken. Den sparas och visas i listan; inget i appen rättar sig efter den.',
+  'edit.chunks': 'Anslutningar (0 = den globala inställningen)',
+  'edit.chunksHint':
+    'Hur många anslutningar just den här nedladdningen öppnar. Det går före den globala inställningen och varje regel som satt den, men aldrig före värden: en värd som tål färre får ändå färre. Vid 0 tas undantaget bort och antalet avgörs någon annanstans igen.',
+  'edit.chunksRange': 'Ange ett heltal från 0 till 16.',
+  'edit.priority': 'Prioritet',
+  'edit.priorityHint':
+    'Högre går först. Det ordnar om det som fortfarande väntar; en nedladdning som redan pågår skickas inte tillbaka till kön.',
+  'edit.autoExtract': 'Packa upp arkiv',
+  'edit.autoExtractHint':
+    'Om ett arkiv packas upp när nedladdningen är klar. ”Ärv” lämnar beslutet till sidan med arkivinställningar, vilket inte är samma sak som av. Reglaget läses vid uppackningen, så slår du på det nu packas även något upp som blev klart tidigare.',
+  'edit.inherit': 'Ärv',
+  'edit.on': 'På',
+  'edit.off': 'Av',
+  'edit.overrule': 'Åsidosätt en matchande Packagizer-regel',
+  'edit.overruleHint':
+    'När den är av vinner en matchande Packagizer-regel över prioritet, uppackning och kommentaren ovan. När den är på vinner de här värdena i stället. Målmappen ingår aldrig i det här: den gäller alltid exakt som den skrevs in.',
+  'edit.options': 'Alternativ',
+  'edit.addPackage': 'Paket (valfritt)',
+  'edit.mixed': 'Flera värden',
+  'edit.save': 'Spara',
+  'edit.cancel': 'Avbryt',
+  'edit.priority.highest': 'Högsta',
+  'edit.priority.higher': 'Högre',
+  'edit.priority.high': 'Hög',
+  'edit.priority.default': 'Standard',
+  'edit.priority.low': 'Låg',
+  'edit.priority.lower': 'Lägre',
+  'edit.priority.lowest': 'Lägsta',
+  'edit.rename.whenDone': 'Den här nedladdningen pågår fortfarande. Filen får det nya namnet när den är klar.',
+  'edit.rename.torrent': 'En torrent namnger sina egna filer, så den kan inte byta namn.',
+  'edit.rename.remote':
+    'JDownloader-backenden laddar ned den här filen på sin egen maskin och namnger den själv, så den kan inte byta namn härifrån.',
+  'edit.rename.unpacking': 'Den här filen packas upp. Den kan byta namn när uppackningen är klar.',
+  'edit.rename.volume':
+    'Den här filen är en del av ett arkiv i flera delar. Delarna behåller sina namn, annars skulle arkivet inte kunna packas upp.',
+  'edit.rename.empty': 'Ett namn får inte vara tomt.',
+  'edit.rename.separator': 'Ett namn får inte innehålla / eller \\.',
+  'edit.rename.dots': 'Ett namn måste bestå av mer än punkter.',
+  'edit.rename.exists': 'Det finns redan en fil som heter ”{name}” i den mappen. KnightLoader skriver inte över den.',
+  'edit.rename.busy':
+    'En del av det här paketet packas upp, flyttas till sin mapp eller spelas in från en livesändning. Försök igen när det är klart.',
+  'edit.rename.folderExists': 'Det finns redan en mapp som heter ”{name}” där. Välj ett annat namn.',
+  'edit.rename.dataFolder':
+    'Att byta namn till ”{name}” skulle lägga den i KnightLoaders datamapp, och nedladdningar får inte hamna där.',
+  'edit.rename.notMoved':
+    'Det gick inte att byta namn på mappen ”{name}”, så ingenting ändrades. Ett annat program kanske har en fil i den öppen. Stäng filen och försök igen.',
 
   'share.title': 'Lägg till i KnightLoader',
   'share.hint': 'Länkar du delar från en annan app hamnar i insamlaren, som om du hade klistrat in dem i webbgränssnittet.',

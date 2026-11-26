@@ -146,6 +146,80 @@ export const fi: Dict = {
   'error.answerTooLarge': 'Instanssin vastaus on liian suuri välittimelle. Instanssin omassa verkossa se menee läpi.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',
+  'edit.title': 'Ominaisuudet',
+  'edit.name': 'Nimi',
+  'edit.nameHint':
+    'Nimi, jolla tiedosto tallennetaan. Jo valmistunut lataus nimetään uudelleen myös levyllä, jotta luettelo ja kansio vastaavat toisiaan. Nimi ei ole polku, joten / ja \\ eivät ole sallittuja.',
+  'edit.packageName': 'Paketin nimi',
+  'edit.packageNameHint':
+    'Jos latauskansio on nimetty paketin mukaan, se saa uuden nimen yhdessä siinä jo olevien tiedostojen kanssa, ja vielä käynnissä olevat lataukset jatkuvat siellä. Myös paketin mukaan nimetty purettujen tiedostojen kansio siirtyy mukana. Nimi ei ole polku, joten / ja \\ eivät ole sallittuja.',
+  'edit.package': 'Siirrä pakettiin',
+  'edit.packageHint':
+    'Paketti, jossa tämä linkki on. Valitse toinen tai kirjoita uusi nimi. Jos jätät kentän tyhjäksi, linkki on omillaan.',
+  'edit.category': 'Kategoria',
+  'edit.categoryNone': 'Ei mitään',
+  'edit.categoryHint':
+    'Kategoria, johon tämän erän kaikki linkit arkistoidaan, kansioineen, purkukansioineen ja muine oletuksineen. Packagizer-sääntö, joka nimeää kategorian, menee silti edelle.',
+  'edit.folder': 'Kansio',
+  'edit.destination': 'Kohdekansio',
+  'edit.folderHint':
+    'Jokin alla olevista latauskansioista tai kansio niiden sisällä. Muun kansion voi asettaa vain verkkokäyttöliittymässä.',
+  'edit.folderRefused': 'Kansio on latauskansioiden ulkopuolella. Valitse jokin niistä tai kansio niiden sisältä.',
+  'edit.password': 'Arkiston salasana',
+  'edit.passwordHint': 'Kokeillaan ennen Asetuksiin tallennettua luetteloa, jos tämän erän arkisto on salattu.',
+  'edit.linkPassword': 'Linkin salasana',
+  'edit.linkPasswordHint':
+    'Salasana, jota hosterin oma sivu pyytää ennen kuin se luovuttaa tiedoston. Yllä oleva arkiston salasana on eri salasana.',
+  'edit.passwordHidden': 'Puhelin ei näytä jo asetettua salasanaa. Jätä kenttä tyhjäksi, niin salasana säilyy.',
+  'edit.comment': 'Kommentti',
+  'edit.commentHint':
+    'Oma muistiinpanosi tästä linkistä. Se tallennetaan ja näytetään listassa; mikään sovelluksessa ei toimi sen mukaan.',
+  'edit.chunks': 'Yhteydet (0 = yleinen asetus)',
+  'edit.chunksHint':
+    'Kuinka monta yhteyttä juuri tämä lataus avaa. Se ohittaa yleisen asetuksen ja jokaisen säännön, joka sen asetti, mutta ei koskaan palvelua: palvelu, joka sietää vähemmän, saa silti vähemmän. Nollalla poikkeus poistuu ja luku päätetään taas muualla.',
+  'edit.chunksRange': 'Anna kokonaisluku, joka on vähintään 0 ja enintään 16.',
+  'edit.priority': 'Prioriteetti',
+  'edit.priorityHint':
+    'Korkeampi lähtee ensin. Se järjestää uudelleen sen, mikä vielä odottaa; jo käynnissä olevaa latausta ei lähetetä takaisin jonoon.',
+  'edit.autoExtract': 'Pura arkistot',
+  'edit.autoExtractHint':
+    'Puretaanko arkisto, kun lataus on valmis. ”Peri” jättää päätöksen arkistoasetusten sivulle, mikä ei ole sama kuin pois. Kytkin luetaan purkuhetkellä, joten jos kytket sen nyt päälle, myös aiemmin valmistunut puretaan.',
+  'edit.inherit': 'Peri',
+  'edit.on': 'Päällä',
+  'edit.off': 'Pois',
+  'edit.overrule': 'Ohita täsmäävä Packagizer-sääntö',
+  'edit.overruleHint':
+    'Pois päältä osuva Packagizer-sääntö voittaa yllä olevan prioriteetin, purkamisen ja kommentin. Päällä nämä arvot voittavat sen sijaan. Kohdekansio ei koskaan kuulu tähän: se pätee aina juuri sellaisena kuin se kirjoitettiin.',
+  'edit.options': 'Valinnat',
+  'edit.addPackage': 'Paketti (valinnainen)',
+  'edit.mixed': 'Useita arvoja',
+  'edit.save': 'Tallenna',
+  'edit.cancel': 'Peruuta',
+  'edit.priority.highest': 'Korkein',
+  'edit.priority.higher': 'Korkeampi',
+  'edit.priority.high': 'Korkea',
+  'edit.priority.default': 'Oletus',
+  'edit.priority.low': 'Matala',
+  'edit.priority.lower': 'Matalampi',
+  'edit.priority.lowest': 'Matalin',
+  'edit.rename.whenDone': 'Tämä lataus on vielä käynnissä. Tiedosto saa uuden nimen, kun se valmistuu.',
+  'edit.rename.torrent': 'Torrent nimeää omat tiedostonsa, joten sitä ei voi nimetä uudelleen.',
+  'edit.rename.remote':
+    'JDownloader-taustaosa lataa tämän tiedoston omalla koneellaan ja nimeää sen itse, joten sitä ei voi nimetä uudelleen täältä.',
+  'edit.rename.unpacking': 'Tätä tiedostoa puretaan. Sen voi nimetä uudelleen, kun purku on valmis.',
+  'edit.rename.volume':
+    'Tämä tiedosto on yksi osa moniosaista arkistoa. Osat pitävät nimensä, muuten arkistoa ei voisi purkaa.',
+  'edit.rename.empty': 'Nimi ei voi olla tyhjä.',
+  'edit.rename.separator': 'Nimessä ei voi olla / tai \\.',
+  'edit.rename.dots': 'Nimessä täytyy olla muutakin kuin pisteitä.',
+  'edit.rename.exists': 'Siinä kansiossa on jo tiedosto nimeltä ”{name}”. KnightLoader ei korvaa sitä.',
+  'edit.rename.busy':
+    'Osaa tästä paketista puretaan, siirretään sen kansioon tai tallennetaan livelähetyksestä. Yritä uudelleen, kun se on valmis.',
+  'edit.rename.folderExists': 'Siellä on jo kansio nimeltä ”{name}”. Valitse toinen nimi.',
+  'edit.rename.dataFolder':
+    'Nimeäminen muotoon ”{name}” veisi sen KnightLoaderin datakansioon, eikä latauksia saa viedä sinne.',
+  'edit.rename.notMoved':
+    'Kansiota ”{name}” ei voitu nimetä uudelleen, joten mitään ei muuttunut. Jokin toinen ohjelma saattaa pitää siinä olevaa tiedostoa auki. Sulje se tiedosto ja yritä uudelleen.',
 
   'share.title': 'Lisää KnightLoaderiin',
   'share.hint': 'Toisesta sovelluksesta jakamasi linkit menevät kerääjään, kuin olisit liittänyt ne verkkokäyttöliittymään.',

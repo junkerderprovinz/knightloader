@@ -146,6 +146,82 @@ export const ca: Dict = {
   'error.answerTooLarge': 'La resposta de la instància és massa gran per al relé. A la xarxa de la instància sí que arriba.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',
+  'edit.title': 'Propietats',
+  'edit.name': 'Nom',
+  'edit.nameHint':
+    'El nom amb què es desa el fitxer. Una baixada ja acabada també es reanomena al disc, perquè la llista i la carpeta coincideixin. Un nom no és un camí, així que / i \\ no s’admeten.',
+  'edit.packageName': 'Nom del paquet',
+  'edit.packageNameHint':
+    'Si la carpeta de baixades porta el nom del paquet, pren el nom nou juntament amb els fitxers que ja hi ha, i les baixades en curs hi continuen. Una carpeta de fitxers extrets que porti el nom del paquet també es mou. Un nom no és un camí, així que / i \\ no s’admeten.',
+  'edit.package': 'Mou a un paquet',
+  'edit.packageHint':
+    'El paquet on és aquest enllaç. Tria’n un altre o escriu un nom nou. Si el deixes buit, l’enllaç queda sol.',
+  'edit.category': 'Categoria',
+  'edit.categoryNone': 'Cap',
+  'edit.categoryHint':
+    'La categoria on es desen tots els enllaços d\'aquest lot, amb la seva carpeta, la carpeta d\'extracció i la resta de valors per defecte. Una regla del Packagizer que indiqui una categoria continua tenint prioritat.',
+  'edit.folder': 'Carpeta',
+  'edit.destination': 'Carpeta de destinació',
+  'edit.folderHint':
+    'Una de les carpetes de baixada de sota, o una carpeta dins d’una d’elles. Qualsevol altra carpeta només es pot posar a la interfície web.',
+  'edit.folderRefused':
+    'Aquesta carpeta és fora de les carpetes de baixada. Tria’n una, o una carpeta dins d’una d’elles.',
+  'edit.password': 'Contrasenya de l\'arxiu',
+  'edit.passwordHint': 'Es prova abans que la llista desada a Configuració, quan un arxiu d’aquest lot està xifrat.',
+  'edit.linkPassword': 'Contrasenya de l’enllaç',
+  'edit.linkPasswordHint':
+    'La contrasenya que demana la pàgina mateixa de l’allotjador abans de lliurar el fitxer. La contrasenya de l’arxiu de dalt és una altra.',
+  'edit.passwordHidden':
+    'El telèfon no mostra una contrasenya que ja estigui posada. Deixa el camp buit per conservar-la.',
+  'edit.comment': 'Comentari',
+  'edit.commentHint':
+    'La teva nota sobre aquest enllaç. Es desa i es mostra a la llista; res de l’aplicació no hi actua.',
+  'edit.chunks': 'Connexions (0 = la configuració global)',
+  'edit.chunksHint':
+    'Quantes connexions obre aquesta baixada concreta. Mana per sobre de la configuració global i de qualsevol regla que l’hagi fixada, però mai per sobre de l’amfitrió: un amfitrió que en tolera menys en rep menys igualment. Amb 0 es treu l’excepció i el nombre torna a decidir-se fora.',
+  'edit.chunksRange': 'Escriu un nombre enter del 0 al 16.',
+  'edit.priority': 'Prioritat',
+  'edit.priorityHint':
+    'La més alta va primer. Reordena el que encara espera; una baixada que ja corre no es torna a enviar a la cua.',
+  'edit.autoExtract': 'Extreu els arxius',
+  'edit.autoExtractHint':
+    'Si un arxiu es descomprimeix un cop acabada la baixada. «Hereta» deixa la decisió a la pàgina d’ajustos d’arxius, cosa que no és el mateix que «desactivat». L’interruptor es llegeix en el moment de descomprimir, així que activar-lo ara també descomprimeix alguna cosa acabada abans.',
+  'edit.inherit': 'Hereta',
+  'edit.on': 'Activat',
+  'edit.off': 'Desactivat',
+  'edit.overrule': 'Substituir una regla del Packagizer coincident',
+  'edit.overruleHint':
+    'Desactivat, una regla del Packagizer que hi encaixi guanya per sobre de la prioritat, la descompressió i el comentari de dalt. Activat, guanyen aquests valors. La destinació no hi entra mai: sempre s’aplica tal com s’ha escrit.',
+  'edit.options': 'Opcions',
+  'edit.addPackage': 'Paquet (opcional)',
+  'edit.mixed': 'Diversos valors',
+  'edit.save': 'Desa',
+  'edit.cancel': 'Cancel·la',
+  'edit.priority.highest': 'La més alta',
+  'edit.priority.higher': 'Més alta',
+  'edit.priority.high': 'Alta',
+  'edit.priority.default': 'Per defecte',
+  'edit.priority.low': 'Baixa',
+  'edit.priority.lower': 'Més baixa',
+  'edit.priority.lowest': 'La més baixa',
+  'edit.rename.whenDone': 'Aquesta baixada encara està en curs. El fitxer pren el nom nou quan acabi.',
+  'edit.rename.torrent': 'Un torrent posa nom als seus propis fitxers, així que no se’n pot canviar el nom.',
+  'edit.rename.remote':
+    'El rerefons JDownloader baixa aquest fitxer a la seva pròpia màquina i hi posa el nom ell mateix, així que no se’n pot canviar el nom des d’aquí.',
+  'edit.rename.unpacking': 'Aquest fitxer s’està extraient. Se’n podrà canviar el nom quan acabi l’extracció.',
+  'edit.rename.volume':
+    'Aquest fitxer és una part d’un arxiu de diversos volums. Les parts conserven el nom, o l’arxiu no es podria extreure.',
+  'edit.rename.empty': 'Un nom no pot estar buit.',
+  'edit.rename.separator': 'Un nom no pot contenir / ni \\.',
+  'edit.rename.dots': 'Un nom necessita alguna cosa més que punts.',
+  'edit.rename.exists': 'Ja hi ha un fitxer anomenat «{name}» en aquesta carpeta. KnightLoader no el sobreescriu.',
+  'edit.rename.busy':
+    'Una part d’aquest paquet s’està extraient, movent a la seva carpeta o gravant d’una emissió en directe. Torna-ho a provar quan hagi acabat.',
+  'edit.rename.folderExists': 'Ja hi ha una carpeta anomenada «{name}». Tria un altre nom.',
+  'edit.rename.dataFolder':
+    'Canviar el nom a «{name}» el posaria a la carpeta de dades de KnightLoader, i les baixades no hi poden anar.',
+  'edit.rename.notMoved':
+    'No s’ha pogut canviar el nom de la carpeta «{name}», així que no ha canviat res. Potser un altre programa hi té un fitxer obert. Tanca aquest fitxer i torna-ho a provar.',
 
   'share.title': 'Afegeix a KnightLoader',
   'share.hint': "Els enllaços que comparteixes des d'una altra app van al col·lector, com si els haguessis enganxat a la interfície web.",

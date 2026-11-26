@@ -713,6 +713,9 @@ jobs:
       - name: Shared links
         run: node check-share.mjs
 
+      - name: Link and package properties
+        run: node check-task-edit.mjs
+
       - name: Failure wording
         run: node check-failures.mjs
 

@@ -146,6 +146,82 @@ export const gl: Dict = {
   'error.answerTooLarge': 'A resposta da instancia é grande de máis para o relé. Na rede da instancia si chega.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',
+  'edit.title': 'Propiedades',
+  'edit.name': 'Nome',
+  'edit.nameHint':
+    'O nome co que se garda o ficheiro. Unha descarga xa rematada tamén se renomea no disco, para que a lista e o cartafol coincidan. Un nome non é unha ruta, así que / e \\ non se permiten.',
+  'edit.packageName': 'Nome do paquete',
+  'edit.packageNameHint':
+    'Se o cartafol de descargas leva o nome do paquete, colle o novo nome xunto cos ficheiros que xa contén, e as descargas en curso seguen alí. Un cartafol de ficheiros extraídos co nome do paquete tamén se move. Un nome non é unha ruta, así que / e \\ non se permiten.',
+  'edit.package': 'Mover a un paquete',
+  'edit.packageHint':
+    'O paquete no que está esta ligazón. Escolle outro ou escribe un nome novo. Se o deixas baleiro, a ligazón queda soa.',
+  'edit.category': 'Categoría',
+  'edit.categoryNone': 'Ningunha',
+  'edit.categoryHint':
+    'A categoría na que se arquivan todas as ligazóns deste lote, co seu cartafol, o cartafol de extracción e os demais valores. Unha regra do Packagizer que indique unha categoría segue tendo prioridade.',
+  'edit.folder': 'Cartafol',
+  'edit.destination': 'Cartafol de destino',
+  'edit.folderHint':
+    'Un dos cartafoles de descarga de embaixo, ou un cartafol dentro deles. Calquera outro cartafol só se pode pór na interface web.',
+  'edit.folderRefused':
+    'Ese cartafol está fóra dos cartafoles de descarga. Escolle un deles, ou un cartafol dentro deles.',
+  'edit.password': 'Contrasinal do arquivo',
+  'edit.passwordHint': 'Próbase antes da lista gardada en Configuración, cando un arquivo deste lote está cifrado.',
+  'edit.linkPassword': 'Contrasinal da ligazón',
+  'edit.linkPasswordHint':
+    'O contrasinal que pide a propia páxina do aloxador antes de entregar o ficheiro. O contrasinal do arquivo de arriba é outro distinto.',
+  'edit.passwordHidden':
+    'O teléfono non amosa un contrasinal que xa estea posto. Deixa o campo baleiro para conservalo.',
+  'edit.comment': 'Comentario',
+  'edit.commentHint':
+    'A túa propia nota sobre esta ligazón. Gárdase e amósase na lista; nada da aplicación actúa segundo ela.',
+  'edit.chunks': 'Conexións (0 = a configuración global)',
+  'edit.chunksHint':
+    'Cantas conexións abre esta descarga concreta. Manda sobre a configuración global e sobre calquera regra que a fixase, pero nunca sobre o servidor: un servidor que tolera menos recibe menos igualmente. Con 0 quítase a excepción e a cifra volve decidirse fóra.',
+  'edit.chunksRange': 'Escribe un número enteiro do 0 ao 16.',
+  'edit.priority': 'Prioridade',
+  'edit.priorityHint':
+    'A máis alta vai primeiro. Reordena o que aínda agarda; unha descarga que xa corre non se devolve á cola.',
+  'edit.autoExtract': 'Extraer os arquivos',
+  'edit.autoExtractHint':
+    'Se un arquivo se descomprime unha vez rematada a descarga. «Herdar» deixa a decisión na páxina de axustes de arquivos, que non é o mesmo que «desactivado». O interruptor lese no momento de descomprimir, así que activalo agora tamén descomprime algo rematado antes.',
+  'edit.inherit': 'Herdar',
+  'edit.on': 'Activado',
+  'edit.off': 'Desactivado',
+  'edit.overrule': 'Prevalecer sobre unha regra do Packagizer coincidente',
+  'edit.overruleHint':
+    'Desactivado, unha regra do Packagizer que coincida gaña sobre a prioridade, a descompresión e o comentario de arriba. Activado, gañan estes valores. O destino nunca forma parte disto: sempre se aplica tal como se escribiu.',
+  'edit.options': 'Opcións',
+  'edit.addPackage': 'Paquete (opcional)',
+  'edit.mixed': 'Varios valores',
+  'edit.save': 'Gardar',
+  'edit.cancel': 'Cancelar',
+  'edit.priority.highest': 'A máis alta',
+  'edit.priority.higher': 'Máis alta',
+  'edit.priority.high': 'Alta',
+  'edit.priority.default': 'Por defecto',
+  'edit.priority.low': 'Baixa',
+  'edit.priority.lower': 'Máis baixa',
+  'edit.priority.lowest': 'A máis baixa',
+  'edit.rename.whenDone': 'Esta descarga aínda está en curso. O ficheiro colle o novo nome cando remate.',
+  'edit.rename.torrent': 'Un torrent pon nome aos seus propios ficheiros, así que non se pode renomear.',
+  'edit.rename.remote':
+    'O backend JDownloader descarga este ficheiro na súa propia máquina e ponlle nome el mesmo, así que non se pode renomear desde aquí.',
+  'edit.rename.unpacking': 'Este ficheiro estase a extraer. Poderase renomear cando remate a extracción.',
+  'edit.rename.volume':
+    'Este ficheiro é unha parte dun arquivo de varios volumes. As partes conservan o nome, ou o arquivo non se podería extraer.',
+  'edit.rename.empty': 'Un nome non pode estar baleiro.',
+  'edit.rename.separator': 'Un nome non pode conter / nin \\.',
+  'edit.rename.dots': 'Un nome precisa de algo máis ca puntos.',
+  'edit.rename.exists': 'Xa hai un ficheiro chamado «{name}» nese cartafol. KnightLoader non o sobrescribe.',
+  'edit.rename.busy':
+    'Parte deste paquete estase a extraer, a mover ao seu cartafol ou a gravar dunha emisión en directo. Téntao de novo cando remate.',
+  'edit.rename.folderExists': 'Xa hai un cartafol chamado «{name}». Escolle outro nome.',
+  'edit.rename.dataFolder':
+    'Renomear a «{name}» poríao no cartafol de datos de KnightLoader, e as descargas non poden ir aí.',
+  'edit.rename.notMoved':
+    'Non se puido cambiar o nome do cartafol «{name}», así que non cambiou nada. Pode que outro programa teña aberto un ficheiro del. Pecha ese ficheiro e téntao de novo.',
 
   'share.title': 'Engadir a KnightLoader',
   'share.hint': 'As ligazóns que compartes desde outra app van ao colector, coma se as pegases na interface web.',

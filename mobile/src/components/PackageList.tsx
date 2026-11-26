@@ -24,6 +24,8 @@ import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
 import { hasSomethingToPlay, mediaKind } from '../api/media';
+import type { EditTarget } from '../api/taskEdit';
+import { Pencil } from './TaskEdit';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
@@ -94,6 +96,7 @@ export default function PackageList({
   onSeeding,
   onPlay,
   onActions,
+  onEdit,
   sections = [],
   unpacking,
 }: {
@@ -145,6 +148,8 @@ export default function PackageList({
   /** Opens the More sheet for a link or a whole package, named by `title`.
    *  `settled` is a part below the list, where less applies. */
   onActions?: (tasks: Task[], title: string, where: { settled: boolean; pkg: boolean }) => void;
+  /** Opens the properties of a link or of a whole package. */
+  onEdit?: (target: EditTarget) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -256,6 +261,7 @@ export default function PackageList({
                 onActions &&
                 (() => scharf || onActions([r.task], r.task.name || r.task.url, { settled: !!r.section, pkg: false }))
               }
+              onEdit={onEdit && (() => scharf || onEdit({ kind: 'link', task: r.task }))}
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
                   ? (hue) => (
@@ -470,6 +476,13 @@ export default function PackageList({
                   accessibilityLabel={t('packages.startSeeding')}
                 />
               )
+            )}
+            {onEdit && (
+              <IconBadge
+                icon={<Pencil color={c.textSub} />}
+                onPress={() => scharf || onEdit({ kind: 'package', name: pkg.name, tasks: pkg.tasks })}
+                accessibilityLabel={t('edit.title')}
+              />
             )}
             {onDeletePackage && (
               <IconBadge

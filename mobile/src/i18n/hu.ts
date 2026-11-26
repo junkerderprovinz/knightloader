@@ -146,6 +146,80 @@ export const hu: Dict = {
   'error.answerTooLarge': 'A példány válasza túl nagy a reléhez. A példány saját hálózatán átjut.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
+  'edit.title': 'Tulajdonságok',
+  'edit.name': 'Név',
+  'edit.nameHint':
+    'A név, amelyen a fájl mentésre kerül. A már befejezett letöltés a lemezen is átnevezésre kerül, hogy a lista és a mappa egyezzen. A név nem elérési út, ezért a / és a \\ nem megengedett.',
+  'edit.packageName': 'Csomag neve',
+  'edit.packageNameHint':
+    'Ha a letöltési mappa a csomagról kapta a nevét, a benne lévő fájlokkal együtt megkapja az új nevet, és a még futó letöltések ott folytatódnak. A csomagról elnevezett, kibontott fájlokat tartalmazó mappa is vele költözik. A név nem elérési út, ezért a / és a \\ nem megengedett.',
+  'edit.package': 'Áthelyezés csomagba',
+  'edit.packageHint':
+    'A csomag, amelyben ez a link van. Válassz másikat, vagy írj be új nevet. Ha üresen hagyod, a link önállóan áll.',
+  'edit.category': 'Kategória',
+  'edit.categoryNone': 'Nincs',
+  'edit.categoryHint':
+    'Az a kategória, amelybe a köteg minden linkje kerül, a mappájával, kicsomagolási mappájával és többi alapértékével. Egy kategóriát megnevező Packagizer-szabály ennek ellenére elsőbbséget kap.',
+  'edit.folder': 'Mappa',
+  'edit.destination': 'Célmappa',
+  'edit.folderHint':
+    'Az alábbi letöltési mappák egyike vagy egy mappa bennük. Bármely más mappát csak a webes felületen lehet beállítani.',
+  'edit.folderRefused': 'Ez a mappa a letöltési mappákon kívül van. Válassz egyet közülük, vagy egy mappát bennük.',
+  'edit.password': 'Archívum jelszava',
+  'edit.passwordHint': 'A Beállításokban mentett lista előtt próbálja ki, ha a tétel egyik archívuma titkosított.',
+  'edit.linkPassword': 'Hivatkozás jelszava',
+  'edit.linkPasswordHint':
+    'Az a jelszó, amelyet maga a tárhely oldala kér, mielőtt kiadja a fájlt. A fenti archívumjelszó egy másik.',
+  'edit.passwordHidden': 'A már beállított jelszót a telefon nem mutatja. Hagyd üresen a mezőt, és megmarad.',
+  'edit.comment': 'Megjegyzés',
+  'edit.commentHint':
+    'A saját megjegyzésed ehhez a linkhez. Elmentődik és megjelenik a listában; az alkalmazásban semmi nem igazodik hozzá.',
+  'edit.chunks': 'Kapcsolatok (0 = a globális beállítás)',
+  'edit.chunksHint':
+    'Hány kapcsolatot nyit ez az egy letöltés. Felülírja a globális beállítást és minden szabályt, amelyik beállította, de a tárhelyet soha: az a tárhely, amelyik kevesebbet visel el, akkor is kevesebbet kap. 0 esetén a kivétel megszűnik, és a szám megint máshol dől el.',
+  'edit.chunksRange': 'Adj meg egy egész számot 0 és 16 között.',
+  'edit.priority': 'Prioritás',
+  'edit.priorityHint':
+    'A magasabb fut előbb. Azt rendezi át, ami még vár; a már futó letöltést nem küldi vissza a sorba.',
+  'edit.autoExtract': 'Archívumok kibontása',
+  'edit.autoExtractHint':
+    'Kicsomagolódik-e egy archívum, ha a letöltés befejeződött. Az „Öröklés” a döntést az archívumok beállítási oldalára bízza, ami nem ugyanaz, mint a ki. A kapcsolót a kicsomagolás pillanatában olvassuk, így ha most kapcsolod be, kicsomagolódik olyasmi is, ami korábban készült el.',
+  'edit.inherit': 'Öröklés',
+  'edit.on': 'Be',
+  'edit.off': 'Ki',
+  'edit.overrule': 'Illeszkedő Packagizer-szabály felülbírálása',
+  'edit.overruleHint':
+    'Kikapcsolva egy illeszkedő Packagizer-szabály nyer a fenti prioritással, kibontással és megjegyzéssel szemben. Bekapcsolva helyette ezek az értékek nyernek. A célmappa ebben soha nem játszik szerepet: mindig úgy érvényes, ahogy beírtad.',
+  'edit.options': 'Lehetőségek',
+  'edit.addPackage': 'Csomag (nem kötelező)',
+  'edit.mixed': 'Több érték',
+  'edit.save': 'Mentés',
+  'edit.cancel': 'Mégse',
+  'edit.priority.highest': 'Legmagasabb',
+  'edit.priority.higher': 'Magasabb',
+  'edit.priority.high': 'Magas',
+  'edit.priority.default': 'Alapérték',
+  'edit.priority.low': 'Alacsony',
+  'edit.priority.lower': 'Alacsonyabb',
+  'edit.priority.lowest': 'Legalacsonyabb',
+  'edit.rename.whenDone': 'Ez a letöltés még fut. A fájl az új nevet a befejezésekor kapja meg.',
+  'edit.rename.torrent': 'A torrent maga nevezi el a fájljait, ezért nem nevezhető át.',
+  'edit.rename.remote':
+    'A JDownloader backend a saját gépén tölti le ezt a fájlt, és maga nevezi el, ezért innen nem nevezhető át.',
+  'edit.rename.unpacking': 'Ez a fájl kibontás alatt áll. Átnevezni a kibontás befejezése után lehet.',
+  'edit.rename.volume':
+    'Ez a fájl egy többkötetes archívum egyik része. A részek megtartják a nevüket, különben az archívumot nem lehetne kibontani.',
+  'edit.rename.empty': 'A név nem lehet üres.',
+  'edit.rename.separator': 'A név nem tartalmazhat / vagy \\ jelet.',
+  'edit.rename.dots': 'A névnek pontoknál többől kell állnia.',
+  'edit.rename.exists': 'Abban a mappában már van „{name}” nevű fájl. A KnightLoader nem írja felül.',
+  'edit.rename.busy':
+    'A csomag egy részét éppen kibontják, a mappájába helyezik át vagy egy livestreamből rögzítik. Próbáld újra, ha ez befejeződött.',
+  'edit.rename.folderExists': 'Ott már van „{name}” nevű mappa. Válassz másik nevet.',
+  'edit.rename.dataFolder':
+    'A(z) „{name}” névre átnevezés a KnightLoader adatmappájába tenné, ahová letöltés nem kerülhet.',
+  'edit.rename.notMoved':
+    'A(z) „{name}” mappát nem sikerült átnevezni, így semmi nem változott. Lehet, hogy egy másik program nyitva tart benne egy fájlt. Zárd be azt a fájlt, és próbáld újra.',
 
   'share.title': 'Hozzáadás a KnightLoaderhez',
   'share.hint': 'A más alkalmazásból megosztott linkek a gyűjtőbe kerülnek, mintha a webes felületen illesztetted volna be őket.',

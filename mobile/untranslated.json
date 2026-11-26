@@ -369,6 +369,8 @@
       "settings.oled"
     ],
     "fr": [
+      "edit.destination",
+      "edit.options",
       "captcha.screenTitle",
       "addDownload.placeholder",
       "settings.accent",
@@ -436,6 +438,7 @@
       "relay.relayLabel"
     ],
     "id": [
+      "edit.folder",
       "addDownload.placeholder",
       "addDownload.errorServer",
       "task.mode.premium",
@@ -508,6 +511,7 @@
       "relay.relayLabel"
     ],
     "ms": [
+      "edit.folder",
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
@@ -557,6 +561,7 @@
       "actions.pause"
     ],
     "pl": [
+      "edit.folder",
       "addDownload.placeholder",
       "settings.disco",
       "task.mode.premium",

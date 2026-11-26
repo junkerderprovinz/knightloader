@@ -200,6 +200,80 @@ export const en = {
   'error.answerTooLarge': "The instance's answer is too large for the relay. On the instance's own network it comes through.",
   'addDownload.cancel': 'Cancel',
   'addDownload.button': 'Add',
+  'edit.title': 'Properties',
+  'edit.name': 'Name',
+  'edit.nameHint':
+    'The name the file is saved under. A download that has already finished is renamed on disk as well, so the list and the folder agree. A name is not a path, so / and \\ are not allowed.',
+  'edit.packageName': 'Package name',
+  'edit.packageNameHint':
+    'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
+  'edit.package': 'Move to a package',
+  'edit.packageHint':
+    'The package this link is in. Pick another one or type a new name. Leave it empty and the link stands on its own.',
+  'edit.category': 'Category',
+  'edit.categoryNone': 'None',
+  'edit.categoryHint':
+    'The category every link of this batch is filed under, with its folder, extraction folder and other defaults. A Packagizer rule that names a category still wins.',
+  'edit.folder': 'Folder',
+  'edit.destination': 'Destination',
+  'edit.folderHint':
+    'One of the download folders below, or a folder inside one. Any other folder can only be set in the web UI.',
+  'edit.folderRefused': 'That folder is outside the download folders. Pick one of them, or a folder inside one.',
+  'edit.password': 'Archive password',
+  'edit.passwordHint': 'Tried before the list saved in Settings, when an archive in this batch is encrypted.',
+  'edit.linkPassword': 'Link password',
+  'edit.linkPasswordHint':
+    'The password the hoster’s own page asks for before it hands over the file. The archive password above is a different one.',
+  'edit.passwordHidden': 'A password that is already set does not show on the phone. Leave the box empty to keep it.',
+  'edit.comment': 'Comment',
+  'edit.commentHint':
+    'Your own note about this link. It is stored and shown in the list, and nothing in the app acts on it.',
+  'edit.chunks': 'Connections (0 = the global setting)',
+  'edit.chunksHint':
+    'How many connections this one download opens. It outranks the global setting and any rule that set it, but never the hoster: a host that tolerates fewer still gets fewer. 0 takes the override off again and hands the count back.',
+  'edit.chunksRange': 'Enter a whole number from 0 to 16.',
+  'edit.priority': 'Priority',
+  'edit.priorityHint':
+    'Higher runs first. It reorders what is still waiting, and a download already running is not sent back to the queue.',
+  'edit.autoExtract': 'Unpack archives',
+  'edit.autoExtractHint':
+    'Whether an archive is unpacked once the download is finished. Inherit leaves the decision to the Archives settings page, which is not the same as off. The switch is read at unpacking time, so switching it on now also unpacks something that finished earlier.',
+  'edit.inherit': 'Inherit',
+  'edit.on': 'On',
+  'edit.off': 'Off',
+  'edit.overrule': 'Overrule a matching Packagizer rule',
+  'edit.overruleHint':
+    'When off, a matching Packagizer rule wins over priority, unpacking and the comment above. When on, these values win instead. The destination is never part of this: it always applies as typed.',
+  'edit.options': 'Options',
+  'edit.addPackage': 'Package (optional)',
+  'edit.mixed': 'Several values',
+  'edit.save': 'Save',
+  'edit.cancel': 'Cancel',
+  'edit.priority.highest': 'Highest',
+  'edit.priority.higher': 'Higher',
+  'edit.priority.high': 'High',
+  'edit.priority.default': 'Default',
+  'edit.priority.low': 'Low',
+  'edit.priority.lower': 'Lower',
+  'edit.priority.lowest': 'Lowest',
+  'edit.rename.whenDone': 'This download is still running. The file takes the new name once it has finished.',
+  'edit.rename.torrent': 'A torrent names its own files, so it cannot be renamed.',
+  'edit.rename.remote':
+    'The JDownloader backend downloads this file on its own machine and names it itself, so it cannot be renamed from here.',
+  'edit.rename.unpacking': 'This file is being unpacked. It can be renamed once unpacking has finished.',
+  'edit.rename.volume':
+    'This file is one part of a multi-volume archive. The parts keep their names, or the archive could not be unpacked.',
+  'edit.rename.empty': 'A name cannot be empty.',
+  'edit.rename.separator': 'A name cannot contain / or \\.',
+  'edit.rename.dots': 'A name needs more than dots.',
+  'edit.rename.exists': 'A file called “{name}” is already in that folder. KnightLoader does not overwrite it.',
+  'edit.rename.busy':
+    'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
+  'edit.rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
+  'edit.rename.dataFolder':
+    'Renaming to “{name}” would put it in KnightLoader\'s data folder, and downloads may not go there.',
+  'edit.rename.notMoved':
+    'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
 
   'share.title': 'Add to KnightLoader',
   'share.hint': 'Links you share from another app go to the collector, as if you had pasted them into the web UI.',

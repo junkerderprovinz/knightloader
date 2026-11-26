@@ -146,6 +146,80 @@ export const hr: Dict = {
   'error.answerTooLarge': 'Odgovor instance prevelik je za relej. U mreži instance prolazi.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',
+  'edit.title': 'Svojstva',
+  'edit.name': 'Naziv',
+  'edit.nameHint':
+    'Naziv pod kojim se datoteka sprema. Preuzimanje koje je već završeno preimenuje se i na disku, kako bi se popis i mapa slagali. Naziv nije putanja, pa / i \\ nisu dopušteni.',
+  'edit.packageName': 'Naziv paketa',
+  'edit.packageNameHint':
+    'Ako je mapa za preuzimanja nazvana po paketu, dobiva novi naziv zajedno s datotekama koje su već u njoj, a preuzimanja koja još traju nastavljaju se ondje. Mapa s raspakiranim datotekama nazvana po paketu također se premješta. Naziv nije putanja, pa / i \\ nisu dopušteni.',
+  'edit.package': 'Premjesti u paket',
+  'edit.packageHint':
+    'Paket u kojem je ova poveznica. Odaberi drugi ili upiši novo ime. Ako ostaviš prazno, poveznica stoji sama.',
+  'edit.category': 'Kategorija',
+  'edit.categoryNone': 'Nijedna',
+  'edit.categoryHint':
+    'Kategorija u koju se sprema svaka poveznica ove serije, s njezinom mapom, mapom za raspakiravanje i ostalim zadanim postavkama. Pravilo Packagizera koje navodi kategoriju ipak ima prednost.',
+  'edit.folder': 'Mapa',
+  'edit.destination': 'Odredišna mapa',
+  'edit.folderHint':
+    'Jedna od mapa za preuzimanja ispod ili mapa unutar nje. Svaku drugu mapu možeš postaviti samo u web sučelju.',
+  'edit.folderRefused': 'Ta je mapa izvan mapa za preuzimanja. Odaberi jednu od njih ili mapu unutar nje.',
+  'edit.password': 'Lozinka arhive',
+  'edit.passwordHint': 'Isprobava se prije popisa spremljenog u Postavkama, kada je arhiva u ovoj seriji šifrirana.',
+  'edit.linkPassword': 'Lozinka poveznice',
+  'edit.linkPasswordHint':
+    'Lozinka koju traži sama stranica hostera prije nego što preda datoteku. Lozinka arhive iznad je neka druga.',
+  'edit.passwordHidden':
+    'Lozinka koja je već postavljena ne prikazuje se na telefonu. Ostavi polje prazno da je zadržiš.',
+  'edit.comment': 'Napomena',
+  'edit.commentHint':
+    'Tvoja vlastita bilješka uz ovu poveznicu. Sprema se i prikazuje u popisu; ništa u aplikaciji se ne ravna po njoj.',
+  'edit.chunks': 'Veze (0 = globalna postavka)',
+  'edit.chunksHint':
+    'Koliko veza otvara baš ovo preuzimanje. Nadjačava globalnu postavku i svako pravilo koje ju je postavilo, ali nikad poslužitelja: poslužitelj koji podnosi manje svejedno dobiva manje. Uz 0 iznimka nestaje i broj se opet odlučuje drugdje.',
+  'edit.chunksRange': 'Upiši cijeli broj od 0 do 16.',
+  'edit.priority': 'Prioritet',
+  'edit.priorityHint': 'Viši ide prvi. Presloži ono što još čeka; preuzimanje koje već teče ne šalje se natrag u red.',
+  'edit.autoExtract': 'Raspakiraj arhive',
+  'edit.autoExtractHint':
+    'Hoće li se arhiva raspakirati kad preuzimanje završi. „Naslijedi“ prepušta odluku stranici s postavkama arhiva, a to nije isto što i isključeno. Prekidač se čita u trenutku raspakiravanja, pa ako ga sad uključiš, raspakirat će se i nešto što je završilo ranije.',
+  'edit.inherit': 'Naslijedi',
+  'edit.on': 'Uključeno',
+  'edit.off': 'Isključeno',
+  'edit.overrule': 'Nadjačati odgovarajuće pravilo Packagizera',
+  'edit.overruleHint':
+    'Kad je isključeno, podudarno pravilo Packagizera nadjačava prioritet, raspakiravanje i komentar iznad. Kad je uključeno, umjesto toga pobjeđuju ove vrijednosti. Odredište nikad nije dio toga: uvijek vrijedi onako kako je upisano.',
+  'edit.options': 'Mogućnosti',
+  'edit.addPackage': 'Paket (neobavezno)',
+  'edit.mixed': 'Više vrijednosti',
+  'edit.save': 'Spremi',
+  'edit.cancel': 'Odustani',
+  'edit.priority.highest': 'Najviši',
+  'edit.priority.higher': 'Viši',
+  'edit.priority.high': 'Visok',
+  'edit.priority.default': 'Zadani',
+  'edit.priority.low': 'Nizak',
+  'edit.priority.lower': 'Niži',
+  'edit.priority.lowest': 'Najniži',
+  'edit.rename.whenDone': 'Ovo preuzimanje još traje. Datoteka dobiva novi naziv kad završi.',
+  'edit.rename.torrent': 'Torrent sam imenuje svoje datoteke, pa se ne može preimenovati.',
+  'edit.rename.remote':
+    'Pozadina JDownloader preuzima ovu datoteku na vlastitom računalu i sama joj daje naziv, pa se odavde ne može preimenovati.',
+  'edit.rename.unpacking': 'Ova se datoteka raspakira. Moći će se preimenovati kad raspakiravanje završi.',
+  'edit.rename.volume':
+    'Ova je datoteka jedan dio arhive u više dijelova. Dijelovi zadržavaju svoje nazive, inače se arhiva ne bi mogla raspakirati.',
+  'edit.rename.empty': 'Naziv ne smije biti prazan.',
+  'edit.rename.separator': 'Naziv ne smije sadržavati / ni \\.',
+  'edit.rename.dots': 'Naziv mora imati više od točaka.',
+  'edit.rename.exists': 'U toj mapi već postoji datoteka „{name}”. KnightLoader je ne prepisuje.',
+  'edit.rename.busy':
+    'Dio ovog paketa upravo se raspakira, premješta u svoju mapu ili snima iz streama uživo. Pokušaj ponovno kad to završi.',
+  'edit.rename.folderExists': 'Mapa „{name}” tamo već postoji. Odaberi drugi naziv.',
+  'edit.rename.dataFolder':
+    'Preimenovanje u „{name}” stavilo bi ga u mapu s podacima KnightLoadera, a preuzimanja ne smiju ići onamo.',
+  'edit.rename.notMoved':
+    'Mapu „{name}” nije bilo moguće preimenovati, pa se ništa nije promijenilo. Možda neki drugi program ima otvorenu datoteku u njoj. Zatvori tu datoteku i pokušaj ponovno.',
 
   'share.title': 'Dodaj u KnightLoader',
   'share.hint': 'Veze koje dijeliš iz druge aplikacije idu u sakupljač, kao da si ih zalijepio u web sučelje.',

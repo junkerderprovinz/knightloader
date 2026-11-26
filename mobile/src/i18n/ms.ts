@@ -146,6 +146,83 @@ export const ms: Dict = {
   'error.answerTooLarge': 'Jawapan instans terlalu besar untuk relay. Di rangkaian instans itu sendiri, ia sampai.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',
+  'edit.title': 'Sifat',
+  'edit.name': 'Nama',
+  'edit.nameHint':
+    'Nama yang digunakan untuk menyimpan fail. Muat turun yang sudah selesai juga dinamakan semula pada cakera, supaya senarai dan folder sepadan. Nama bukan laluan, jadi / dan \\ tidak dibenarkan.',
+  'edit.packageName': 'Nama pakej',
+  'edit.packageNameHint':
+    'Jika folder muat turun dinamakan sempena pakej, folder itu menerima nama baharu bersama fail yang sudah ada di dalamnya, dan muat turun yang masih berjalan diteruskan di situ. Folder fail yang diekstrak yang dinamakan sempena pakej turut berpindah. Nama bukan laluan, jadi / dan \\ tidak dibenarkan.',
+  'edit.package': 'Pindah ke pakej',
+  'edit.packageHint':
+    'Pakej tempat pautan ini berada. Pilih pakej lain atau taip nama baharu. Jika dibiarkan kosong, pautan berdiri sendiri.',
+  'edit.category': 'Kategori',
+  'edit.categoryNone': 'Tiada',
+  'edit.categoryHint':
+    'Kategori tempat setiap pautan dalam kelompok ini difailkan, bersama folder, folder ekstrak dan lalai lainnya. Peraturan Packagizer yang menamakan kategori tetap menang.',
+  'edit.folder': 'Folder',
+  'edit.destination': 'Folder destinasi',
+  'edit.folderHint':
+    'Salah satu folder muat turun di bawah, atau folder di dalamnya. Folder lain hanya boleh ditetapkan dalam antara muka web.',
+  'edit.folderRefused':
+    'Folder itu berada di luar folder muat turun. Pilih salah satu daripadanya, atau folder di dalamnya.',
+  'edit.password': 'Kata laluan arkib',
+  'edit.passwordHint':
+    'Dicuba sebelum senarai yang disimpan dalam Tetapan, apabila arkib dalam kumpulan ini disulitkan.',
+  'edit.linkPassword': 'Kata laluan pautan',
+  'edit.linkPasswordHint':
+    'Kata laluan yang diminta oleh halaman hoster itu sendiri sebelum ia menyerahkan fail. Kata laluan arkib di atas ialah kata laluan yang lain.',
+  'edit.passwordHidden':
+    'Kata laluan yang sudah ditetapkan tidak dipaparkan pada telefon. Biarkan kotak kosong untuk mengekalkannya.',
+  'edit.comment': 'Nota',
+  'edit.commentHint':
+    'Nota anda sendiri tentang pautan ini. Ia disimpan dan dipaparkan dalam senarai; tiada apa dalam apl yang bertindak berdasarkannya.',
+  'edit.chunks': 'Sambungan (0 = tetapan global)',
+  'edit.chunksHint':
+    'Berapa sambungan dibuka oleh muat turun yang satu ini. Ia mengatasi tetapan global dan mana-mana peraturan yang menetapkannya, tetapi tidak sekali-kali mengatasi hos: hos yang hanya tahan lebih sedikit tetap mendapat lebih sedikit. Dengan 0 pengecualian ditarik dan nombornya kembali diputuskan di luar.',
+  'edit.chunksRange': 'Masukkan nombor bulat dari 0 hingga 16.',
+  'edit.priority': 'Keutamaan',
+  'edit.priorityHint':
+    'Yang lebih tinggi berjalan dahulu. Ia menyusun semula apa yang masih menunggu; muat turun yang sudah berjalan tidak dihantar balik ke baris gilir.',
+  'edit.autoExtract': 'Nyahzip arkib',
+  'edit.autoExtractHint':
+    'Sama ada arkib dibuka selepas muat turun selesai. „Warisi“ menyerahkan keputusan kepada halaman tetapan arkib, dan itu bukan sama dengan mati. Suis dibaca pada masa pembukaan, jadi menghidupkannya sekarang turut membuka sesuatu yang siap lebih awal.',
+  'edit.inherit': 'Warisi',
+  'edit.on': 'Hidup',
+  'edit.off': 'Mati',
+  'edit.overrule': 'Mengatasi peraturan Packagizer yang sepadan',
+  'edit.overruleHint':
+    'Apabila dimatikan, peraturan Packagizer yang sepadan menang atas keutamaan, pengekstrakan dan komen di atas. Apabila dihidupkan, nilai-nilai ini pula yang menang. Destinasi tidak pernah termasuk dalam hal ini: ia sentiasa terpakai seperti yang ditaip.',
+  'edit.options': 'Pilihan',
+  'edit.addPackage': 'Pakej (pilihan)',
+  'edit.mixed': 'Beberapa nilai',
+  'edit.save': 'Simpan',
+  'edit.cancel': 'Batal',
+  'edit.priority.highest': 'Tertinggi',
+  'edit.priority.higher': 'Lebih tinggi',
+  'edit.priority.high': 'Tinggi',
+  'edit.priority.default': 'Lalai',
+  'edit.priority.low': 'Rendah',
+  'edit.priority.lower': 'Lebih rendah',
+  'edit.priority.lowest': 'Terendah',
+  'edit.rename.whenDone': 'Muat turun ini masih berjalan. Fail mendapat nama baharu apabila selesai.',
+  'edit.rename.torrent': 'Torrent menamakan failnya sendiri, jadi ia tidak boleh dinamakan semula.',
+  'edit.rename.remote':
+    'Backend JDownloader memuat turun fail ini pada mesinnya sendiri dan menamakannya sendiri, jadi ia tidak boleh dinamakan semula dari sini.',
+  'edit.rename.unpacking': 'Fail ini sedang diekstrak. Ia boleh dinamakan semula apabila pengekstrakan selesai.',
+  'edit.rename.volume':
+    'Fail ini ialah satu bahagian arkib berbilang jilid. Bahagian-bahagiannya mengekalkan nama, jika tidak arkib tidak dapat diekstrak.',
+  'edit.rename.empty': 'Nama tidak boleh kosong.',
+  'edit.rename.separator': 'Nama tidak boleh mengandungi / atau \\.',
+  'edit.rename.dots': 'Nama perlu lebih daripada titik.',
+  'edit.rename.exists': 'Sudah ada fail bernama “{name}” dalam folder itu. KnightLoader tidak menulis gantinya.',
+  'edit.rename.busy':
+    'Sebahagian pakej ini sedang diekstrak, dipindahkan ke foldernya atau dirakam daripada livestream. Cuba lagi selepas itu selesai.',
+  'edit.rename.folderExists': 'Folder bernama “{name}” sudah ada di situ. Pilih nama lain.',
+  'edit.rename.dataFolder':
+    'Menamakan semula kepada “{name}” akan meletakkannya dalam folder data KnightLoader, dan muat turun tidak boleh pergi ke situ.',
+  'edit.rename.notMoved':
+    'Folder “{name}” tidak dapat dinamakan semula, jadi tiada apa yang berubah. Mungkin program lain sedang membuka fail di dalamnya. Tutup fail itu dan cuba lagi.',
 
   'share.title': 'Tambah ke KnightLoader',
   'share.hint': 'Pautan yang anda kongsi daripada aplikasi lain masuk ke pengumpul, seolah-olah anda menampalnya dalam antara muka web.',

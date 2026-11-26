@@ -146,6 +146,82 @@ export const es: Dict = {
   'error.answerTooLarge': 'La respuesta de la instancia es demasiado grande para el relé. En la red de la instancia sí llega.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Añadir',
+  'edit.title': 'Propiedades',
+  'edit.name': 'Nombre',
+  'edit.nameHint':
+    'El nombre con el que se guarda el archivo. Una descarga ya terminada también se renombra en el disco, para que la lista y la carpeta coincidan. Un nombre no es una ruta, así que / y \\ no se permiten.',
+  'edit.packageName': 'Nombre del paquete',
+  'edit.packageNameHint':
+    'Si la carpeta de descargas lleva el nombre del paquete, adopta el nuevo nombre junto con los archivos que ya contiene, y las descargas en curso siguen ahí. Una carpeta de archivos extraídos con el nombre del paquete también se mueve. Un nombre no es una ruta, así que / y \\ no se permiten.',
+  'edit.package': 'Mover a un paquete',
+  'edit.packageHint':
+    'El paquete en el que está este enlace. Elige otro o escribe un nombre nuevo. Si lo dejas vacío, el enlace queda suelto.',
+  'edit.category': 'Categoría',
+  'edit.categoryNone': 'Ninguna',
+  'edit.categoryHint':
+    'La categoría en la que se archivan todos los enlaces de este lote, con su carpeta, su carpeta de extracción y el resto de sus valores. Una regla del Packagizer que indique una categoría sigue teniendo prioridad.',
+  'edit.folder': 'Carpeta',
+  'edit.destination': 'Destino',
+  'edit.folderHint':
+    'Una de las carpetas de descarga de abajo, o una carpeta dentro de una de ellas. Cualquier otra carpeta solo se puede poner en la interfaz web.',
+  'edit.folderRefused':
+    'Esa carpeta está fuera de las carpetas de descarga. Elige una de ellas, o una carpeta dentro de una.',
+  'edit.password': 'Contraseña del archivo',
+  'edit.passwordHint': 'Se prueba antes que la lista guardada en Ajustes, cuando un archivo de este lote está cifrado.',
+  'edit.linkPassword': 'Contraseña del enlace',
+  'edit.linkPasswordHint':
+    'La contraseña que pide la propia página del hoster antes de entregar el archivo. La contraseña del archivo comprimido de arriba es otra.',
+  'edit.passwordHidden':
+    'El teléfono no muestra una contraseña que ya esté puesta. Deja el campo vacío para conservarla.',
+  'edit.comment': 'Comentario',
+  'edit.commentHint':
+    'Tu propia nota sobre este enlace. Se guarda y se muestra en la lista; nada de la aplicación actúa según ella.',
+  'edit.chunks': 'Conexiones (0 = el ajuste global)',
+  'edit.chunksHint':
+    'Cuántas conexiones abre esta descarga concreta. Manda sobre el ajuste global y sobre cualquier regla que lo fijara, pero nunca sobre el host: un host que tolera menos recibe menos igualmente. Con 0 se quita la excepción y la cifra vuelve a decidirse fuera.',
+  'edit.chunksRange': 'Escribe un número entero del 0 al 16.',
+  'edit.priority': 'Prioridad',
+  'edit.priorityHint':
+    'La más alta va primero. Reordena lo que sigue esperando; una descarga ya en marcha no se devuelve a la cola.',
+  'edit.autoExtract': 'Extraer archivos comprimidos',
+  'edit.autoExtractHint':
+    'Si un archivo se descomprime una vez terminada la descarga. «Heredar» deja la decisión a la página de ajustes de archivos, que no es lo mismo que «desactivado». El interruptor se lee en el momento de descomprimir, así que activarlo ahora también descomprime algo que terminó antes.',
+  'edit.inherit': 'Heredar',
+  'edit.on': 'Activado',
+  'edit.off': 'Desactivado',
+  'edit.overrule': 'Anular una regla de Packagizer coincidente',
+  'edit.overruleHint':
+    'Desactivado, una regla del Packagizer que coincida gana sobre la prioridad, la extracción y el comentario de arriba. Activado, ganan estos valores. El destino nunca entra en esto: siempre se aplica tal como se escribió.',
+  'edit.options': 'Opciones',
+  'edit.addPackage': 'Paquete (opcional)',
+  'edit.mixed': 'Varios valores',
+  'edit.save': 'Guardar',
+  'edit.cancel': 'Cancelar',
+  'edit.priority.highest': 'La más alta',
+  'edit.priority.higher': 'Más alta',
+  'edit.priority.high': 'Alta',
+  'edit.priority.default': 'Predeterminada',
+  'edit.priority.low': 'Baja',
+  'edit.priority.lower': 'Más baja',
+  'edit.priority.lowest': 'La más baja',
+  'edit.rename.whenDone': 'Esta descarga sigue en curso. El archivo toma el nuevo nombre cuando termine.',
+  'edit.rename.torrent': 'Un torrent nombra sus propios archivos, así que no se puede renombrar.',
+  'edit.rename.remote':
+    'El backend JDownloader descarga este archivo en su propia máquina y le pone nombre él mismo, así que no se puede renombrar desde aquí.',
+  'edit.rename.unpacking': 'Este archivo se está extrayendo. Podrá cambiarle el nombre cuando termine la extracción.',
+  'edit.rename.volume':
+    'Este archivo es una parte de un archivo comprimido de varios volúmenes. Las partes conservan su nombre, o el archivo no se podría extraer.',
+  'edit.rename.empty': 'Un nombre no puede estar vacío.',
+  'edit.rename.separator': 'Un nombre no puede contener / ni \\.',
+  'edit.rename.dots': 'Un nombre necesita algo más que puntos.',
+  'edit.rename.exists': 'Ya hay un archivo llamado «{name}» en esa carpeta. KnightLoader no lo sobrescribe.',
+  'edit.rename.busy':
+    'Parte de este paquete se está extrayendo, moviendo a su carpeta o grabando de una emisión en directo. Vuelve a intentarlo cuando haya terminado.',
+  'edit.rename.folderExists': 'Ya hay una carpeta llamada «{name}». Elige otro nombre.',
+  'edit.rename.dataFolder':
+    'Cambiar el nombre a «{name}» lo pondría en la carpeta de datos de KnightLoader, y las descargas no pueden ir ahí.',
+  'edit.rename.notMoved':
+    'No se pudo cambiar el nombre de la carpeta «{name}», así que no cambió nada. Puede que otro programa tenga abierto un archivo de ella. Cierra ese archivo y vuelve a intentarlo.',
 
   'share.title': 'Añadir a KnightLoader',
   'share.hint': 'Los enlaces que compartes desde otra app van al colector, como si los hubieras pegado en la interfaz web.',

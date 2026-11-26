@@ -160,6 +160,27 @@ func registerLinks(reg *Registry, a *app.App) {
 			})
 		})
 
+	// The two lists a phone picks from when it adds or edits links. They are
+	// what /api/settings would tell it about folders and categories, and
+	// nothing more of it, since the settings stay closed to the group.
+	reg.Add(http.MethodGet, "/api/download-folders",
+		"the folders a download may be put in by somebody who is not the owner: the download folder and each category's, as set up",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, map[string][]string{"folders": a.DownloadFolders()})
+		})
+	reg.Add(http.MethodGet, "/api/categories", "the categories a link can be filed under, each by its id and its name and nothing else",
+		func(w http.ResponseWriter, r *http.Request) {
+			type named struct {
+				ID   string `json:"id"`
+				Name string `json:"name"`
+			}
+			out := []named{}
+			for _, c := range a.Settings.Get().Categories {
+				out = append(out, named{ID: c.ID, Name: c.Name})
+			}
+			writeJSON(w, map[string][]named{"categories": out})
+		})
+
 	// A browser sees held links on the task stream; this is for other clients.
 	reg.Add(http.MethodGet, "/api/collector/filtered", "links the link filter rejected, with the rule and the reason",
 		func(w http.ResponseWriter, r *http.Request) {

@@ -146,6 +146,80 @@ export const vi: Dict = {
   'error.answerTooLarge': 'Phản hồi của phiên bản quá lớn để đi qua bộ tiếp sức. Trong mạng của chính phiên bản, nó vẫn đến được.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',
+  'edit.title': 'Thuộc tính',
+  'edit.name': 'Tên',
+  'edit.nameHint':
+    'Tên dùng để lưu tệp. Lượt tải đã xong cũng được đổi tên trên đĩa, để danh sách và thư mục khớp nhau. Tên không phải đường dẫn, nên không được dùng / và \\.',
+  'edit.packageName': 'Tên gói',
+  'edit.packageNameHint':
+    'Nếu thư mục tải về được đặt theo tên gói, thư mục đó sẽ nhận tên mới cùng với các tệp đã có trong đó, và các lượt tải còn đang chạy sẽ tiếp tục ở đó. Thư mục chứa các tệp đã giải nén được đặt theo tên gói cũng được chuyển theo. Tên không phải đường dẫn, nên không được dùng / và \\.',
+  'edit.package': 'Chuyển sang gói',
+  'edit.packageHint': 'Gói chứa liên kết này. Chọn gói khác hoặc nhập tên mới. Để trống thì liên kết đứng riêng.',
+  'edit.category': 'Danh mục',
+  'edit.categoryNone': 'Không',
+  'edit.categoryHint':
+    'Danh mục mà mọi liên kết trong lô này được xếp vào, cùng thư mục, thư mục giải nén và các mặc định khác của nó. Quy tắc Packagizer chỉ định danh mục vẫn được ưu tiên.',
+  'edit.folder': 'Thư mục',
+  'edit.destination': 'Thư mục đích',
+  'edit.folderHint':
+    'Một trong các thư mục tải xuống bên dưới, hoặc một thư mục bên trong chúng. Thư mục khác chỉ đặt được trong giao diện web.',
+  'edit.folderRefused':
+    'Thư mục đó nằm ngoài các thư mục tải xuống. Hãy chọn một trong số đó, hoặc một thư mục bên trong.',
+  'edit.password': 'Mật khẩu tệp nén',
+  'edit.passwordHint': 'Được thử trước danh sách đã lưu trong Cài đặt, khi một tệp nén trong lô này bị mã hóa.',
+  'edit.linkPassword': 'Mật khẩu liên kết',
+  'edit.linkPasswordHint':
+    'Mật khẩu mà chính trang của hoster yêu cầu trước khi trao tệp. Mật khẩu tệp nén ở trên là một mật khẩu khác.',
+  'edit.passwordHidden': 'Điện thoại không hiển thị mật khẩu đã đặt. Để trống ô để giữ nguyên.',
+  'edit.comment': 'Ghi chú',
+  'edit.commentHint':
+    'Ghi chú của riêng bạn về liên kết này. Nó được lưu và hiển thị trong danh sách; không phần nào của ứng dụng hành động theo nó.',
+  'edit.chunks': 'Kết nối (0 = thiết lập chung)',
+  'edit.chunksHint':
+    'Riêng lượt tải này mở bao nhiêu kết nối. Nó thắng thiết lập chung và mọi quy tắc đã đặt, nhưng không bao giờ thắng máy chủ: máy chủ chịu được ít hơn thì vẫn nhận ít hơn. Với 0 thì ngoại lệ bị gỡ và con số được quyết ở nơi khác trở lại.',
+  'edit.chunksRange': 'Nhập một số nguyên từ 0 đến 16.',
+  'edit.priority': 'Độ ưu tiên',
+  'edit.priorityHint':
+    'Cao hơn thì chạy trước. Nó sắp lại những gì còn đang chờ; lượt tải đã chạy rồi thì không bị đẩy về hàng đợi.',
+  'edit.autoExtract': 'Giải nén kho lưu trữ',
+  'edit.autoExtractHint':
+    'Có giải nén kho lưu trữ khi tải xong hay không. „Kế thừa“ để trang cài đặt kho lưu trữ quyết định, và điều đó không giống với tắt. Công tắc được đọc vào lúc giải nén, nên bật ngay bây giờ cũng giải nén thứ đã xong trước đó.',
+  'edit.inherit': 'Kế thừa',
+  'edit.on': 'Bật',
+  'edit.off': 'Tắt',
+  'edit.overrule': 'Ưu tiên hơn quy tắc Packagizer khớp',
+  'edit.overruleHint':
+    'Khi tắt, một quy tắc Packagizer khớp sẽ thắng độ ưu tiên, giải nén và ghi chú ở trên. Khi bật, các giá trị này thắng thay vào đó. Thư mục đích không bao giờ thuộc phần này: nó luôn được áp dụng đúng như đã nhập.',
+  'edit.options': 'Tùy chọn',
+  'edit.addPackage': 'Gói (tùy chọn)',
+  'edit.mixed': 'Nhiều giá trị',
+  'edit.save': 'Lưu',
+  'edit.cancel': 'Hủy',
+  'edit.priority.highest': 'Cao nhất',
+  'edit.priority.higher': 'Cao hơn',
+  'edit.priority.high': 'Cao',
+  'edit.priority.default': 'Mặc định',
+  'edit.priority.low': 'Thấp',
+  'edit.priority.lower': 'Thấp hơn',
+  'edit.priority.lowest': 'Thấp nhất',
+  'edit.rename.whenDone': 'Lượt tải này vẫn đang chạy. Tệp sẽ nhận tên mới khi xong.',
+  'edit.rename.torrent': 'Torrent tự đặt tên cho các tệp của nó, nên không thể đổi tên.',
+  'edit.rename.remote':
+    'Backend JDownloader tải tệp này trên máy của chính nó và tự đặt tên, nên không thể đổi tên từ đây.',
+  'edit.rename.unpacking': 'Tệp này đang được giải nén. Có thể đổi tên khi giải nén xong.',
+  'edit.rename.volume':
+    'Tệp này là một phần của kho lưu trữ nhiều phần. Các phần giữ nguyên tên, nếu không kho lưu trữ sẽ không giải nén được.',
+  'edit.rename.empty': 'Tên không được để trống.',
+  'edit.rename.separator': 'Tên không được chứa / hoặc \\.',
+  'edit.rename.dots': 'Tên cần có nhiều hơn dấu chấm.',
+  'edit.rename.exists': 'Trong thư mục đó đã có tệp tên “{name}”. KnightLoader không ghi đè lên nó.',
+  'edit.rename.busy':
+    'Một phần của gói này đang được giải nén, chuyển vào thư mục của nó hoặc ghi lại từ một livestream. Hãy thử lại khi việc đó xong.',
+  'edit.rename.folderExists': 'Ở đó đã có thư mục tên “{name}”. Hãy chọn tên khác.',
+  'edit.rename.dataFolder':
+    'Đổi tên thành “{name}” sẽ đặt nó vào thư mục dữ liệu của KnightLoader, và các lượt tải không được đặt ở đó.',
+  'edit.rename.notMoved':
+    'Không thể đổi tên thư mục “{name}”, nên không có gì thay đổi. Có thể một chương trình khác đang mở một tệp trong đó. Hãy đóng tệp đó rồi thử lại.',
 
   'share.title': 'Thêm vào KnightLoader',
   'share.hint': 'Liên kết bạn chia sẻ từ ứng dụng khác sẽ vào bộ thu thập, như thể bạn đã dán chúng vào giao diện web.',
