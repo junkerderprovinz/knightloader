@@ -146,6 +146,81 @@ export const pt: Dict = {
   'error.answerTooLarge': 'A resposta da instância é grande demais para o relé. Na rede da própria instância chega.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',
+  'edit.title': 'Propriedades',
+  'edit.name': 'Nome',
+  'edit.nameHint':
+    'O nome com que o ficheiro é guardado. Uma transferência já concluída também muda de nome no disco, para que a lista e a pasta coincidam. Um nome não é um caminho, por isso / e \\ não são permitidos.',
+  'edit.packageName': 'Nome do pacote',
+  'edit.packageNameHint':
+    'Se a pasta de transferências tiver o nome do pacote, recebe o novo nome juntamente com os ficheiros que já lá estão, e as transferências ainda em curso continuam lá. Uma pasta de ficheiros extraídos com o nome do pacote também muda de sítio. Um nome não é um caminho, por isso / e \\ não são permitidos.',
+  'edit.package': 'Mover para um pacote',
+  'edit.packageHint':
+    'O pacote em que este link está. Escolhe outro ou escreve um nome novo. Se o deixares vazio, o link fica sozinho.',
+  'edit.category': 'Categoria',
+  'edit.categoryNone': 'Nenhuma',
+  'edit.categoryHint':
+    'A categoria em que cada link deste lote é arquivado, com a sua pasta, a pasta de extração e as outras predefinições. Uma regra do Packagizer que indique uma categoria continua a ter prioridade.',
+  'edit.folder': 'Pasta',
+  'edit.destination': 'Destino',
+  'edit.folderHint':
+    'Uma das pastas de download abaixo, ou uma pasta dentro delas. Qualquer outra pasta só pode ser definida na interface web.',
+  'edit.folderRefused': 'Essa pasta está fora das pastas de download. Escolhe uma delas, ou uma pasta dentro delas.',
+  'edit.password': 'Palavra-passe do arquivo',
+  'edit.passwordHint': 'Testada antes da lista guardada nas Definições, quando um arquivo deste lote está cifrado.',
+  'edit.linkPassword': 'Palavra-passe da ligação',
+  'edit.linkPasswordHint':
+    'A palavra-passe que a própria página do hoster pede antes de entregar o ficheiro. A palavra-passe do arquivo acima é outra.',
+  'edit.passwordHidden':
+    'O telefone não mostra uma palavra-passe que já esteja definida. Deixa o campo vazio para a manter.',
+  'edit.comment': 'Comentário',
+  'edit.commentHint':
+    'A tua própria nota sobre este link. É guardada e mostrada na lista; nada na aplicação age com base nela.',
+  'edit.chunks': 'Ligações (0 = a definição global)',
+  'edit.chunksHint':
+    'Quantas ligações esta transferência abre. Manda sobre a definição global e sobre qualquer regra que a tenha fixado, mas nunca sobre o anfitrião: um anfitrião que tolera menos recebe menos à mesma. Com 0 a exceção sai e o número volta a ser decidido fora.',
+  'edit.chunksRange': 'Escreve um número inteiro de 0 a 16.',
+  'edit.priority': 'Prioridade',
+  'edit.priorityHint':
+    'Mais alta corre primeiro. Reordena o que ainda espera; uma transferência já a correr não é mandada de volta para a fila.',
+  'edit.autoExtract': 'Extrair arquivos',
+  'edit.autoExtractHint':
+    'Se um arquivo é descompactado assim que a transferência termina. «Herdar» deixa a decisão à página de definições de arquivos, o que não é o mesmo que desligado. O interruptor é lido no momento da descompactação, por isso ligá-lo agora também descompacta algo que terminou antes.',
+  'edit.inherit': 'Herdar',
+  'edit.on': 'Ligado',
+  'edit.off': 'Desligado',
+  'edit.overrule': 'Sobrepor-se a uma regra do Packagizer correspondente',
+  'edit.overruleHint':
+    'Desligado, uma regra do Packagizer correspondente ganha à prioridade, à extração e ao comentário acima. Ligado, ganham antes estes valores. O destino nunca entra nisto: aplica-se sempre tal como foi escrito.',
+  'edit.options': 'Opções',
+  'edit.addPackage': 'Pacote (opcional)',
+  'edit.mixed': 'Vários valores',
+  'edit.save': 'Guardar',
+  'edit.cancel': 'Cancelar',
+  'edit.priority.highest': 'A mais alta',
+  'edit.priority.higher': 'Mais alta',
+  'edit.priority.high': 'Alta',
+  'edit.priority.default': 'Predefinida',
+  'edit.priority.low': 'Baixa',
+  'edit.priority.lower': 'Mais baixa',
+  'edit.priority.lowest': 'A mais baixa',
+  'edit.rename.whenDone': 'Esta transferência ainda está a decorrer. O ficheiro recebe o novo nome quando terminar.',
+  'edit.rename.torrent': 'Um torrent dá nome aos seus próprios ficheiros, por isso não é possível mudar o nome.',
+  'edit.rename.remote':
+    'O backend JDownloader transfere este ficheiro na sua própria máquina e dá-lhe o nome ele mesmo, por isso não é possível mudar o nome a partir daqui.',
+  'edit.rename.unpacking': 'Este ficheiro está a ser extraído. Pode mudar-lhe o nome quando a extração terminar.',
+  'edit.rename.volume':
+    'Este ficheiro é uma parte de um arquivo com vários volumes. As partes mantêm o nome, senão o arquivo não poderia ser extraído.',
+  'edit.rename.empty': 'Um nome não pode estar vazio.',
+  'edit.rename.separator': 'Um nome não pode conter / nem \\.',
+  'edit.rename.dots': 'Um nome precisa de mais do que pontos.',
+  'edit.rename.exists': 'Já existe um ficheiro chamado «{name}» nessa pasta. O KnightLoader não o substitui.',
+  'edit.rename.busy':
+    'Parte deste pacote está a ser extraída, movida para a sua pasta ou gravada a partir de um livestream. Tenta outra vez quando isso terminar.',
+  'edit.rename.folderExists': 'Já existe aí uma pasta chamada «{name}». Escolhe outro nome.',
+  'edit.rename.dataFolder':
+    'Mudar o nome para «{name}» colocá-lo-ia na pasta de dados do KnightLoader, e as transferências não podem ir para lá.',
+  'edit.rename.notMoved':
+    'Não foi possível mudar o nome da pasta «{name}», por isso nada mudou. Talvez outro programa tenha um ficheiro aberto dentro dela. Fecha esse ficheiro e tenta outra vez.',
 
   'share.title': 'Adicionar ao KnightLoader',
   'share.hint': 'Os links que partilhas a partir de outra app vão para o coletor, como se os tivesses colado na interface web.',

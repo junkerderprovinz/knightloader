@@ -106,20 +106,32 @@ const modules = {
       if (sendFails) throw sendFails;
       return [{ id: 't1' }];
     },
-    addLinks: async (conn, links) => {
+    // client.ts's errorText for an error with no code the app words itself.
+    errorText: (_t, e) => (e instanceof Error ? e.message : String(e)),
+  },
+  '../api/taskEdit': {
+    NO_ADD_OPTIONS: { dir: '' },
+    addLinksWithOptions: async (conn, links) => {
       sent.push({ conn: conn.id, links });
       if (sendFails) throw sendFails;
       return [{ id: 't1' }];
     },
-    // client.ts's errorText for an error with no code the app words itself.
-    errorText: (_t, e) => (e instanceof Error ? e.message : String(e)),
+    editRefusal: () => null,
   },
   '../storage/connections': { listConnections: async () => connections },
   '../watch/watch': { startWatch: async () => {} },
   '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, corners: { card: {} } }) },
   '../theme/tokens': { TYPE: {} },
   '../i18n/I18nContext': { useT: () => ({ t }) },
-  '../components/glim': { CardButton: 'CardButton', DefaultBadge: 'DefaultBadge', GlimButton: 'GlimButton' },
+  '../components/glim': {
+    CardButton: 'CardButton',
+    DefaultBadge: 'DefaultBadge',
+    GlimButton: 'GlimButton',
+    GlimRow: 'GlimRow',
+    GlimToggle: 'GlimToggle',
+    WellSelector: 'WellSelector',
+  },
+  '../components/TaskEdit': {},
   '../components/IconBadge': { Connect: 'Connect', Cross: 'Cross', Plus: 'Plus' },
   '../components/InfoTip': { InfoTip: 'InfoTip' },
   '../components/Moving': { Arrive: 'Arrive' },

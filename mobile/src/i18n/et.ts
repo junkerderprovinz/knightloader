@@ -146,6 +146,80 @@ export const et: Dict = {
   'error.answerTooLarge': 'Eksemplari vastus on relee jaoks liiga suur. Eksemplari enda võrgus jõuab see kohale.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',
+  'edit.title': 'Omadused',
+  'edit.name': 'Nimi',
+  'edit.nameHint':
+    'Nimi, millega fail salvestatakse. Juba lõppenud allalaadimine nimetatakse ümber ka kettal, et loend ja kaust klapiksid. Nimi ei ole tee, seega / ja \\ pole lubatud.',
+  'edit.packageName': 'Paki nimi',
+  'edit.packageNameHint':
+    'Kui allalaadimiste kaust on nimetatud paki järgi, saab see uue nime koos failidega, mis selles juba on, ja veel käivad allalaadimised jätkuvad seal. Ka paki järgi nimetatud lahtipakitud failide kaust liigub kaasa. Nimi ei ole tee, seega / ja \\ pole lubatud.',
+  'edit.package': 'Liiguta pakki',
+  'edit.packageHint':
+    'Pakett, milles see link on. Vali teine või kirjuta uus nimi. Kui jätad selle tühjaks, jääb link omaette.',
+  'edit.category': 'Kategooria',
+  'edit.categoryNone': 'Puudub',
+  'edit.categoryHint':
+    'Kategooria, mille alla selle partii kõik lingid lähevad, koos selle kausta, lahtipakkimise kausta ja muude vaikeväärtustega. Packagizeri reegel, mis nimetab kategooria, jääb siiski peale.',
+  'edit.folder': 'Kaust',
+  'edit.destination': 'Sihtkaust',
+  'edit.folderHint':
+    'Üks allolevatest allalaadimiskaustadest või kaust selle sees. Iga teist kausta saab määrata ainult veebiliideses.',
+  'edit.folderRefused': 'See kaust on väljaspool allalaadimiskaustu. Vali üks neist või kaust selle sees.',
+  'edit.password': 'Arhiivi parool',
+  'edit.passwordHint': 'Proovitakse enne Seadetesse salvestatud loendit, kui selle partii arhiiv on krüptitud.',
+  'edit.linkPassword': 'Lingi parool',
+  'edit.linkPasswordHint':
+    'Parool, mida hosteri enda leht küsib, enne kui faili välja annab. Ülalolev arhiivi parool on teine.',
+  'edit.passwordHidden': 'Juba määratud parooli telefon ei näita. Jäta väli tühjaks, et see alles jääks.',
+  'edit.comment': 'Märkus',
+  'edit.commentHint':
+    'Sinu enda märkus selle lingi kohta. See salvestatakse ja kuvatakse loendis; rakenduses ei toimi selle järgi miski.',
+  'edit.chunks': 'Ühendused (0 = üldine säte)',
+  'edit.chunksHint':
+    'Mitu ühendust avab just see allalaadimine. See käib üle üldise sätte ja iga reegli, mis selle määras, aga mitte kunagi üle majutaja: majutaja, kes talub vähem, saab ikkagi vähem. Nulli korral erand kaob ja arv otsustatakse jälle mujal.',
+  'edit.chunksRange': 'Sisesta täisarv vahemikus 0 kuni 16.',
+  'edit.priority': 'Tähtsus',
+  'edit.priorityHint':
+    'Kõrgem läheb enne. See järjestab ümber selle, mis alles ootab; juba käimasolevat allalaadimist järjekorda tagasi ei saadeta.',
+  'edit.autoExtract': 'Paki arhiivid lahti',
+  'edit.autoExtractHint':
+    'Kas arhiiv pakitakse lahti, kui allalaadimine on valmis. „Päri“ jätab otsuse arhiivi seadete lehele, mis ei ole sama mis väljas. Lülitit loetakse lahtipakkimise hetkel, seega kui lülitad selle nüüd sisse, pakitakse lahti ka midagi, mis sai varem valmis.',
+  'edit.inherit': 'Päri',
+  'edit.on': 'Sees',
+  'edit.off': 'Väljas',
+  'edit.overrule': 'Tühista sobiv Packagizeri reegel',
+  'edit.overruleHint':
+    'Väljas võidab sobiv Packagizeri reegel tähtsuse, lahtipakkimise ja ülaloleva märkuse osas. Sees võidavad hoopis need väärtused. Sihtkoht ei kuulu kunagi selle alla: see kehtib alati nii, nagu sisestatud.',
+  'edit.options': 'Valikud',
+  'edit.addPackage': 'Pakk (valikuline)',
+  'edit.mixed': 'Mitu väärtust',
+  'edit.save': 'Salvesta',
+  'edit.cancel': 'Loobu',
+  'edit.priority.highest': 'Kõrgeim',
+  'edit.priority.higher': 'Kõrgem',
+  'edit.priority.high': 'Kõrge',
+  'edit.priority.default': 'Vaikimisi',
+  'edit.priority.low': 'Madal',
+  'edit.priority.lower': 'Madalam',
+  'edit.priority.lowest': 'Madalaim',
+  'edit.rename.whenDone': 'See allalaadimine veel käib. Fail saab uue nime, kui see lõpeb.',
+  'edit.rename.torrent': 'Torrent nimetab oma failid ise, seega ei saa seda ümber nimetada.',
+  'edit.rename.remote':
+    'JDownloaderi taustsüsteem laadib selle faili alla oma masinas ja annab sellele ise nime, seega ei saa seda siit ümber nimetada.',
+  'edit.rename.unpacking': 'Seda faili pakitakse lahti. Selle saab ümber nimetada, kui lahtipakkimine on lõppenud.',
+  'edit.rename.volume':
+    'See fail on mitmeköitelise arhiivi üks osa. Osad jätavad oma nimed alles, muidu ei saaks arhiivi lahti pakkida.',
+  'edit.rename.empty': 'Nimi ei tohi olla tühi.',
+  'edit.rename.separator': 'Nimi ei tohi sisaldada / ega \\.',
+  'edit.rename.dots': 'Nimi peab koosnema millestki enamast kui punktidest.',
+  'edit.rename.exists': 'Selles kaustas on juba fail nimega „{name}“. KnightLoader ei kirjuta seda üle.',
+  'edit.rename.busy':
+    'Osa sellest pakist pakitakse parajasti lahti, viiakse oma kausta või salvestatakse otseülekandest. Proovi uuesti, kui see on lõppenud.',
+  'edit.rename.folderExists': 'Kaust nimega „{name}“ on seal juba olemas. Vali mõni muu nimi.',
+  'edit.rename.dataFolder':
+    'Ümbernimetamine nimeks „{name}“ paneks selle KnightLoaderi andmekausta ja sinna ei tohi allalaadimised minna.',
+  'edit.rename.notMoved':
+    'Kausta „{name}“ ei õnnestunud ümber nimetada, seega midagi ei muutunud. Võib-olla hoiab mõni teine programm selles kaustas faili avatuna. Sulge see fail ja proovi uuesti.',
 
   'share.title': 'Lisa KnightLoaderisse',
   'share.hint': 'Lingid, mida jagad teisest rakendusest, lähevad kogujasse, nagu oleksid need veebiliideses kleepinud.',

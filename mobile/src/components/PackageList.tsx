@@ -24,6 +24,8 @@ import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
 import { hasSomethingToPlay, mediaKind } from '../api/media';
+import type { EditTarget } from '../api/taskEdit';
+import { Pencil } from './TaskEdit';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
@@ -93,6 +95,7 @@ export default function PackageList({
   onSelectFiles,
   onSeeding,
   onPlay,
+  onEdit,
   sections = [],
   unpacking,
 }: {
@@ -141,6 +144,8 @@ export default function PackageList({
   /** Opens a link's file in a player app. The row offers it only for audio
    *  and video with something to play (mediaKind, hasSomethingToPlay). */
   onPlay?: (task: Task) => void;
+  /** Opens the properties of a link or of a whole package. */
+  onEdit?: (target: EditTarget) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -248,6 +253,7 @@ export default function PackageList({
                   ? () => scharf || onPlay(r.task)
                   : undefined
               }
+              onEdit={onEdit && (() => scharf || onEdit({ kind: 'link', task: r.task }))}
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
                   ? (hue) => (
@@ -462,6 +468,13 @@ export default function PackageList({
                   accessibilityLabel={t('packages.startSeeding')}
                 />
               )
+            )}
+            {onEdit && (
+              <IconBadge
+                icon={<Pencil color={c.textSub} />}
+                onPress={() => scharf || onEdit({ kind: 'package', name: pkg.name, tasks: pkg.tasks })}
+                accessibilityLabel={t('edit.title')}
+              />
             )}
             {onDeletePackage && (
               <IconBadge

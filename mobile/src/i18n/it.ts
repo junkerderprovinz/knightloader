@@ -146,6 +146,82 @@ export const it: Dict = {
   'error.answerTooLarge': 'La risposta dell’istanza è troppo grande per il relay. Sulla rete dell’istanza arriva senza problemi.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',
+  'edit.title': 'Proprietà',
+  'edit.name': 'Nome',
+  'edit.nameHint':
+    'Il nome con cui viene salvato il file. Un download già finito viene rinominato anche sul disco, così elenco e cartella coincidono. Un nome non è un percorso, quindi / e \\ non sono ammessi.',
+  'edit.packageName': 'Nome del pacchetto',
+  'edit.packageNameHint':
+    'Se la cartella di download ha il nome del pacchetto, prende il nuovo nome insieme ai file che contiene già, e i download ancora in corso proseguono lì. Anche una cartella di file estratti con il nome del pacchetto si sposta. Un nome non è un percorso, quindi / e \\ non sono ammessi.',
+  'edit.package': 'Sposta in un pacchetto',
+  'edit.packageHint':
+    'Il pacchetto in cui si trova questo link. Scegline un altro o scrivi un nome nuovo. Se lo lasci vuoto, il link resta da solo.',
+  'edit.category': 'Categoria',
+  'edit.categoryNone': 'Nessuna',
+  'edit.categoryHint':
+    'La categoria in cui viene archiviato ogni link di questo gruppo, con la sua cartella, la cartella di estrazione e le altre impostazioni predefinite. Una regola del Packagizer che indica una categoria ha comunque la precedenza.',
+  'edit.folder': 'Cartella',
+  'edit.destination': 'Destinazione',
+  'edit.folderHint':
+    'Una delle cartelle di download qui sotto, o una cartella al loro interno. Qualsiasi altra cartella si imposta solo nell’interfaccia web.',
+  'edit.folderRefused':
+    'Questa cartella è fuori dalle cartelle di download. Scegline una, o una cartella al loro interno.',
+  'edit.password': 'Password archivio',
+  'edit.passwordHint':
+    'Provata prima dell’elenco salvato in Impostazioni, quando un archivio di questo gruppo risulta cifrato.',
+  'edit.linkPassword': 'Password del link',
+  'edit.linkPasswordHint':
+    'La password che la pagina stessa dell’hoster chiede prima di consegnare il file. La password dell’archivio qui sopra è un’altra.',
+  'edit.passwordHidden': 'Il telefono non mostra una password già impostata. Lascia il campo vuoto per mantenerla.',
+  'edit.comment': 'Commento',
+  'edit.commentHint':
+    'La tua nota su questo link. Viene salvata e mostrata nell’elenco; nulla nell’app agisce in base a essa.',
+  'edit.chunks': 'Connessioni (0 = l’impostazione globale)',
+  'edit.chunksHint':
+    'Quante connessioni apre questo singolo download. Ha la precedenza sull’impostazione globale e su qualsiasi regola l’abbia fissata, ma mai sull’host: un host che ne tollera meno ne riceve comunque meno. Con 0 l’eccezione viene tolta e il numero torna a essere deciso altrove.',
+  'edit.chunksRange': 'Inserisci un numero intero da 0 a 16.',
+  'edit.priority': 'Priorità',
+  'edit.priorityHint':
+    'Più alta parte prima. Riordina ciò che sta ancora aspettando; un download già in corso non viene rimandato in coda.',
+  'edit.autoExtract': 'Estrai gli archivi',
+  'edit.autoExtractHint':
+    'Se un archivio viene estratto una volta finito il download. «Eredita» lascia la decisione alla pagina delle impostazioni archivi, che non è la stessa cosa di spento. L’interruttore viene letto al momento dell’estrazione, quindi accenderlo adesso estrae anche qualcosa finito prima.',
+  'edit.inherit': 'Eredita',
+  'edit.on': 'Attivo',
+  'edit.off': 'Disattivato',
+  'edit.overrule': 'Prevalere su una regola Packagizer corrispondente',
+  'edit.overruleHint':
+    'Disattivato, una regola Packagizer che corrisponde prevale su priorità, estrazione e commento qui sopra. Attivato, prevalgono invece questi valori. La destinazione non ne fa mai parte: si applica sempre così come l’hai scritta.',
+  'edit.options': 'Opzioni',
+  'edit.addPackage': 'Pacchetto (facoltativo)',
+  'edit.mixed': 'Più valori',
+  'edit.save': 'Salva',
+  'edit.cancel': 'Annulla',
+  'edit.priority.highest': 'Massima',
+  'edit.priority.higher': 'Più alta',
+  'edit.priority.high': 'Alta',
+  'edit.priority.default': 'Predefinita',
+  'edit.priority.low': 'Bassa',
+  'edit.priority.lower': 'Più bassa',
+  'edit.priority.lowest': 'Minima',
+  'edit.rename.whenDone': 'Questo download è ancora in corso. Il file prende il nuovo nome quando finisce.',
+  'edit.rename.torrent': 'Un torrent dà il nome ai propri file, quindi non si può rinominare.',
+  'edit.rename.remote':
+    'Il backend JDownloader scarica questo file sulla propria macchina e gli dà il nome da sé, quindi non si può rinominare da qui.',
+  'edit.rename.unpacking': 'Questo file è in estrazione. Si potrà rinominare quando l’estrazione è finita.',
+  'edit.rename.volume':
+    'Questo file è una parte di un archivio in più volumi. Le parti tengono il loro nome, altrimenti l’archivio non si potrebbe estrarre.',
+  'edit.rename.empty': 'Un nome non può essere vuoto.',
+  'edit.rename.separator': 'Un nome non può contenere / o \\.',
+  'edit.rename.dots': 'Un nome deve contenere più che punti.',
+  'edit.rename.exists': 'In quella cartella c’è già un file chiamato «{name}». KnightLoader non lo sovrascrive.',
+  'edit.rename.busy':
+    'Una parte di questo pacchetto è in estrazione, in spostamento nella sua cartella o in registrazione da un livestream. Riprova quando avrà finito.',
+  'edit.rename.folderExists': 'Lì c’è già una cartella chiamata «{name}». Scegli un altro nome.',
+  'edit.rename.dataFolder':
+    'Rinominare in «{name}» lo metterebbe nella cartella dei dati di KnightLoader, e lì i download non possono andare.',
+  'edit.rename.notMoved':
+    'Non è stato possibile rinominare la cartella «{name}», quindi non è cambiato nulla. Forse un altro programma ha aperto un file al suo interno. Chiudi quel file e riprova.',
 
   'share.title': 'Aggiungi a KnightLoader',
   'share.hint': 'I link che condividi da un’altra app finiscono nel raccoglitore, come se li avessi incollati nell’interfaccia web.',

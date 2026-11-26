@@ -146,6 +146,79 @@ export const cs: Dict = {
   'error.answerTooLarge': 'Odpověď instance je pro relé příliš velká. V síti instance projde.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',
+  'edit.title': 'Vlastnosti',
+  'edit.name': 'Název',
+  'edit.nameHint':
+    'Název, pod kterým se soubor uloží. Stahování, které už skončilo, se přejmenuje i na disku, aby seznam a složka souhlasily. Název není cesta, takže / a \\ nejsou povoleny.',
+  'edit.packageName': 'Název balíčku',
+  'edit.packageNameHint':
+    'Pokud je složka pro stahování pojmenovaná podle balíčku, dostane nový název i se soubory, které v ní už jsou, a stahování, která ještě běží, v ní pokračují. Složka s rozbalenými soubory pojmenovaná podle balíčku se přesune také. Název není cesta, takže / a \\ nejsou povoleny.',
+  'edit.package': 'Přesunout do balíčku',
+  'edit.packageHint':
+    'Balíček, ve kterém tento odkaz je. Vyber jiný nebo napiš nový název. Když pole necháš prázdné, odkaz zůstane samostatně.',
+  'edit.category': 'Kategorie',
+  'edit.categoryNone': 'Žádná',
+  'edit.categoryHint':
+    'Kategorie, do které se zařadí všechny odkazy této dávky, s její složkou, složkou pro rozbalení a dalšími výchozími hodnotami. Pravidlo Packagizeru, které určuje kategorii, má přesto přednost.',
+  'edit.folder': 'Složka',
+  'edit.destination': 'Cílová složka',
+  'edit.folderHint':
+    'Jedna ze složek pro stahování níže nebo složka v ní. Jakoukoli jinou složku lze nastavit jen ve webovém rozhraní.',
+  'edit.folderRefused': 'Tato složka leží mimo složky pro stahování. Vyber jednu z nich nebo složku v ní.',
+  'edit.password': 'Heslo archivu',
+  'edit.passwordHint': 'Zkouší se před seznamem uloženým v Nastavení, když je archiv v této dávce zašifrovaný.',
+  'edit.linkPassword': 'Heslo odkazu',
+  'edit.linkPasswordHint':
+    'Heslo, které požaduje samotná stránka hosteru, než vydá soubor. Heslo archivu výše je jiné.',
+  'edit.passwordHidden': 'Heslo, které už je nastavené, telefon nezobrazí. Nech pole prázdné a heslo zůstane.',
+  'edit.comment': 'Poznámka',
+  'edit.commentHint':
+    'Tvoje vlastní poznámka k tomuto odkazu. Uloží se a zobrazí v seznamu; aplikace se podle ní neřídí.',
+  'edit.chunks': 'Spojení (0 = globální nastavení)',
+  'edit.chunksHint':
+    'Kolika spojeními běží tohle jedno stahování. Přebíjí globální nastavení i každé pravidlo, které je nastavilo, ale nikdy ne hostera: hoster, který snese méně, dostane stejně méně. Při 0 výjimka mizí a číslo se zase rozhoduje jinde.',
+  'edit.chunksRange': 'Zadej celé číslo od 0 do 16.',
+  'edit.priority': 'Priorita',
+  'edit.priorityHint':
+    'Vyšší běží dřív. Přeskládá to, co ještě čeká; už běžící stahování se zpátky do fronty neposílá.',
+  'edit.autoExtract': 'Rozbalit archivy',
+  'edit.autoExtractHint':
+    'Zda se archiv rozbalí po dokončení stahování. „Dědit“ nechává rozhodnutí na stránce nastavení archivů, což není totéž co vypnuto. Přepínač se čte až při rozbalování, takže když ho zapneš teď, rozbalí se i něco, co skončilo dřív.',
+  'edit.inherit': 'Zdědit',
+  'edit.on': 'Zapnuto',
+  'edit.off': 'Vypnuto',
+  'edit.overrule': 'Nadřadit odpovídající pravidlo Packagizeru',
+  'edit.overruleHint':
+    'Když je vypnuto, odpovídající pravidlo Packagizeru vyhrává nad prioritou, rozbalováním a komentářem výše. Když je zapnuto, vyhrávají místo toho tyto hodnoty. Cíl se toho nikdy netýká: platí vždycky tak, jak je zadaný.',
+  'edit.options': 'Možnosti',
+  'edit.addPackage': 'Balíček (volitelné)',
+  'edit.mixed': 'Několik hodnot',
+  'edit.save': 'Uložit',
+  'edit.cancel': 'Zrušit',
+  'edit.priority.highest': 'Nejvyšší',
+  'edit.priority.higher': 'Vyšší',
+  'edit.priority.high': 'Vysoká',
+  'edit.priority.default': 'Výchozí',
+  'edit.priority.low': 'Nízká',
+  'edit.priority.lower': 'Nižší',
+  'edit.priority.lowest': 'Nejnižší',
+  'edit.rename.whenDone': 'Toto stahování ještě běží. Soubor dostane nový název, až skončí.',
+  'edit.rename.torrent': 'Torrent pojmenovává své soubory sám, takže ho nelze přejmenovat.',
+  'edit.rename.remote':
+    'Backend JDownloader stahuje tento soubor na vlastním stroji a sám mu dává název, takže ho odsud nelze přejmenovat.',
+  'edit.rename.unpacking': 'Tento soubor se rozbaluje. Přejmenovat ho půjde, až rozbalování skončí.',
+  'edit.rename.volume':
+    'Tento soubor je jednou částí vícesvazkového archivu. Části si ponechávají své názvy, jinak by archiv nešel rozbalit.',
+  'edit.rename.empty': 'Název nemůže být prázdný.',
+  'edit.rename.separator': 'Název nemůže obsahovat / ani \\.',
+  'edit.rename.dots': 'Název musí obsahovat víc než tečky.',
+  'edit.rename.exists': 'V té složce už je soubor s názvem „{name}“. KnightLoader ho nepřepíše.',
+  'edit.rename.busy':
+    'Část tohoto balíčku se právě rozbaluje, přesouvá do své složky nebo nahrává z livestreamu. Zkus to znovu, až to skončí.',
+  'edit.rename.folderExists': 'Složka s názvem „{name}“ tam už je. Zvol jiný název.',
+  'edit.rename.dataFolder': 'Přejmenování na „{name}“ by ho dalo do datové složky KnightLoaderu a stahování tam nesmí.',
+  'edit.rename.notMoved':
+    'Složku „{name}“ se nepodařilo přejmenovat, takže se nic nezměnilo. Možná v ní má jiný program otevřený soubor. Zavři ten soubor a zkus to znovu.',
 
   'share.title': 'Přidat do KnightLoaderu',
   'share.hint': 'Odkazy, které sdílíš z jiné aplikace, jdou do sběrače, jako bys je vložil ve webovém rozhraní.',

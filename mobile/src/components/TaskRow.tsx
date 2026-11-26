@@ -10,6 +10,7 @@ import { checkPercent, isParked, rowWord, unpackPercent, type StateWord, type Un
 import { InfoTip } from './InfoTip';
 import IconBadge, { Power } from './IconBadge';
 import { Text } from './Text';
+import { Pencil } from './TaskEdit';
 
 // The debrid services that fetch torrents, by the resolver id the server sends.
 // Their product names are no words to translate, and the web writes them the
@@ -103,6 +104,7 @@ export default function TaskRow({
   index,
   onSwitch,
   onPlay,
+  onEdit,
   files,
   unpack,
 }: {
@@ -116,6 +118,8 @@ export default function TaskRow({
   onSwitch?: () => void;
   /** Opens the file in a player app; absent where there is nothing to play. */
   onPlay?: () => void;
+  /** Opens this link's properties. */
+  onEdit?: () => void;
   /** A torrent's files, drawn under the rest of the card in the row's own
    *  colour. */
   files?: (hue: string) => ReactNode;
@@ -299,6 +303,7 @@ export default function TaskRow({
           accessibilityLabel={t(task.enabled ? 'task.disable' : 'task.enable')}
         />
       )}
+      {onEdit && <IconBadge icon={<Pencil color={c.textSub} />} onPress={onEdit} accessibilityLabel={t('edit.title')} />}
     </View>
   );
 }

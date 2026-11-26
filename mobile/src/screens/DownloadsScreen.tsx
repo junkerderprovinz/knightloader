@@ -5,6 +5,8 @@ import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskStat
 import { needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
 import { playTask } from '../api/play';
 import PackageList from '../components/PackageList';
+import { TaskEdit } from '../components/TaskEdit';
+import type { EditTarget } from '../api/taskEdit';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -96,6 +98,7 @@ export default function DownloadsScreen({
   const [cardsOn, setCardsOn] = useState<CardSwitches>({ finished: true, torrents: true });
   const parts = splitByCard(queued, cardsOn);
   const fabPress = usePress();
+  const [editing, setEditing] = useState<EditTarget | null>(null);
 
   /** The live handle, kept so an action that just changed something on the
    *  server can ask for the truth immediately instead of waiting out the
@@ -392,6 +395,7 @@ export default function DownloadsScreen({
             : undefined
         }
         onLoadFiles={loadFiles}
+        onEdit={setEditing}
         onSelectFiles={async (task, paths) => {
           setStartError('');
           // A torrent with no file left would be read as all of them.
@@ -475,6 +479,15 @@ export default function DownloadsScreen({
             /* the next tick brings it */
           });
         }}
+      />
+
+      <TaskEdit
+        conn={conn}
+        base={base}
+        target={editing}
+        packages={[...new Set(tasks.map((x) => x.package))]}
+        onClose={() => setEditing(null)}
+        onSaved={() => void live.current?.refresh().catch(() => undefined)}
       />
 
       <TouchableOpacity

@@ -146,6 +146,81 @@ export const ro: Dict = {
   'error.answerTooLarge': 'Răspunsul instanței este prea mare pentru releu. În rețeaua instanței ajunge.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',
+  'edit.title': 'Proprietăți',
+  'edit.name': 'Nume',
+  'edit.nameHint':
+    'Numele sub care se salvează fișierul. O descărcare deja terminată este redenumită și pe disc, ca lista și dosarul să se potrivească. Un nume nu este o cale, așa că / și \\ nu sunt permise.',
+  'edit.packageName': 'Numele pachetului',
+  'edit.packageNameHint':
+    'Dacă dosarul de descărcare poartă numele pachetului, primește noul nume împreună cu fișierele care sunt deja în el, iar descărcările care încă rulează continuă acolo. Un dosar cu fișiere dezarhivate care poartă numele pachetului se mută și el. Un nume nu este o cale, așa că / și \\ nu sunt permise.',
+  'edit.package': 'Mută într-un pachet',
+  'edit.packageHint':
+    'Pachetul în care se află acest link. Alege altul sau scrie un nume nou. Dacă îl lași gol, linkul rămâne de sine stătător.',
+  'edit.category': 'Categorie',
+  'edit.categoryNone': 'Niciuna',
+  'edit.categoryHint':
+    'Categoria în care este pus fiecare link din acest lot, cu dosarul ei, dosarul de dezarhivare și celelalte valori implicite. O regulă Packagizer care numește o categorie are totuși prioritate.',
+  'edit.folder': 'Dosar',
+  'edit.destination': 'Folder de destinație',
+  'edit.folderHint':
+    'Unul dintre folderele de descărcare de mai jos sau un folder din interiorul lor. Orice alt folder se poate seta doar în interfața web.',
+  'edit.folderRefused':
+    'Acest folder este în afara folderelor de descărcare. Alege unul dintre ele sau un folder din interiorul lor.',
+  'edit.password': 'Parola arhivei',
+  'edit.passwordHint': 'Se încearcă înaintea listei salvate în Setări, când o arhivă din acest lot este criptată.',
+  'edit.linkPassword': 'Parola linkului',
+  'edit.linkPasswordHint':
+    'Parola pe care o cere chiar pagina hosterului înainte să predea fișierul. Parola arhivei de mai sus este alta.',
+  'edit.passwordHidden': 'O parolă deja setată nu apare pe telefon. Lasă câmpul gol ca s-o păstrezi.',
+  'edit.comment': 'Comentariu',
+  'edit.commentHint':
+    'Nota ta despre acest link. Se salvează și se afișează în listă; nimic din aplicație nu se ghidează după ea.',
+  'edit.chunks': 'Conexiuni (0 = setarea globală)',
+  'edit.chunksHint':
+    'Câte conexiuni deschide această singură descărcare. Trece peste setarea globală și peste orice regulă care a fixat-o, dar niciodată peste gazdă: o gazdă care tolerează mai puține tot mai puține primește. Cu 0 excepția dispare și numărul se hotărăște iar în altă parte.',
+  'edit.chunksRange': 'Introdu un număr întreg de la 0 la 16.',
+  'edit.priority': 'Prioritate',
+  'edit.priorityHint':
+    'Cea mai mare pornește prima. Rearanjează ce încă așteaptă; o descărcare deja pornită nu e trimisă înapoi în coadă.',
+  'edit.autoExtract': 'Dezarhivează arhivele',
+  'edit.autoExtractHint':
+    'Dacă o arhivă este dezarhivată după ce descărcarea s-a terminat. „Moștenește“ lasă decizia paginii de setări pentru arhive, ceea ce nu e totuna cu oprit. Comutatorul este citit în momentul dezarhivării, așa că pornindu-l acum se dezarhivează și ceva terminat mai devreme.',
+  'edit.inherit': 'Moștenește',
+  'edit.on': 'Pornit',
+  'edit.off': 'Oprit',
+  'edit.overrule': 'Suprascrie o regulă Packagizer care se potrivește',
+  'edit.overruleHint':
+    'Oprit, o regulă Packagizer care se potrivește câștigă în fața priorității, dezarhivării și comentariului de mai sus. Pornit, câștigă în schimb aceste valori. Destinația nu face niciodată parte din asta: se aplică mereu exact cum a fost scrisă.',
+  'edit.options': 'Opțiuni',
+  'edit.addPackage': 'Pachet (opțional)',
+  'edit.mixed': 'Mai multe valori',
+  'edit.save': 'Salvează',
+  'edit.cancel': 'Anulează',
+  'edit.priority.highest': 'Cea mai mare',
+  'edit.priority.higher': 'Mai mare',
+  'edit.priority.high': 'Mare',
+  'edit.priority.default': 'Implicită',
+  'edit.priority.low': 'Mică',
+  'edit.priority.lower': 'Mai mică',
+  'edit.priority.lowest': 'Cea mai mică',
+  'edit.rename.whenDone': 'Această descărcare încă rulează. Fișierul primește noul nume după ce se termină.',
+  'edit.rename.torrent': 'Un torrent își numește singur fișierele, așa că nu poate fi redenumit.',
+  'edit.rename.remote':
+    'Backendul JDownloader descarcă acest fișier pe propria mașină și îi dă singur numele, așa că nu poate fi redenumit de aici.',
+  'edit.rename.unpacking': 'Acest fișier se dezarhivează. Poate fi redenumit după ce se termină dezarhivarea.',
+  'edit.rename.volume':
+    'Acest fișier este o parte a unei arhive cu mai multe volume. Părțile își păstrează numele, altfel arhiva nu ar putea fi dezarhivată.',
+  'edit.rename.empty': 'Un nume nu poate fi gol.',
+  'edit.rename.separator': 'Un nume nu poate conține / sau \\.',
+  'edit.rename.dots': 'Un nume are nevoie de mai mult decât puncte.',
+  'edit.rename.exists': 'În acel dosar există deja un fișier numit „{name}”. KnightLoader nu îl suprascrie.',
+  'edit.rename.busy':
+    'O parte din acest pachet se dezarhivează, se mută în dosarul său sau se înregistrează dintr-o transmisiune live. Încearcă din nou după ce se termină.',
+  'edit.rename.folderExists': 'Acolo există deja un dosar numit „{name}”. Alege alt nume.',
+  'edit.rename.dataFolder':
+    'Redenumirea în „{name}” l-ar pune în dosarul de date al KnightLoader, iar descărcările nu au voie să ajungă acolo.',
+  'edit.rename.notMoved':
+    'Dosarul „{name}” nu a putut fi redenumit, așa că nu s-a schimbat nimic. Poate că alt program ține deschis un fișier din el. Închide acel fișier și încearcă din nou.',
 
   'share.title': 'Adaugă în KnightLoader',
   'share.hint': 'Linkurile pe care le partajezi din altă aplicație ajung în colector, ca și cum le-ai fi lipit în interfața web.',

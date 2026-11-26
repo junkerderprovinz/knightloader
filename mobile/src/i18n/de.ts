@@ -172,6 +172,82 @@ export const de: Dict = {
   'error.answerTooLarge': 'Die Antwort der Instanz ist zu groß für das Relay. Im Netz der Instanz kommt sie durch.',
   'addDownload.cancel': 'Abbrechen',
   'addDownload.button': 'Hinzufügen',
+  'edit.title': 'Eigenschaften',
+  'edit.name': 'Name',
+  'edit.nameHint':
+    'Der Name, unter dem die Datei gespeichert wird. Ist der Download schon fertig, wird die Datei auf der Platte gleich mit umbenannt, damit Liste und Ordner zusammenpassen. Ein Name ist kein Pfad, / und \\ gehen deshalb nicht.',
+  'edit.packageName': 'Paketname',
+  'edit.packageNameHint':
+    'Ist der Download-Ordner nach dem Paket benannt, bekommt er den neuen Namen mit, samt allem, was schon drin liegt. Laufende Downloads machen im neuen Ordner weiter. Ein Ordner mit entpackten Dateien, der nach dem Paket heißt, zieht mit um. Ein Name ist kein Pfad, / und \\ gehen deshalb nicht.',
+  'edit.package': 'In ein Paket verschieben',
+  'edit.packageHint':
+    'Das Paket, in dem dieser Link steckt. Wähl ein anderes oder tipp einen neuen Namen ein. Bleibt das Feld leer, steht der Link für sich.',
+  'edit.category': 'Kategorie',
+  'edit.categoryNone': 'Keine',
+  'edit.categoryHint':
+    'Die Kategorie, unter der jeder Link dieses Stapels abgelegt wird, mit ihrem Ordner, Entpack-Ordner und den übrigen Vorgaben. Eine Packagizer-Regel, die eine Kategorie nennt, hat trotzdem Vorrang.',
+  'edit.folder': 'Ordner',
+  'edit.destination': 'Zielordner',
+  'edit.folderHint':
+    'Einer der Download-Ordner unten oder ein Ordner darin. Jeden anderen Ordner kannst du nur in der Weboberfläche setzen.',
+  'edit.folderRefused': 'Dieser Ordner liegt außerhalb der Download-Ordner. Wähl einen davon oder einen Ordner darin.',
+  'edit.password': 'Archiv-Passwort',
+  'edit.passwordHint':
+    'Kommt vor der in den Einstellungen gespeicherten Liste zum Einsatz, wenn ein Archiv in diesem Stapel verschlüsselt ist.',
+  'edit.linkPassword': 'Link-Passwort',
+  'edit.linkPasswordHint':
+    'Das Passwort, das die Seite des Hosters verlangt, bevor sie die Datei herausgibt. Das Archiv-Passwort oben ist ein anderes.',
+  'edit.passwordHidden':
+    'Ein Passwort, das schon gesetzt ist, zeigt das Handy nicht an. Lass das Feld leer, dann bleibt es.',
+  'edit.comment': 'Kommentar',
+  'edit.commentHint':
+    'Deine eigene Notiz zu diesem Link. Sie wird gespeichert und in der Liste angezeigt; die App richtet sich nicht danach.',
+  'edit.chunks': 'Verbindungen (0 = die globale Einstellung)',
+  'edit.chunksHint':
+    'Wie viele Verbindungen dieser eine Download öffnet. Er sticht die globale Einstellung und jede Regel, die sie gesetzt hat, aber nie den Hoster: Ein Hoster, der weniger verträgt, bekommt trotzdem weniger. 0 nimmt die Ausnahme wieder zurück und gibt die Zahl ab.',
+  'edit.chunksRange': 'Gib eine ganze Zahl von 0 bis 16 ein.',
+  'edit.priority': 'Priorität',
+  'edit.priorityHint':
+    'Höher läuft zuerst. Es ordnet um, was noch wartet; ein bereits laufender Download wird nicht in die Warteschlange zurückgeschickt.',
+  'edit.autoExtract': 'Archive entpacken',
+  'edit.autoExtractHint':
+    'Ob ein Archiv nach dem Download entpackt wird. Erben überlässt die Entscheidung der Einstellungsseite Archive, und das ist etwas anderes als Aus. Der Schalter wird erst beim Entpacken gelesen: Schaltest du ihn jetzt ein, wird auch etwas entpackt, das schon vorher fertig war.',
+  'edit.inherit': 'Erben',
+  'edit.on': 'An',
+  'edit.off': 'Aus',
+  'edit.overrule': 'Eine passende Packagizer-Regel überstimmen',
+  'edit.overruleHint':
+    'Ist der Schalter aus, gewinnt eine passende Packagizer-Regel bei Priorität, Entpacken und Kommentar oben. Ist er an, gewinnen stattdessen diese Werte. Der Zielordner ist davon nie betroffen: Er gilt immer wie eingegeben.',
+  'edit.options': 'Optionen',
+  'edit.addPackage': 'Paket (optional)',
+  'edit.mixed': 'Mehrere Werte',
+  'edit.save': 'Speichern',
+  'edit.cancel': 'Abbrechen',
+  'edit.priority.highest': 'Höchste',
+  'edit.priority.higher': 'Höher',
+  'edit.priority.high': 'Hoch',
+  'edit.priority.default': 'Standard',
+  'edit.priority.low': 'Niedrig',
+  'edit.priority.lower': 'Niedriger',
+  'edit.priority.lowest': 'Niedrigste',
+  'edit.rename.whenDone': 'Der Download läuft noch. Die Datei bekommt den neuen Namen, sobald er fertig ist.',
+  'edit.rename.torrent': 'Ein Torrent benennt seine Dateien selbst, deshalb lässt er sich nicht umbenennen.',
+  'edit.rename.remote':
+    'Diese Datei lädt das JDownloader-Backend auf seinem eigenen Rechner und benennt sie selbst. Deshalb lässt sie sich von hier aus nicht umbenennen.',
+  'edit.rename.unpacking': 'Die Datei wird gerade entpackt. Umbenennen geht erst, wenn das Entpacken fertig ist.',
+  'edit.rename.volume':
+    'Die Datei ist ein Teil eines mehrteiligen Archivs. Die Teile behalten ihre Namen, sonst ließe sich das Archiv nicht mehr entpacken.',
+  'edit.rename.empty': 'Ein Name darf nicht leer sein.',
+  'edit.rename.separator': 'Ein Name darf kein / und kein \\ enthalten.',
+  'edit.rename.dots': 'Ein Name braucht mehr als nur Punkte.',
+  'edit.rename.exists': 'In diesem Ordner liegt schon eine Datei namens „{name}“. KnightLoader überschreibt sie nicht.',
+  'edit.rename.busy':
+    'Aus diesem Paket wird gerade etwas entpackt, in seinen Ordner verschoben oder von einem Livestream aufgenommen. Versuch es noch einmal, wenn das fertig ist.',
+  'edit.rename.folderExists': 'Einen Ordner namens „{name}“ gibt es dort schon. Such dir einen anderen Namen aus.',
+  'edit.rename.dataFolder':
+    'Mit dem Namen „{name}“ käme es in den Datenordner von KnightLoader, und dort dürfen keine Downloads hin.',
+  'edit.rename.notMoved':
+    'Der Ordner „{name}“ ließ sich nicht umbenennen, deshalb hat sich nichts geändert. Vielleicht hat ein anderes Programm eine Datei darin offen. Schließ sie und versuch es noch einmal.',
 
   'share.title': 'Zu KnightLoader hinzufügen',
   'share.hint': 'Links, die du aus einer anderen App teilst, kommen in den Sammler, als hättest du sie in der Weboberfläche eingefügt.',

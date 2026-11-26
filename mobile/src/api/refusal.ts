@@ -4,11 +4,14 @@ export class ApiError extends Error {
   status: number;
   /** Names the reason where the server sent one, so it can be translated. */
   code?: string;
+  /** What the sentence for code names, such as the file a rename met. */
+  params?: Record<string, string>;
 
-  constructor(message: string, status: number, code?: string) {
+  constructor(message: string, status: number, code?: string, params?: Record<string, string>) {
     super(message);
     this.status = status;
     this.code = code;
+    this.params = params;
   }
 }
 
@@ -16,9 +19,10 @@ export class ApiError extends Error {
 // {error, code}; the message is then the sentence, not the envelope.
 function refusal(body: string, status: number): ApiError {
   try {
-    const p = JSON.parse(body) as { error?: unknown; code?: unknown };
+    const p = JSON.parse(body) as { error?: unknown; code?: unknown; params?: unknown };
     if (p && typeof p.error === 'string') {
-      return new ApiError(p.error, status, typeof p.code === 'string' ? p.code : undefined);
+      const params = p.params && typeof p.params === 'object' ? (p.params as Record<string, string>) : undefined;
+      return new ApiError(p.error, status, typeof p.code === 'string' ? p.code : undefined, params);
     }
   } catch {
     // Plain text.

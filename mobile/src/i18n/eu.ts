@@ -146,6 +146,83 @@ export const eu: Dict = {
   'error.answerTooLarge': 'Instantziaren erantzuna handiegia da errelearentzat. Instantziaren sarean bertan iristen da.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',
+  'edit.title': 'Propietateak',
+  'edit.name': 'Izena',
+  'edit.nameHint':
+    'Fitxategia gordetzeko izena. Amaitutako deskarga bat diskoan ere berrizendatzen da, zerrenda eta karpeta bat etor daitezen. Izen bat ez da bide bat, beraz / eta \\ ez dira onartzen.',
+  'edit.packageName': 'Paketearen izena',
+  'edit.packageNameHint':
+    'Deskargen karpetak paketearen izena badu, izen berria hartzen du barruan dituen fitxategiekin batera, eta oraindik abian diren deskargek bertan jarraitzen dute. Paketearen izena duen erauzitako fitxategien karpeta ere lekuz aldatzen da. Izen bat ez da bide bat, beraz / eta \\ ez dira onartzen.',
+  'edit.package': 'Eraman pakete batera',
+  'edit.packageHint':
+    'Esteka hau dagoen paketea. Aukeratu beste bat edo idatzi izen berri bat. Hutsik uzten baduzu, esteka bakarrik geratzen da.',
+  'edit.category': 'Kategoria',
+  'edit.categoryNone': 'Bat ere ez',
+  'edit.categoryHint':
+    'Sorta honetako esteka guztiak gordetzen diren kategoria, bere karpeta, erauzketa-karpeta eta gainerako balio lehenetsiekin. Kategoria bat izendatzen duen Packagizer arau batek lehentasuna du hala ere.',
+  'edit.folder': 'Karpeta',
+  'edit.destination': 'Helmugako karpeta',
+  'edit.folderHint':
+    'Beheko deskarga-karpetetako bat, edo horien barruko karpeta bat. Beste edozein karpeta web-interfazean bakarrik ezar daiteke.',
+  'edit.folderRefused':
+    'Karpeta hori deskarga-karpetetatik kanpo dago. Aukeratu horietako bat, edo horien barruko karpeta bat.',
+  'edit.password': 'Artxiboaren pasahitza',
+  'edit.passwordHint':
+    'Ezarpenetan gordetako zerrendaren aurretik probatzen da, sorta honetako artxibo bat zifratuta dagoenean.',
+  'edit.linkPassword': 'Estekaren pasahitza',
+  'edit.linkPasswordHint':
+    'Ostalariaren orriak berak fitxategia eman aurretik eskatzen duen pasahitza. Goiko artxiboaren pasahitza beste bat da.',
+  'edit.passwordHidden':
+    'Telefonoak ez du erakusten dagoeneko ezarrita dagoen pasahitzik. Utzi eremua hutsik mantentzeko.',
+  'edit.comment': 'Oharra',
+  'edit.commentHint':
+    'Esteka honi buruzko zure oharra. Gorde eta zerrendan erakusten da; aplikazioan ez du ezer eragiten.',
+  'edit.chunks': 'Konexioak (0 = ezarpen orokorra)',
+  'edit.chunksHint':
+    'Deskarga honek zehazki zenbat konexio irekitzen dituen. Ezarpen orokorrari eta hura ezarri duen edozein arauri gailentzen zaio, baina inoiz ez ostalariari: gutxiago jasaten duen ostalariak gutxiago jasoko du hala ere. 0 jarrita salbuespena kentzen da eta zenbakia berriro kanpoan erabakitzen da.',
+  'edit.chunksRange': 'Idatzi 0 eta 16 arteko zenbaki oso bat.',
+  'edit.priority': 'Lehentasuna',
+  'edit.priorityHint':
+    'Altuagoa lehenago abiatzen da. Oraindik zain dagoena berrantolatzen du; jada martxan den deskarga ez da ilarara itzultzen.',
+  'edit.autoExtract': 'Erauzi artxiboak',
+  'edit.autoExtractHint':
+    'Deskarga amaitutakoan artxiboa deskonprimatzen den ala ez. „Heredatu“ aukerak erabakia artxiboen ezarpen orriari uzten dio, eta hori ez da „itzalita“ bezalakoa. Etengailua deskonprimatzeko unean irakurtzen da, beraz orain pizten baduzu, lehenago amaitutakoa ere deskonprimatuko da.',
+  'edit.inherit': 'Heredatu',
+  'edit.on': 'Piztuta',
+  'edit.off': 'Itzalita',
+  'edit.overrule': 'Bat datorren Packagizer arau bati nagusitu',
+  'edit.overruleHint':
+    'Itzalita, bat datorren Packagizer arau batek irabazten die goiko lehentasunari, deskonprimatzeari eta iruzkinari. Piztuta, balio hauek irabazten dute. Helmuga ez da inoiz honen parte: beti idatzi bezala aplikatzen da.',
+  'edit.options': 'Aukerak',
+  'edit.addPackage': 'Paketea (aukerakoa)',
+  'edit.mixed': 'Hainbat balio',
+  'edit.save': 'Gorde',
+  'edit.cancel': 'Utzi',
+  'edit.priority.highest': 'Altuena',
+  'edit.priority.higher': 'Altuagoa',
+  'edit.priority.high': 'Altua',
+  'edit.priority.default': 'Lehenetsia',
+  'edit.priority.low': 'Baxua',
+  'edit.priority.lower': 'Baxuagoa',
+  'edit.priority.lowest': 'Baxuena',
+  'edit.rename.whenDone': 'Deskarga hau oraindik abian da. Fitxategiak izen berria hartuko du amaitzean.',
+  'edit.rename.torrent': 'Torrent batek berak jartzen die izena bere fitxategiei, beraz ezin da berrizendatu.',
+  'edit.rename.remote':
+    'JDownloader backendak bere makinan deskargatzen du fitxategi hau eta berak jartzen dio izena, beraz ezin da hemendik berrizendatu.',
+  'edit.rename.unpacking': 'Fitxategi hau erauzten ari da. Erauzketa amaitzean berrizenda daiteke.',
+  'edit.rename.volume':
+    'Fitxategi hau bolumen anitzeko artxibo baten zati bat da. Zatiek beren izena gordetzen dute, bestela artxiboa ezin litzateke erauzi.',
+  'edit.rename.empty': 'Izen bat ezin da hutsik egon.',
+  'edit.rename.separator': 'Izen batek ezin du / edo \\ izan.',
+  'edit.rename.dots': 'Izen batek puntuak baino zerbait gehiago behar du.',
+  'edit.rename.exists': 'Karpeta horretan badago «{name}» izeneko fitxategi bat. KnightLoaderrek ez du gainidazten.',
+  'edit.rename.busy':
+    'Pakete honen zati bat erauzten, bere karpetara eramaten edo zuzeneko emanaldi batetik grabatzen ari da. Saiatu berriro hori amaitzen denean.',
+  'edit.rename.folderExists': 'Badago «{name}» izeneko karpeta bat han. Aukeratu beste izen bat.',
+  'edit.rename.dataFolder':
+    '«{name}» izena emateak KnightLoader-en datuen karpetan jarriko luke, eta deskargak ezin dira hara joan.',
+  'edit.rename.notMoved':
+    'Ezin izan zaio «{name}» karpetari izena aldatu, beraz ez da ezer aldatu. Baliteke beste programa batek fitxategi bat irekita izatea bertan. Itxi fitxategi hori eta saiatu berriro.',
 
   'share.title': 'Gehitu KnightLoader-era',
   'share.hint': 'Beste aplikazio batetik partekatzen dituzun estekak biltzailera doaz, web interfazean itsatsi izan bazenitu bezala.',

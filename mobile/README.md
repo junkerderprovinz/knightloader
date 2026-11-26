@@ -81,7 +81,8 @@ Three things follow from the transport rather than from a choice:
   allowlist, not the whole API (`groupRoutes` in
   `internal/api/group_routes.go`): tasks, links, the queue and the captchas
   holding it up, the instance's look to read and to set, plus reading the auth
-  state, the peer list and the addresses the instance answers on. Not the
+  state, the peer list, the addresses the instance answers on, and the
+  download folders and category names a link can be put under. Not the
   settings, not the accounts, not the phrase itself, and no archive or
   download password in the task list. A refusal carries the code
   `ownLoginNeeded`, which the app words as "sign in on its own web interface".

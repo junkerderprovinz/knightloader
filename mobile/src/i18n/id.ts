@@ -146,6 +146,81 @@ export const id: Dict = {
   'error.answerTooLarge': 'Jawaban instans terlalu besar untuk relay. Di jaringan instans itu sendiri, jawabannya sampai.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
+  'edit.title': 'Properti',
+  'edit.name': 'Nama',
+  'edit.nameHint':
+    'Nama yang dipakai untuk menyimpan berkas. Unduhan yang sudah selesai juga diganti namanya di disk, agar daftar dan folder cocok. Nama bukan jalur, jadi / dan \\ tidak diizinkan.',
+  'edit.packageName': 'Nama paket',
+  'edit.packageNameHint':
+    'Jika folder unduhan dinamai sesuai paket, folder itu ikut mendapat nama baru beserta berkas yang sudah ada di dalamnya, dan unduhan yang masih berjalan dilanjutkan di sana. Folder berisi berkas hasil ekstrak yang dinamai sesuai paket juga ikut pindah. Nama bukan jalur, jadi / dan \\ tidak diizinkan.',
+  'edit.package': 'Pindah ke paket',
+  'edit.packageHint':
+    'Paket tempat tautan ini berada. Pilih paket lain atau ketik nama baru. Jika dibiarkan kosong, tautan berdiri sendiri.',
+  'edit.category': 'Kategori',
+  'edit.categoryNone': 'Tidak ada',
+  'edit.categoryHint':
+    'Kategori tempat setiap tautan dalam kumpulan ini diarsipkan, beserta folder, folder ekstraksi, dan bawaan lainnya. Aturan Packagizer yang menyebut kategori tetap menang.',
+  'edit.folder': 'Folder',
+  'edit.destination': 'Folder tujuan',
+  'edit.folderHint':
+    'Salah satu folder unduhan di bawah, atau folder di dalamnya. Folder lain hanya bisa diatur di antarmuka web.',
+  'edit.folderRefused': 'Folder itu berada di luar folder unduhan. Pilih salah satunya, atau folder di dalamnya.',
+  'edit.password': 'Kata sandi arsip',
+  'edit.passwordHint': 'Dicoba sebelum daftar yang disimpan di Pengaturan, ketika arsip di batch ini terenkripsi.',
+  'edit.linkPassword': 'Kata sandi tautan',
+  'edit.linkPasswordHint':
+    'Kata sandi yang diminta halaman hoster itu sendiri sebelum menyerahkan berkasnya. Kata sandi arsip di atas adalah yang lain.',
+  'edit.passwordHidden':
+    'Kata sandi yang sudah diatur tidak ditampilkan di ponsel. Biarkan kotak kosong untuk mempertahankannya.',
+  'edit.comment': 'Catatan',
+  'edit.commentHint':
+    'Catatan kamu sendiri tentang tautan ini. Disimpan dan ditampilkan di daftar; tidak ada bagian aplikasi yang mengikutinya.',
+  'edit.chunks': 'Koneksi (0 = pengaturan global)',
+  'edit.chunksHint':
+    'Berapa koneksi yang dibuka oleh unduhan yang satu ini. Ia mengalahkan pengaturan global dan aturan mana pun yang menetapkannya, tetapi tidak pernah mengalahkan host: host yang hanya tahan lebih sedikit tetap dapat lebih sedikit. Dengan 0 pengecualian dicabut dan angkanya kembali diputuskan di luar.',
+  'edit.chunksRange': 'Masukkan bilangan bulat dari 0 sampai 16.',
+  'edit.priority': 'Prioritas',
+  'edit.priorityHint':
+    'Yang lebih tinggi jalan duluan. Ini menyusun ulang yang masih menunggu; unduhan yang sudah berjalan tidak dikembalikan ke antrean.',
+  'edit.autoExtract': 'Ekstrak arsip',
+  'edit.autoExtractHint':
+    'Apakah arsip dibuka setelah unduhan selesai. „Warisi“ menyerahkan keputusan ke halaman pengaturan arsip, dan itu tidak sama dengan mati. Sakelar dibaca saat pembukaan berlangsung, jadi menyalakannya sekarang juga membuka sesuatu yang selesai lebih dulu.',
+  'edit.inherit': 'Warisi',
+  'edit.on': 'Nyala',
+  'edit.off': 'Mati',
+  'edit.overrule': 'Mengutamakan aturan Packagizer yang cocok',
+  'edit.overruleHint':
+    'Saat mati, aturan Packagizer yang cocok menang atas prioritas, pembongkaran, dan komentar di atas. Saat menyala, nilai-nilai ini yang menang. Tujuan tidak pernah termasuk di sini: selalu berlaku persis seperti yang diketik.',
+  'edit.options': 'Opsi',
+  'edit.addPackage': 'Paket (opsional)',
+  'edit.mixed': 'Beberapa nilai',
+  'edit.save': 'Simpan',
+  'edit.cancel': 'Batal',
+  'edit.priority.highest': 'Tertinggi',
+  'edit.priority.higher': 'Lebih tinggi',
+  'edit.priority.high': 'Tinggi',
+  'edit.priority.default': 'Bawaan',
+  'edit.priority.low': 'Rendah',
+  'edit.priority.lower': 'Lebih rendah',
+  'edit.priority.lowest': 'Terendah',
+  'edit.rename.whenDone': 'Unduhan ini masih berjalan. Berkas mendapat nama baru setelah selesai.',
+  'edit.rename.torrent': 'Torrent menamai berkasnya sendiri, jadi namanya tidak bisa diganti.',
+  'edit.rename.remote':
+    'Backend JDownloader mengunduh berkas ini di mesinnya sendiri dan menamainya sendiri, jadi namanya tidak bisa diganti dari sini.',
+  'edit.rename.unpacking': 'Berkas ini sedang diekstrak. Namanya bisa diganti setelah ekstraksi selesai.',
+  'edit.rename.volume':
+    'Berkas ini adalah satu bagian dari arsip berjilid banyak. Bagian-bagiannya mempertahankan nama, kalau tidak arsip tidak bisa diekstrak.',
+  'edit.rename.empty': 'Nama tidak boleh kosong.',
+  'edit.rename.separator': 'Nama tidak boleh berisi / atau \\.',
+  'edit.rename.dots': 'Nama harus berisi lebih dari titik.',
+  'edit.rename.exists': 'Di folder itu sudah ada berkas bernama “{name}”. KnightLoader tidak menimpanya.',
+  'edit.rename.busy':
+    'Sebagian paket ini sedang diekstrak, dipindahkan ke foldernya, atau direkam dari livestream. Coba lagi setelah itu selesai.',
+  'edit.rename.folderExists': 'Folder bernama “{name}” sudah ada di sana. Pilih nama lain.',
+  'edit.rename.dataFolder':
+    'Mengganti nama menjadi “{name}” akan menaruhnya di folder data KnightLoader, dan unduhan tidak boleh ke sana.',
+  'edit.rename.notMoved':
+    'Folder “{name}” tidak bisa diganti namanya, jadi tidak ada yang berubah. Mungkin program lain sedang membuka berkas di dalamnya. Tutup berkas itu dan coba lagi.',
 
   'share.title': 'Tambahkan ke KnightLoader',
   'share.hint': 'Tautan yang kamu bagikan dari aplikasi lain masuk ke pengumpul, seolah-olah kamu menempelkannya di antarmuka web.',

@@ -146,6 +146,80 @@ export const tr: Dict = {
   'error.answerTooLarge': 'Örneğin yanıtı aktarıcı için fazla büyük. Örneğin kendi ağında yanıt ulaşır.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',
+  'edit.title': 'Özellikler',
+  'edit.name': 'Ad',
+  'edit.nameHint':
+    'Dosyanın kaydedileceği ad. Zaten bitmiş bir indirme diskte de yeniden adlandırılır, böylece liste ve klasör uyuşur. Ad bir yol değildir, bu yüzden / ve \\ kullanılamaz.',
+  'edit.packageName': 'Paket adı',
+  'edit.packageNameHint':
+    'İndirme klasörü paketin adını taşıyorsa, içindeki dosyalarla birlikte yeni adı alır ve hâlâ süren indirmeler orada devam eder. Paketin adını taşıyan, ayıklanmış dosyaların bulunduğu bir klasör de onunla birlikte taşınır. Ad bir yol değildir, bu yüzden / ve \\ kullanılamaz.',
+  'edit.package': 'Bir pakete taşı',
+  'edit.packageHint':
+    'Bu bağlantının bulunduğu paket. Başka birini seç ya da yeni bir ad yaz. Boş bırakırsan bağlantı tek başına kalır.',
+  'edit.category': 'Kategori',
+  'edit.categoryNone': 'Yok',
+  'edit.categoryHint':
+    'Bu toplu işteki her bağlantının dosyalandığı kategori; klasörü, ayıklama klasörü ve diğer varsayılanlarıyla birlikte. Bir kategori belirten Packagizer kuralı yine de önceliklidir.',
+  'edit.folder': 'Klasör',
+  'edit.destination': 'Hedef klasör',
+  'edit.folderHint':
+    'Aşağıdaki indirme klasörlerinden biri ya da içlerindeki bir klasör. Başka bir klasör yalnızca web arayüzünde ayarlanabilir.',
+  'edit.folderRefused': 'Bu klasör indirme klasörlerinin dışında. Onlardan birini ya da içlerindeki bir klasörü seç.',
+  'edit.password': 'Arşiv parolası',
+  'edit.passwordHint': 'Bu grupta bir arşiv şifreliyse, Ayarlar’da kayıtlı listeden önce denenir.',
+  'edit.linkPassword': 'Bağlantı parolası',
+  'edit.linkPasswordHint':
+    'Hoster\'ın kendi sayfasının dosyayı vermeden önce istediği parola. Yukarıdaki arşiv parolası başka bir parola.',
+  'edit.passwordHidden': 'Zaten ayarlanmış bir parola telefonda gösterilmez. Korumak için kutuyu boş bırak.',
+  'edit.comment': 'Not',
+  'edit.commentHint':
+    'Bu bağlantı hakkındaki kendi notun. Kaydedilir ve listede gösterilir; uygulamada hiçbir şey ona göre davranmaz.',
+  'edit.chunks': 'Bağlantılar (0 = genel ayar)',
+  'edit.chunksHint':
+    'Bu tek indirmenin kaç bağlantı açacağı. Genel ayarı ve onu belirleyen her kuralı geçer, ama sunucuyu asla: daha azına dayanan bir sunucu yine de daha azını alır. 0 istisnayı geri alır ve sayıyı yeniden dışarıya bırakır.',
+  'edit.chunksRange': '0 ile 16 arasında bir tam sayı gir.',
+  'edit.priority': 'Öncelik',
+  'edit.priorityHint':
+    'Yüksek olan önce çalışır. Hâlâ bekleyeni yeniden sıralar; zaten süren bir indirme kuyruğa geri gönderilmez.',
+  'edit.autoExtract': 'Arşivleri ayıkla',
+  'edit.autoExtractHint':
+    'İndirme bittiğinde arşivin açılıp açılmayacağı. „Devral“ kararı Arşivler ayar sayfasına bırakır, bu kapalı ile aynı şey değildir. Anahtar açma anında okunur, bu yüzden şimdi açarsan daha önce biten bir şey de açılır.',
+  'edit.inherit': 'Devral',
+  'edit.on': 'Açık',
+  'edit.off': 'Kapalı',
+  'edit.overrule': 'Eşleşen bir Packagizer kuralını geçersiz kıl',
+  'edit.overruleHint':
+    'Kapalıyken, uyan bir Packagizer kuralı yukarıdaki öncelik, ayıklama ve yorumun önüne geçer. Açıkken bunun yerine bu değerler kazanır. Hedef klasör bunun hiçbir zaman parçası değildir: her zaman yazıldığı gibi uygulanır.',
+  'edit.options': 'Seçenekler',
+  'edit.addPackage': 'Paket (isteğe bağlı)',
+  'edit.mixed': 'Birkaç değer',
+  'edit.save': 'Kaydet',
+  'edit.cancel': 'Vazgeç',
+  'edit.priority.highest': 'En yüksek',
+  'edit.priority.higher': 'Daha yüksek',
+  'edit.priority.high': 'Yüksek',
+  'edit.priority.default': 'Varsayılan',
+  'edit.priority.low': 'Düşük',
+  'edit.priority.lower': 'Daha düşük',
+  'edit.priority.lowest': 'En düşük',
+  'edit.rename.whenDone': 'Bu indirme hâlâ sürüyor. Dosya, bittiğinde yeni adı alır.',
+  'edit.rename.torrent': 'Bir torrent kendi dosyalarını kendisi adlandırır, bu yüzden yeniden adlandırılamaz.',
+  'edit.rename.remote':
+    'JDownloader arka ucu bu dosyayı kendi makinesinde indirir ve adını kendisi verir, bu yüzden buradan yeniden adlandırılamaz.',
+  'edit.rename.unpacking': 'Bu dosya ayıklanıyor. Ayıklama bitince yeniden adlandırılabilir.',
+  'edit.rename.volume':
+    'Bu dosya çok ciltli bir arşivin bir parçasıdır. Parçalar adlarını korur, yoksa arşiv ayıklanamazdı.',
+  'edit.rename.empty': 'Bir ad boş olamaz.',
+  'edit.rename.separator': 'Bir ad / veya \\ içeremez.',
+  'edit.rename.dots': 'Bir ad noktalardan fazlasını içermeli.',
+  'edit.rename.exists': 'O klasörde zaten “{name}” adlı bir dosya var. KnightLoader onun üzerine yazmaz.',
+  'edit.rename.busy':
+    'Bu paketin bir kısmı şu anda ayıklanıyor, klasörüne taşınıyor ya da bir canlı yayından kaydediliyor. Bu bittikten sonra yeniden dene.',
+  'edit.rename.folderExists': 'Orada zaten “{name}” adlı bir klasör var. Başka bir ad seç.',
+  'edit.rename.dataFolder':
+    '“{name}” olarak yeniden adlandırmak onu KnightLoader veri klasörüne koyardı ve indirmeler oraya gidemez.',
+  'edit.rename.notMoved':
+    '“{name}” klasörü yeniden adlandırılamadı, bu yüzden hiçbir şey değişmedi. Başka bir program içindeki bir dosyayı açık tutuyor olabilir. O dosyayı kapat ve yeniden dene.',
 
   'share.title': "KnightLoader'a ekle",
   'share.hint': 'Başka bir uygulamadan paylaştığın bağlantılar, web arayüzüne yapıştırmışsın gibi toplayıcıya gider.',

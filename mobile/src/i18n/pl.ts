@@ -146,6 +146,81 @@ export const pl: Dict = {
   'error.answerTooLarge': 'Odpowiedź instancji jest za duża dla przekaźnika. W sieci instancji dociera bez problemu.',
   'addDownload.cancel': 'Anuluj',
   'addDownload.button': 'Dodaj',
+  'edit.title': 'Właściwości',
+  'edit.name': 'Nazwa',
+  'edit.nameHint':
+    'Nazwa, pod którą plik jest zapisywany. Pobranie, które już się zakończyło, dostaje nową nazwę także na dysku, żeby lista i folder się zgadzały. Nazwa nie jest ścieżką, więc / i \\ są niedozwolone.',
+  'edit.packageName': 'Nazwa pakietu',
+  'edit.packageNameHint':
+    'Jeśli folder pobierania nazywa się tak jak paczka, dostaje nową nazwę razem z plikami, które już w nim są, a pobierania, które jeszcze trwają, są tam kontynuowane. Folder z rozpakowanymi plikami nazwany tak jak paczka też jest przenoszony. Nazwa nie jest ścieżką, więc / i \\ są niedozwolone.',
+  'edit.package': 'Przenieś do pakietu',
+  'edit.packageHint':
+    'Pakiet, w którym jest ten link. Wybierz inny albo wpisz nową nazwę. Jeśli zostawisz pole puste, link będzie osobno.',
+  'edit.category': 'Kategoria',
+  'edit.categoryNone': 'Brak',
+  'edit.categoryHint':
+    'Kategoria, do której trafia każdy link z tej partii, z jej folderem, folderem rozpakowywania i pozostałymi ustawieniami domyślnymi. Reguła Packagizera, która wskazuje kategorię, i tak ma pierwszeństwo.',
+  'edit.folder': 'Folder',
+  'edit.destination': 'Miejsce docelowe',
+  'edit.folderHint':
+    'Jeden z folderów pobierania poniżej albo folder w nim. Każdy inny folder można ustawić tylko w interfejsie WWW.',
+  'edit.folderRefused': 'Ten folder leży poza folderami pobierania. Wybierz jeden z nich albo folder w nim.',
+  'edit.password': 'Hasło archiwum',
+  'edit.passwordHint': 'Próbowane przed listą zapisaną w Ustawieniach, gdy archiwum w tej partii jest zaszyfrowane.',
+  'edit.linkPassword': 'Hasło linku',
+  'edit.linkPasswordHint':
+    'Hasło, o które prosi sama strona hostera, zanim wyda plik. Hasło archiwum powyżej to inne hasło.',
+  'edit.passwordHidden':
+    'Hasło, które jest już ustawione, nie jest pokazywane na telefonie. Zostaw pole puste, aby je zachować.',
+  'edit.comment': 'Komentarz',
+  'edit.commentHint':
+    'Twoja własna notatka do tego linku. Jest zapisywana i pokazywana na liście; nic w aplikacji się nią nie kieruje.',
+  'edit.chunks': 'Połączenia (0 = ustawienie globalne)',
+  'edit.chunksHint':
+    'Iloma połączeniami rusza to jedno pobieranie. Bije ustawienie globalne i każdą regułę, która je ustawiła, ale nigdy hostera: hoster, który znosi mniej, i tak dostanie mniej. Przy 0 wyjątek znika i liczba znów zapada gdzie indziej.',
+  'edit.chunksRange': 'Wpisz liczbę całkowitą od 0 do 16.',
+  'edit.priority': 'Priorytet',
+  'edit.priorityHint':
+    'Wyższy rusza pierwszy. Przestawia to, co jeszcze czeka; pobieranie, które już trwa, nie wraca do kolejki.',
+  'edit.autoExtract': 'Rozpakuj archiwa',
+  'edit.autoExtractHint':
+    'Czy archiwum ma być rozpakowane po zakończeniu pobierania. „Dziedzicz“ zostawia decyzję stronie ustawień archiwów, a to nie to samo co wyłączone. Przełącznik jest odczytywany w chwili rozpakowywania, więc włączenie go teraz rozpakuje też coś, co skończyło się wcześniej.',
+  'edit.inherit': 'Dziedzicz',
+  'edit.on': 'Włączone',
+  'edit.off': 'Wyłączone',
+  'edit.overrule': 'Nadpisz pasującą regułę Packagizera',
+  'edit.overruleHint':
+    'Gdy przełącznik jest wyłączony, pasująca reguła Packagizera wygrywa z priorytetem, rozpakowywaniem i komentarzem powyżej. Gdy jest włączony, wygrywają te wartości. Miejsce docelowe nigdy nie jest tego częścią: zawsze obowiązuje tak, jak je wpisano.',
+  'edit.options': 'Opcje',
+  'edit.addPackage': 'Paczka (opcjonalnie)',
+  'edit.mixed': 'Kilka wartości',
+  'edit.save': 'Zapisz',
+  'edit.cancel': 'Anuluj',
+  'edit.priority.highest': 'Najwyższy',
+  'edit.priority.higher': 'Wyższy',
+  'edit.priority.high': 'Wysoki',
+  'edit.priority.default': 'Domyślny',
+  'edit.priority.low': 'Niski',
+  'edit.priority.lower': 'Niższy',
+  'edit.priority.lowest': 'Najniższy',
+  'edit.rename.whenDone': 'To pobieranie jeszcze trwa. Plik dostanie nową nazwę, gdy się zakończy.',
+  'edit.rename.torrent': 'Torrent sam nadaje nazwy swoim plikom, więc nie da się zmienić jego nazwy.',
+  'edit.rename.remote':
+    'Backend JDownloader pobiera ten plik na własnej maszynie i sam nadaje mu nazwę, więc stąd nie da się jej zmienić.',
+  'edit.rename.unpacking': 'Ten plik jest rozpakowywany. Można zmienić mu nazwę, gdy rozpakowywanie się zakończy.',
+  'edit.rename.volume':
+    'Ten plik to jedna część archiwum wieloczęściowego. Części zachowują swoje nazwy, inaczej archiwum nie dałoby się rozpakować.',
+  'edit.rename.empty': 'Nazwa nie może być pusta.',
+  'edit.rename.separator': 'Nazwa nie może zawierać / ani \\.',
+  'edit.rename.dots': 'Nazwa musi składać się z czegoś więcej niż kropki.',
+  'edit.rename.exists': 'W tym folderze jest już plik o nazwie „{name}”. KnightLoader go nie nadpisuje.',
+  'edit.rename.busy':
+    'Część tej paczki jest właśnie rozpakowywana, przenoszona do swojego folderu albo nagrywana z transmisji na żywo. Spróbuj ponownie, gdy to się skończy.',
+  'edit.rename.folderExists': 'Folder o nazwie „{name}” już tam jest. Wybierz inną nazwę.',
+  'edit.rename.dataFolder':
+    'Zmiana nazwy na „{name}” umieściłaby go w folderze danych KnightLoadera, a pobierane pliki nie mogą tam trafiać.',
+  'edit.rename.notMoved':
+    'Nie udało się zmienić nazwy folderu „{name}”, więc nic się nie zmieniło. Być może inny program ma otwarty plik w tym folderze. Zamknij ten plik i spróbuj ponownie.',
 
   'share.title': 'Dodaj do KnightLoadera',
   'share.hint': 'Linki udostępnione z innej aplikacji trafiają do kolektora, tak jakbyś wkleił je w interfejsie WWW.',

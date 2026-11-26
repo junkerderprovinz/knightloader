@@ -146,6 +146,81 @@ export const is: Dict = {
   'error.answerTooLarge': 'Svar tilviksins er of stórt fyrir endurvarpann. Á neti tilviksins sjálfs kemst það í gegn.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
+  'edit.title': 'Eiginleikar',
+  'edit.name': 'Heiti',
+  'edit.nameHint':
+    'Heitið sem skráin er vistuð undir. Niðurhal sem er þegar lokið er líka endurnefnt á diskinum, svo listinn og mappan passi saman. Heiti er ekki slóð, svo / og \\ eru ekki leyfð.',
+  'edit.packageName': 'Heiti pakka',
+  'edit.packageNameHint':
+    'Ef niðurhalsmappan heitir eftir pakkanum fær hún nýja heitið ásamt skránum sem þegar eru í henni, og niðurhöl sem enn eru í gangi halda áfram þar. Mappa með afþjöppuðum skrám sem heitir eftir pakkanum flyst líka með. Heiti er ekki slóð, svo / og \\ eru ekki leyfð.',
+  'edit.package': 'Færa í pakka',
+  'edit.packageHint':
+    'Pakkinn sem þessi tengill er í. Veldu annan eða sláðu inn nýtt nafn. Ef reiturinn er tómur stendur tengillinn einn.',
+  'edit.category': 'Flokkur',
+  'edit.categoryNone': 'Engin',
+  'edit.categoryHint':
+    'Flokkurinn sem allir tenglar í þessari lotu fara í, með möppu sinni, afþjöppunarmöppu og öðrum sjálfgildum. Packagizer-regla sem tilgreinir flokk ræður samt.',
+  'edit.folder': 'Mappa',
+  'edit.destination': 'Áfangamappa',
+  'edit.folderHint':
+    'Ein af niðurhalsmöppunum hér fyrir neðan eða mappa inni í henni. Allar aðrar möppur er aðeins hægt að velja í vefviðmótinu.',
+  'edit.folderRefused': 'Þessi mappa er utan niðurhalsmappanna. Veldu eina þeirra eða möppu inni í henni.',
+  'edit.password': 'Lykilorð safnskrár',
+  'edit.passwordHint':
+    'Reynt á undan listanum sem vistaður er í Stillingum, þegar safnskrá í þessari lotu er dulkóðuð.',
+  'edit.linkPassword': 'Lykilorð tengils',
+  'edit.linkPasswordHint':
+    'Lykilorðið sem síða hýsilsins sjálf biður um áður en hún afhendir skrána. Lykilorð safnskrárinnar hér fyrir ofan er annað lykilorð.',
+  'edit.passwordHidden': 'Síminn sýnir ekki lykilorð sem þegar er stillt. Skildu reitinn eftir tóman til að halda því.',
+  'edit.comment': 'Athugasemd',
+  'edit.commentHint':
+    'Þín eigin athugasemd um þennan hlekk. Hún er vistuð og sýnd í listanum; ekkert í forritinu fer eftir henni.',
+  'edit.chunks': 'Tengingar (0 = almenna stillingin)',
+  'edit.chunksHint':
+    'Hversu margar tengingar einmitt þetta niðurhal opnar. Það gengur framar almennu stillingunni og hverri reglu sem setti hana, en aldrei framar hýslinum: hýsill sem þolir færri fær samt færri. Með 0 fellur undantekningin niður og talan ræðst annars staðar á ný.',
+  'edit.chunksRange': 'Sláðu inn heila tölu frá 0 til 16.',
+  'edit.priority': 'Forgangur',
+  'edit.priorityHint':
+    'Hærri fer fyrst. Það endurraðar því sem enn bíður; niðurhal sem þegar er í gangi er ekki sent aftur í biðröðina.',
+  'edit.autoExtract': 'Afþjappa safnskrár',
+  'edit.autoExtractHint':
+    'Hvort skjalasafn er afþjappað þegar niðurhali lýkur. „Erfa“ skilur ákvörðunina eftir hjá stillingasíðu skjalasafna, sem er ekki það sama og af. Rofinn er lesinn þegar afþjöppun fer fram, svo ef þú kveikir á honum núna er líka afþjappað eitthvað sem kláraðist fyrr.',
+  'edit.inherit': 'Erfa',
+  'edit.on': 'Á',
+  'edit.off': 'Af',
+  'edit.overrule': 'Yfirtaka samsvarandi Packagizer-reglu',
+  'edit.overruleHint':
+    'Þegar slökkt er á þessu vinnur samsvarandi Packagizer-regla yfir forgangi, afþjöppun og athugasemdinni hér fyrir ofan. Þegar kveikt er á því vinna þessi gildi í staðinn. Áfangastaðurinn er aldrei hluti af þessu: hann gildir alltaf eins og hann var sleginn inn.',
+  'edit.options': 'Valkostir',
+  'edit.addPackage': 'Pakki (valfrjálst)',
+  'edit.mixed': 'Mörg gildi',
+  'edit.save': 'Vista',
+  'edit.cancel': 'Hætta við',
+  'edit.priority.highest': 'Hæstur',
+  'edit.priority.higher': 'Hærri',
+  'edit.priority.high': 'Hár',
+  'edit.priority.default': 'Sjálfgefinn',
+  'edit.priority.low': 'Lágur',
+  'edit.priority.lower': 'Lægri',
+  'edit.priority.lowest': 'Lægstur',
+  'edit.rename.whenDone': 'Þetta niðurhal er enn í gangi. Skráin fær nýja heitið þegar því lýkur.',
+  'edit.rename.torrent': 'Torrent nefnir eigin skrár, svo það er ekki hægt að endurnefna hann.',
+  'edit.rename.remote':
+    'JDownloader-bakendinn sækir þessa skrá á eigin vél og nefnir hana sjálfur, svo það er ekki hægt að endurnefna hana héðan.',
+  'edit.rename.unpacking': 'Verið er að afþjappa þessa skrá. Það má endurnefna hana þegar afþjöppun lýkur.',
+  'edit.rename.volume':
+    'Þessi skrá er einn hluti af safnskrá í mörgum hlutum. Hlutarnir halda heitum sínum, annars væri ekki hægt að afþjappa safnið.',
+  'edit.rename.empty': 'Heiti má ekki vera autt.',
+  'edit.rename.separator': 'Heiti má ekki innihalda / eða \\.',
+  'edit.rename.dots': 'Heiti þarf að vera meira en punktar.',
+  'edit.rename.exists': 'Skrá sem heitir „{name}“ er þegar í þeirri möppu. KnightLoader skrifar ekki yfir hana.',
+  'edit.rename.busy':
+    'Verið er að afþjappa hluta af þessum pakka, færa hann í möppuna sína eða taka hann upp úr beinni útsendingu. Reyndu aftur þegar því er lokið.',
+  'edit.rename.folderExists': 'Mappa sem heitir „{name}“ er þegar til þar. Veldu annað heiti.',
+  'edit.rename.dataFolder':
+    'Að endurnefna í „{name}“ myndi setja það í gagnamöppu KnightLoader og niðurhal má ekki fara þangað.',
+  'edit.rename.notMoved':
+    'Ekki tókst að endurnefna möppuna „{name}“, svo ekkert breyttist. Kannski er annað forrit með skrá í henni opna. Lokaðu þeirri skrá og reyndu aftur.',
 
   'share.title': 'Bæta við KnightLoader',
   'share.hint': 'Tenglar sem þú deilir úr öðru forriti fara í safnarann, eins og þú hefðir límt þá inn í vefviðmótið.',
