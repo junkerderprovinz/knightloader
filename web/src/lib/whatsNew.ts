@@ -51,6 +51,23 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.9.8',
+    changes: [
+      { id: 'extension-relay', text: 'whatsnew.change.extensionRelay', names: { relay: 'relay.title' } },
+      { id: 'app-relay', text: 'whatsnew.change.appRelay', names: { relay: 'relay.title' } },
+      { id: 'app-actions', text: 'whatsnew.change.appActions', names: { more: 'menu.more' } },
+      { id: 'app-properties', text: 'whatsnew.change.appProperties', names: { name: 'props.title' } },
+      { id: 'app-add-options', text: 'whatsnew.change.appAddOptions' },
+      { id: 'app-containers', text: 'whatsnew.change.appContainers' },
+      { id: 'app-views', text: 'whatsnew.change.appViews', names: { views: 'views.label' } },
+      { id: 'app-quick-settings', text: 'whatsnew.change.appQuickSettings', names: { name: 'quick.title' } },
+      { id: 'app-save-file', text: 'whatsnew.change.appSaveFile' },
+      { id: 'app-video-format', text: 'whatsnew.change.appVideoFormat' },
+      { id: 'app-notifications', text: 'whatsnew.change.appNotifications' },
+      { id: 'app-routes', text: 'whatsnew.change.appRoutes' },
+    ],
+  },
+  {
     version: '2.9.6',
     changes: [
       { id: 'signin-service', text: 'whatsnew.change.signInService', names: { page: 'settings.nav.access' } },
