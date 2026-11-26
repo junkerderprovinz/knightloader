@@ -167,43 +167,52 @@ export default function RelayConnectScreen({
   // Every instance at once, which is what joining the group means. Picking one
   // and coming back for the next makes a person fill the same form once per
   // machine they own.
+  //
+  // A second press while the first save runs would read the list before the
+  // first wrote to it and save every instance twice.
+  const saving = useRef(false);
   const saveAll = async () => {
-    if (!live || sibs.length === 0) return;
-    const existing = await listConnections();
-    let first: ServerConnection | null = null;
-    for (const s of sibs) {
-      // Re-joining with the same phrase must not double every row. An
-      // instance is the same instance if the group and its id match; its name
-      // is a label it may have changed since.
-      const already = existing.find(
-        (e) => e.relayUrl === live.url && e.relayKey === live.key && e.instanceId === s.instanceId,
-      );
-      if (already) {
-        // One paired before the phone kept the peer-auth key gets it, and with
-        // it the way to play files on the local network.
-        if (!already.peerAuthKey) await addConnection({ ...already, peerAuthKey: live.peerAuth });
-        first = first ?? already;
-        continue;
+    if (!live || sibs.length === 0 || saving.current) return;
+    saving.current = true;
+    try {
+      const existing = await listConnections();
+      let first: ServerConnection | null = null;
+      for (const s of sibs) {
+        // Re-joining with the same phrase must not double every row. An
+        // instance is the same instance if the group and its id match; its name
+        // is a label it may have changed since.
+        const already = existing.find(
+          (e) => e.relayUrl === live.url && e.relayKey === live.key && e.instanceId === s.instanceId,
+        );
+        if (already) {
+          // One paired before the phone kept the peer-auth key gets it, and with
+          // it the way to play files on the local network.
+          if (!already.peerAuthKey) await addConnection({ ...already, peerAuthKey: live.peerAuth });
+          first = first ?? already;
+          continue;
+        }
+        const conn: ServerConnection = {
+          kind: 'relay',
+          id: newConnectionId(),
+          name: s.name || s.instanceId,
+          relayUrl: live.url,
+          relayKey: live.key,
+          relayFrameKey: live.frameKey,
+          peerAuthKey: live.peerAuth,
+          instanceId: s.instanceId,
+        };
+        await addConnection(conn);
+        first = first ?? conn;
       }
-      const conn: ServerConnection = {
-        kind: 'relay',
-        id: newConnectionId(),
-        name: s.name || s.instanceId,
-        relayUrl: live.url,
-        relayKey: live.key,
-        relayFrameKey: live.frameKey,
-        peerAuthKey: live.peerAuth,
-        instanceId: s.instanceId,
-      };
-      await addConnection(conn);
-      first = first ?? conn;
+      if (!first) return;
+      await setActiveConnectionId(first.id);
+      // Not released on the way out: the saved connections are about to use this
+      // client.
+      liveRef.current = null;
+      onConnected(first);
+    } finally {
+      saving.current = false;
     }
-    if (!first) return;
-    await setActiveConnectionId(first.id);
-    // Not released on the way out: the saved connections are about to use this
-    // client.
-    liveRef.current = null;
-    onConnected(first);
   };
 
   const check = checkPhrase(phrase);
