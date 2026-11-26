@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, BackHandler, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -63,18 +64,23 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // motion and reads the level.
 export default function App() {
   return (
-    <MotionProvider>
-      <AppearanceProvider>
-        <I18nProvider>
-          <Shell />
-        </I18nProvider>
-      </AppearanceProvider>
-    </MotionProvider>
+    <SafeAreaProvider>
+      <MotionProvider>
+        <AppearanceProvider>
+          <I18nProvider>
+            <Shell />
+          </I18nProvider>
+        </AppearanceProvider>
+      </MotionProvider>
+    </SafeAreaProvider>
   );
 }
 
 function Shell() {
   const { c, accent, accentInk, dark, setInstanceAppearance } = useAppearance();
+  // Android draws every app edge to edge, so with three-button navigation the
+  // bar covers the foot of each screen unless the screens stop above it.
+  const insets = useSafeAreaInsets();
   const [conn, setConn] = useState<ServerConnection | null>(null);
   // The instance marked with the star: the app opens on it and takes its look
   // from it, whichever instance is open at the moment.
@@ -280,7 +286,10 @@ function Shell() {
           }}
         >
           <StatusBar style={dark ? 'light' : 'dark'} />
-          <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+          <Stack.Navigator
+            initialRouteName={initialRoute}
+            screenOptions={{ headerShown: false, contentStyle: { paddingBottom: insets.bottom } }}
+          >
             <Stack.Screen name="Connections">
               {({ navigation }) => (
                 <ConnectionsScreen
