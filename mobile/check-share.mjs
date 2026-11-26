@@ -82,6 +82,9 @@ const element = (type, props) => ({ type, props });
 let connections = [];
 let sent = [];
 let sendFails = null;
+// What the instance says a link offers: null for a link it does not give
+// yt-dlp, as GET /api/ytdlp/link answers one with a 400.
+let menus = null;
 class ApiError extends Error {
   constructor(message, status, code) {
     super(message);
@@ -114,6 +117,16 @@ const modules = {
     // client.ts's errorText for an error with no code the app words itself.
     errorText: (_t, e) => (e instanceof Error ? e.message : String(e)),
   },
+  '../api/videoLink': {
+    fetchLinkMenus: async () => menus,
+    addVideo: async (conn, url, choice, _base, title) => {
+      sent.push({ conn: conn.id, url, choice, title });
+      if (sendFails) throw sendFails;
+      return [{ id: 't1' }];
+    },
+  },
+  '../api/videoPick': await import(pathToFileURL(join(here, 'src', 'api', 'videoPick.ts')).href),
+  '../components/VideoChoice': { VideoChoice: 'VideoChoice', VideoPicker: 'VideoPicker' },
   '../storage/connections': { listConnections: async () => connections },
   '../watch/watch': { startWatch: async () => {} },
   '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, corners: { card: {} } }) },
@@ -167,6 +180,7 @@ function draw(node, out) {
   const { type, props } = node;
   if (props.onPress) out.presses.push({ type, label: props.label, props });
   if (props.onChangeText) out.fields.push(props);
+  if (props.onChoice) out.pickers.push({ type, props });
   if (props.label) out.words.push(props.label);
   draw(props.children, out);
   return out;
@@ -184,7 +198,7 @@ async function open(paired, view = share) {
     do {
       dirty = false;
       at = 0;
-      shown = draw(view(), { words: [], presses: [], fields: [] });
+      shown = draw(view(), { words: [], presses: [], fields: [], pickers: [] });
       const run = pending;
       pending = [];
       for (const f of run) f();
@@ -277,6 +291,42 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
   }
 }
 
+// A shared video is offered its formats before it goes in, and goes in with
+// the one picked. A link that is no video goes in at once, as above.
+{
+  sendFails = null;
+  menus = { qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p webm vp9'], audioTracks: ['opus 160k'] };
+  const s = await open([home], () =>
+    ShareScreen({ text: 'https://video.example/watch?v=1', title: 'A film', onOpen() {}, onConnect() {}, onClose() {} }),
+  );
+  (await s.settle()).presses.find((p) => p.type === 'CardButton')?.props.onPress();
+  const choosing = await s.settle();
+  const picker = choosing.pickers.find((p) => p.type === 'VideoPicker');
+  if (sent.length) fail('a shared video went in before its format was picked');
+  if (!picker) fail('a shared video offers no choice of format');
+  picker?.props.onChoice({ variants: ['audio'], audioFormat: 'opus' });
+  choosing.presses.find((p) => p.label === en['addDownload.button'])?.props.onPress();
+  await s.settle();
+  const want = { conn: 'home', url: 'https://video.example/watch?v=1', choice: { variants: ['audio'], audioFormat: 'opus' }, title: 'A film' };
+  if (JSON.stringify(sent) !== JSON.stringify([want])) fail(`a shared video went in as ${JSON.stringify(sent)}`);
+
+  const typed = await open([], () => AddDownloadScreen({ conn: home, onDone() {} }));
+  (await typed.settle()).fields[0]?.onChangeText('https://video.example/watch?v=1');
+  const field = await typed.settle();
+  const choice = field.pickers.find((p) => p.type === 'VideoChoice');
+  if (choice?.props.url !== 'https://video.example/watch?v=1') fail('a typed video link is not looked at for its formats');
+  choice?.props.onChoice({ variants: ['video'], quality: '720p' });
+  (await typed.settle()).presses.find((p) => p.label === en['addDownload.button'])?.props.onPress();
+  await typed.settle();
+  if (JSON.stringify(sent.map((x) => x.choice)) !== JSON.stringify([{ variants: ['video'], quality: '720p' }])) {
+    fail(`a typed video link went in as ${JSON.stringify(sent)}`);
+  }
+  const two = await open([], () => AddDownloadScreen({ conn: home, onDone() {} }));
+  (await two.settle()).fields[0]?.onChangeText('https://a.example/1\nhttps://b.example/2');
+  if ((await two.settle()).pickers[0]?.props.url !== null) fail('several links are looked at as one video');
+  menus = null;
+}
+
 {
   const app = JSON.parse(readFileSync(join(here, 'app.json'), 'utf8'));
   const plugins = app.expo.plugins.map((p) => (Array.isArray(p) ? p[0] : p));
@@ -329,5 +379,5 @@ if (problems.length) {
 console.log(
   'ok: a share waits for a tap on an instance, also with one paired, a failed share keeps its reason, ' +
     'a title sent as the subject names the package, a shared text file arrives as its text, ' +
-    'and a shared file with no text says so',
+    'a shared file with no text says so, and a video is offered its formats before it goes in',
 );

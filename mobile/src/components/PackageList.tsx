@@ -24,6 +24,7 @@ import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
 import { hasSomethingToPlay, mediaKind } from '../api/media';
+import { canSave } from '../api/saveCopy';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
@@ -93,6 +94,7 @@ export default function PackageList({
   onSelectFiles,
   onSeeding,
   onPlay,
+  onSave,
   sections = [],
   unpacking,
 }: {
@@ -141,6 +143,8 @@ export default function PackageList({
   /** Opens a link's file in a player app. The row offers it only for audio
    *  and video with something to play (mediaKind, hasSomethingToPlay). */
   onPlay?: (task: Task) => void;
+  /** Copies a link's finished file onto this phone (canSave). */
+  onSave?: (task: Task) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -248,6 +252,7 @@ export default function PackageList({
                   ? () => scharf || onPlay(r.task)
                   : undefined
               }
+              onSave={onSave && canSave(r.task) ? () => scharf || onSave(r.task) : undefined}
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
                   ? (hue) => (

@@ -33,8 +33,8 @@ class WatchModule : Module() {
 
     Events("onOpen")
 
-    Function("channels") { captcha: String, finished: String, failed: String, watch: String ->
-      Notices.channels(context, captcha, finished, failed, watch)
+    Function("channels") { names: Map<String, String> ->
+      Notices.channels(context, names)
     }
 
     // False when Android refuses, which it does for an app that is not in front.

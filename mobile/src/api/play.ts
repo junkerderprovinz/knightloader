@@ -14,25 +14,11 @@ import { KnightWatch } from '../../modules/watch';
  */
 export async function playTask(conn: ServerConnection, task: Task, title: string, base = '/api'): Promise<void> {
   const playable = await fetchPlayable(conn, task.id, base);
-  const relayed: RangeReader = (from, length) => fetchRange(conn, task.id, playable.file, from, length, base);
-  // On the instance's own network the file comes as a stream, straight from
-  // it. A piece the instance is too busy to stream goes through the relay, and
-  // any other failure plays the rest through the relay.
-  let direct = await directReader(conn, task.id, playable.file, base).catch(() => null);
+  const read = await fileReader(conn, task.id, playable.file, base);
   // Once the player is in front, Android freezes this app as cached, and the
   // player would wait for bytes forever. A foreground service keeps it awake
   // for as long as the player reads.
   KnightWatch?.serve(title, task.name);
-  const read = async (from: number, length: number) => {
-    if (direct) {
-      try {
-        return await direct(from, length);
-      } catch (e) {
-        if (!(e instanceof StreamBusy)) direct = null;
-      }
-    }
-    return relayed(from, length);
-  };
   const way = await openLoopback({ size: playable.size, type: playable.type, read }, () => KnightWatch?.endServe()).catch(
     (e: unknown) => {
       KnightWatch?.endServe();
@@ -45,6 +31,27 @@ export async function playTask(conn: ServerConnection, task: Task, title: string
     way.close();
     throw e;
   }
+}
+
+/**
+ * fileReader reads ranges of task id's file. On the instance's own network the
+ * file comes as a stream, straight from it. A piece the instance is too busy to
+ * stream goes through the relay, and any other failure reads the rest through
+ * the relay.
+ */
+export async function fileReader(conn: ServerConnection, id: string, file: string, base = '/api'): Promise<RangeReader> {
+  const relayed: RangeReader = (from, length) => fetchRange(conn, id, file, from, length, base);
+  let direct = await directReader(conn, id, file, base).catch(() => null);
+  return async (from, length) => {
+    if (direct) {
+      try {
+        return await direct(from, length);
+      } catch (e) {
+        if (!(e instanceof StreamBusy)) direct = null;
+      }
+    }
+    return relayed(from, length);
+  };
 }
 
 /**

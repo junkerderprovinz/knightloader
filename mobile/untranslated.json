@@ -257,7 +257,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ],
     "ca": [
       "captcha.screenTitle",
@@ -272,7 +273,9 @@
       "notify.channelCaptcha",
       "notify.watchSpeed",
       "settings.oled",
-      "componentsCard.title"
+      "componentsCard.title",
+      "video.variant",
+      "video.kbps"
     ],
     "cs": [
       "addDownload.placeholder",
@@ -282,7 +285,9 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.video",
+      "video.kbps"
     ],
     "da": [
       "downloads.start",
@@ -306,7 +311,10 @@
       "notify.watchOne",
       "notify.watchMany",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "el": [
       "addDownload.placeholder",
@@ -317,7 +325,8 @@
       "downloads.torrentsTitle",
       "speed.legend.seeding",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ],
     "es": [
       "captcha.screenTitle",
@@ -330,7 +339,9 @@
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.audio",
+      "video.kbps"
     ],
     "et": [
       "addDownload.placeholder",
@@ -340,7 +351,10 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "eu": [
       "addDownload.placeholder",
@@ -349,7 +363,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ],
     "fa": [
       "addDownload.placeholder",
@@ -365,7 +380,9 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.video",
+      "video.kbps"
     ],
     "fr": [
       "captcha.screenTitle",
@@ -385,7 +402,9 @@
       "settings.appsExtensionSub",
       "settings.motion",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.audio",
+      "video.kbps"
     ],
     "gl": [
       "captcha.screenTitle",
@@ -398,7 +417,9 @@
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.audio",
+      "video.kbps"
     ],
     "he": [
       "addDownload.placeholder",
@@ -423,7 +444,9 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.video",
+      "video.kbps"
     ],
     "hu": [
       "addDownload.placeholder",
@@ -432,7 +455,8 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.kbps"
     ],
     "id": [
       "addDownload.placeholder",
@@ -444,7 +468,10 @@
       "speed.legend.seeding",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "is": [
       "addDownload.placeholder",
@@ -454,7 +481,8 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.kbps"
     ],
     "it": [
       "addDownload.placeholder",
@@ -469,14 +497,18 @@
       "notify.watchOne",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "ja": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "settings.aboutDiscord",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ],
     "ko": [
       "addDownload.placeholder",
@@ -484,7 +516,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ],
     "lt": [
       "addDownload.placeholder",
@@ -494,7 +527,8 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.kbps"
     ],
     "lv": [
       "addDownload.placeholder",
@@ -504,7 +538,10 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "ms": [
       "addDownload.placeholder",
@@ -515,7 +552,10 @@
       "speed.legend.seeding",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "nl": [
       "downloads.tabDownloads",
@@ -536,7 +576,11 @@
       "notify.watchMany",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.variant",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "no": [
       "downloads.start",
@@ -552,7 +596,10 @@
       "speed.legend.seeding",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "pl": [
       "addDownload.placeholder",
@@ -563,7 +610,9 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.audio",
+      "video.kbps"
     ],
     "pt": [
       "captcha.screenTitle",
@@ -577,7 +626,8 @@
       "notify.channelCaptcha",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.kbps"
     ],
     "ro": [
       "downloads.queueActive",
@@ -591,7 +641,10 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.video",
+      "video.audio",
+      "video.kbps"
     ],
     "ru": [
       "addDownload.placeholder",
@@ -611,7 +664,10 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "sl": [
       "addDownload.placeholder",
@@ -621,7 +677,9 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.video",
+      "video.kbps"
     ],
     "sr": [
       "addDownload.placeholder",
@@ -629,7 +687,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ],
     "sv": [
       "addDownload.placeholder",
@@ -647,14 +706,18 @@
       "settings.motion",
       "settings.theme.system",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.variant",
+      "video.video",
+      "video.kbps"
     ],
     "th": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "settings.aboutDiscord",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ],
     "tr": [
       "addDownload.placeholder",
@@ -663,7 +726,8 @@
       "settings.aboutGithub",
       "settings.aboutDiscord",
       "notify.watchSpeed",
-      "settings.oled"
+      "settings.oled",
+      "video.video"
     ],
     "uk": [
       "addDownload.placeholder",
@@ -682,14 +746,17 @@
       "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled",
-      "relay.relayLabel"
+      "relay.relayLabel",
+      "video.video",
+      "video.kbps"
     ],
     "zh": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "settings.aboutDiscord",
-      "settings.oled"
+      "settings.oled",
+      "video.kbps"
     ]
   }
 }

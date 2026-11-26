@@ -79,6 +79,11 @@ var groupRoutes = map[string]bool{
 	"POST /api/tasks/{id}/torrent-files": true,
 	"GET /api/extract":                   true,
 
+	// Which accounts stand benched, for the phone to say when one stops being
+	// used and when it is back. Only the service and the hoster: the
+	// accounts themselves stay off.
+	"GET /api/accounts/paused": true,
+
 	// The speed the phone draws its meter from, a sum over every download
 	// that names none of them.
 	"GET /api/stats/speed": true,

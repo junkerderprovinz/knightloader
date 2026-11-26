@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { addLinks, ApiError, errorText } from '../api/client';
+import { addVideo } from '../api/videoLink';
+import { singleLink, type LinkChoice } from '../api/videoPick';
 import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
@@ -9,6 +11,7 @@ import { GlimButton } from '../components/glim';
 import { Cross, Plus } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { Text, TextInput } from '../components/Text';
+import { VideoChoice } from '../components/VideoChoice';
 import { startWatch } from '../watch/watch';
 
 export default function AddDownloadScreen({
@@ -26,6 +29,8 @@ export default function AddDownloadScreen({
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [choice, setChoice] = useState<LinkChoice | null>(null);
+  const video = singleLink(text);
 
   const submit = async () => {
     const links = text
@@ -39,7 +44,8 @@ export default function AddDownloadScreen({
     setBusy(true);
     setError(null);
     try {
-      await addLinks(conn, links, base);
+      if (video && choice) await addVideo(conn, video, choice, base);
+      else await addLinks(conn, links, base);
       void startWatch();
       onDone();
     } catch (err) {
@@ -77,6 +83,8 @@ export default function AddDownloadScreen({
         autoCorrect={false}
         textAlignVertical="top"
       />
+
+      <VideoChoice conn={conn} base={base} url={video} onChoice={setChoice} />
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 

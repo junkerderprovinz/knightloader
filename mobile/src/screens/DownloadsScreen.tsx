@@ -4,6 +4,7 @@ import { fetchListCards, fetchQueue, fetchSpeedHistory, pollTasks, setQueueHalte
 import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
 import { needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
 import { playTask } from '../api/play';
+import { useSaveToPhone } from '../components/SaveCard';
 import PackageList from '../components/PackageList';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
@@ -76,6 +77,7 @@ export default function DownloadsScreen({
    *  swallowed, the same line the overview carries: a control that reports
    *  nothing cannot be told apart from one that does nothing. */
   const [startError, setStartError] = useState('');
+  const saving = useSaveToPhone(conn, base);
   const loadFiles = useCallback((task: Task) => fetchTorrentFiles(conn, task.id, base), [conn, base]);
   // Which half of the instance is on screen. The two are one task list with one
   // status telling them apart, since "collected" means staged and not started,
@@ -333,6 +335,8 @@ export default function DownloadsScreen({
               </Text>
             )}
 
+            {saving.card}
+
             {/* The strip only appears once there is something staged: a tab
                 that is always empty teaches people to ignore the strip. */}
             {collected.length > 0 && (
@@ -414,6 +418,7 @@ export default function DownloadsScreen({
             setStartError(t('task.playFailed', { reason: errorText(t, e) }));
           }
         }}
+        onSave={saving.save}
         onSetEnabled={async (links, enabled) => {
           setStartError('');
           try {
