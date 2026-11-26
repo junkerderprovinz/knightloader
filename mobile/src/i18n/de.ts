@@ -165,7 +165,7 @@ export const de: Dict = {
   'addFile.stagedIn': '{n} Link(s) aus {file} in „{pkg}“ gesammelt.',
   'addFile.alsoKnown': '{n} weitere waren schon in der Liste.',
   'addFile.allKnown': 'Alle {n} Link(s) in {file} waren schon in der Liste.',
-  'addFile.handed': '{file} ist verschlüsselt. Sie ging an das JDownloader-Backend. Ihre Links erscheinen hier, sobald es sie geholt hat (innerhalb von {n}s).',
+  'addFile.handed': '{file} ist verschlüsselt und ging an das JDownloader-Backend. Die Links darin erscheinen hier, sobald es die Datei geholt hat (innerhalb von {n}s).',
   'addFile.failed': '{file} wurde nicht angenommen: {reason}',
   'addFile.noJD': 'sie ist verschlüsselt, und nur ein JDownloader-Backend kann sie öffnen. Es ist keins eingerichtet: Setz KL_JD auf einen JDownloader, den diese Instanz erreicht, und starte neu.',
   'addFile.usenet': '{file} ging an {service}. Die Dateien darin erscheinen hier, sobald {service} sie aus dem Usenet geholt hat.',
