@@ -226,11 +226,14 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/playback/servers/{id}":    apitoken.ScopeAdmin,
 	"POST /api/playback/servers/{id}/test": apitoken.ScopeAdmin,
 
+	// Setting the limits changes less than halting the queue does.
 	"GET /api/queue":            apitoken.ScopeRead,
 	"POST /api/queue":           apitoken.ScopeControl,
 	"GET /api/queue/counters":   apitoken.ScopeRead,
 	"POST /api/queue/enabled":   apitoken.ScopeControl,
 	"POST /api/queue/force":     apitoken.ScopeControl,
+	"GET /api/queue/limits":     apitoken.ScopeRead,
+	"PUT /api/queue/limits":     apitoken.ScopeControl,
 	"POST /api/queue/move":      apitoken.ScopeControl,
 	"GET /api/queue/priorities": apitoken.ScopeRead,
 	"POST /api/queue/priority":  apitoken.ScopeControl,
@@ -376,7 +379,10 @@ var routeScopes = map[string]apitoken.Scope{
 	// whatever the scope (serverBuckets).
 	"GET /api/uistate": apitoken.ScopeRead,
 	"PUT /api/uistate": apitoken.ScopeAdmin,
-	"GET /api/ws":      apitoken.ScopeRead,
+	// The saved views alone are a list's own business, as halting it is.
+	"GET /api/uistate/views": apitoken.ScopeRead,
+	"PUT /api/uistate/views": apitoken.ScopeControl,
+	"GET /api/ws":            apitoken.ScopeRead,
 
 	"GET /api/ytdlp/formats": apitoken.ScopeAdmin,
 	"GET /api/ytdlp/link":    apitoken.ScopeAdd,

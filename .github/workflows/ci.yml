@@ -728,6 +728,12 @@ jobs:
       - name: What a link's More sheet offers
         run: node check-task-actions.mjs
 
+      - name: Search, filters and limits
+        run: node check-narrowing.mjs
+
+      - name: Saved views
+        run: node check-saved-views.mjs
+
       - name: Play buttons
         run: node check-play.mjs
 

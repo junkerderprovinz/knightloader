@@ -40,6 +40,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerReconnect(reg, a)
 	registerPortmap(reg, a)
 	registerUIState(reg, a)
+	registerSavedViews(reg, a)
 	registerHistory(reg, a)
 	registerStats(reg, a)
 	registerSpeedHistory(reg, a)

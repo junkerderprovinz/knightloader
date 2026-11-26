@@ -13,7 +13,7 @@ import { useCaptchas } from '../components/CaptchaWatch';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Back, Trash } from '../components/IconBadge';
+import IconBadge, { Back, SpeedLimit, Trash } from '../components/IconBadge';
 import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
 import { uploadOf } from '../components/speedPlot';
@@ -28,6 +28,14 @@ import {
 } from '../api/client';
 import { Text } from '../components/Text';
 import { Arrive } from '../components/Moving';
+import { ListNarrowing } from '../components/ListNarrowing';
+import { HeldLinks, SkippedLinks } from '../components/NotAdded';
+import { QueueLimits } from '../components/QueueLimits';
+import { COLLECTOR_FILTERS, DOWNLOAD_FILTERS, NOTHING_NARROWED, isNarrowed, narrow, type Narrowing } from '../api/narrowing';
+import { heldOf, type Held, type SkippedLink } from '../api/notAdded';
+import { clearHeld, clearSkipped, fetchSkipped, fetchViews, putViews, restoreHeld } from '../api/listActions';
+import { sanitiseViews, type SavedViewLists } from '../api/savedViews';
+import { SavedViews } from '../components/SavedViews';
 import { usePress } from '../theme/MotionContext';
 
 // peer, when set, means this screen is showing a federation peer of conn rather
@@ -90,13 +98,43 @@ export default function DownloadsScreen({
   // Only the instance's own record: the route is not forwarded to a peer, whose
   // curve starts from live samples.
   const seedGraph = useCallback(() => fetchSpeedHistory(conn), [conn]);
-  const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff);
+  // A link a filter rule rejected is staged too, and waits in a card of its
+  // own above the list, as on the web's Collector page.
+  const held = heldOf(tasks);
+  const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff && !(x as Held).skipped);
   const queued = tasks.filter((x) => x.status !== 'collected');
-  const shown = tab === 'collector' && collected.length > 0 ? 'collector' : 'downloads';
+  // The instance's own trace: the route is not forwarded to a peer.
+  const [skipped, setSkipped] = useState<SkippedLink[]>([]);
+  const collectorHolds = collected.length > 0 || held.length > 0 || (!peer && skipped.length > 0);
+  const shown = tab === 'collector' && collectorHolds ? 'collector' : 'downloads';
+  // Each tab keeps its own search and filters, so switching back finds the
+  // list as it was left.
+  const [narrowings, setNarrowings] = useState<Record<'downloads' | 'collector', Narrowing>>({
+    downloads: NOTHING_NARROWED,
+    collector: NOTHING_NARROWED,
+  });
+  const narrowing = narrowings[shown];
+  const setNarrowing = (n: Narrowing) => setNarrowings((all) => ({ ...all, [shown]: n }));
+  const [limitsOpen, setLimitsOpen] = useState(false);
+  const allowed = shown === 'collector' ? COLLECTOR_FILTERS : DOWNLOAD_FILTERS;
+  // The views the web keeps, null until read and on a peer, whose views are
+  // its own instance's business.
+  const [views, setViews] = useState<SavedViewLists | null>(null);
   // Finished packages and torrents leave the download list for parts of their
   // own below it, as on the web's Downloads page, by the instance's switches.
   const [cardsOn, setCardsOn] = useState<CardSwitches>({ finished: true, torrents: true });
-  const parts = splitByCard(queued, cardsOn);
+  // Split before anything narrows it, because a package's part follows all of
+  // its links, and then narrowed alike: a search finds a file wherever it is.
+  const whole = splitByCard(queued, cardsOn);
+  const parts = {
+    downloads: narrow(whole.downloads, narrowings.downloads),
+    finished: narrow(whole.finished, narrowings.downloads),
+    torrents: narrow(whole.torrents, narrowings.downloads),
+  };
+  const collectedShown = narrow(collected, narrowings.collector);
+  const listed = shown === 'collector' ? collected : queued;
+  const listedShown =
+    shown === 'collector' ? collectedShown.length : parts.downloads.length + parts.finished.length + parts.torrents.length;
   const fabPress = usePress();
   const [editing, setEditing] = useState<EditTarget | null>(null);
 
@@ -152,6 +190,35 @@ export default function DownloadsScreen({
     };
   }, [conn, base]);
 
+  // Read now and then while the collector is on screen, since a link folded
+  // into another leaves no trace in the task list.
+  const collectorOnScreen = tab === 'collector';
+  useEffect(() => setSkipped([]), [conn, peer]);
+
+  useEffect(() => {
+    setViews(null);
+    if (peer) return;
+    let alive = true;
+    fetchViews(conn).then(
+      (v) => alive && setViews({ downloads: sanitiseViews(v.downloads), collector: sanitiseViews(v.collector) }),
+      () => {},
+    );
+    return () => {
+      alive = false;
+    };
+  }, [conn, peer]);
+  useEffect(() => {
+    if (peer) return;
+    let alive = true;
+    const load = () => fetchSkipped(conn).then((s) => alive && setSkipped(s)).catch(() => {});
+    load();
+    const iv = collectorOnScreen ? setInterval(load, 10000) : undefined;
+    return () => {
+      alive = false;
+      clearInterval(iv);
+    };
+  }, [conn, peer, collectorOnScreen]);
+
   // try/finally with no catch clears the spinner and sends the rejection
   // nowhere, so a queue call the instance refused looks like a button that was
   // never wired up.
@@ -172,6 +239,21 @@ export default function DownloadsScreen({
     } finally {
       setQueueBusy(false);
     }
+  };
+
+  // Not optimistic: the rows move once the list is read again, which happens
+  // at once rather than at the next poll.
+  const runHeld = async (run: () => Promise<void>, failed: 'collector.filtered.restoreFailed' | 'collector.filtered.clearFailed') => {
+    setStartError('');
+    try {
+      await run();
+    } catch {
+      setStartError(t(failed));
+      return;
+    }
+    await live.current?.refresh().catch(() => {
+      /* the next tick brings it */
+    });
   };
 
   return (
@@ -238,7 +320,7 @@ export default function DownloadsScreen({
           list's width cap, centring and margins, four places to keep in step;
           inside the content container there are none. */}
       <PackageList
-        tasks={shown === 'collector' ? collected : parts.downloads}
+        tasks={shown === 'collector' ? collectedShown : parts.downloads}
         unpacking={unpacking}
         sections={
           shown === 'collector'
@@ -250,7 +332,15 @@ export default function DownloadsScreen({
         }
         lineKey={shown}
         empty={
-          connected ? t('downloads.empty') : needsAddingAgain(conn) ? t('error.addAgain') : t('downloads.emptyConnecting')
+          !connected
+            ? needsAddingAgain(conn)
+              ? t('error.addAgain')
+              : t('downloads.emptyConnecting')
+            : listed.length > 0 && isNarrowed(narrowing)
+              ? t('downloads.noMatch')
+              : shown === 'collector'
+                ? t('empty.collectorTitle')
+                : t('downloads.empty')
         }
         header={
           <>
@@ -306,6 +396,15 @@ export default function DownloadsScreen({
                   <ActivityIndicator color={accentInk} size="small" />
                 ) : (
                   <View style={styles.queueActions}>
+                    {/* How fast and how many, beside the switch they qualify,
+                        on the instance's own list alone. */}
+                    {!peer && (
+                      <IconBadge
+                        icon={<SpeedLimit color={accentInk} />}
+                        onPress={() => setLimitsOpen(true)}
+                        accessibilityLabel={t('quick.title')}
+                      />
+                    )}
                     <IconBadge
                       symbol="▶"
                       accent={queue?.halted === false}
@@ -348,7 +447,7 @@ export default function DownloadsScreen({
 
             {/* The strip only appears once there is something staged: a tab
                 that is always empty teaches people to ignore the strip. */}
-            {collected.length > 0 && (
+            {collectorHolds && (
               <View style={styles.tabs}>
                 <WellSelector
                   options={[
@@ -359,6 +458,61 @@ export default function DownloadsScreen({
                   onPick={(v) => setTab(v)}
                 />
               </View>
+            )}
+
+            {shown === 'collector' && (
+              <>
+                <HeldLinks
+                  held={held}
+                  onRestore={peer ? undefined : (ids) => runHeld(() => restoreHeld(conn, ids), 'collector.filtered.restoreFailed')}
+                  onClear={peer ? undefined : (ids) => runHeld(() => clearHeld(conn, ids), 'collector.filtered.clearFailed')}
+                />
+                {!peer && (
+                  <SkippedLinks
+                    skipped={skipped}
+                    onClear={async () => {
+                      setStartError('');
+                      try {
+                        await clearSkipped(conn);
+                        setSkipped([]);
+                      } catch {
+                        setStartError(t('skipped.clearFailed'));
+                      }
+                    }}
+                  />
+                )}
+              </>
+            )}
+
+            {(listed.length > 0 || isNarrowed(narrowing) || (views?.[shown].length ?? 0) > 0) && (
+              <ListNarrowing
+                key={shown}
+                tasks={listed}
+                shown={listedShown}
+                narrowing={narrowing}
+                onChange={setNarrowing}
+                filters={allowed}
+                facets={shown === 'collector' ? ['host', 'fileType', 'package'] : []}
+                views={
+                  views && (
+                    <SavedViews
+                      views={views[shown]}
+                      narrowing={narrowing}
+                      allowed={allowed}
+                      keepFacets={shown === 'collector'}
+                      onApply={setNarrowing}
+                      onViews={async (next) => {
+                        try {
+                          const v = await putViews(conn, shown, next);
+                          setViews({ downloads: sanitiseViews(v.downloads), collector: sanitiseViews(v.collector) });
+                        } catch (e) {
+                          throw new Error(errorText(t, e));
+                        }
+                      }}
+                    />
+                  )
+                }
+              />
             )}
           </>
         }
@@ -494,6 +648,14 @@ export default function DownloadsScreen({
         onClose={() => setEditing(null)}
         onSaved={() => void live.current?.refresh().catch(() => undefined)}
       />
+      {!peer && (
+        <QueueLimits
+          conn={conn}
+          visible={limitsOpen}
+          onClose={() => setLimitsOpen(false)}
+          onSaved={() => void fetchQueue(conn, base).then(setQueue, () => {})}
+        />
+      )}
 
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: accent, ...corners.pill, transform: [{ scale: fabPress.scale }] }]}
