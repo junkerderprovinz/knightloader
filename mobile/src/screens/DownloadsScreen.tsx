@@ -5,6 +5,7 @@ import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskStat
 import { needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
 import { playTask } from '../api/play';
 import PackageList from '../components/PackageList';
+import { useTaskActions } from '../components/TaskActions';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -15,7 +16,6 @@ import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
 import { uploadOf } from '../components/speedPlot';
 import {
-  deleteTasks,
   errorText,
   fetchTorrentFiles,
   reorderTasks,
@@ -101,6 +101,14 @@ export default function DownloadsScreen({
    *  server can ask for the truth immediately instead of waiting out the
    *  polling cycle. */
   const live = useRef<Polling | null>(null);
+
+  const actions = useTaskActions({
+    conn,
+    base,
+    tasks,
+    refresh: async () => live.current?.refresh(),
+    onError: setStartError,
+  });
 
   useEffect(() => {
     setConnected(false);
@@ -333,6 +341,8 @@ export default function DownloadsScreen({
               </Text>
             )}
 
+            {shown === 'downloads' && actions.retryFailed}
+
             {/* The strip only appears once there is something staged: a tab
                 that is always empty teaches people to ignore the strip. */}
             {collected.length > 0 && (
@@ -443,16 +453,11 @@ export default function DownloadsScreen({
         // so this runs only on a yes.
         //
         // The files stay: this removes the entries rather than what has already
-        // been downloaded. Erasing those is a second, differently dangerous
-        // decision, and a folder's bin badge is not the place to offer it.
-        onDeletePackage={async (pkg) => {
-          setStartError('');
-          try {
-            await deleteTasks(conn, pkg.tasks.map((x) => x.id), false, base);
-          } catch (e) {
-            setStartError(errorText(t, e));
-          }
-        }}
+        // been downloaded, and the line it leaves offers the undo. Erasing the
+        // files is a second, differently dangerous decision, and a folder's bin
+        // badge is not the place to offer it.
+        onDeletePackage={(pkg) => void actions.remove(pkg.tasks.map((x) => x.id))}
+        onActions={actions.open}
         /* Both tabs reorder. A band is every task that is neither done nor
            failed (movable, app_queue.go), a staged one included, and it carries
            a position like any other, so the collector has an order to write.
@@ -485,6 +490,8 @@ export default function DownloadsScreen({
       >
         <Text style={[styles.fabText, { color: accentContrast }]}>+</Text>
       </TouchableOpacity>
+
+      {actions.layer}
     </View>
   );
 }

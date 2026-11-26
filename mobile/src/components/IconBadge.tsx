@@ -805,3 +805,20 @@ export function Folder({ color, size = GLYPH_BOX }: { color: string; size?: numb
     </View>
   );
 }
+
+/**
+ * More: three dots in a row, the mark of a menu that holds what the row has
+ * no badge for. The web draws the same meaning as IconMore.
+ */
+export function More({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Three dots of 3 with gaps of 2.5 span 14 units.
+  const u = unit(size, 14);
+  const dot = { width: 3 * u, height: 3 * u, borderRadius: 1.5 * u, backgroundColor: color };
+  return (
+    <View style={{ width: size, height: size, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2.5 * u }}>
+      <View style={dot} />
+      <View style={dot} />
+      <View style={dot} />
+    </View>
+  );
+}
