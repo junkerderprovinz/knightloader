@@ -151,6 +151,25 @@ export default function DownloadsScreen({
     tasks,
     refresh: async () => live.current?.refresh(),
     onError: setStartError,
+    // The properties sit in the same sheet as everything else a row offers,
+    // so a row keeps one badge for all of it and its name keeps its room.
+    extraGroups: (chosen, { pkg }) => [
+      {
+        id: 'edit',
+        entries: [
+          {
+            id: 'edit',
+            label: t('edit.title'),
+            onPress: () =>
+              setEditing(
+                pkg || chosen.length > 1
+                  ? { kind: 'package', name: chosen[0].package, tasks: chosen }
+                  : { kind: 'link', task: chosen[0] },
+              ),
+          },
+        ],
+      },
+    ],
   });
 
   useEffect(() => {
@@ -562,7 +581,6 @@ export default function DownloadsScreen({
             : undefined
         }
         onLoadFiles={loadFiles}
-        onEdit={setEditing}
         onSelectFiles={async (task, paths) => {
           setStartError('');
           // A torrent with no file left would be read as all of them.

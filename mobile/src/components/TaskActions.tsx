@@ -209,8 +209,8 @@ export function useTaskActions({
   /** The line under the queue card: why a call was refused, or '' to clear it. */
   onError: (line: string) => void;
   /** Entries another part of the screen offers for the same links, placed
-   *  before removal. */
-  extraGroups?: (chosen: Task[]) => ActionGroup[];
+   *  before removal. `pkg` is set when the sheet acts on a whole package. */
+  extraGroups?: (chosen: Task[], where: { pkg: boolean }) => ActionGroup[];
 }): {
   open: (chosen: Task[], title: string, where: { settled: boolean; pkg: boolean }) => void;
   remove: (ids: string[]) => Promise<void>;
@@ -322,7 +322,7 @@ export function useTaskActions({
       }))
     : [];
   // Removal is always the last of them and stays last.
-  const groups = menu ? [...own.slice(0, -1), ...(extraGroups?.(chosen) ?? []), ...own.slice(-1)] : [];
+  const groups = menu ? [...own.slice(0, -1), ...(extraGroups?.(chosen, { pkg: menu.pkg }) ?? []), ...own.slice(-1)] : [];
 
   const token = notice?.token;
   const failed = tasks.filter((x) => x.status === 'error').length;

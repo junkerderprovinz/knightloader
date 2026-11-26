@@ -36,43 +36,6 @@ import { InfoTip } from './InfoTip';
 import { NoArrival } from './Moving';
 import { Text, TextInput } from './Text';
 
-/** Pencil: the properties of a link or a package, filled like every glyph of the badges. */
-export function Pencil({ color, size = 16 }: { color: string; size?: number }) {
-  // Turned, the 13.3 units of its length and the 4 of its width span about
-  // 12.2 units each way, which fill the four fifths of the box every glyph
-  // fills.
-  const u = (size * 0.8) / 12.2;
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ alignItems: 'center', transform: [{ rotate: '45deg' }] }}>
-        <View
-          style={{
-            width: 4 * u,
-            height: 1.5 * u,
-            marginBottom: 0.8 * u,
-            backgroundColor: color,
-            borderTopLeftRadius: u,
-            borderTopRightRadius: u,
-          }}
-        />
-        <View style={{ width: 4 * u, height: 8 * u, backgroundColor: color }} />
-        <View
-          style={{
-            width: 0,
-            height: 0,
-            borderLeftWidth: 2 * u,
-            borderRightWidth: 2 * u,
-            borderTopWidth: 3 * u,
-            borderLeftColor: 'transparent',
-            borderRightColor: 'transparent',
-            borderTopColor: color,
-          }}
-        />
-      </View>
-    </View>
-  );
-}
-
 /** One box of a form: its name, an (i) for what it does, and the control. */
 export function EditField({ label, info, children }: { label: string; info?: string; children: ReactNode }) {
   const { c } = useAppearance();

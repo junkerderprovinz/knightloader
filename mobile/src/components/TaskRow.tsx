@@ -11,7 +11,6 @@ import { InfoTip } from './InfoTip';
 import { SaveDown } from './SaveCard';
 import IconBadge, { More, Power } from './IconBadge';
 import { Text } from './Text';
-import { Pencil } from './TaskEdit';
 
 // The debrid services that fetch torrents, by the resolver id the server sends.
 // Their product names are no words to translate, and the web writes them the
@@ -106,7 +105,6 @@ export default function TaskRow({
   onSwitch,
   onPlay,
   onMore,
-  onEdit,
   onSave,
   files,
   unpack,
@@ -123,8 +121,6 @@ export default function TaskRow({
   onPlay?: () => void;
   /** Opens what else can be done with this link (TaskActions). */
   onMore?: () => void;
-  /** Opens this link's properties. */
-  onEdit?: () => void;
   /** Copies the finished file onto this phone; absent where there is none. */
   onSave?: () => void;
   /** A torrent's files, drawn under the rest of the card in the row's own
@@ -314,7 +310,6 @@ export default function TaskRow({
       )}
 
       {onMore && <IconBadge icon={<More color={c.textSub} />} onPress={onMore} accessibilityLabel={t('actions.more')} />}
-      {onEdit && <IconBadge icon={<Pencil color={c.textSub} />} onPress={onEdit} accessibilityLabel={t('edit.title')} />}
     </View>
   );
 }

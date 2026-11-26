@@ -24,8 +24,6 @@ import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
 import { hasSomethingToPlay, mediaKind } from '../api/media';
-import type { EditTarget } from '../api/taskEdit';
-import { Pencil } from './TaskEdit';
 import { canSave } from '../api/saveCopy';
 
 /**
@@ -97,7 +95,6 @@ export default function PackageList({
   onSeeding,
   onPlay,
   onActions,
-  onEdit,
   onSave,
   onSaveFile,
   sections = [],
@@ -151,8 +148,6 @@ export default function PackageList({
   /** Opens the More sheet for a link or a whole package, named by `title`.
    *  `settled` is a part below the list, where less applies. */
   onActions?: (tasks: Task[], title: string, where: { settled: boolean; pkg: boolean }) => void;
-  /** Opens the properties of a link or of a whole package. */
-  onEdit?: (target: EditTarget) => void;
   /** Copies what a link downloaded onto this phone (canSave). */
   onSave?: (task: Task) => void;
   /** Copies one file of a finished torrent, by its place in the list. */
@@ -268,7 +263,6 @@ export default function PackageList({
                 onActions &&
                 (() => scharf || onActions([r.task], r.task.name || r.task.url, { settled: !!r.section, pkg: false }))
               }
-              onEdit={onEdit && (() => scharf || onEdit({ kind: 'link', task: r.task }))}
               onSave={onSave && canSave(r.task) ? () => scharf || onSave(r.task) : undefined}
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
@@ -489,13 +483,6 @@ export default function PackageList({
                   accessibilityLabel={t('packages.startSeeding')}
                 />
               )
-            )}
-            {onEdit && (
-              <IconBadge
-                icon={<Pencil color={c.textSub} />}
-                onPress={() => scharf || onEdit({ kind: 'package', name: pkg.name, tasks: pkg.tasks })}
-                accessibilityLabel={t('edit.title')}
-              />
             )}
             {onDeletePackage && (
               <IconBadge
