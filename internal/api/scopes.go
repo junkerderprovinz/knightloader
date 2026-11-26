@@ -77,6 +77,10 @@ var routeScopes = map[string]apitoken.Scope{
 	// A test captcha can go to the paid captcha accounts, which bill it.
 	"POST /api/captcha/test": apitoken.ScopeAdmin,
 
+	// A category is a name a token may add links under; nothing of its
+	// folders comes with it.
+	"GET /api/categories": apitoken.ScopeRead,
+
 	"GET /api/cleanup/{class}":             apitoken.ScopeRead,
 	"POST /api/cleanup/{class}":            apitoken.ScopeControl,
 	"DELETE /api/collector/filtered":       apitoken.ScopeControl,
@@ -116,6 +120,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/diagnostics/startup":      apitoken.ScopeAdmin,
 	"GET /api/diagnostics/task/{id}":     apitoken.ScopeAdmin,
 	"GET /api/diskspace":                 apitoken.ScopeRead,
+	// Where files land on the host, which only admin may pick.
+	"GET /api/download-folders": apitoken.ScopeAdmin,
 
 	// An event program is code this instance runs, as a script is.
 	"GET /api/eventprograms":              apitoken.ScopeAdmin,
