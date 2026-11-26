@@ -79,6 +79,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.9.8" date="2026-11-26">
+      <description>
+        <p>The browser extension pairs on your own relay and works with an instance that serves it, the Android app catches up with the web interface, and calls reach an instance while it reconnects.</p>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.9.8</url>
+    </release>
     <release version="2.9.7" date="2026-11-25">
       <description>
         <p>The Security tile takes GlimStone 4.9.2, KnightLoader starts on a fresh Proxmox mount point, and a fetched yt-dlp that no longer starts gets replaced.</p>

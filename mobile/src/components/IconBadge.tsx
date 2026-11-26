@@ -67,6 +67,7 @@ export function boxForInk(ink: number): number {
  */
 const SYMBOL_GLYPHS: Record<string, (p: { color: string; size?: number }) => ReactNode> = {
   '+': Plus,
+  '−': Minus,
   '▶': Play,
   '■': Stop,
 };
@@ -555,6 +556,50 @@ export function SpeedLimit({ color, size = GLYPH_BOX }: { color: string; size?: 
   return <Drawn source={require('../../assets/speed-limit.png')} color={color} size={size} />;
 }
 
+/** Plus without its upright, for a count that steps down. */
+export function Minus({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  const u = unit(size, 10);
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 10 * u, height: 2.8 * u, borderRadius: 1.4 * u, backgroundColor: color }} />
+    </View>
+  );
+}
+
+/* What narrows a list and what the collector does with links it did not take,
+ * the web's IconSearch, IconFilter, IconRestore and IconEmpty. */
+
+export function Search({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/search.png')} color={color} size={size} />;
+}
+
+export function Filter({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/filter.png')} color={color} size={size} />;
+}
+
+export function Restore({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/restore.png')} color={color} size={size} />;
+}
+
+export function Empty({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/empty.png')} color={color} size={size} />;
+}
+
+/* Saving a view, managing and renaming views, and saving a value: the web's
+ * IconPin, IconPencil and IconSave. */
+
+export function Pin({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/pin.png')} color={color} size={size} />;
+}
+
+export function Pencil({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/pencil.png')} color={color} size={size} />;
+}
+
+export function Save({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/save.png')} color={color} size={size} />;
+}
+
 /**
  * Disable and enable: the power mark, a ring open at the top with a stem
  * through the opening, the glyph the web interface puts on the same two verbs.
@@ -802,6 +847,23 @@ export function Folder({ color, size = GLYPH_BOX }: { color: string; size?: numb
         />
         <View style={{ width: 13 * u, height: 9 * u, backgroundColor: color, borderRadius: 1.4 * u }} />
       </View>
+    </View>
+  );
+}
+
+/**
+ * More: three dots in a row, the mark of a menu that holds what the row has
+ * no badge for. The web draws the same meaning as IconMore.
+ */
+export function More({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Three dots of 3 with gaps of 2.5 span 14 units.
+  const u = unit(size, 14);
+  const dot = { width: 3 * u, height: 3 * u, borderRadius: 1.5 * u, backgroundColor: color };
+  return (
+    <View style={{ width: size, height: size, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2.5 * u }}>
+      <View style={dot} />
+      <View style={dot} />
+      <View style={dot} />
     </View>
   );
 }

@@ -4,18 +4,22 @@ import { fetchListCards, fetchQueue, fetchSpeedHistory, pollTasks, setQueueHalte
 import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
 import { needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
 import { playTask } from '../api/play';
+import { useSaveToPhone } from '../components/SaveCard';
 import PackageList from '../components/PackageList';
+import { useTaskActions } from '../components/TaskActions';
+import { TaskEdit } from '../components/TaskEdit';
+import type { EditTarget } from '../api/taskEdit';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Back, Trash } from '../components/IconBadge';
+import IconBadge, { Back, SpeedLimit, Trash } from '../components/IconBadge';
 import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
 import { uploadOf } from '../components/speedPlot';
 import {
-  deleteTasks,
+  ApiError,
   errorText,
   fetchTorrentFiles,
   reorderTasks,
@@ -26,6 +30,14 @@ import {
 } from '../api/client';
 import { Text } from '../components/Text';
 import { Arrive } from '../components/Moving';
+import { ListNarrowing } from '../components/ListNarrowing';
+import { HeldLinks, SkippedLinks } from '../components/NotAdded';
+import { QueueLimits } from '../components/QueueLimits';
+import { COLLECTOR_FILTERS, DOWNLOAD_FILTERS, NOTHING_NARROWED, isNarrowed, narrow, type Narrowing } from '../api/narrowing';
+import { heldOf, type Held, type SkippedLink } from '../api/notAdded';
+import { clearHeld, clearSkipped, fetchSkipped, fetchViews, putViews, restoreHeld } from '../api/listActions';
+import { sanitiseViews, type SavedViewLists } from '../api/savedViews';
+import { SavedViews } from '../components/SavedViews';
 import { usePress } from '../theme/MotionContext';
 
 // peer, when set, means this screen is showing a federation peer of conn rather
@@ -42,6 +54,7 @@ export default function DownloadsScreen({
   onOpenCaptchas,
   isDefault = false,
   onMakeDefault,
+  onReached,
 }: {
   conn: ServerConnection;
   peer?: Instance;
@@ -58,6 +71,9 @@ export default function DownloadsScreen({
   isDefault?: boolean;
   /** Undefined for a federation peer, for the same reason as above. */
   onMakeDefault?: () => void;
+  /** Called each time the list comes through after it did not, such as once
+   *  the phone was approved, so the app reads again what it was refused. */
+  onReached?: () => void;
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, corners } = useAppearance();
@@ -70,12 +86,23 @@ export default function DownloadsScreen({
   const [jobs, setJobs] = useState<ExtractJob[]>([]);
   const unpacking = useMemo(() => unpackingByTask(jobs), [jobs]);
   const [connected, setConnected] = useState(false);
+  // Why the instance turned the list down, such as a phone still waiting for
+  // approval. A call that never reached it leaves this empty.
+  const [refused, setRefused] = useState<ApiError | null>(null);
+  // Counts the times the list came through after it did not. What is read
+  // once per screen is read again on each, since a phone waiting for approval
+  // is refused everything until then.
+  const [reached, setReached] = useState(0);
+  const reachedNow = useRef(false);
+  const onReachedRef = useRef(onReached);
+  onReachedRef.current = onReached;
   const [queue, setQueue] = useState<QueueState | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
   /** What the last start or stop did, when it did not work. Shown rather than
    *  swallowed, the same line the overview carries: a control that reports
    *  nothing cannot be told apart from one that does nothing. */
   const [startError, setStartError] = useState('');
+  const saving = useSaveToPhone(conn, base);
   const loadFiles = useCallback((task: Task) => fetchTorrentFiles(conn, task.id, base), [conn, base]);
   // Which half of the instance is on screen. The two are one task list with one
   // status telling them apart, since "collected" means staged and not started,
@@ -88,29 +115,98 @@ export default function DownloadsScreen({
   // Only the instance's own record: the route is not forwarded to a peer, whose
   // curve starts from live samples.
   const seedGraph = useCallback(() => fetchSpeedHistory(conn), [conn]);
-  const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff);
+  // A link a filter rule rejected is staged too, and waits in a card of its
+  // own above the list, as on the web's Collector page.
+  const held = heldOf(tasks);
+  const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff && !(x as Held).skipped);
   const queued = tasks.filter((x) => x.status !== 'collected');
-  const shown = tab === 'collector' && collected.length > 0 ? 'collector' : 'downloads';
+  // The instance's own trace: the route is not forwarded to a peer.
+  const [skipped, setSkipped] = useState<SkippedLink[]>([]);
+  const collectorHolds = collected.length > 0 || held.length > 0 || (!peer && skipped.length > 0);
+  const shown = tab === 'collector' && collectorHolds ? 'collector' : 'downloads';
+  // Each tab keeps its own search and filters, so switching back finds the
+  // list as it was left.
+  const [narrowings, setNarrowings] = useState<Record<'downloads' | 'collector', Narrowing>>({
+    downloads: NOTHING_NARROWED,
+    collector: NOTHING_NARROWED,
+  });
+  const narrowing = narrowings[shown];
+  const setNarrowing = (n: Narrowing) => setNarrowings((all) => ({ ...all, [shown]: n }));
+  const [limitsOpen, setLimitsOpen] = useState(false);
+  const allowed = shown === 'collector' ? COLLECTOR_FILTERS : DOWNLOAD_FILTERS;
+  // The views the web keeps, null until read and on a peer, whose views are
+  // its own instance's business.
+  const [views, setViews] = useState<SavedViewLists | null>(null);
   // Finished packages and torrents leave the download list for parts of their
   // own below it, as on the web's Downloads page, by the instance's switches.
   const [cardsOn, setCardsOn] = useState<CardSwitches>({ finished: true, torrents: true });
-  const parts = splitByCard(queued, cardsOn);
+  // Split before anything narrows it, because a package's part follows all of
+  // its links, and then narrowed alike: a search finds a file wherever it is.
+  const whole = splitByCard(queued, cardsOn);
+  const parts = {
+    downloads: narrow(whole.downloads, narrowings.downloads),
+    finished: narrow(whole.finished, narrowings.downloads),
+    torrents: narrow(whole.torrents, narrowings.downloads),
+  };
+  const collectedShown = narrow(collected, narrowings.collector);
+  const listed = shown === 'collector' ? collected : queued;
+  const listedShown =
+    shown === 'collector' ? collectedShown.length : parts.downloads.length + parts.finished.length + parts.torrents.length;
   const fabPress = usePress();
+  const [editing, setEditing] = useState<EditTarget | null>(null);
 
   /** The live handle, kept so an action that just changed something on the
    *  server can ask for the truth immediately instead of waiting out the
    *  polling cycle. */
   const live = useRef<Polling | null>(null);
 
+  const actions = useTaskActions({
+    conn,
+    base,
+    tasks,
+    refresh: async () => live.current?.refresh(),
+    onError: setStartError,
+    // The properties sit in the same sheet as everything else a row offers,
+    // so a row keeps one badge for all of it and its name keeps its room.
+    extraGroups: (chosen, { pkg }) => [
+      {
+        id: 'edit',
+        entries: [
+          {
+            id: 'edit',
+            label: t('edit.title'),
+            onPress: () =>
+              setEditing(
+                pkg || chosen.length > 1
+                  ? { kind: 'package', name: chosen[0].package, tasks: chosen }
+                  : { kind: 'link', task: chosen[0] },
+              ),
+          },
+        ],
+      },
+    ],
+  });
+
   useEffect(() => {
     setConnected(false);
+    setRefused(null);
     setTasks([]);
     setJobs([]);
+    reachedNow.current = false;
     const onSnapshot = (snapshot: Task[]) => {
       setConnected(true);
+      setRefused(null);
       setTasks(snapshot);
+      if (reachedNow.current) return;
+      reachedNow.current = true;
+      setReached((n) => n + 1);
+      onReachedRef.current?.();
     };
-    const onError = () => setConnected(false);
+    const onError = (e: unknown) => {
+      setConnected(false);
+      setRefused(e instanceof ApiError ? e : null);
+      reachedNow.current = false;
+    };
     const handle = pollTasks(conn, base, onSnapshot, onError, setJobs);
     live.current = handle;
     return () => {
@@ -122,12 +218,13 @@ export default function DownloadsScreen({
   // The switches of the instance this app is connected to, a peer's list
   // included, the way a browser shows a peer by its own instance's settings.
   useEffect(() => {
+    if (reached === 0) return;
     let alive = true;
     void fetchListCards(conn).then((on) => alive && setCardsOn(on));
     return () => {
       alive = false;
     };
-  }, [conn]);
+  }, [conn, reached]);
 
   useEffect(() => {
     let alive = true;
@@ -140,6 +237,35 @@ export default function DownloadsScreen({
       clearInterval(iv);
     };
   }, [conn, base]);
+
+  // Read now and then while the collector is on screen, since a link folded
+  // into another leaves no trace in the task list.
+  const collectorOnScreen = tab === 'collector';
+  useEffect(() => setSkipped([]), [conn, peer]);
+
+  useEffect(() => setViews(null), [conn, peer]);
+  useEffect(() => {
+    if (peer || reached === 0) return;
+    let alive = true;
+    fetchViews(conn).then(
+      (v) => alive && setViews({ downloads: sanitiseViews(v.downloads), collector: sanitiseViews(v.collector) }),
+      () => {},
+    );
+    return () => {
+      alive = false;
+    };
+  }, [conn, peer, reached]);
+  useEffect(() => {
+    if (peer || reached === 0) return;
+    let alive = true;
+    const load = () => fetchSkipped(conn).then((s) => alive && setSkipped(s)).catch(() => {});
+    load();
+    const iv = collectorOnScreen ? setInterval(load, 10000) : undefined;
+    return () => {
+      alive = false;
+      clearInterval(iv);
+    };
+  }, [conn, peer, collectorOnScreen, reached]);
 
   // try/finally with no catch clears the spinner and sends the rejection
   // nowhere, so a queue call the instance refused looks like a button that was
@@ -163,6 +289,21 @@ export default function DownloadsScreen({
     }
   };
 
+  // Not optimistic: the rows move once the list is read again, which happens
+  // at once rather than at the next poll.
+  const runHeld = async (run: () => Promise<void>, failed: 'collector.filtered.restoreFailed' | 'collector.filtered.clearFailed') => {
+    setStartError('');
+    try {
+      await run();
+    } catch {
+      setStartError(t(failed));
+      return;
+    }
+    await live.current?.refresh().catch(() => {
+      /* the next tick brings it */
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
@@ -180,6 +321,9 @@ export default function DownloadsScreen({
             <Text style={[styles.connState, { color: c.statusWarnSolid }]}>
               {t('downloads.connecting')}
             </Text>
+          )}
+          {!connected && !needsAddingAgain(conn) && refused && (
+            <Text style={[styles.connState, { color: c.textSub }]}>{errorText(t, refused)}</Text>
           )}
         </View>
         <View style={styles.topBarRight}>
@@ -227,7 +371,7 @@ export default function DownloadsScreen({
           list's width cap, centring and margins, four places to keep in step;
           inside the content container there are none. */}
       <PackageList
-        tasks={shown === 'collector' ? collected : parts.downloads}
+        tasks={shown === 'collector' ? collectedShown : parts.downloads}
         unpacking={unpacking}
         sections={
           shown === 'collector'
@@ -239,7 +383,15 @@ export default function DownloadsScreen({
         }
         lineKey={shown}
         empty={
-          connected ? t('downloads.empty') : needsAddingAgain(conn) ? t('error.addAgain') : t('downloads.emptyConnecting')
+          !connected
+            ? needsAddingAgain(conn)
+              ? t('error.addAgain')
+              : t('downloads.emptyConnecting')
+            : listed.length > 0 && isNarrowed(narrowing)
+              ? t('downloads.noMatch')
+              : shown === 'collector'
+                ? t('empty.collectorTitle')
+                : t('downloads.empty')
         }
         header={
           <>
@@ -295,6 +447,15 @@ export default function DownloadsScreen({
                   <ActivityIndicator color={accentInk} size="small" />
                 ) : (
                   <View style={styles.queueActions}>
+                    {/* How fast and how many, beside the switch they qualify,
+                        on the instance's own list alone. */}
+                    {!peer && (
+                      <IconBadge
+                        icon={<SpeedLimit color={accentInk} />}
+                        onPress={() => setLimitsOpen(true)}
+                        accessibilityLabel={t('quick.title')}
+                      />
+                    )}
                     <IconBadge
                       symbol="▶"
                       accent={queue?.halted === false}
@@ -333,9 +494,12 @@ export default function DownloadsScreen({
               </Text>
             )}
 
+            {shown === 'downloads' && actions.retryFailed}
+            {saving.card}
+
             {/* The strip only appears once there is something staged: a tab
                 that is always empty teaches people to ignore the strip. */}
-            {collected.length > 0 && (
+            {collectorHolds && (
               <View style={styles.tabs}>
                 <WellSelector
                   options={[
@@ -346,6 +510,61 @@ export default function DownloadsScreen({
                   onPick={(v) => setTab(v)}
                 />
               </View>
+            )}
+
+            {shown === 'collector' && (
+              <>
+                <HeldLinks
+                  held={held}
+                  onRestore={peer ? undefined : (ids) => runHeld(() => restoreHeld(conn, ids), 'collector.filtered.restoreFailed')}
+                  onClear={peer ? undefined : (ids) => runHeld(() => clearHeld(conn, ids), 'collector.filtered.clearFailed')}
+                />
+                {!peer && (
+                  <SkippedLinks
+                    skipped={skipped}
+                    onClear={async () => {
+                      setStartError('');
+                      try {
+                        await clearSkipped(conn);
+                        setSkipped([]);
+                      } catch {
+                        setStartError(t('skipped.clearFailed'));
+                      }
+                    }}
+                  />
+                )}
+              </>
+            )}
+
+            {(listed.length > 0 || isNarrowed(narrowing) || (views?.[shown].length ?? 0) > 0) && (
+              <ListNarrowing
+                key={shown}
+                tasks={listed}
+                shown={listedShown}
+                narrowing={narrowing}
+                onChange={setNarrowing}
+                filters={allowed}
+                facets={shown === 'collector' ? ['host', 'fileType', 'package'] : []}
+                views={
+                  views && (
+                    <SavedViews
+                      views={views[shown]}
+                      narrowing={narrowing}
+                      allowed={allowed}
+                      keepFacets={shown === 'collector'}
+                      onApply={setNarrowing}
+                      onViews={async (next) => {
+                        try {
+                          const v = await putViews(conn, shown, next);
+                          setViews({ downloads: sanitiseViews(v.downloads), collector: sanitiseViews(v.collector) });
+                        } catch (e) {
+                          throw new Error(errorText(t, e));
+                        }
+                      }}
+                    />
+                  )
+                }
+              />
             )}
           </>
         }
@@ -414,6 +633,8 @@ export default function DownloadsScreen({
             setStartError(t('task.playFailed', { reason: errorText(t, e) }));
           }
         }}
+        onSave={saving.save}
+        onSaveFile={saving.saveFile}
         onSetEnabled={async (links, enabled) => {
           setStartError('');
           try {
@@ -443,16 +664,11 @@ export default function DownloadsScreen({
         // so this runs only on a yes.
         //
         // The files stay: this removes the entries rather than what has already
-        // been downloaded. Erasing those is a second, differently dangerous
-        // decision, and a folder's bin badge is not the place to offer it.
-        onDeletePackage={async (pkg) => {
-          setStartError('');
-          try {
-            await deleteTasks(conn, pkg.tasks.map((x) => x.id), false, base);
-          } catch (e) {
-            setStartError(errorText(t, e));
-          }
-        }}
+        // been downloaded, and the line it leaves offers the undo. Erasing the
+        // files is a second, differently dangerous decision, and a folder's bin
+        // badge is not the place to offer it.
+        onDeletePackage={(pkg) => void actions.remove(pkg.tasks.map((x) => x.id))}
+        onActions={actions.open}
         /* Both tabs reorder. A band is every task that is neither done nor
            failed (movable, app_queue.go), a staged one included, and it carries
            a position like any other, so the collector has an order to write.
@@ -477,6 +693,23 @@ export default function DownloadsScreen({
         }}
       />
 
+      <TaskEdit
+        conn={conn}
+        base={base}
+        target={editing}
+        packages={[...new Set(tasks.map((x) => x.package))]}
+        onClose={() => setEditing(null)}
+        onSaved={() => void live.current?.refresh().catch(() => undefined)}
+      />
+      {!peer && (
+        <QueueLimits
+          conn={conn}
+          visible={limitsOpen}
+          onClose={() => setLimitsOpen(false)}
+          onSaved={() => void fetchQueue(conn, base).then(setQueue, () => {})}
+        />
+      )}
+
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: accent, ...corners.pill, transform: [{ scale: fabPress.scale }] }]}
         onPress={onAddPress}
@@ -485,6 +718,8 @@ export default function DownloadsScreen({
       >
         <Text style={[styles.fabText, { color: accentContrast }]}>+</Text>
       </TouchableOpacity>
+
+      {actions.layer}
     </View>
   );
 }

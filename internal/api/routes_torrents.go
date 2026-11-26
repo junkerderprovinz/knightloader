@@ -48,6 +48,16 @@ func registerTorrents(reg *Registry, a *app.App) {
 			parseTorrentUpload(w, r, a)
 		})
 
+	reg.Add(http.MethodPost, "/api/torrents/parse/phone",
+		"validate a .torrent as the phone app sends one, JSON with the file's name and its bytes in base64, and return its file tree as POST /api/torrents/parse does; stages nothing",
+		func(w http.ResponseWriter, r *http.Request) {
+			var f phoneFile
+			if !decodePhoneFile(w, r, &f) {
+				return
+			}
+			answerTorrentTree(w, a, f.Data)
+		})
+
 	reg.Add(http.MethodPost, "/api/torrents",
 		"stage a magnet or an uploaded .torrent (from /api/torrents/parse) with a file selection",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -194,11 +204,16 @@ func parseTorrentUpload(w http.ResponseWriter, r *http.Request, a *app.App) {
 		http.Error(w, "could not read the uploaded file", http.StatusBadRequest)
 		return
 	}
+	answerTorrentTree(w, a, data)
+}
+
+// answerTorrentTree answers with the file tree of an uploaded .torrent,
+// however it arrived.
+func answerTorrentTree(w http.ResponseWriter, a *app.App, data []byte) {
 	if len(data) > torrent.MaxTorrentBytes {
 		http.Error(w, fmt.Sprintf("a .torrent over %d bytes is refused", torrent.MaxTorrentBytes), http.StatusRequestEntityTooLarge)
 		return
 	}
-
 	md, uri, err := torrent.ParseUpload(data)
 	if err != nil {
 		// torrent.Parse's errors are written to be read, so they go out as

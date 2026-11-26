@@ -45,6 +45,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/accounts":           apitoken.ScopeAdmin,
 	"POST /api/accounts":          apitoken.ScopeAdmin,
 	"GET /api/accounts/catalogue": apitoken.ScopeAdmin,
+	"GET /api/accounts/paused":    apitoken.ScopeRead,
 	"POST /api/accounts/enabled":  apitoken.ScopeAdmin,
 	"POST /api/accounts/label":    apitoken.ScopeAdmin,
 	"POST /api/accounts/test":     apitoken.ScopeAdmin,
@@ -77,6 +78,10 @@ var routeScopes = map[string]apitoken.Scope{
 	// A test captcha can go to the paid captcha accounts, which bill it.
 	"POST /api/captcha/test": apitoken.ScopeAdmin,
 
+	// A category is a name a token may add links under; nothing of its
+	// folders comes with it.
+	"GET /api/categories": apitoken.ScopeRead,
+
 	"GET /api/cleanup/{class}":             apitoken.ScopeRead,
 	"POST /api/cleanup/{class}":            apitoken.ScopeControl,
 	"DELETE /api/collector/filtered":       apitoken.ScopeControl,
@@ -105,7 +110,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/connections/import":           apitoken.ScopeAdmin,
 	"POST /api/connections/test":             apitoken.ScopeAdmin,
 
-	"POST /api/containers": apitoken.ScopeAdd,
+	"POST /api/containers":       apitoken.ScopeAdd,
+	"POST /api/containers/phone": apitoken.ScopeAdd,
 
 	// The log names hosts, folders and addresses, and the bundle carries the
 	// settings.
@@ -116,6 +122,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/diagnostics/startup":      apitoken.ScopeAdmin,
 	"GET /api/diagnostics/task/{id}":     apitoken.ScopeAdmin,
 	"GET /api/diskspace":                 apitoken.ScopeRead,
+	// Where files land on the host, which only admin may pick.
+	"GET /api/download-folders": apitoken.ScopeAdmin,
 
 	// An event program is code this instance runs, as a script is.
 	"GET /api/eventprograms":              apitoken.ScopeAdmin,
@@ -219,11 +227,14 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/playback/servers/{id}":    apitoken.ScopeAdmin,
 	"POST /api/playback/servers/{id}/test": apitoken.ScopeAdmin,
 
+	// Setting the limits changes less than halting the queue does.
 	"GET /api/queue":            apitoken.ScopeRead,
 	"POST /api/queue":           apitoken.ScopeControl,
 	"GET /api/queue/counters":   apitoken.ScopeRead,
 	"POST /api/queue/enabled":   apitoken.ScopeControl,
 	"POST /api/queue/force":     apitoken.ScopeControl,
+	"GET /api/queue/limits":     apitoken.ScopeRead,
+	"PUT /api/queue/limits":     apitoken.ScopeControl,
 	"POST /api/queue/move":      apitoken.ScopeControl,
 	"GET /api/queue/priorities": apitoken.ScopeRead,
 	"POST /api/queue/priority":  apitoken.ScopeControl,
@@ -342,6 +353,7 @@ var routeScopes = map[string]apitoken.Scope{
 	// Parsing a .torrent is the first half of adding one.
 	"POST /api/torrents":                  apitoken.ScopeAdd,
 	"POST /api/torrents/parse":            apitoken.ScopeAdd,
+	"POST /api/torrents/parse/phone":      apitoken.ScopeAdd,
 	"POST /api/torrents/portmap":          apitoken.ScopeAdmin,
 	"POST /api/torrents/qbittorrent/test": apitoken.ScopeAdmin,
 	// The log names the trackers somebody is a member of.
@@ -368,12 +380,16 @@ var routeScopes = map[string]apitoken.Scope{
 	// whatever the scope (serverBuckets).
 	"GET /api/uistate": apitoken.ScopeRead,
 	"PUT /api/uistate": apitoken.ScopeAdmin,
-	"GET /api/ws":      apitoken.ScopeRead,
+	// The saved views alone are a list's own business, as halting it is.
+	"GET /api/uistate/views": apitoken.ScopeRead,
+	"PUT /api/uistate/views": apitoken.ScopeControl,
+	"GET /api/ws":            apitoken.ScopeRead,
 
-	"GET /api/ytdlp/formats": apitoken.ScopeAdmin,
-	"GET /api/ytdlp/link":    apitoken.ScopeAdd,
-	"GET /api/ytdlp/preset":  apitoken.ScopeAdmin,
-	"POST /api/ytdlp/preset": apitoken.ScopeAdmin,
+	"GET /api/ytdlp/conversions": apitoken.ScopeAdd,
+	"GET /api/ytdlp/formats":     apitoken.ScopeAdmin,
+	"GET /api/ytdlp/link":        apitoken.ScopeAdd,
+	"GET /api/ytdlp/preset":      apitoken.ScopeAdmin,
+	"POST /api/ytdlp/preset":     apitoken.ScopeAdmin,
 }
 
 // sabnzbdScopes is the right each operation of the SABnzbd bridge needs. The

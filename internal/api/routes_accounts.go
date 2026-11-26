@@ -33,6 +33,13 @@ func registerAccounts(reg *Registry, a *app.App) {
 			writeJSON(w, a.AccountStates())
 		})
 
+	// The phone's background watch says when an account stops being used and
+	// when it is back, from this list rather than the accounts themselves.
+	reg.Add(http.MethodGet, "/api/accounts/paused", "every bench running on an account that is on: the service, the hoster it covers and until when, never the account or why",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, a.PausedAccounts())
+		})
+
 	// The catalogue is what the "new account" picker searches: every service
 	// KnightLoader knows how to store a credential for, configured or not.
 	reg.Add(http.MethodGet, "/api/accounts/catalogue", "every service KnightLoader can store a credential for",

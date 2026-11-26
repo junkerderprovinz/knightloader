@@ -4,7 +4,10 @@ import type { Task, TorrentFileView } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { canSaveTorrentFile } from '../api/saveCopy';
 import { GlimToggle } from './glim';
+import IconBadge from './IconBadge';
+import { SaveDown } from './SaveCard';
 import { Text } from './Text';
 
 /** Whether a task is a torrent whose files are worth listing: a single file
@@ -31,6 +34,7 @@ export function TorrentFiles({
   onToggle,
   files,
   onFlip,
+  onSave,
   hue,
 }: {
   task: Task;
@@ -39,11 +43,13 @@ export function TorrentFiles({
   /** Undefined until the list has come. */
   files: TorrentFileView[] | undefined;
   onFlip: (file: TorrentFileView) => void;
+  /** Copies the file at this place in the list onto the phone. */
+  onSave?: (index: number) => void;
   /** The row's own colour, for the bars and switches. */
   hue: string;
 }) {
   const { t } = useT();
-  const { c, corners } = useAppearance();
+  const { c, corners, accentInk } = useAppearance();
   const finished = torrentFinished(task);
   return (
     <View style={styles.box}>
@@ -61,7 +67,7 @@ export function TorrentFiles({
         </Text>
       </TouchableOpacity>
       {open &&
-        files?.map((f) => (
+        files?.map((f, i) => (
           <View key={f.path} style={styles.file}>
             <View style={styles.fileText}>
               <Text style={[styles.path, { color: f.selected ? c.textSub : c.textMuted }]} numberOfLines={1}>
@@ -84,6 +90,9 @@ export function TorrentFiles({
                 )}
               </View>
             </View>
+            {onSave && canSaveTorrentFile(task, f) && (
+              <IconBadge icon={<SaveDown color={accentInk} />} onPress={() => onSave(i)} accessibilityLabel={t('task.save')} />
+            )}
             {!finished && (
               <GlimToggle
                 value={f.selected}

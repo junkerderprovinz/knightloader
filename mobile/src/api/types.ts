@@ -53,6 +53,8 @@ export interface Task {
   position: number;
   /** False for a disabled link, which keeps its place and is not started. */
   enabled: boolean;
+  /** Started ahead of the queue and past the limit of concurrent downloads. */
+  forced?: boolean;
   checksum?: string;
   /** A collected variant row its host's preset leaves out; the collector does
    *  not show it. */

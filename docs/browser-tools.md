@@ -76,8 +76,9 @@ anyone can build it from a checkout and compare.
 ### Setup is one connection phrase
 
 The options page asks for the same twelve words the instances themselves are
-paired with (`docs/connecting.md`, `kit/phrase`) and for nothing
-else: no name, no address, no password. `extension/src/phrase.js` is a
+paired with (`docs/connecting.md`, `kit/phrase`), and for the relay's
+address only when the group runs its own relay. It needs no instance address
+and no password. `extension/src/phrase.js` is a
 WebCrypto port of the Go derivation, so the browser derives the identical two
 keys: one that joins the relay group, one that encrypts the frames.
 
@@ -87,7 +88,9 @@ popup has a loading state: an instance that is switched off is not offered,
 and one that came online a minute ago is, with nobody telling this browser
 anything. Sends go out as `POST /api/links` **through the relay**, admitted
 because membership in the group is the credential. The `sameOrigin` guard is
-not worked around; it is not on that path.
+not worked around: on the project relay it is not on that path, and an instance
+serving the relay lets an extension's own origin through on `/relay/connect`
+and nowhere else.
 
 There are four context-menu entries (page, link, image, selection) and a
 toolbar popup, and both draw the group as instance cards, the same card the web
@@ -98,7 +101,7 @@ running the queue belongs to the web interface, the app and the desktop tray,
 and the extension only hands links over.
 
 Permissions: `activeTab`, `contextMenus`, `storage` (the default instance,
-the language, the appearance and whether to follow an instance's, the
+the relay address, the language, the appearance and whether to follow an instance's, the
 Click'n'Load switch and countdown, whether the pin hint was shown, and in
 session storage a send waiting for the popup), `scripting`,
 `declarativeNetRequest`, and `offscreen` and `alarms` for the clipboard watch
@@ -540,6 +543,7 @@ on its phone card, the one caller, so the event is captured in one place.
 
 There is no account, and no attempt to speak MyJDownloader's own vocabulary or
 protocol. The same ruling `/api/help` states for the API generally applies
-here. Sends reach the instances in your group through the project's relay
-(`parleyport.halleluja.design`), which forwards sealed messages it cannot read, and
-there is nothing to sign into.
+here. Sends reach the instances in your group through a relay that forwards
+sealed messages it cannot read: the project's relay
+(`parleyport.halleluja.design`), or the group's own when one is entered. There
+is nothing to sign into.

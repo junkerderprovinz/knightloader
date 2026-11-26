@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -33,6 +34,8 @@ func onOwnRelay(t *testing.T, token, base, relayURL string) {
 // nil. It returns what target answered. The relay turns a hello away while the
 // previous connection in the same name is still registered, which a call made
 // right after another one in that name can meet, so that one is tried again.
+// So is a call the relay finds no target for: an instance counts as connected
+// once it has written its hello, before the relay has registered it.
 func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, key ed25519.PrivateKey, call relay.ProxyCall) (int, []byte) {
 	t.Helper()
 	deadline := time.Now().Add(5 * time.Second)
@@ -41,12 +44,15 @@ func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, 
 		if err == nil {
 			return code, body
 		}
-		if websocket.CloseStatus(err) != websocket.StatusPolicyViolation || time.Now().After(deadline) {
+		retry := websocket.CloseStatus(err) == websocket.StatusPolicyViolation || errors.Is(err, errTargetNotOnRelay)
+		if !retry || time.Now().After(deadline) {
 			t.Fatalf("no answer from %s: %v", target, err)
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
 }
+
+var errTargetNotOnRelay = errors.New("the relay has no connection for the target")
 
 func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target string, key ed25519.PrivateKey, call relay.ProxyCall) (int, []byte, error) {
 	t.Helper()
@@ -93,6 +99,9 @@ func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target stri
 		var resp relay.ProxyResponse
 		if err := env.Into(&resp); err != nil {
 			t.Fatal(err)
+		}
+		if resp.Error == "no instance "+target+" is connected with this relay key" {
+			return 0, nil, errTargetNotOnRelay
 		}
 		if resp.Error != "" {
 			t.Fatalf("the relay answered for %s: %s", target, resp.Error)

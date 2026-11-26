@@ -9,6 +9,10 @@ export interface NotifyPrefs {
   captcha: boolean;
   finished: boolean;
   failed: boolean;
+  unpacked: boolean;
+  unpackFailed: boolean;
+  accountPaused: boolean;
+  accountBack: boolean;
   /** Keep the connection open all the time rather than only while something
    *  runs, so a download started elsewhere is noticed too. */
   stay: boolean;
@@ -23,6 +27,13 @@ const DEFAULTS: NotifyPrefs = {
   captcha: true,
   finished: true,
   failed: true,
+  // As the web's notification card starts them: a finished unpacking follows
+  // the finished download it came from, and an account back in use is the
+  // end of news already given.
+  unpacked: false,
+  unpackFailed: true,
+  accountPaused: true,
+  accountBack: false,
   stay: true,
   asked: false,
   batteryAsked: false,
@@ -51,4 +62,5 @@ export function saveNotifyPrefs(change: Partial<NotifyPrefs>): Promise<void> {
   return saved;
 }
 
-export const anyKind = (p: NotifyPrefs): boolean => p.captcha || p.finished || p.failed;
+export const anyKind = (p: NotifyPrefs): boolean =>
+  p.captcha || p.finished || p.failed || p.unpacked || p.unpackFailed || p.accountPaused || p.accountBack;

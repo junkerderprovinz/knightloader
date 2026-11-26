@@ -40,9 +40,34 @@ var groupRoutes = map[string]bool{
 	"/api/fortress/v1/log":    true,
 
 	// Adding links. A folder outside the download folders is refused below.
-	// The extension's video menu first asks what a video offers.
-	"POST /api/links":     true,
-	"GET /api/ytdlp/link": true,
+	// The extension's video menu first asks what a video offers, and the
+	// phone what an audio row can be converted to.
+	"POST /api/links":            true,
+	"GET /api/ytdlp/link":        true,
+	"GET /api/ytdlp/conversions": true,
+	// What a folder and a category are picked from, read apart from the
+	// settings.
+	"GET /api/download-folders": true,
+	"GET /api/categories":       true,
+	// A container or a .torrent picked on the phone, as JSON. The web
+	// interface's multipart uploads stay its own.
+	"POST /api/containers/phone":     true,
+	"POST /api/torrents/parse/phone": true,
+	"POST /api/torrents":             true,
+
+	// What became of links that did not make the list: the ones a filter
+	// rule, a banned tracker or the history rejected, which the phone reads
+	// off the task list and restores or clears, and the ones folded into a
+	// link already there, without their credentials.
+	"POST /api/collector/filtered/restore": true,
+	"DELETE /api/collector/filtered":       true,
+	"GET /api/collector/skipped":           true,
+	"DELETE /api/collector/skipped":        true,
+
+	// The saved views of those two lists, and nothing else of the interface
+	// state, which holds whatever a browser put there.
+	"GET /api/uistate/views": true,
+	"PUT /api/uistate/views": true,
 
 	// The list and what the rows do. Showing a member's downloads without
 	// being able to stop them would be half a connection.
@@ -79,16 +104,25 @@ var groupRoutes = map[string]bool{
 	"POST /api/tasks/{id}/torrent-files": true,
 	"GET /api/extract":                   true,
 
+	// Which accounts stand benched, for the phone to say when one stops being
+	// used and when it is back. Only the service and the hoster: the
+	// accounts themselves stay off.
+	"GET /api/accounts/paused": true,
+
 	// The speed the phone draws its meter from, a sum over every download
 	// that names none of them.
 	"GET /api/stats/speed": true,
 
-	// The queue, the master switch of that list.
+	// The queue, the master switch of that list. The limits are the two
+	// fields the web's quick settings change while downloads run, and no
+	// other setting.
 	"GET /api/queue":            true,
 	"POST /api/queue":           true,
 	"GET /api/queue/counters":   true,
 	"POST /api/queue/enabled":   true,
 	"POST /api/queue/force":     true,
+	"GET /api/queue/limits":     true,
+	"PUT /api/queue/limits":     true,
 	"POST /api/queue/move":      true,
 	"GET /api/queue/priorities": true,
 	"POST /api/queue/priority":  true,

@@ -1,0 +1,1 @@
+The app catches up with the web interface: a More menu on every link and package, properties, links added with options, containers and .torrent files, search, filters and saved views, the speed limit, saving files to the phone, the video format picker and more notifications. It also pairs on your own relay and reconnects when the relay drops it.

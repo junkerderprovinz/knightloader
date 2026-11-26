@@ -115,7 +115,8 @@
       /* Twelve words need the phrase field on its own line. */
       #joinForm { display: flex; flex-direction: column; gap: 10px; margin: 0; }
       #phrase { width: 100%; }
-      #deviceName { flex: 0 1 16rem; min-width: 0; }
+      #deviceName, #relayAddress { flex: 0 1 16rem; min-width: 0; }
+      #joinForm > .glim-row { margin-top: 0; }
       #refreshGroup { margin-top: 16px; }
       #ownKey { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--carbon-text-muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
       #ownKey[hidden] { display: none; }
@@ -403,6 +404,13 @@
           <button id="phrasePaste" class="glim-eye glim-eye--second glim-btn-bare" type="button"></button>
           <button id="phraseEye" class="glim-eye glim-btn-bare" type="button"></button>
         </label>
+        <!-- Empty for the project relay. Inside the form, so Connect takes
+             the address along with the words, and text rather than url, so
+             the page refuses an address in its own words. -->
+        <div class="glim-row">
+          <span class="glim-row-label" id="relayAddressLabel"></span>
+          <input id="relayAddress" type="text" inputmode="url" dir="ltr" autocomplete="off" spellcheck="false" />
+        </div>
         <div class="fields">
           <button id="join" class="primary" type="submit">Connect</button>
           <!-- A neutral icon badge with a bin; #leaveConfirm asks before

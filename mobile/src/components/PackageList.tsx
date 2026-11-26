@@ -13,7 +13,7 @@ import {
 } from '../api/taskState';
 import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
-import IconBadge, { Folder, Power, Trash } from './IconBadge';
+import IconBadge, { Folder, More, Power, Trash } from './IconBadge';
 import { ConfirmDialog } from './ConfirmDialog';
 import { NotchLabel } from './glim';
 import { Arrive } from './Moving';
@@ -24,6 +24,7 @@ import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
 import { hasSomethingToPlay, mediaKind } from '../api/media';
+import { canSave } from '../api/saveCopy';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
@@ -93,6 +94,9 @@ export default function PackageList({
   onSelectFiles,
   onSeeding,
   onPlay,
+  onActions,
+  onSave,
+  onSaveFile,
   sections = [],
   unpacking,
 }: {
@@ -141,6 +145,13 @@ export default function PackageList({
   /** Opens a link's file in a player app. The row offers it only for audio
    *  and video with something to play (mediaKind, hasSomethingToPlay). */
   onPlay?: (task: Task) => void;
+  /** Opens the More sheet for a link or a whole package, named by `title`.
+   *  `settled` is a part below the list, where less applies. */
+  onActions?: (tasks: Task[], title: string, where: { settled: boolean; pkg: boolean }) => void;
+  /** Copies what a link downloaded onto this phone (canSave). */
+  onSave?: (task: Task) => void;
+  /** Copies one file of a finished torrent, by its place in the list. */
+  onSaveFile?: (task: Task, files: TorrentFileView[], index: number) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -231,7 +242,7 @@ export default function PackageList({
       ? {
           key: `${r.section ?? ''}p:${r.pkg.name}`,
           band: r.section ? `s:${r.section}` : 'packages',
-          render: (_ziehend, scharf) => renderHeader(r.pkg, scharf),
+          render: (_ziehend, scharf) => renderHeader(r.pkg, scharf, !!r.section),
         }
       : {
           key: r.task.id,
@@ -248,6 +259,11 @@ export default function PackageList({
                   ? () => scharf || onPlay(r.task)
                   : undefined
               }
+              onMore={
+                onActions &&
+                (() => scharf || onActions([r.task], r.task.name || r.task.url, { settled: !!r.section, pkg: false }))
+              }
+              onSave={onSave && canSave(r.task) ? () => scharf || onSave(r.task) : undefined}
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
                   ? (hue) => (
@@ -257,6 +273,11 @@ export default function PackageList({
                         onToggle={() => scharf || setFilesOpen((o) => ({ ...o, [r.task.id]: !o[r.task.id] }))}
                         files={fileLists[r.task.id]}
                         onFlip={(f) => scharf || void flipFile(r.task, f)}
+                        onSave={
+                          onSaveFile && fileLists[r.task.id]
+                            ? (i) => scharf || onSaveFile(r.task, fileLists[r.task.id], i)
+                            : undefined
+                        }
                         hue={hue}
                       />
                     )
@@ -369,7 +390,7 @@ export default function PackageList({
     );
   };
 
-  const renderHeader = (pkg: Pkg, scharf: boolean) => {
+  const renderHeader = (pkg: Pkg, scharf: boolean, settled: boolean) => {
         const auf = open[pkg.name] === true;
         const state = packageState(pkg.tasks);
         const allOff = isParked(pkg.tasks);
@@ -468,6 +489,13 @@ export default function PackageList({
                 icon={<Trash color={c.textSub} />}
                 onPress={() => scharf || confirmDelete(pkg)}
                 accessibilityLabel={t('packages.delete')}
+              />
+            )}
+            {onActions && (
+              <IconBadge
+                icon={<More color={c.textSub} />}
+                onPress={() => scharf || onActions(pkg.tasks, pkg.name || t('packages.loose'), { settled, pkg: true })}
+                accessibilityLabel={t('actions.more')}
               />
             )}
           </View>

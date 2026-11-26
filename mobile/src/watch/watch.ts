@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { KnightWatch, type OpenRequest } from '../../modules/watch';
 import { ApiError, fetchCaptchasUnwatched, fetchSpeed, fetchTasks, fetchWatch } from '../api/client';
+import { fetchPausedAccounts, fetchWatchJobs } from '../api/watchExtras';
 import { fmtSpeed } from '../api/stats';
 import { explainFailure } from '../api/taskError';
 import type { CaptchaChallenge, ServerConnection, WatchTask } from '../api/types';
@@ -10,6 +11,20 @@ import { detectDeviceLanguage, translate } from '../i18n/I18nContext';
 import type { TranslationKey } from '../i18n/en';
 import { listConnections } from '../storage/connections';
 import { getLanguageOverride } from '../storage/languagePreference';
+import {
+  benchLookOf,
+  benchesDue,
+  compareBenches,
+  compareJobs,
+  jobLookOf,
+  jobName,
+  readsJobs,
+  type BenchLook,
+  type BenchNews,
+  type JobLook,
+  type JobNews,
+  type PausedAccount,
+} from './archiveAccountRules';
 import { anyKind, loadNotifyPrefs, saveNotifyPrefs, type NotifyPrefs } from './prefs';
 import {
   FAST_MS,
@@ -52,6 +67,14 @@ interface Watched {
   lastBusy: number;
   ok: boolean;
   captchaShown: boolean;
+  /** The unpackings at the last read, null before the first one. */
+  jobs: JobLook | null;
+  /** The benches at the last read, null before the first one, and when. */
+  benches: BenchLook | null;
+  benchesAt: number;
+  /** Set for an instance from before the route, which is not asked again. */
+  noJobs: boolean;
+  noBenches: boolean;
 }
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
@@ -94,19 +117,27 @@ function unwatch(id: string): void {
   watched.delete(id);
 }
 
-async function translator(): Promise<Translate> {
+async function language(): Promise<string> {
   const override = await getLanguageOverride().catch(() => null);
-  const dict = await load(override && AVAILABLE.includes(override) ? override : detectDeviceLanguage());
+  return override && AVAILABLE.includes(override) ? override : detectDeviceLanguage();
+}
+
+async function translator(lang?: string): Promise<Translate> {
+  const dict = await load(lang ?? (await language()));
   return (key, vars) => translate(dict, key, vars);
 }
 
 function nameChannels(t: Translate): void {
-  KnightWatch?.channels(
-    t('notify.channelCaptcha'),
-    t('notify.channelFinished'),
-    t('notify.channelFailed'),
-    t('notify.channelWatch'),
-  );
+  KnightWatch?.channels({
+    captcha: t('notify.channelCaptcha'),
+    finished: t('notify.channelFinished'),
+    failed: t('notify.channelFailed'),
+    unpacked: t('settings.notifyUnpacked'),
+    'unpack-failed': t('settings.notifyUnpackFailed'),
+    'account-paused': t('settings.notifyAccountPaused'),
+    'account-back': t('settings.notifyAccountBack'),
+    watch: t('notify.channelWatch'),
+  });
 }
 
 /**
@@ -129,7 +160,8 @@ async function runPass(): Promise<boolean> {
   // Read by the boot receiver, which has no JavaScript to ask.
   KnightWatch.autostart(anyKind(prefs) && prefs.stay && conns.length > 0);
   if (!anyKind(prefs)) return false;
-  const t = await translator();
+  const lang = await language();
+  const t = await translator(lang);
   nameChannels(t);
 
   for (const id of watched.keys()) {
@@ -145,11 +177,26 @@ async function runPass(): Promise<boolean> {
     conns.map(async (conn) => {
       let w = watched.get(conn.id);
       if (!w) {
-        w = { look: null, tag: '', tasks: [], full: false, lastBusy: 0, ok: true, captchaShown: false };
+        w = {
+          look: null,
+          tag: '',
+          tasks: [],
+          full: false,
+          lastBusy: 0,
+          ok: true,
+          captchaShown: false,
+          jobs: null,
+          benches: null,
+          benchesAt: 0,
+          noJobs: false,
+          noBenches: false,
+        };
         watched.set(conn.id, w);
       }
       let tasks: WatchTask[];
       let captchas: CaptchaChallenge[];
+      let jobNews: JobNews = { unpacked: [], failed: [] };
+      let benchNews: BenchNews = { paused: [], back: [] };
       const abort = new AbortController();
       const timer = setTimeout(() => abort.abort(), LOOK_TIMEOUT_MS);
       try {
@@ -170,6 +217,8 @@ async function runPass(): Promise<boolean> {
         if (running.some((x) => !x.stalled && !x.remote)) {
           seen.speed += await fetchSpeed(conn, abort.signal).catch(() => 0);
         }
+        jobNews = await jobsSince(conn, w, tasks, prefs, abort.signal);
+        benchNews = await benchesSince(conn, w, prefs, abort.signal);
       } catch {
         w.ok = false;
         return;
@@ -185,6 +234,7 @@ async function runPass(): Promise<boolean> {
       // The quick pace is there to take the captcha notification down soon.
       if (captchas.length > 0 && prefs.captcha) waiting = true;
       announce(conn, w, news, captchas, prefs, t, front && conn.id === onScreen);
+      announceMore(conn, jobNews, benchNews, prefs, t, lang, front && conn.id === onScreen);
     }),
   );
 
@@ -192,6 +242,59 @@ async function runPass(): Promise<boolean> {
   if (KnightWatch.running()) KnightWatch.update(serviceLine(t, going), '');
   delay = nextDelay(delay, changed, waiting, moving);
   return keepRunning([...watched.values()], startedAt, Date.now(), prefs.stay);
+}
+
+// An instance that refuses a route for good is one from before it, and the
+// rest of the look goes on without it.
+const refusedForGood = (e: unknown): boolean =>
+  e instanceof ApiError && (e.status === 403 || e.status === 404 || e.status === 405);
+
+// What ended among the unpackings since the last read, read only on the looks
+// that can find one (readsJobs). With both switches off the last read is
+// forgotten, so turning one on again starts from what is there then.
+async function jobsSince(
+  conn: ServerConnection,
+  w: Watched,
+  tasks: WatchTask[],
+  prefs: NotifyPrefs,
+  signal: AbortSignal,
+): Promise<JobNews> {
+  const none = { unpacked: [], failed: [] };
+  if (!prefs.unpacked && !prefs.unpackFailed) {
+    w.jobs = null;
+    return none;
+  }
+  if (w.noJobs || !readsJobs(w.jobs, w.look?.status ?? null, tasks)) return none;
+  try {
+    const jobs = await fetchWatchJobs(conn, signal);
+    const news = compareJobs(w.jobs, jobs);
+    w.jobs = jobLookOf(jobs);
+    return news;
+  } catch (e) {
+    if (refusedForGood(e)) w.noJobs = true;
+    return none;
+  }
+}
+
+// Which accounts were benched or came back since the last read, read once a
+// minute at most.
+async function benchesSince(conn: ServerConnection, w: Watched, prefs: NotifyPrefs, signal: AbortSignal): Promise<BenchNews> {
+  const none = { paused: [], back: [] };
+  if (!prefs.accountPaused && !prefs.accountBack) {
+    w.benches = null;
+    return none;
+  }
+  if (w.noBenches || (w.benches && !benchesDue(w.benchesAt, Date.now()))) return none;
+  try {
+    const list = await fetchPausedAccounts(conn, signal);
+    const news = compareBenches(w.benches, list);
+    w.benches = benchLookOf(list);
+    w.benchesAt = Date.now();
+    return news;
+  } catch (e) {
+    if (refusedForGood(e)) w.noBenches = true;
+    return none;
+  }
 }
 
 // The list since the last look, read in full only from an instance that has no
@@ -285,6 +388,96 @@ function announce(
         connection: conn.id,
       });
     }
+  }
+}
+
+// The list on screen shows how an unpacking ended, so the instance open there
+// gets no notice of it. No screen shows an account, so a bench is announced
+// either way.
+function announceMore(
+  conn: ServerConnection,
+  jobs: JobNews,
+  benches: BenchNews,
+  prefs: NotifyPrefs,
+  t: Translate,
+  lang: string,
+  onScreenNow: boolean,
+): void {
+  if (!KnightWatch) return;
+  if (!onScreenNow && prefs.unpacked) {
+    for (const j of jobs.unpacked) {
+      KnightWatch.notify({
+        id: noticeId('unpacked', conn.id, j.id),
+        channel: 'unpacked',
+        title: t('settings.notifyUnpacked'),
+        text: t('notify.unpackedText', { name: jobName(j) }),
+        sub: conn.name,
+        open: 'downloads',
+        connection: conn.id,
+      });
+    }
+  }
+  if (!onScreenNow && prefs.unpackFailed) {
+    for (const j of jobs.failed) {
+      KnightWatch.notify({
+        id: noticeId('unpacked', conn.id, j.id),
+        channel: 'unpack-failed',
+        title: t('settings.notifyUnpackFailed'),
+        text: t('notify.unpackFailedText', { name: jobName(j) }),
+        sub: conn.name,
+        open: 'downloads',
+        connection: conn.id,
+      });
+    }
+  }
+  // A bench and its end are about the same account, so the end replaces the
+  // notice of the bench.
+  if (prefs.accountPaused) {
+    for (const p of benches.paused) {
+      KnightWatch.notify({
+        id: noticeId('account', conn.id, p.id),
+        channel: 'account-paused',
+        title: t('settings.notifyAccountPaused'),
+        text: p.service,
+        detail: `${p.service}\n${pausedLine(t, p, lang)}`,
+        sub: conn.name,
+        open: 'downloads',
+        connection: conn.id,
+      });
+    }
+  }
+  if (prefs.accountBack) {
+    for (const p of benches.back) {
+      KnightWatch.notify({
+        id: noticeId('account', conn.id, p.id),
+        channel: 'account-back',
+        title: t('settings.notifyAccountBack'),
+        text: p.host
+          ? t('notify.accountBackHost', { service: p.service, host: p.host })
+          : t('notify.accountBack', { service: p.service }),
+        sub: conn.name,
+        open: 'downloads',
+        connection: conn.id,
+      });
+    }
+  }
+}
+
+/** The web's sentence for a bench on its accounts page, with the end written
+ *  the way the phone's language writes a time. */
+function pausedLine(t: Translate, p: PausedAccount, lang: string): string {
+  const until = untilText(p.until, lang);
+  if (p.volume) return p.host ? t('notify.pausedVolumeHost', { host: p.host, until }) : t('notify.pausedVolume', { until });
+  return p.host ? t('notify.pausedOtherHost', { host: p.host, until }) : t('notify.pausedOther', { until });
+}
+
+function untilText(iso: string, lang: string): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return iso;
+  try {
+    return at.toLocaleString(lang, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch {
+    return at.toLocaleString();
   }
 }
 

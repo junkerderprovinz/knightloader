@@ -54,6 +54,10 @@ const (
 	maxRelayAnswer = 8 << 20
 )
 
+// relaySocketPath is where this instance serves the relay, below its own
+// address, as relay clients dial it.
+const relaySocketPath = "/relay/connect"
+
 func registerRelay(reg *Registry, a *app.App) {
 	dropRelayKey(a)
 
@@ -89,7 +93,7 @@ func registerRelay(reg *Registry, a *app.App) {
 		return names
 	}
 	srv.TrustedProxies = trustedProxies(a)
-	reg.AddOpen(http.MethodGet, "/relay/connect",
+	reg.AddOpen(http.MethodGet, relaySocketPath,
 		"the relay socket, when this instance is serving one - authorised by the relay key in the first frame, never by a session",
 		func(w http.ResponseWriter, r *http.Request) {
 			// With the switch off this instance is not a relay, so it answers

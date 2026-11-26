@@ -194,6 +194,17 @@ func TestALinksOwnChoiceStagesItsRowsAtItsQualities(t *testing.T) {
 	}
 }
 
+func TestALinksOwnChoiceConvertsAtItsOwnBitrate(t *testing.T) {
+	host := HosterPreset{Variants: Variants(), AudioFormat: "opus", AudioBitrate: "160"}.Sanitize()
+	got := host.ForChoice(LinkChoice{Variants: []Variant{VariantAudio}, AudioFormat: "mp3", AudioBitrate: "256"})
+	if got.AudioFormat != "mp3" || got.AudioBitrate != "256" {
+		t.Errorf("the audio row is %s at %q kbit/s, want mp3 at the chosen 256", got.AudioFormat, got.AudioBitrate)
+	}
+	if (LinkChoice{Variants: []Variant{VariantAudio}, AudioFormat: "mp3", AudioBitrate: "999"}).Valid() {
+		t.Error("a bitrate no conversion offers was taken")
+	}
+}
+
 func TestALinksOwnChoiceRefusesWhatNoRowCanMean(t *testing.T) {
 	for _, c := range []LinkChoice{
 		{},

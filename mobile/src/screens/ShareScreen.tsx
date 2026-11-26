@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from 'react-native';
 import { addSharedText, errorText } from '../api/client';
 import type { ServerConnection } from '../api/types';
+import { addVideo, fetchLinkMenus } from '../api/videoLink';
+import { offersChoice, singleLink, type LinkChoice, type LinkMenus } from '../api/videoPick';
 import { listConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
@@ -11,6 +13,7 @@ import { Connect, Cross, Plus, Retry } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { Arrive } from '../components/Moving';
 import { Text } from '../components/Text';
+import { VideoPicker } from '../components/VideoChoice';
 
 const MARK = require('../../assets/android-icon-foreground.png');
 
@@ -22,6 +25,8 @@ type Phase =
   | { kind: 'loading' }
   | { kind: 'unpaired' }
   | { kind: 'pick'; list: ServerConnection[] }
+  | { kind: 'probing'; conn: ServerConnection }
+  | { kind: 'choose'; conn: ServerConnection; menus: LinkMenus }
   | { kind: 'busy'; conn: ServerConnection }
   | { kind: 'done'; conn: ServerConnection; count: number }
   | { kind: 'error'; conn: ServerConnection; message: string };
@@ -51,17 +56,38 @@ export default function ShareScreen({
   const unreadable = text === UNREADABLE_FILE;
   const [phase, setPhase] = useState<Phase>({ kind: unreadable ? 'unreadable' : 'loading' });
 
-  const send = useCallback(
-    async (conn: ServerConnection) => {
+  const video = unreadable ? null : singleLink(text);
+  const choice = useRef<LinkChoice | null>(null);
+  const setChoice = useCallback((c: LinkChoice) => {
+    choice.current = c;
+  }, []);
+
+  const add = useCallback(
+    async (conn: ServerConnection, picked: LinkChoice | null) => {
       setPhase({ kind: 'busy', conn });
       try {
-        const created = await addSharedText(conn, text, title);
+        const created =
+          video && picked ? await addVideo(conn, video, picked, '/api', title) : await addSharedText(conn, text, title);
         setPhase({ kind: 'done', conn, count: created.length });
       } catch (err) {
         setPhase({ kind: 'error', conn, message: errorText(t, err) });
       }
     },
-    [text, title, t],
+    [video, text, title, t],
+  );
+
+  // A shared video asks the instance what it offers first, and the choice of
+  // format comes before anything is added. Anything else goes straight in.
+  const send = useCallback(
+    async (conn: ServerConnection) => {
+      if (!video) return add(conn, null);
+      setPhase({ kind: 'probing', conn });
+      const menus = await fetchLinkMenus(conn, video).catch(() => null);
+      if (!menus || !offersChoice(menus)) return add(conn, null);
+      choice.current = null;
+      setPhase({ kind: 'choose', conn, menus });
+    },
+    [video, add],
   );
 
   useEffect(() => {
@@ -135,6 +161,29 @@ export default function ShareScreen({
           </ScrollView>
           <View style={styles.actions}>
             <GlimButton tone="quiet" grow label={t('share.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+          </View>
+        </>
+      )}
+
+      {phase.kind === 'probing' && (
+        <Arrive style={[styles.card, { backgroundColor: c.surface, ...corners.card }]}>
+          <ActivityIndicator color={c.textMuted} />
+          <Text style={[styles.message, { color: c.textMuted }]}>{t('video.probing')}</Text>
+        </Arrive>
+      )}
+
+      {phase.kind === 'choose' && (
+        <>
+          <VideoPicker menus={phase.menus} onChoice={setChoice} />
+          <View style={styles.actions}>
+            <GlimButton tone="quiet" grow label={t('share.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+            <GlimButton
+              hue={1}
+              grow
+              label={t('addDownload.button')}
+              icon={(ink) => <Plus color={ink} />}
+              onPress={() => void add(phase.conn, choice.current)}
+            />
           </View>
         </>
       )}

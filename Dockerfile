@@ -49,8 +49,13 @@ FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5
 # (desktop/unrar.json).
 ARG UNRAR_VERSION=7.2.7
 ARG UNRAR_SHA256=01d903a7dcf413cb2925696d7796e48e38d471f79bfe7ef3ad2aebf6c12dbefd
-RUN apk add --no-cache g++ make \
-    && wget -qO /tmp/unrarsrc.tar.gz "https://www.rarlab.com/rar/unrarsrc-${UNRAR_VERSION}.tar.gz" \
+# rarlab.com is a single host that times out now and then, so the fetch
+# retries and falls back to the Internet Archive's copy, which the sum below
+# holds to the same bytes.
+RUN apk add --no-cache g++ make curl \
+    && src="https://www.rarlab.com/rar/unrarsrc-${UNRAR_VERSION}.tar.gz" \
+    && { curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 -o /tmp/unrarsrc.tar.gz "${src}" \
+      || curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 -o /tmp/unrarsrc.tar.gz "https://web.archive.org/web/2026id_/${src}"; } \
     && echo "${UNRAR_SHA256}  /tmp/unrarsrc.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/unrarsrc.tar.gz -C /tmp \
     && make -C /tmp/unrar -f makefile -j"$(nproc)" \
@@ -78,11 +83,11 @@ RUN --mount=type=bind,from=glibc,source=/usr/lib,target=/glibc \
       arm64) arch=aarch64; loader=ld-linux-aarch64.so.1 ;; \
       *) echo "Deno publishes no Linux build for ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
-    && apk add --no-cache patchelf \
+    && apk add --no-cache patchelf curl \
     && zip="deno-${arch}-unknown-linux-gnu.zip" \
     && url="https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/${zip}" \
-    && wget -qO "/tmp/${zip}" "${url}" \
-    && wget -qO /tmp/deno.sha256sum "${url}.sha256sum" \
+    && curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 -o "/tmp/${zip}" "${url}" \
+    && curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 -o /tmp/deno.sha256sum "${url}.sha256sum" \
     && sha256sum -c deno.sha256sum \
     && unzip -q "/tmp/${zip}" deno -d /tmp \
     && mkdir -p /usr/local/lib/glibc \
@@ -104,7 +109,7 @@ ARG TARGETARCH
 # the app checks its own yt-dlp updates with (internal/mediatools/signature.go).
 ARG YTDLP_SIGNER=AC0CBBE6848D6A873464AF4E57CF65933B5A7581
 COPY internal/mediatools/ytdlp-signing-key.asc /tmp/
-RUN apk add --no-cache gpg gpgv \
+RUN apk add --no-cache gpg gpgv curl \
     && case "${TARGETARCH}" in \
       amd64) asset=yt-dlp_musllinux ;; \
       arm64) asset=yt-dlp_musllinux_aarch64 ;; \
@@ -112,12 +117,12 @@ RUN apk add --no-cache gpg gpgv \
     esac \
     && base="https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}" \
     && cd /tmp \
-    && wget -qO SHA2-256SUMS "${base}/SHA2-256SUMS" \
-    && wget -qO SHA2-256SUMS.sig "${base}/SHA2-256SUMS.sig" \
+    && curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 -O "${base}/SHA2-256SUMS" \
+    && curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 -O "${base}/SHA2-256SUMS.sig" \
     && gpg --batch --dearmor -o ytdlp.gpg ytdlp-signing-key.asc \
     && gpgv --status-fd 1 --keyring ./ytdlp.gpg SHA2-256SUMS.sig SHA2-256SUMS \
       | grep -q "^\[GNUPG:\] VALIDSIG .* ${YTDLP_SIGNER}\$" \
-    && wget -qO "${asset}" "${base}/${asset}" \
+    && curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 -o "${asset}" "${base}/${asset}" \
     && sum=$(grep -x "[0-9a-f]\{64\}  ${asset}" SHA2-256SUMS) \
     && echo "${sum}" | sha256sum -c - \
     && install -Dm755 "${asset}" /out/yt-dlp \

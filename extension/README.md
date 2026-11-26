@@ -20,7 +20,8 @@ Chrome Web Store User Data Policy, including the Limited Use requirements.
 ## Setup is one connection phrase
 
 The options page asks for the twelve words your instances already share, and
-for nothing else: no name, no address, no password. `src/phrase.js` is a
+for the relay's address only when your group runs its own relay. It needs no
+instance address and no password. `src/phrase.js` is a
 WebCrypto port of `kit/phrase`, so this browser derives the same two
 keys the instances do: one to join the relay group, one to encrypt the frames.
 The phrase itself never leaves the browser.

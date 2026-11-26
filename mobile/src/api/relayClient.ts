@@ -227,9 +227,15 @@ export class RelayClient {
       // Random rather than counted: an instance runs each id once per key, and
       // an id somebody else can predict is one they can send first.
       const requestId = Array.from(getRandomBytes(16), (b) => b.toString(16).padStart(2, '0')).join('');
+      const socket = this.socket;
       const timer = setTimeout(() => {
         this.pending.delete(requestId);
         reject(new Error('relay: the instance did not answer in time'));
+        // This side sends no pings, so a socket dropped without a close stays
+        // open here and swallows every call. An unanswered call is the only
+        // sign of that.
+        this.lost(socket, 'a call through this connection went unanswered');
+        socket.close();
       }, PROXY_TIMEOUT_MS);
       const pending: Pending = { target, sealed: [], resolve, reject, timer };
       this.pending.set(requestId, pending);
@@ -325,27 +331,31 @@ export class RelayClient {
       // every retry.
     };
 
-    socket.onclose = () => {
-      if (this.socket !== socket) return;
-      const wasStable = this.open && Date.now() - this.openedAt >= STABLE_SESSION_MS;
-      this.open = false;
-      this.socket = null;
-      this.sibs = [];
-      this.failAllPending('the relay connection dropped before the answer came back');
-      this.emitChange();
-      if (this.closed) return;
-      // Reset only after a connection that lasted. A relay that accepts the
-      // socket and then hangs up, over a rejected key or a proxy misrouting the
-      // upgrade, must not be dialled once a second for ever.
-      if (wasStable) this.backoff = MIN_BACKOFF_MS;
-      this.retryTimer = setTimeout(() => {
-        // Cleared before dialling, not after: start() treats a pending timer
-        // as already on its way, so a fired one left set makes it a no-op.
-        this.retryTimer = null;
-        this.connect();
-      }, this.backoff);
-      this.backoff = Math.min(this.backoff * 2, MAX_BACKOFF_MS);
-    };
+    socket.onclose = () => this.lost(socket, 'the relay connection dropped before the answer came back');
+  }
+
+  /** lost lets go of socket, if it is still the current one, and dials again
+   *  after the backoff. */
+  private lost(socket: WebSocket, reason: string): void {
+    if (this.socket !== socket) return;
+    const wasStable = this.open && Date.now() - this.openedAt >= STABLE_SESSION_MS;
+    this.open = false;
+    this.socket = null;
+    this.sibs = [];
+    this.failAllPending(reason);
+    this.emitChange();
+    if (this.closed) return;
+    // Reset only after a connection that lasted. A relay that accepts the
+    // socket and then hangs up, over a rejected key or a proxy misrouting the
+    // upgrade, must not be dialled once a second for ever.
+    if (wasStable) this.backoff = MIN_BACKOFF_MS;
+    this.retryTimer = setTimeout(() => {
+      // Cleared before dialling, not after: start() treats a pending timer
+      // as already on its way, so a fired one left set makes it a no-op.
+      this.retryTimer = null;
+      this.connect();
+    }, this.backoff);
+    this.backoff = Math.min(this.backoff * 2, MAX_BACKOFF_MS);
   }
 
   /** hello introduces this socket once the relay sent the challenge its

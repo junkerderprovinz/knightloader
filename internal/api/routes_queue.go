@@ -9,9 +9,12 @@ package api
 // broadcasts.
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // requireSelection refuses a request that names nothing to act on. "All of
@@ -168,4 +171,53 @@ func registerQueue(reg *Registry, a *app.App) {
 			}
 			bulkDone(w, a.SetEnabledIn(body.Selection, body.Enabled))
 		})
+
+	// How fast and how many, the two fields the web's quick settings change
+	// while downloads run, for a client that may not reach the settings.
+	reg.Add(http.MethodGet, "/api/queue/limits", "the speed limit and how many downloads run at once, as the settings hold them",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, limitsOf(a.Settings.Get()))
+		})
+	reg.Add(http.MethodPut, "/api/queue/limits", "set the speed limit, how many downloads run at once, or both; any other field is refused",
+		func(w http.ResponseWriter, r *http.Request) {
+			var in struct {
+				SpeedLimit    *int64 `json:"speedLimit"`
+				MaxConcurrent *int   `json:"maxConcurrent"`
+			}
+			dec := json.NewDecoder(http.MaxBytesReader(w, io.NopCloser(body(r)), maxJSONBody))
+			dec.DisallowUnknownFields()
+			if err := dec.Decode(&in); err != nil {
+				http.Error(w, "this takes speedLimit and maxConcurrent and nothing else", http.StatusBadRequest)
+				return
+			}
+			patch := map[string]json.RawMessage{}
+			if in.SpeedLimit != nil {
+				patch["speedLimit"], _ = json.Marshal(*in.SpeedLimit)
+			}
+			if in.MaxConcurrent != nil {
+				patch["maxConcurrent"], _ = json.Marshal(*in.MaxConcurrent)
+			}
+			if len(patch) == 0 {
+				http.Error(w, "this needs speedLimit, maxConcurrent or both", http.StatusBadRequest)
+				return
+			}
+			// The settings route's own save, so the bounds, the timetable and
+			// everything else a change of these fields sets off are the same.
+			applied, err := a.PatchSettings(patch)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			writeJSON(w, limitsOf(applied))
+		})
+}
+
+// queueLimits is what /api/queue/limits reads and writes.
+type queueLimits struct {
+	SpeedLimit    int64 `json:"speedLimit"`
+	MaxConcurrent int   `json:"maxConcurrent"`
+}
+
+func limitsOf(s settings.Settings) queueLimits {
+	return queueLimits{SpeedLimit: s.SpeedLimit, MaxConcurrent: s.MaxConcurrent}
 }

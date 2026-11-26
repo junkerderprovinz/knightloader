@@ -148,6 +148,7 @@ async function openPopup({ phrase, siblings = [] }) {
   if (renderGroup && onOpen) {
     const doc = makeDocument(html);
     let phrase = '';
+    let relay = '';
     const el = (id) => doc.getElementById(id);
     const ctx = vm.createContext({
       document: doc, console, setTimeout, clearTimeout,
@@ -155,6 +156,7 @@ async function openPopup({ phrase, siblings = [] }) {
       leaveBtn: el('leave'), refreshBtn: el('refreshGroup'), joinBtn: el('join'), list: el('list'), ownKeyEl: el('ownKey'), status: el('status'),
       t: (key) => key, glimGlyph: () => new El(), say() {}, recheckGroup() {}, showOwnKey: async () => {}, instancesGlyph: () => new El(),
       phraseMovedEl: el('phraseMoved'), followedIntoFortress: async () => false,
+      relayAddressEl: el('relayAddress'), readRelayAddress: async () => relay,
       readPhrase: async () => phrase, readDefaultTarget: async () => '', groupView: async () => ({ instances: [], apps: [], away: [] }),
     });
     vm.runInContext(`let groupTurn = 0, recheckTimer = 0, recheckDue = false, refusalNotice = '';\n${renderGroup}\n${onOpen}`, ctx, { filename: 'options.js' });
@@ -166,8 +168,10 @@ async function openPopup({ phrase, siblings = [] }) {
     await ctx.renderGroup();
     if (!el('pairNotice').hidden) fail('with a phrase stored the options page still says to connect an instance');
     phrase = '';
+    relay = 'https://kl.example.org';
     await ctx.renderGroup();
     if (el('pairNotice').hidden) fail('after leaving the group the options page does not say to connect an instance again');
+    if (el('relayAddress').value !== relay) fail('the relay field does not show the stored address, so a browser joining again would dial the project relay');
   }
 }
 

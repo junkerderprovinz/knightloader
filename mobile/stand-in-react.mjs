@@ -41,6 +41,11 @@ export const React = {
     if (!same(c.deps, deps)) Object.assign(c, { f, deps });
     return c.f;
   },
+  useMemo(make, deps) {
+    const c = cell(() => ({}));
+    if (!same(c.deps, deps)) Object.assign(c, { value: make(), deps });
+    return c.value;
+  },
   useEffect(effect, deps) {
     const c = cell(() => ({}));
     if (deps && same(c.deps, deps)) return;

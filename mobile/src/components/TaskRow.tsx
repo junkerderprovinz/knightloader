@@ -8,7 +8,8 @@ import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
 import { checkPercent, isParked, rowWord, unpackPercent, type StateWord, type UnpackProgress } from '../api/taskState';
 import { InfoTip } from './InfoTip';
-import IconBadge, { Power } from './IconBadge';
+import { SaveDown } from './SaveCard';
+import IconBadge, { More, Power } from './IconBadge';
 import { Text } from './Text';
 
 // The debrid services that fetch torrents, by the resolver id the server sends.
@@ -103,6 +104,8 @@ export default function TaskRow({
   index,
   onSwitch,
   onPlay,
+  onMore,
+  onSave,
   files,
   unpack,
 }: {
@@ -116,6 +119,10 @@ export default function TaskRow({
   onSwitch?: () => void;
   /** Opens the file in a player app; absent where there is nothing to play. */
   onPlay?: () => void;
+  /** Opens what else can be done with this link (TaskActions). */
+  onMore?: () => void;
+  /** Copies the finished file onto this phone; absent where there is none. */
+  onSave?: () => void;
   /** A torrent's files, drawn under the rest of the card in the row's own
    *  colour. */
   files?: (hue: string) => ReactNode;
@@ -290,6 +297,8 @@ export default function TaskRow({
         <IconBadge symbol="▶" onPress={onPlay} accessibilityLabel={t('task.play')} />
       )}
 
+      {onSave && <IconBadge icon={<SaveDown color={accentInk} />} onPress={onSave} accessibilityLabel={t('task.save')} />}
+
       {/* The package header's switch, per link, so one mirror or one part can
           be parked on its own. */}
       {onSwitch && (
@@ -299,6 +308,8 @@ export default function TaskRow({
           accessibilityLabel={t(task.enabled ? 'task.disable' : 'task.enable')}
         />
       )}
+
+      {onMore && <IconBadge icon={<More color={c.textSub} />} onPress={onMore} accessibilityLabel={t('actions.more')} />}
     </View>
   );
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -549,17 +551,30 @@ func featureRow(t *testing.T, a *app.App, id string) Feature {
 	return Feature{}
 }
 
+// loopbackPorts counts through ports below the ephemeral ranges of Linux,
+// Windows and macOS, which the system never picks by itself: a port taken
+// from 127.0.0.1:0 and let go can become the local end of this process's next
+// connection before the test binds it. It starts at random so test binaries
+// running side by side rarely meet.
+var loopbackPorts atomic.Int32
+
+func init() { loopbackPorts.Store(rand.Int32N(12000)) }
+
 // freeLoopbackPort returns a port nothing listens on, so a test never binds the
-// Click'n'Load port a real JDownloader may hold.
+// Click'n'Load port a real JDownloader may hold, and no other test of this
+// package gets the same one.
 func freeLoopbackPort(t *testing.T) int {
 	t.Helper()
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
+	for range 100 {
+		port := 20000 + int(loopbackPorts.Add(1))%12000
+		ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+		if err == nil {
+			ln.Close()
+			return port
+		}
 	}
-	port := ln.Addr().(*net.TCPAddr).Port
-	ln.Close()
-	return port
+	t.Fatal("found no free loopback port")
+	return 0
 }
 
 // TestClickNLoadRowFollowsTheListener checks that the row reports the listener

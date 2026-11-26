@@ -15,6 +15,7 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -154,8 +155,9 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 }
 
 // sameOrigin keeps other websites from driving this instance through the
-// visitor's browser. The UI is served from the same origin as the API, so no
-// cross-origin access is ever needed. A site that points its own domain at
+// visitor's browser. The UI is served from the same origin as the API, so the
+// only cross-origin caller is the browser extension on the relay socket
+// (extensionDialsRelay). A site that points its own domain at
 // this address passes here, and with a password set the session cookie,
 // which the browser keeps for the real name, is what stops it.
 //
@@ -166,7 +168,7 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 // header is not a browser.
 func sameOrigin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if origin := r.Header.Get("Origin"); origin != "" && !originMatchesHost(origin, r.Host) {
+		if origin := r.Header.Get("Origin"); origin != "" && !originMatchesHost(origin, r.Host) && !extensionDialsRelay(r, origin) {
 			http.Error(w, "cross-origin requests are not allowed", http.StatusForbidden)
 			return
 		}
@@ -176,6 +178,22 @@ func sameOrigin(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// extensionOrigins are the schemes browsers give an extension's own pages.
+// No web page can send an Origin under one of them.
+var extensionOrigins = []string{"chrome-extension", "moz-extension", "safari-web-extension"}
+
+// extensionDialsRelay reports whether r is the browser extension opening the
+// relay socket this instance serves. That socket has no session to ride, the
+// group key in its first frame is the only credential, and an extension's
+// origin never matches the instance's host.
+func extensionDialsRelay(r *http.Request, origin string) bool {
+	if r.Method != http.MethodGet || r.URL.Path != relaySocketPath {
+		return false
+	}
+	u, err := url.Parse(origin)
+	return err == nil && u.Host != "" && slices.Contains(extensionOrigins, strings.ToLower(u.Scheme))
 }
 
 // originMatchesHost compares an Origin header against the host being addressed.

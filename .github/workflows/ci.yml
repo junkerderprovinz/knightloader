@@ -483,6 +483,9 @@ jobs:
       - name: Relay frame parity
         run: node extension/check-relay-seal.mjs
 
+      - name: Relay address
+        run: node extension/check-relay-address.mjs
+
       - name: Member refusals
         run: node extension/check-member-refusals.mjs
 
@@ -686,6 +689,12 @@ jobs:
       - name: Relay addresses
         run: node check-relay-url.mjs
 
+      - name: Relay redial
+        run: node check-relay-redial.mjs
+
+      - name: Downloads once connected
+        run: node check-downloads-connect.mjs
+
       - name: Member key
         run: node check-member-key.mjs
 
@@ -710,14 +719,35 @@ jobs:
       - name: Shared links
         run: node check-share.mjs
 
+      - name: Link and package properties
+        run: node check-task-edit.mjs
+
+      - name: Files picked on the phone
+        run: node check-file-intake.mjs
+
       - name: Failure wording
         run: node check-failures.mjs
 
       - name: Row and package words
         run: node check-task-state.mjs
 
+      - name: What a link's More sheet offers
+        run: node check-task-actions.mjs
+
+      - name: Search, filters and limits
+        run: node check-narrowing.mjs
+
+      - name: Saved views
+        run: node check-saved-views.mjs
+
       - name: Play buttons
         run: node check-play.mjs
+
+      - name: Saving a file to the phone
+        run: node check-save.mjs
+
+      - name: The format of a video link
+        run: node check-video-pick.mjs
 
       - name: The player's way in
         run: node check-loopback.mjs
