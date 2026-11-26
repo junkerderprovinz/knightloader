@@ -245,6 +245,7 @@ const add = compile(join(here, 'src', 'screens', 'AddDownloadScreen.tsx'), {
   '../components/glim': { CardButton: 'CardButton', GlimButton: 'GlimButton', GlimRow: 'GlimRow', GlimToggle: 'GlimToggle', WellSelector: 'WellSelector' },
   '../components/IconBadge': { Cross: 'Cross', Plus: 'Plus' },
   '../components/TaskEdit': edit,
+  '../components/AddFileSection': { AddFileSection: 'AddFileSection' },
   '../components/InfoTip': { InfoTip: 'InfoTip' },
   '../components/Text': { Text: 'Text', TextInput: 'TextInput' },
   '../watch/watch': { startWatch: async () => {} },
