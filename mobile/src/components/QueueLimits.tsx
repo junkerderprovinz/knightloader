@@ -8,7 +8,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { GlimButton, GlimRow, NotchCard, WellSelector } from './glim';
-import IconBadge, { Confirm, Cross } from './IconBadge';
+import IconBadge, { Cross, Save } from './IconBadge';
 import { RATE_UNITS, amountIn, bytesOf, countOf, stepCount, unitFor, type RateUnit } from './limitForm';
 import { NoArrival } from './Moving';
 import { Text, TextInput } from './Text';
@@ -155,7 +155,7 @@ export function QueueLimits({
                 <GlimButton
                   grow
                   label={t('settings.save')}
-                  icon={(ink) => <Confirm color={ink} />}
+                  icon={(ink) => <Save color={ink} />}
                   busy={busy}
                   disabled={stored === null || speed === null || count === null}
                   onPress={save}

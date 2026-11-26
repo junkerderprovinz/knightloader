@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
   facetOptions,
@@ -11,6 +11,7 @@ import {
   type Listed,
   type Narrowing,
   type QuickFilterId,
+  type SearchCategory,
 } from '../api/narrowing';
 import type { TranslationKey } from '../i18n/en';
 import { useT } from '../i18n/I18nContext';
@@ -28,6 +29,14 @@ const TYPE_WORDS: Record<FileType, TranslationKey> = {
   image: 'collector.facets.type.image',
   document: 'collector.facets.type.document',
   other: 'collector.facets.type.other',
+};
+
+const CATEGORY_WORDS: Record<Exclude<SearchCategory, 'any'>, TranslationKey> = {
+  name: 'search.name',
+  host: 'search.host',
+  package: 'search.package',
+  comment: 'search.comment',
+  url: 'search.url',
 };
 
 const FACET_TITLES: Record<FacetKind, TranslationKey> = {
@@ -51,6 +60,7 @@ export function ListNarrowing({
   onChange,
   filters,
   facets = [],
+  views,
 }: {
   /** Every row of the list, before anything narrows it. */
   tasks: Listed[];
@@ -60,6 +70,8 @@ export function ListNarrowing({
   onChange: (n: Narrowing) => void;
   filters: QuickFilterId[];
   facets?: FacetKind[];
+  /** The saved views, under the search. */
+  views?: ReactNode;
 }) {
   const { t } = useT();
   const { c, corners, accentContrast, accentInk } = useAppearance();
@@ -110,6 +122,24 @@ export function ListNarrowing({
         />
       </View>
 
+      {narrowing.category !== 'any' && (
+        // The field a saved view from the web aims the search at, which the
+        // phone has no picker for, so it can at least be seen and dropped.
+        <Pressable
+          style={[styles.category, corners.pill, { backgroundColor: c.surface2 }]}
+          onPress={() => onChange({ ...narrowing, category: 'any' })}
+          accessibilityRole="button"
+          accessibilityLabel={`${t('search.in')}: ${t(CATEGORY_WORDS[narrowing.category])}`}
+        >
+          <Text style={[styles.label, { color: c.textSub }]}>
+            {t('search.in')}: {t(CATEGORY_WORDS[narrowing.category])}
+          </Text>
+          <Cross color={c.textMuted} size={12} />
+        </Pressable>
+      )}
+
+      {views}
+
       {open && (
         <View style={[styles.panel, { backgroundColor: c.surface, ...corners.card }]}>
           <View style={styles.panelHead}>
@@ -117,7 +147,7 @@ export function ListNarrowing({
             <View style={styles.grow} />
             {chipsOn && (
               <Pressable
-                onPress={() => onChange({ ...NOTHING_NARROWED, search: narrowing.search })}
+                onPress={() => onChange({ ...NOTHING_NARROWED, search: narrowing.search, category: narrowing.category })}
                 accessibilityRole="button"
                 hitSlop={8}
               >
@@ -218,4 +248,5 @@ const styles = StyleSheet.create({
   chipText: { fontSize: TYPE.meta, flexShrink: 1 },
   shownLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   shown: { fontSize: TYPE.meta },
+  category: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6, paddingHorizontal: 12, height: 28 },
 });

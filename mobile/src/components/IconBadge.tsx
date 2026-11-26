@@ -585,6 +585,21 @@ export function Empty({ color, size = GLYPH_BOX }: { color: string; size?: numbe
   return <Drawn source={require('../../assets/empty.png')} color={color} size={size} />;
 }
 
+/* Saving a view, managing and renaming views, and saving a value: the web's
+ * IconPin, IconPencil and IconSave. */
+
+export function Pin({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/pin.png')} color={color} size={size} />;
+}
+
+export function Pencil({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/pencil.png')} color={color} size={size} />;
+}
+
+export function Save({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/save.png')} color={color} size={size} />;
+}
+
 /**
  * Disable and enable: the power mark, a ring open at the top with a stem
  * through the opening, the glyph the web interface puts on the same two verbs.

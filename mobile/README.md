@@ -84,10 +84,12 @@ Three things follow from the transport rather than from a choice:
   instance's look to read and to set, plus reading the auth state, the peer
   list and the addresses the instance answers on. Of the settings it reaches
   the speed limit and how many downloads run at once, through their own
-  `/api/queue/limits`, and nothing else: not `/api/settings`, not the
-  accounts, not the phrase itself, and no archive or download password in the
-  task list. A refusal carries the code `ownLoginNeeded`, which the app words
-  as "sign in on its own web interface".
+  `/api/queue/limits`, and of the interface state the saved views of the two
+  lists, through `/api/uistate/views`. Nothing else: not `/api/settings`,
+  not the rest of `/api/uistate`, not the accounts, not the phrase itself,
+  and no archive or download password in the task list. A refusal carries the
+  code `ownLoginNeeded`, which the app words as "sign in on its own web
+  interface".
 - **The phrase is the whole federation's admission ticket.** Every instance in
   the group is reachable by anything holding it, which is worth knowing before
   putting one on a device that gets lost. Leaving the group on that phone does

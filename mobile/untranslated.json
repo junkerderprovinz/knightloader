@@ -1116,7 +1116,8 @@
       "filter.online",
       "filter.offline",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "search.url"
     ],
     "el": [
       "addDownload.placeholder",
@@ -1155,7 +1156,8 @@
       "notify.watchSpeed",
       "settings.oled",
       "collector.facets.type.video",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "search.url"
     ],
     "eu": [
       "addDownload.placeholder",
@@ -1262,7 +1264,8 @@
       "notify.watchSpeed",
       "settings.oled",
       "relay.relayLabel",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "search.url"
     ],
     "id": [
       "addDownload.placeholder",
@@ -1310,7 +1313,8 @@
       "search.host",
       "collector.facets.type.video",
       "collector.facets.type.audio",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "search.url"
     ],
     "ja": [
       "addDownload.placeholder",
@@ -1393,7 +1397,8 @@
       "collector.facets.type.video",
       "collector.facets.type.audio",
       "collector.filtered.origin.cnl",
-      "collector.filtered.origin.container"
+      "collector.filtered.origin.container",
+      "search.url"
     ],
     "no": [
       "downloads.start",
@@ -1425,7 +1430,8 @@
       "notify.watchSpeed",
       "settings.oled",
       "relay.relayLabel",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "search.url"
     ],
     "pt": [
       "captcha.screenTitle",
@@ -1443,7 +1449,8 @@
       "filter.online",
       "filter.offline",
       "search.host",
-      "collector.filtered.origin.cnl"
+      "collector.filtered.origin.cnl",
+      "search.url"
     ],
     "ro": [
       "downloads.queueActive",
@@ -1461,7 +1468,8 @@
       "collector.facets.type.video",
       "collector.facets.type.audio",
       "collector.filtered.origin.cnl",
-      "collector.filtered.origin.container"
+      "collector.filtered.origin.container",
+      "search.url"
     ],
     "ru": [
       "addDownload.placeholder",

@@ -1,8 +1,9 @@
-// The calls behind the collector's rejected and skipped links and the queue's
-// two limits. Each goes to the instance's own routes: none of them is
-// forwarded to a peer.
+// The calls behind the collector's rejected and skipped links, the saved views
+// and the queue's two limits. Each goes to the instance's own routes: none of
+// them is forwarded to a peer.
 import { request } from './client';
 import type { SkippedLink } from './notAdded';
+import type { SavedView, SavedViewLists } from './savedViews';
 import type { ServerConnection } from './types';
 
 /** The links folded into one already in the list, or lost before it, oldest first. */
@@ -40,4 +41,18 @@ export async function fetchLimits(conn: ServerConnection): Promise<QueueLimits> 
 /** setLimits saves what it is given and answers with what the instance stored. */
 export async function setLimits(conn: ServerConnection, limits: Partial<QueueLimits>): Promise<QueueLimits> {
   return request<QueueLimits>(conn, '/api', '/queue/limits', { method: 'PUT', body: JSON.stringify(limits) });
+}
+
+/** Both lists' saved views, the ones the web shows as chips. */
+export async function fetchViews(conn: ServerConnection): Promise<SavedViewLists> {
+  return request<SavedViewLists>(conn, '/api', '/uistate/views');
+}
+
+/** putViews replaces one list's views and answers with both lists as stored. */
+export async function putViews(
+  conn: ServerConnection,
+  list: keyof SavedViewLists,
+  views: SavedView[],
+): Promise<SavedViewLists> {
+  return request<SavedViewLists>(conn, '/api', '/uistate/views', { method: 'PUT', body: JSON.stringify({ [list]: views }) });
 }

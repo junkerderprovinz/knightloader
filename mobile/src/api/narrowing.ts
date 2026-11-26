@@ -112,6 +112,10 @@ export function hostOf(t: Listed): string {
 type Field = 'name' | 'host' | 'package' | 'comment' | 'url';
 const FIELDS: Field[] = ['name', 'host', 'package', 'comment', 'url'];
 
+/** Where a bare word is searched: every field, or the one the web's picker names. */
+export type SearchCategory = Field | 'any';
+
+
 function fieldOf(t: Listed, f: Field): string {
   switch (f) {
     case 'name':
@@ -229,8 +233,9 @@ function typedTerm(key: string, value: string, negate: boolean): Term | null {
  * parseSearch turns typed text into terms that must all hold. A leading minus
  * excludes, a prefix aims a word at one field, and anything it does not
  * understand is searched for as plain text, so names keep finding their rows.
+ * A bare word goes to `category`.
  */
-export function parseSearch(text: string): Term[] {
+export function parseSearch(text: string, category: SearchCategory = 'any'): Term[] {
   const out: Term[] = [];
   for (const token of tokenize(text)) {
     let negate = false;
@@ -253,7 +258,7 @@ export function parseSearch(text: string): Term[] {
       }
     }
     const needle = body.trim().toLowerCase();
-    if (needle) out.push({ kind: 'text', needle, field: 'any', negate });
+    if (needle) out.push({ kind: 'text', needle, field: category, negate });
   }
   return out;
 }
@@ -351,11 +356,13 @@ export function facetOptions(tasks: Listed[], kind: FacetKind, active: ReadonlyS
 /** Everything that narrows one list. */
 export interface Narrowing {
   search: string;
+  // Set by a saved view from the web, whose search can aim at one field.
+  category: SearchCategory;
   filters: ReadonlySet<QuickFilterId>;
   facets: Facets;
 }
 
-export const NOTHING_NARROWED: Narrowing = { search: '', filters: new Set(), facets: NO_FACETS };
+export const NOTHING_NARROWED: Narrowing = { search: '', category: 'any', filters: new Set(), facets: NO_FACETS };
 
 /** Whether anything is set, a filter that hides nothing included. */
 export function isNarrowed(n: Narrowing): boolean {
@@ -369,7 +376,7 @@ export function isNarrowed(n: Narrowing): boolean {
 /** narrow keeps the rows every part of n lets through. */
 export function narrow<T extends Listed>(tasks: T[], n: Narrowing, now = Date.now()): T[] {
   if (!isNarrowed(n)) return tasks;
-  const terms = parseSearch(n.search);
+  const terms = parseSearch(n.search, n.category);
   return tasks.filter((t) => matchesFilters(t, n.filters) && matchesFacets(t, n.facets) && matchesSearch(t, terms, now));
 }
 

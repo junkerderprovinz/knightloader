@@ -31,7 +31,9 @@ import { HeldLinks, SkippedLinks } from '../components/NotAdded';
 import { QueueLimits } from '../components/QueueLimits';
 import { COLLECTOR_FILTERS, DOWNLOAD_FILTERS, NOTHING_NARROWED, isNarrowed, narrow, type Narrowing } from '../api/narrowing';
 import { heldOf, type Held, type SkippedLink } from '../api/notAdded';
-import { clearHeld, clearSkipped, fetchSkipped, restoreHeld } from '../api/listActions';
+import { clearHeld, clearSkipped, fetchSkipped, fetchViews, putViews, restoreHeld } from '../api/listActions';
+import { sanitiseViews, type SavedViewLists } from '../api/savedViews';
+import { SavedViews } from '../components/SavedViews';
 import { usePress } from '../theme/MotionContext';
 
 // peer, when set, means this screen is showing a federation peer of conn rather
@@ -112,6 +114,10 @@ export default function DownloadsScreen({
   const narrowing = narrowings[shown];
   const setNarrowing = (n: Narrowing) => setNarrowings((all) => ({ ...all, [shown]: n }));
   const [limitsOpen, setLimitsOpen] = useState(false);
+  const allowed = shown === 'collector' ? COLLECTOR_FILTERS : DOWNLOAD_FILTERS;
+  // The views the web keeps, null until read and on a peer, whose views are
+  // its own instance's business.
+  const [views, setViews] = useState<SavedViewLists | null>(null);
   // Finished packages and torrents leave the download list for parts of their
   // own below it, as on the web's Downloads page, by the instance's switches.
   const [cardsOn, setCardsOn] = useState<CardSwitches>({ finished: true, torrents: true });
@@ -177,6 +183,19 @@ export default function DownloadsScreen({
   // into another leaves no trace in the task list.
   const collectorOnScreen = tab === 'collector';
   useEffect(() => setSkipped([]), [conn, peer]);
+
+  useEffect(() => {
+    setViews(null);
+    if (peer) return;
+    let alive = true;
+    fetchViews(conn).then(
+      (v) => alive && setViews({ downloads: sanitiseViews(v.downloads), collector: sanitiseViews(v.collector) }),
+      () => {},
+    );
+    return () => {
+      alive = false;
+    };
+  }, [conn, peer]);
   useEffect(() => {
     if (peer) return;
     let alive = true;
@@ -452,15 +471,34 @@ export default function DownloadsScreen({
               </>
             )}
 
-            {(listed.length > 0 || isNarrowed(narrowing)) && (
+            {(listed.length > 0 || isNarrowed(narrowing) || (views?.[shown].length ?? 0) > 0) && (
               <ListNarrowing
                 key={shown}
                 tasks={listed}
                 shown={listedShown}
                 narrowing={narrowing}
                 onChange={setNarrowing}
-                filters={shown === 'collector' ? COLLECTOR_FILTERS : DOWNLOAD_FILTERS}
+                filters={allowed}
                 facets={shown === 'collector' ? ['host', 'fileType', 'package'] : []}
+                views={
+                  views && (
+                    <SavedViews
+                      views={views[shown]}
+                      narrowing={narrowing}
+                      allowed={allowed}
+                      keepFacets={shown === 'collector'}
+                      onApply={setNarrowing}
+                      onViews={async (next) => {
+                        try {
+                          const v = await putViews(conn, shown, next);
+                          setViews({ downloads: sanitiseViews(v.downloads), collector: sanitiseViews(v.collector) });
+                        } catch (e) {
+                          throw new Error(errorText(t, e));
+                        }
+                      }}
+                    />
+                  )
+                }
               />
             )}
           </>

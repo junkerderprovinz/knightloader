@@ -98,17 +98,17 @@ expect('the collector filters are the web list', COLLECTOR_FILTERS, listOf('COLL
   );
 }
 
-// Every parseSearch case of the web's own check, against this parser. The
-// phone has no field picker, so the one case that sets one is left out.
+// Every parseSearch case of the web's own check, against this parser, the one
+// with a field picked included, since a saved view can carry one.
 {
   const src = readFileSync(join(here, '..', 'web', 'check-search-query.mjs'), 'utf8');
-  const cases = [...src.matchAll(/parseSearch\('((?:[^'\\]|\\.)*)'\),\s*(\[[\s\S]*?\]),?\s*\);/g)];
+  const cases = [...src.matchAll(/parseSearch\('((?:[^'\\]|\\.)*)'(?:, '(\w+)')?\),\s*(\[[\s\S]*?\]),?\s*\);/g)];
   if (cases.length < 10) problems.push(`only ${cases.length} search cases could be read from web/check-search-query.mjs`);
   const DAY = 86_400_000;
-  for (const [, query, want] of cases) {
+  for (const [, query, category, want] of cases) {
     const text = query.replace(/\\(.)/g, '$1');
     const terms = new Function('DAY', `return ${want}`)(DAY);
-    expect(`the web's case ${JSON.stringify(text)}`, parseSearch(text), terms);
+    expect(`the web's case ${JSON.stringify(text)}`, parseSearch(text, category), terms);
   }
 }
 
