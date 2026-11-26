@@ -510,8 +510,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  // Two lines before an ellipsis: a German label in half a row would
-  // otherwise lose the word that says what the button does.
+  // Two lines, hyphenated, before an ellipsis: a German label in half a row
+  // would otherwise lose the word that says what the button does.
   buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1, textAlign: 'center' },
   buttonOff: { opacity: 0.45 },
   // The README's proportions: the mark's 32 by 25 box 24 in from the start,
@@ -790,7 +790,7 @@ export function GlimButton({
       accessibilityLabel={label}
     >
       {busy ? <ActivityIndicator color={ink} /> : icon?.(ink)}
-      <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={2}>
+      <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={2} android_hyphenationFrequency="normal">
         {label}
       </Text>
     </TouchableOpacity>
