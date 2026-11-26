@@ -53,6 +53,7 @@ export default function DownloadsScreen({
   onOpenCaptchas,
   isDefault = false,
   onMakeDefault,
+  onReached,
 }: {
   conn: ServerConnection;
   peer?: Instance;
@@ -69,6 +70,9 @@ export default function DownloadsScreen({
   isDefault?: boolean;
   /** Undefined for a federation peer, for the same reason as above. */
   onMakeDefault?: () => void;
+  /** Called each time the list comes through after it did not, such as once
+   *  the phone was approved, so the app reads again what it was refused. */
+  onReached?: () => void;
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, corners } = useAppearance();
@@ -81,6 +85,13 @@ export default function DownloadsScreen({
   const [jobs, setJobs] = useState<ExtractJob[]>([]);
   const unpacking = useMemo(() => unpackingByTask(jobs), [jobs]);
   const [connected, setConnected] = useState(false);
+  // Counts the times the list came through after it did not. What is read
+  // once per screen is read again on each, since a phone waiting for approval
+  // is refused everything until then.
+  const [reached, setReached] = useState(0);
+  const reachedNow = useRef(false);
+  const onReachedRef = useRef(onReached);
+  onReachedRef.current = onReached;
   const [queue, setQueue] = useState<QueueState | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
   /** What the last start or stop did, when it did not work. Shown rather than
@@ -176,11 +187,19 @@ export default function DownloadsScreen({
     setConnected(false);
     setTasks([]);
     setJobs([]);
+    reachedNow.current = false;
     const onSnapshot = (snapshot: Task[]) => {
       setConnected(true);
       setTasks(snapshot);
+      if (reachedNow.current) return;
+      reachedNow.current = true;
+      setReached((n) => n + 1);
+      onReachedRef.current?.();
     };
-    const onError = () => setConnected(false);
+    const onError = () => {
+      setConnected(false);
+      reachedNow.current = false;
+    };
     const handle = pollTasks(conn, base, onSnapshot, onError, setJobs);
     live.current = handle;
     return () => {
@@ -192,12 +211,13 @@ export default function DownloadsScreen({
   // The switches of the instance this app is connected to, a peer's list
   // included, the way a browser shows a peer by its own instance's settings.
   useEffect(() => {
+    if (reached === 0) return;
     let alive = true;
     void fetchListCards(conn).then((on) => alive && setCardsOn(on));
     return () => {
       alive = false;
     };
-  }, [conn]);
+  }, [conn, reached]);
 
   useEffect(() => {
     let alive = true;
@@ -216,9 +236,9 @@ export default function DownloadsScreen({
   const collectorOnScreen = tab === 'collector';
   useEffect(() => setSkipped([]), [conn, peer]);
 
+  useEffect(() => setViews(null), [conn, peer]);
   useEffect(() => {
-    setViews(null);
-    if (peer) return;
+    if (peer || reached === 0) return;
     let alive = true;
     fetchViews(conn).then(
       (v) => alive && setViews({ downloads: sanitiseViews(v.downloads), collector: sanitiseViews(v.collector) }),
@@ -227,9 +247,9 @@ export default function DownloadsScreen({
     return () => {
       alive = false;
     };
-  }, [conn, peer]);
+  }, [conn, peer, reached]);
   useEffect(() => {
-    if (peer) return;
+    if (peer || reached === 0) return;
     let alive = true;
     const load = () => fetchSkipped(conn).then((s) => alive && setSkipped(s)).catch(() => {});
     load();
@@ -238,7 +258,7 @@ export default function DownloadsScreen({
       alive = false;
       clearInterval(iv);
     };
-  }, [conn, peer, collectorOnScreen]);
+  }, [conn, peer, collectorOnScreen, reached]);
 
   // try/finally with no catch clears the spinner and sends the rejection
   // nowhere, so a queue call the instance refused looks like a button that was

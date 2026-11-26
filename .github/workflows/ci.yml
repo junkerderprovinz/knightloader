@@ -692,6 +692,9 @@ jobs:
       - name: Relay redial
         run: node check-relay-redial.mjs
 
+      - name: Downloads once connected
+        run: node check-downloads-connect.mjs
+
       - name: Member key
         run: node check-member-key.mjs
 

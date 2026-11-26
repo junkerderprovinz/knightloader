@@ -178,6 +178,9 @@ function Shell() {
   // Adopt the look of the default instance. Cleared when there is none, so a
   // default that cannot be reached falls back to the family default rather
   // than keeping the previous instance's colour.
+  // Bumped when the default instance answers after it did not, since a phone
+  // waiting for approval is refused its look as well.
+  const [lookAgain, setLookAgain] = useState(0);
   useEffect(() => {
     let alive = true;
     if (!standard) {
@@ -190,7 +193,7 @@ function Shell() {
     return () => {
       alive = false;
     };
-  }, [standard, setInstanceAppearance]);
+  }, [standard, setInstanceAppearance, lookAgain]);
 
   if (loading || (!fontLoaded && !fontError)) {
     return (
@@ -339,6 +342,9 @@ function Shell() {
                       }}
                       onOpenCaptchas={() => navigation.navigate('Captchas')}
                       isDefault={standard?.id === conn.id}
+                      onReached={() => {
+                        if (!route.params?.peer && standard?.id === conn.id) setLookAgain((n) => n + 1);
+                      }}
                       onMakeDefault={
                         route.params?.peer
                           ? undefined
