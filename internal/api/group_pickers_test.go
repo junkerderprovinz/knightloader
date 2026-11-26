@@ -37,7 +37,7 @@ func TestAMemberReadsTheFoldersItMayPick(t *testing.T) {
 		t.Errorf("folders = %v, want the download folder and the category's, each once: %v", got.Folders, want)
 	}
 	for _, other := range []string{extract, watch} {
-		if strings.Contains(string(body), filepath.Base(other)) {
+		if slices.Contains(got.Folders, other) {
 			t.Errorf("the folders a member reads name %s, which no download goes to: %s", other, body)
 		}
 	}
