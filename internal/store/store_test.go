@@ -479,3 +479,44 @@ func TestWhatAnUnpackingCreatedSurvivesARestart(t *testing.T) {
 		t.Fatalf("reloaded %+v, want %+v", all, record)
 	}
 }
+
+// A subscription's SponsorBlock choice travels on its rows, and a restart
+// before they start must not hand them the instance's instead.
+func TestARowsOwnSponsorBlockChoiceSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	choice := `{"remove":["sponsor"],"mark":[]}`
+	task := core.Task{
+		ID: "v1", URL: "https://youtube.com/watch?v=x", Name: "x", CreatedAt: time.Now(),
+		Status: core.StatusQueued, Variant: "video", SponsorBlock: []byte(choice),
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 || string(all[0].SponsorBlock) != choice {
+		t.Fatalf("reloaded %+v, want the row with SponsorBlock %s", all, choice)
+	}
+	if err := again.Save(&core.Task{ID: "v2", URL: "u", CreatedAt: time.Now()}); err != nil {
+		t.Fatal(err)
+	}
+	all, _ = again.All()
+	for _, x := range all {
+		if x.ID == "v2" && x.SponsorBlock != nil {
+			t.Errorf("a row without a choice of its own came back with %q", x.SponsorBlock)
+		}
+	}
+}

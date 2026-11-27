@@ -1107,6 +1107,9 @@ type TaskOptions struct {
 	// has, the bitrate whose nearest track the row takes. An empty string
 	// means the best track or ffmpeg's default; nil means leave alone.
 	AudioBitrate *string `json:"audioBitrate,omitempty"`
+	// SponsorBlock replaces the instance's SponsorBlock setting for a yt-dlp
+	// row, an empty one turning it off for that row.
+	SponsorBlock *ytdlp.SponsorBlock `json:"sponsorBlock,omitempty"`
 }
 
 // SetTaskOptions applies per-task overrides. A folder change on a running task
@@ -1149,6 +1152,14 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	if o.Chunks != nil && (*o.Chunks < 0 || *o.Chunks > rules.MaxChunks) {
 		return fmt.Errorf("chunk count %d is outside 0..%d", *o.Chunks, rules.MaxChunks)
 	}
+	var sponsorBlock json.RawMessage
+	if o.SponsorBlock != nil {
+		raw, err := json.Marshal(o.SponsorBlock.Sanitize())
+		if err != nil {
+			return err
+		}
+		sponsorBlock = raw
+	}
 
 	a.mu.Lock()
 	var renameErr error
@@ -1173,6 +1184,9 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		}
 		if o.Chunks != nil {
 			t.Chunks = *o.Chunks
+		}
+		if o.SponsorBlock != nil {
+			t.SponsorBlock = sponsorBlock
 		}
 		// The bitrate first, since resolving the new pick reads it.
 		if o.AudioBitrate != nil {
