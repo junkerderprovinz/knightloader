@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import {
   Button,
   FieldError,
@@ -6,19 +6,43 @@ import {
   IconBadge,
   NumberInput,
   TextInput,
+  ToggleRow,
   useTooltip,
   type ButtonVerdict,
 } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
 import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
-import { IconAdd, IconCheck, IconFilter, IconFolder, IconPriority, IconTrash } from '../../../lib/icons';
-import { fmtDate } from '../../../lib/format';
+import {
+  IconAdd,
+  IconBook,
+  IconCheck,
+  IconFileAudio,
+  IconFilePlaylist,
+  IconFileVideo,
+  IconFilter,
+  IconFolder,
+  IconLabelText,
+  IconPlay,
+  IconPriority,
+  IconReject,
+  IconRestore,
+  IconRetry,
+  IconSchedules,
+  IconSearch,
+  IconShieldOn,
+  IconTrash,
+} from '../../../lib/icons';
+import { fmtDate, fmtPlaytime } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   fetchFeeds,
   priorityChoices,
+  resolveFeed,
   testFeed,
+  type FeedKind,
+  type FeedResolved,
+  type FeedSkipReason,
   type FeedStatus,
   type FeedSubscription,
   type FeedTest,
@@ -26,21 +50,25 @@ import {
 } from '../../../lib/api';
 import { happened } from '../../../lib/countdown';
 import { useDraft } from '../context';
-import { RowRefusal, SettingRow, Sheet } from '../controls';
+import { RowRefusal, SettingRow, Sheet, SubCard } from '../controls';
 import { ModuleCard } from '../ModuleToggle';
+import { BackfillRow, LengthFields, MediathekFields, PatternField } from './FeedEntries';
+import { MediaRows, SponsorBlockOverride } from './FeedMedia';
 
-// Feeds lists the RSS and Atom subscriptions this instance follows, each
-// fetched on its own timer, with new entries handed to the collector like a
-// pasted link.
+// Feeds lists the subscriptions this instance follows: RSS and Atom feeds,
+// yt-dlp channels and playlists, and MediathekViewWeb searches, each fetched
+// on its own timer, with new entries handed to the collector like a pasted
+// link.
 //
 // The address is the identity: the poller and the record of added entries are
-// keyed on it, so a stored row's address is read only and changing it means
-// removing the row and adding another. The health comes from GET /api/feeds,
-// kept in memory, so after a restart a feed reads as not checked yet. The test
-// only reads. A new row stays out of the draft until its address is valid, and
-// the title filter is committed only once it compiles, because the server
-// refuses the whole settings document over one bad row. An interval of 0 means
-// the server's quarter of an hour, and an absent priority differs from 0.
+// keyed on it, so a stored row's address and kind are read only and changing
+// them means removing the row and adding another. The health comes from GET
+// /api/feeds, kept in memory, so after a restart a feed reads as not checked
+// yet. The test only reads. A new row stays out of the draft until its
+// address is valid, and every field the server would refuse is held back,
+// because the server refuses the whole settings document over one bad row. An
+// interval of 0 means the server's quarter of an hour, and an absent priority
+// differs from 0.
 
 /** feed.DefaultIntervalMinutes, what a stored 0 resolves to. */
 const DEFAULT_INTERVAL_MINUTES = 15;
@@ -50,6 +78,39 @@ const MAX_INTERVAL_MINUTES = 10080;
 
 /** The priority tab that removes the key rather than setting a value. */
 const NO_PRIORITY = 'unset';
+
+const KINDS: FeedKind[] = ['rss', 'channel', 'mediathek'];
+
+const KIND_WORDS: Record<FeedKind, { kind: TranslationKey; url: TranslationKey; hint: TranslationKey; placeholder: string }> = {
+  rss: {
+    kind: 'settings.feeds.kindRss',
+    url: 'settings.feeds.url',
+    hint: 'settings.feeds.urlHint',
+    placeholder: 'https://example.org/feed.xml',
+  },
+  channel: {
+    kind: 'settings.feeds.kindChannel',
+    url: 'settings.feeds.channelUrl',
+    hint: 'settings.feeds.channelUrlHint',
+    placeholder: 'https://www.youtube.com/@handle',
+  },
+  mediathek: {
+    kind: 'settings.feeds.kindMediathek',
+    url: 'settings.feeds.searchUrl',
+    hint: 'settings.feeds.searchUrlHint',
+    placeholder: 'https://mediathekviewweb.de/#query=',
+  },
+};
+
+const REASON_WORDS: Record<FeedSkipReason, TranslationKey> = {
+  include: 'settings.feeds.reasonInclude',
+  exclude: 'settings.feeds.reasonExclude',
+  short: 'settings.feeds.reasonShort',
+  long: 'settings.feeds.reasonLong',
+  downloaded: 'settings.feeds.reasonDownloaded',
+};
+
+const kindOf = (row: FeedSubscription): FeedKind => row.kind || 'rss';
 
 /**
  * usableAddress asks feed.Validate's three questions: does it parse, is the
@@ -65,20 +126,6 @@ function usableAddress(raw: string): boolean {
   }
 }
 
-/**
- * compiles catches a title filter JavaScript cannot parse. RE2 refuses more
- * than RegExp, so a pattern that passes may still be refused at save, but
- * nothing the server accepts is blocked here.
- */
-function compiles(pattern: string): boolean {
-  try {
-    new RegExp(pattern);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 /** clampInterval keeps 0 and cuts anything else into the range feed.Sanitize uses. */
 function clampInterval(v: number): number {
   if (!Number.isFinite(v)) return 0;
@@ -88,13 +135,18 @@ function clampInterval(v: number): number {
 }
 
 /**
- * without removes one optional key from a row. Absent and empty mean the same
- * for the folder and the filter, but not for the priority, where 0 is a value.
+ * without removes optional keys from a row. Absent and empty mean the same for
+ * most of them, but not for the priority, where 0 is a value.
  */
-function without(row: FeedSubscription, key: 'titleFilter' | 'dir' | 'priority'): FeedSubscription {
+function without(row: FeedSubscription, ...keys: (keyof FeedSubscription)[]): FeedSubscription {
   const next = { ...row };
-  delete next[key];
+  for (const key of keys) delete next[key];
   return next;
+}
+
+/** A switch's value, with off written as an absent key like every other "no opinion". */
+function flag(row: FeedSubscription, key: 'autoStart' | 'allowDownloaded', on: boolean): FeedSubscription {
+  return on ? { ...row, [key]: true } : without(row, key);
 }
 
 /** What committing a typed address did, so the row can say why nothing happened. */
@@ -189,11 +241,11 @@ export function FeedsCard({ hue }: { hue: number }) {
   const write = (next: FeedSubscription[]) => patch({ feeds: next });
 
   /**
-   * Moves a pending row into the draft under the typed address, refusing
-   * anything the server would reject or merge away.
+   * Moves a pending row into the draft, refusing anything the server would
+   * reject or merge away.
    */
-  const commit = (typed: string, row: FeedSubscription): Verdict => {
-    const url = typed.trim();
+  const commit = (row: FeedSubscription): Verdict => {
+    const url = row.url.trim();
     if (url === '') return 'blank';
     if (!usableAddress(url)) return 'invalid';
     // A second row for one address would be merged away on save.
@@ -246,7 +298,7 @@ export function FeedsCard({ hue }: { hue: number }) {
                 status={health[row.url]}
                 open={openRow === idOf(row.url)}
                 onToggle={() => setOpenRow(openRow === idOf(row.url) ? '' : idOf(row.url))}
-                onCommitUrl={() => 'ok'}
+                onCommit={() => 'ok'}
                 onChange={(next) => write(rows.map((r) => (r.url === row.url ? next : r)))}
                 onRemove={() => write(rows.filter((r) => r.url !== row.url))}
               />
@@ -261,15 +313,13 @@ export function FeedsCard({ hue }: { hue: number }) {
                 priorities={priorities}
                 open={openRow === p.id}
                 onToggle={() => setOpenRow(openRow === p.id ? '' : p.id)}
-                onCommitUrl={(typed) => {
+                onCommit={(row) => {
                   // Kept so closing a half-typed row keeps the text.
-                  setPending((list) =>
-                    list.map((r) => (r.id === p.id ? { ...r, row: { ...r.row, url: typed } } : r)),
-                  );
-                  const verdict = commit(typed, p.row);
+                  setPending((list) => list.map((r) => (r.id === p.id ? { ...r, row } : r)));
+                  const verdict = commit(row);
                   if (verdict === 'ok') {
                     setPending((list) => list.filter((r) => r.id !== p.id));
-                    setRowIds((ids) => ({ ...ids, [typed.trim()]: p.id }));
+                    setRowIds((ids) => ({ ...ids, [row.url.trim()]: p.id }));
                   }
                   return verdict;
                 }}
@@ -284,10 +334,37 @@ export function FeedsCard({ hue }: { hue: number }) {
   );
 }
 
+/** The marks a collapsed row carries, one per field it sets, in the order the window shows them. */
+function rowMarks(row: FeedSubscription, t: (key: TranslationKey) => string): { icon: ReactNode; title: string }[] {
+  const glyph = { width: 14, height: 14 };
+  const kind = kindOf(row);
+  const marks: { icon: ReactNode; title: string; on: unknown }[] = [
+    { icon: <IconFilePlaylist {...glyph} />, title: t(KIND_WORDS.channel.kind), on: kind === 'channel' },
+    { icon: <IconSearch {...glyph} />, title: t(KIND_WORDS.mediathek.kind), on: kind === 'mediathek' },
+    { icon: <IconRestore {...glyph} />, title: t('settings.feeds.backfill'), on: kind === 'channel' && row.backfill },
+    { icon: <IconFilter {...glyph} />, title: t('settings.feeds.filter'), on: row.titleFilter },
+    { icon: <IconReject {...glyph} />, title: t('settings.feeds.exclude'), on: row.excludeFilter },
+    { icon: <IconSchedules {...glyph} />, title: t('settings.feeds.length'), on: row.minMinutes || row.maxMinutes },
+    { icon: <IconRetry {...glyph} />, title: t('settings.feeds.allowDownloaded'), on: row.allowDownloaded },
+    { icon: <IconPlay {...glyph} />, title: t('settings.feeds.autoStart'), on: row.autoStart },
+    { icon: <IconFolder {...glyph} />, title: t('settings.feeds.dir'), on: row.dir },
+    { icon: <IconPriority {...glyph} />, title: t('settings.feeds.priority'), on: row.priority !== undefined },
+    { icon: <IconLabelText {...glyph} />, title: t('settings.feeds.naming'), on: row.naming },
+    { icon: <IconBook {...glyph} />, title: t('settings.feeds.library'), on: row.library },
+    {
+      icon: row.media?.variants.length === 1 && row.media.variants[0] === 'audio' ? <IconFileAudio {...glyph} /> : <IconFileVideo {...glyph} />,
+      title: t('settings.feeds.media'),
+      on: kind !== 'mediathek' && row.media,
+    },
+    { icon: <IconShieldOn {...glyph} />, title: t('settings.resolvers.sponsorBlock'), on: kind !== 'mediathek' && row.sponsorBlock },
+  ];
+  return marks.filter((m) => m.on);
+}
+
 /**
- * FeedRow shows one subscription as its address and overrides, and its five
- * fields in the window the row opens. A new row's address reaches the draft
- * only once it is valid.
+ * FeedRow shows one subscription as its name or address and the fields it
+ * sets, and all of them in the window the row opens. A new row's address
+ * reaches the draft only once it is valid.
  */
 function FeedRow({
   row,
@@ -298,7 +375,7 @@ function FeedRow({
   priorities,
   status,
   onToggle,
-  onCommitUrl,
+  onCommit,
   onChange,
   onRemove,
 }: {
@@ -311,55 +388,81 @@ function FeedRow({
   priorities: { id: string; label: string }[];
   onToggle: () => void;
   status?: FeedStatus;
-  onCommitUrl: (typed: string) => Verdict;
+  onCommit: (row: FeedSubscription) => Verdict;
   onChange: (next: FeedSubscription) => void;
   onRemove: () => void;
 }) {
   const { t } = useT();
+  const kind = kindOf(row);
+  const words = KIND_WORDS[kind];
   const [text, setText] = useState(row.url);
   const [verdict, setVerdict] = useState<Verdict>('blank');
-
-  // Committed on blur, like the address, since a pattern that does not compile
-  // makes the server refuse the whole document.
-  const [filter, setFilter] = useState(row.titleFilter ?? '');
-  const [filterBad, setFilterBad] = useState(false);
   const urlReasonId = useId();
-  const filterReasonId = useId();
+
+  // A pasted address is looked up before it is stored: what was pasted may be
+  // a channel page or a search rather than a feed.
+  const pasted = useRef(false);
+  const [lookingUp, setLookingUp] = useState(false);
+  const [found, setFound] = useState<FeedResolved | null>(null);
+  const [notFound, setNotFound] = useState('');
+
   const urlReason =
-    verdict === 'invalid' ? t('settings.feeds.urlInvalid') : verdict === 'duplicate' ? t('settings.feeds.duplicate') : '';
+    verdict === 'invalid'
+      ? t('settings.feeds.urlInvalid')
+      : verdict === 'duplicate'
+        ? t('settings.feeds.duplicate')
+        : notFound;
 
-  // The save answer replaces the draft and may trim the filter, so follow it.
-  useEffect(() => {
-    setFilter(row.titleFilter ?? '');
-    setFilterBad(false);
-  }, [row.titleFilter]);
+  const take = (resolved: FeedResolved, typed: string) => {
+    const { channel: _channel, ...fields } = resolved;
+    const next = { ...row, ...fields, url: fields.url || typed };
+    setFound(null);
+    setText(next.url);
+    setVerdict(onCommit(next));
+  };
 
-  const commitUrl = () => setVerdict(onCommitUrl(text));
+  const lookUp = async (typed: string) => {
+    if (!usableAddress(typed)) return;
+    setLookingUp(true);
+    try {
+      const answer = await resolveFeed(typed);
+      // A channel and a search are offered, since each has a choice to make;
+      // a plain feed has none and is taken.
+      if (answer.kind === 'mediathek' || answer.channel) setFound({ ...answer, url: answer.url || typed });
+      else take(answer, typed);
+    } catch (e) {
+      setNotFound(e instanceof Error && e.message ? e.message : String(e));
+    } finally {
+      setLookingUp(false);
+    }
+  };
 
-  const commitFilter = () => {
-    const next = filter.trim();
-    // An identical patch would still mark the draft dirty.
-    if (next === (row.titleFilter ?? '')) {
-      setFilterBad(false);
+  const commitUrl = () => {
+    if (lookingUp || found) return;
+    const typed = text.trim();
+    const search = row.mediathek;
+    // A search with no names yet is read from its address.
+    const unnamed = !(search && (search.channel || search.topic || search.title));
+    if (kind === 'mediathek' && unnamed && usableAddress(typed)) {
+      void lookUp(typed);
       return;
     }
-    if (next === '') {
-      setFilterBad(false);
-      onChange(without(row, 'titleFilter'));
-      return;
-    }
-    if (!compiles(next)) {
-      setFilterBad(true);
-      return;
-    }
-    setFilterBad(false);
-    onChange({ ...row, titleFilter: next });
+    setVerdict(onCommit({ ...row, url: typed }));
+  };
+
+  const chooseKind = (next: FeedKind) => {
+    const out = without(row, 'kind', 'backfill', 'mediathek');
+    if (next !== 'rss') out.kind = next;
+    if (next === 'channel' && row.backfill) out.backfill = row.backfill;
+    if (next === 'mediathek' && row.mediathek) out.mediathek = row.mediathek;
+    onChange(out);
   };
 
   // A stored 0 runs at the server's quarter of an hour, shown quieter than a
   // typed number.
   const derived = row.intervalMinutes === 0;
   const effective = derived ? DEFAULT_INTERVAL_MINUTES : row.intervalMinutes;
+  const name = row.title?.trim() || row.url;
 
   // The house tooltip rather than a native title. Both spans sit inside the
   // row's button, so they take no role and no tab stop of their own.
@@ -379,15 +482,12 @@ function FeedRow({
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           {/* Truncated, with the whole address in the tooltip. */}
-          <span dir="ltr" {...urlTipProps} className="min-w-0 flex-1 truncate text-sm text-carbon-text">
-            {row.url || <span className="text-carbon-textMuted">{t('settings.feeds.url')}</span>}
+          <span dir={row.title ? 'auto' : 'ltr'} {...urlTipProps} className="min-w-0 flex-1 truncate text-sm text-carbon-text">
+            {name || <span className="text-carbon-textMuted">{t(words.url)}</span>}
           </span>
-          {/* What this row overrides, by field. */}
-          {row.titleFilter && <Marker icon={<IconFilter width={14} height={14} />} title={t('settings.feeds.filter')} />}
-          {row.dir && <Marker icon={<IconFolder width={14} height={14} />} title={t('settings.feeds.dir')} />}
-          {row.priority !== undefined && (
-            <Marker icon={<IconPriority width={14} height={14} />} title={t('settings.feeds.priority')} />
-          )}
+          {rowMarks(row, t).map((m) => (
+            <Marker key={m.title} icon={m.icon} title={m.title} />
+          ))}
           <span
             {...intervalTipProps}
             className={`glim-num hidden w-12 shrink-0 text-end text-xs sm:block ${
@@ -415,45 +515,86 @@ function FeedRow({
       {stored && <RowRefusal field={`feeds.${index}`} />}
 
       {open && (
-        <Sheet title={row.url || t('settings.feeds.url')} hue={index} widest onClose={onToggle}>
-          <SettingRow control="long" label={t('settings.feeds.url')} hint={t('settings.feeds.urlHint')}>
-            {stored ? (
-              // Read only rather than absent, so the address can still be copied.
-              <TextInput
-                dir="ltr"
-                readOnly
-                spellCheck={false}
-                value={row.url}
-                // Opacity rather than a quieter ink, since two text colours on
-                // one element resolve by stylesheet order.
-                className="cursor-default opacity-70"
-              />
-            ) : (
-              <TextInput
-                dir="ltr"
-                spellCheck={false}
-                value={text}
-                placeholder="https://example.org/feed.xml"
-                // Marked, not corrected: the text stays as typed.
-                aria-invalid={urlReason !== ''}
-                aria-describedby={urlReason ? urlReasonId : undefined}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  setVerdict('blank');
-                }}
-                onBlur={commitUrl}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                  }
-                }}
-              />
-            )}
-            {urlReason && <FieldError id={urlReasonId}>{urlReason}</FieldError>}
-          </SettingRow>
-
+        <Sheet title={name || t(words.url)} hue={index} widest onClose={onToggle}>
           <div className="flex flex-col gap-4">
+            {/* Read only once stored, since the kind and the address are the
+                identity; a different one is a new subscription. */}
+            <SettingRow label={t('settings.feeds.kind')} hint={t('settings.feeds.kindHint')}>
+              {stored ? (
+                <span className="text-sm text-carbon-textSub">{t(words.kind)}</span>
+              ) : (
+                <Tabs
+                  variant="well"
+                  size="sm"
+                  inline
+                  hug
+                  label={t('settings.feeds.kind')}
+                  active={kind}
+                  onSelect={(id) => chooseKind(id as FeedKind)}
+                  items={KINDS.map((k) => ({ id: k, label: t(KIND_WORDS[k].kind) }))}
+                />
+              )}
+            </SettingRow>
+
+            <SettingRow control="long" label={t(words.url)} hint={t(words.hint)}>
+              {stored ? (
+                // Read only rather than absent, so the address can still be copied.
+                <TextInput
+                  dir="ltr"
+                  readOnly
+                  spellCheck={false}
+                  value={row.url}
+                  // Opacity rather than a quieter ink, since two text colours on
+                  // one element resolve by stylesheet order.
+                  className="cursor-default opacity-70"
+                />
+              ) : (
+                <TextInput
+                  dir="ltr"
+                  spellCheck={false}
+                  value={text}
+                  placeholder={words.placeholder}
+                  // Marked, not corrected: the text stays as typed.
+                  aria-invalid={urlReason !== ''}
+                  aria-describedby={urlReason ? urlReasonId : undefined}
+                  aria-busy={lookingUp}
+                  onPaste={() => {
+                    pasted.current = true;
+                  }}
+                  onChange={(e) => {
+                    const typed = e.target.value;
+                    setText(typed);
+                    setVerdict('blank');
+                    setFound(null);
+                    setNotFound('');
+                    if (pasted.current) {
+                      pasted.current = false;
+                      void lookUp(typed.trim());
+                    }
+                  }}
+                  onBlur={commitUrl}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.currentTarget.blur();
+                    }
+                  }}
+                />
+              )}
+              {urlReason && <FieldError id={urlReasonId}>{urlReason}</FieldError>}
+            </SettingRow>
+
+            {found && <FoundOffer found={found} onTake={(r) => take(r, text.trim())} />}
+
+            <SettingRow control="long" label={t('settings.feeds.name')} hint={t('settings.feeds.nameHint')}>
+              <TextInput
+                value={row.title ?? ''}
+                onChange={(e) =>
+                  onChange(e.target.value === '' ? without(row, 'title') : { ...row, title: e.target.value })
+                }
+              />
+            </SettingRow>
+
             {/* 0 takes the server's quarter of an hour; other values are cut
                 into 1..10080 as feed.Sanitize does. */}
             <SettingRow control="short" label={t('settings.feeds.interval')} hint={t('settings.feeds.intervalHint')}>
@@ -465,65 +606,159 @@ function FeedRow({
                 onValue={(v) => onChange({ ...row, intervalMinutes: clampInterval(v) })}
               />
             </SettingRow>
-            <SettingRow control="long" label={t('settings.feeds.filter')} hint={t('settings.feeds.filterHint')}>
-              <TextInput
-                dir="ltr"
-                spellCheck={false}
-                value={filter}
-                // Marked and not committed, so a broken pattern never reaches
-                // the draft.
-                aria-invalid={filterBad}
-                aria-describedby={filterBad ? filterReasonId : undefined}
-                onChange={(e) => {
-                  setFilter(e.target.value);
-                  setFilterBad(false);
-                }}
-                onBlur={commitFilter}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                  }
-                }}
-              />
-              {filterBad && <FieldError id={filterReasonId}>{t('settings.feeds.filterInvalid')}</FieldError>}
-            </SettingRow>
           </div>
 
-          {/* PathInput, since the folder may be a template. It is checked only
-              when an entry arrives, and a failure there drops the priority too,
-              since both are written in one call. */}
-          <SettingRow control="long" label={t('settings.feeds.dir')} hint={t('settings.feeds.dirHint')}>
-            <PathInput
-              value={row.dir ?? ''}
-              title={t('settings.feeds.dir')}
-              onValue={(dir) => onChange(dir.trim() === '' ? without(row, 'dir') : { ...row, dir })}
-            />
-          </SettingRow>
+          {kind === 'mediathek' && (
+            <SubCard label={t('settings.feeds.sectionMediathek')} hint={t('settings.feeds.sectionMediathekHint')}>
+              <MediathekFields row={row} onChange={onChange} />
+            </SubCard>
+          )}
 
-          {priorities.length > 0 && (
-            <SettingRow label={t('settings.feeds.priority')} hint={t('settings.feeds.priorityHint')}>
+          <SubCard label={t('settings.feeds.sectionEntries')}>
+            {kind === 'channel' && <BackfillRow row={row} onChange={onChange} />}
+            <PatternField
+              label={t('settings.feeds.filter')}
+              hint={t('settings.feeds.filterHint')}
+              value={row.titleFilter}
+              onValue={(v) => onChange(v === undefined ? without(row, 'titleFilter') : { ...row, titleFilter: v })}
+            />
+            <PatternField
+              label={t('settings.feeds.exclude')}
+              hint={t('settings.feeds.excludeHint')}
+              value={row.excludeFilter}
+              onValue={(v) => onChange(v === undefined ? without(row, 'excludeFilter') : { ...row, excludeFilter: v })}
+            />
+            <LengthFields row={row} onChange={onChange} />
+            <ToggleRow
+              checked={row.allowDownloaded === true}
+              onChange={(v) => onChange(flag(row, 'allowDownloaded', v))}
+              label={t('settings.feeds.allowDownloaded')}
+              hint={t('settings.feeds.allowDownloadedHint')}
+            />
+          </SubCard>
+
+          <SubCard label={t('settings.feeds.sectionDownloads')}>
+            {/* Off by default, since anyone who can publish to the feed then
+                decides what this machine downloads. */}
+            <ToggleRow
+              checked={row.autoStart === true}
+              onChange={(v) => onChange(flag(row, 'autoStart', v))}
+              label={t('settings.feeds.autoStart')}
+              hint={t('settings.feeds.autoStartHint')}
+            />
+
+            {/* PathInput, since the folder may be a template. It is checked only
+                when an entry arrives, and a failure there drops the priority too,
+                since both are written in one call. */}
+            <SettingRow control="long" label={t('settings.feeds.dir')} hint={t('settings.feeds.dirHint')}>
+              <PathInput
+                value={row.dir ?? ''}
+                title={t('settings.feeds.dir')}
+                onValue={(dir) => onChange(dir.trim() === '' ? without(row, 'dir') : { ...row, dir })}
+              />
+            </SettingRow>
+
+            <SettingRow label={t('settings.feeds.naming')} hint={t('settings.feeds.namingHint')}>
               <Tabs
                 variant="well"
                 size="sm"
                 inline
                 hug
-                label={t('settings.feeds.priority')}
-                // Matched on undefined, since 0 is a real priority.
-                active={row.priority === undefined ? NO_PRIORITY : String(row.priority)}
-                onSelect={(id) =>
-                  onChange(id === NO_PRIORITY ? without(row, 'priority') : { ...row, priority: Number(id) })
-                }
-                items={priorities}
+                label={t('settings.feeds.naming')}
+                active={row.naming || 'entry'}
+                onSelect={(id) => onChange(id === 'channel' ? { ...row, naming: 'channel' } : without(row, 'naming'))}
+                items={[
+                  { id: 'entry', label: t('settings.feeds.namingEntry') },
+                  { id: 'channel', label: t('settings.feeds.namingChannel') },
+                ]}
               />
             </SettingRow>
+
+            <SettingRow label={t('settings.feeds.library')} hint={t('settings.feeds.libraryHint')}>
+              <Tabs
+                variant="well"
+                size="sm"
+                inline
+                hug
+                label={t('settings.feeds.library')}
+                active={row.library || 'standard'}
+                onSelect={(id) => onChange(id === 'series' ? { ...row, library: 'series' } : without(row, 'library'))}
+                items={[
+                  { id: 'standard', label: t('settings.feeds.libraryStandard') },
+                  { id: 'series', label: t('settings.feeds.librarySeries') },
+                ]}
+              />
+            </SettingRow>
+
+            {priorities.length > 0 && (
+              <SettingRow label={t('settings.feeds.priority')} hint={t('settings.feeds.priorityHint')}>
+                <Tabs
+                  variant="well"
+                  size="sm"
+                  inline
+                  hug
+                  label={t('settings.feeds.priority')}
+                  // Matched on undefined, since 0 is a real priority.
+                  active={row.priority === undefined ? NO_PRIORITY : String(row.priority)}
+                  onSelect={(id) =>
+                    onChange(id === NO_PRIORITY ? without(row, 'priority') : { ...row, priority: Number(id) })
+                  }
+                  items={priorities}
+                />
+              </SettingRow>
+            )}
+          </SubCard>
+
+          {/* A Mediathek search stages direct links, which yt-dlp never sees. */}
+          {kind !== 'mediathek' && (
+            <SubCard label={t('settings.feeds.sectionYtdlp')} hint={t('settings.feeds.sectionYtdlpHint')}>
+              <MediaRows row={row} onChange={onChange} />
+              <SponsorBlockOverride row={row} onChange={onChange} />
+            </SubCard>
           )}
 
           {stored && <FeedHealth status={status} />}
-          <FeedProbe url={stored ? row.url : text} filter={filter} />
+          <FeedProbe row={stored ? row : { ...row, url: text.trim() }} />
         </Sheet>
       )}
     </li>
+  );
+}
+
+/**
+ * FoundOffer is what a pasted address turned out to be, with the choice it
+ * leaves: a channel as its feed of new videos or as a channel with its older
+ * ones, a Mediathek search as a subscription.
+ */
+function FoundOffer({ found, onTake }: { found: FeedResolved; onTake: (row: Partial<FeedSubscription>) => void }) {
+  const { t } = useT();
+  const { channel, ...feed } = found;
+  return (
+    <div className="glim-well flex flex-col gap-3 p-3 text-sm">
+      <p dir="auto" className="text-carbon-textSub">
+        {found.kind === 'mediathek'
+          ? t('settings.feeds.foundSearch', { title: found.title || found.url || '' })
+          : t('settings.feeds.foundChannel', { title: found.title || found.url || '' })}
+      </p>
+      <div className="flex flex-wrap justify-end gap-2">
+        {found.kind === 'mediathek' ? (
+          <Button icon={<IconAdd />} onClick={() => onTake(feed)}>
+            {t('settings.feeds.subscribeSearch')}
+          </Button>
+        ) : (
+          <>
+            {channel && (
+              <Button kind="secondary" icon={<IconRestore />} onClick={() => onTake(channel)}>
+                {t('settings.feeds.subscribeOlder')}
+              </Button>
+            )}
+            <Button icon={<IconAdd />} onClick={() => onTake(feed)}>
+              {t('settings.feeds.subscribeNew')}
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -582,12 +817,13 @@ function fmtWhen(iso?: string): string {
 }
 
 /**
- * FeedProbe fetches the feed once and shows its entries, so a title filter can
- * be written against real titles. It stages and remembers nothing and works on
- * an unsaved row. A broken row throws with the server's sentence; a feed that
- * could not be read comes back as a result with `error` set.
+ * FeedProbe fetches the subscription once and shows its entries, so the
+ * filters can be written against real titles and lengths. It stages and
+ * remembers nothing and works on an unsaved row. A broken row throws with the
+ * server's sentence; a feed that could not be read comes back as a result with
+ * `error` set.
  */
-function FeedProbe({ url, filter }: { url: string; filter: string }) {
+function FeedProbe({ row }: { row: FeedSubscription }) {
   const { t } = useT();
   const [result, setResult] = useState<FeedTest | null>(null);
   const [refused, setRefused] = useState('');
@@ -596,7 +832,7 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
     setRefused('');
     setResult(null);
     try {
-      const found = await testFeed(url, filter);
+      const found = await testFeed(row);
       setResult(found);
       return found.error ? 'fail' : 'ok';
     } catch (e) {
@@ -604,6 +840,9 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
       return 'fail';
     }
   };
+
+  const titleOnly = !!row.titleFilter && !row.excludeFilter && !row.minMinutes && !row.maxMinutes;
+  const filtered = !!(row.titleFilter || row.excludeFilter || row.minMinutes || row.maxMinutes);
 
   return (
     <FieldGroup label={t('settings.feeds.testResult')} hint={t('settings.feeds.testHint')}>
@@ -617,9 +856,9 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
             label={t('settings.feeds.test')}
             busyLabel={t('settings.feeds.testBusy')}
             words={{ ok: t('test.passed'), fail: t('test.failed') }}
-            disabled={!usableAddress(url)}
+            disabled={!usableAddress(row.url)}
             run={run}
-            resetKey={`${url}\n${filter}`}
+            resetKey={JSON.stringify(row)}
           />
         </div>
 
@@ -640,12 +879,16 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
                 ) : (
                   <>
                     <p className="text-carbon-textMuted">
-                      {filter.trim() === ''
+                      {!filtered
                         ? t('settings.feeds.testNoFilter', { total: result.total })
-                        : t('settings.feeds.testMatched', { matched: result.matched, total: result.total })}
+                        : titleOnly
+                          ? t('settings.feeds.testMatched', { matched: result.matched, total: result.total })
+                          : t('settings.feeds.testTaken', { matched: result.matched, total: result.total })}
                     </p>
-                    {filter.trim() !== '' && result.matched === 0 && (
-                      <p className="text-statusWarn">{t('settings.feeds.testNoneMatch')}</p>
+                    {filtered && result.matched === 0 && (
+                      <p className="text-statusWarn">
+                        {titleOnly ? t('settings.feeds.testNoneMatch') : t('settings.feeds.testNoneTaken')}
+                      </p>
                     )}
                     <ul className="flex flex-col gap-1">
                       {result.entries.map((e) => (
@@ -655,11 +898,19 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
                               e.matches ? 'text-carbon-textSub' : 'text-carbon-textMuted'
                             }`}
                           >
-                            {e.matches ? t('settings.feeds.testMatchYes') : t('settings.feeds.testMatchNo')}
+                            {e.matches
+                              ? t('settings.feeds.testMatchYes')
+                              : e.reason && REASON_WORDS[e.reason]
+                                ? t(REASON_WORDS[e.reason])
+                                : t('settings.feeds.testMatchNo')}
                           </span>
-                          <span className={`min-w-0 truncate ${e.matches ? 'text-carbon-text' : 'text-carbon-textMuted'}`}>
+                          <span className={`min-w-0 flex-1 truncate ${e.matches ? 'text-carbon-text' : 'text-carbon-textMuted'}`}>
                             {e.title}
                           </span>
+                          {/* 0 means the feed did not say. */}
+                          {!!e.duration && (
+                            <span className="glim-num shrink-0 text-carbon-textMuted">{fmtPlaytime(e.duration)}</span>
+                          )}
                         </li>
                       ))}
                     </ul>
