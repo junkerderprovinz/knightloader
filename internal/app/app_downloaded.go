@@ -127,11 +127,15 @@ func asSaved(cand rules.Candidate) dedupe.Entry {
 	return dedupe.Entry{URL: dedupeURL(cand.URL), Name: collide.SafeName(cand.Filename), Size: cand.Filesize}
 }
 
-// dedupeURL spells an uploaded .torrent as a magnet of its info hash, so the
-// history and the list know a torrent whether it came as a file or as a
-// magnet.
+// dedupeURL is the address the history and the list know a link by: a
+// hoster's file under its own file link (see hosterLink), and an uploaded
+// .torrent as a magnet of its info hash, so a torrent is one whether it came
+// as a file or as a magnet.
 func dedupeURL(u string) string {
-	if !torrent.IsURI(u) || torrent.IsMagnet(u) {
+	if !torrent.IsURI(u) {
+		return hosterLink(u)
+	}
+	if torrent.IsMagnet(u) {
 		return u
 	}
 	md, err := (torrent.Resolver{}).Describe(u)
