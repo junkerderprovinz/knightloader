@@ -74,6 +74,15 @@ export function fmtUptime(seconds: number): string {
   return ltr(`${d}d ${Math.floor((secs % 86400) / 3600)}h`);
 }
 
+/** fmtPlaytime prints a video's length as a player shows it: "12:34", "1:02:03". */
+export function fmtPlaytime(seconds: number): string {
+  const secs = Math.max(0, Math.round(seconds));
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = String(secs % 60).padStart(2, '0');
+  return ltr(h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`);
+}
+
 /** fmtPct prints a share of a hundred, "45%". */
 export const fmtPct = (n: number): string => ltr(`${n}%`);
 

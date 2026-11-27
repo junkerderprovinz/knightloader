@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 
-import { SIZE_UNITS, fmtBytes, fmtDate, fmtEta, fmtRate, fmtSpeed, fmtTotal, fmtUptime, splitRate } from './format';
+import { SIZE_UNITS, fmtBytes, fmtDate, fmtEta, fmtPlaytime, fmtRate, fmtSpeed, fmtTotal, fmtUptime, splitRate } from './format';
 import { fmtSkew } from './selftest';
 
 describe('durations', () => {
@@ -17,6 +17,12 @@ describe('durations', () => {
     expect(fmtUptime(90000)).toBe('1d 1h');
     expect(fmtSkew(-150_000)).toBe('3min');
     expect(fmtSkew(3_900_000)).toBe('1h 5min');
+  });
+
+  it('writes a playing time the way a player shows it', () => {
+    expect(fmtPlaytime(40)).toBe('0:40');
+    expect(fmtPlaytime(754)).toBe('12:34');
+    expect(fmtPlaytime(3723)).toBe('1:02:03');
   });
 });
 
