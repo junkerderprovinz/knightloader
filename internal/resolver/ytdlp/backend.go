@@ -506,6 +506,8 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		// geo is set when the stream turns out to be the site's stand-in for
 		// a video this region may not see. The run stops and fails.
 		geo bool
+		// media is the address of the stream yt-dlp set out to fetch.
+		media string
 	)
 	apart := opts.Variant == VariantVideo && opts.Embed.Separate
 	sc := bufio.NewScanner(stdout)
@@ -539,7 +541,8 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 			b.onUpdate(taskID, u)
 			continue
 		}
-		if media, ok := strings.CutPrefix(line, mediaPrefix); ok {
+		if m, ok := strings.CutPrefix(line, mediaPrefix); ok {
+			media = m
 			if geoPlaceholder(media) {
 				geo = true
 				cancel()
@@ -656,12 +659,16 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		if msg == "" {
 			msg = err.Error()
 		}
+		// Diagnosed from the whole buffer, before errorLine cuts it down (see
+		// diagnose.go).
+		reason := Diagnose(raw)
+		if reason == core.ReasonUnknown && geoRefusal(raw, media, target) {
+			reason = core.ReasonGeoBlocked
+		}
 		return core.Update{
 			Status: core.StatusError,
 			Err:    "yt-dlp: " + msg,
-			// Diagnosed from the whole buffer, before errorLine cuts it
-			// down (see diagnose.go).
-			Reason: Diagnose(raw),
+			Reason: reason,
 			// No extractor for the link means another backend should try
 			// it, such as the plain HTTP fallback.
 			Unsupported: notMine(msg),

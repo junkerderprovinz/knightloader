@@ -264,6 +264,13 @@ func ytdlpHelper(mode string) {
 		fmt.Println(strings.TrimSpace(string(b)))
 		fmt.Println("[download] Destination: " + final)
 		_ = os.WriteFile(final, []byte("bytes"), 0o644)
+	case "refusedlimited", "refusedopen":
+		// A Mediathek file the CDN refuses: one of those only Germany may
+		// fetch, or one anyone may.
+		folder := map[string]string{"refusedlimited": "de", "refusedopen": "none"}[mode]
+		fmt.Println(mediaPrefix + "https://nrodlzdf-a.akamaihd.net/" + folder + "/zdf/26/11/261126_x/1/261126_x_3360k_p36v17.mp4")
+		fmt.Fprintln(os.Stderr, "ERROR: unable to download video data: HTTP Error 403: Forbidden")
+		os.Exit(1)
 	case "hang":
 		// Part way through, and staying there until it is killed.
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)

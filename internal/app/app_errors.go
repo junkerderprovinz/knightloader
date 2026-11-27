@@ -21,6 +21,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
 // failure is what is known about one task when it settles. Every field is
@@ -218,6 +219,16 @@ func classifyText(text string) core.Reason {
 		}
 	}
 	return core.ReasonUnknown
+}
+
+// regionRefusal reads the refusal of a Mediathek file only some countries may
+// fetch as the region block it is. The CDN answers a bare 403, which would
+// otherwise send the reader looking for a login.
+func regionRefusal(rawurl string, r core.Reason) core.Reason {
+	if r == core.ReasonAuth && ytdlp.GeoLimited(rawurl) {
+		return core.ReasonGeoBlocked
+	}
+	return r
 }
 
 // recordFailure settles a classified failure on t: its sentence, its typed

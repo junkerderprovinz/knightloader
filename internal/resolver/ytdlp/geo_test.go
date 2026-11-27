@@ -89,3 +89,48 @@ func TestRunFinishesAnORFEpisodeTheWholeWorldMaySee(t *testing.T) {
 		t.Fatalf("last update = %+v, want Done", got)
 	}
 }
+
+// testdata/geo/mediathekviewweb.txt holds one file of each folder the German
+// and Austrian Mediatheks serve from, as MediathekViewWeb listed them, marked
+// limited where only some countries may fetch it.
+func TestGeoLimitedKnowsTheMediathekFoldersOfSomeCountries(t *testing.T) {
+	b, err := os.ReadFile(filepath.Join("testdata", "geo", "mediathekviewweb.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range strings.Split(strings.TrimSpace(string(b)), "\n") {
+		label, u, _ := strings.Cut(strings.TrimSpace(line), " ")
+		if got, want := GeoLimited(u), label == "limited"; got != want {
+			t.Errorf("GeoLimited(%q) = %v, want %v", u, got, want)
+		}
+	}
+}
+
+// An ordinary refusal elsewhere stays a refusal, whatever the path says.
+func TestGeoLimitedLeavesOtherHostsAlone(t *testing.T) {
+	for _, u := range []string{
+		"https://example.com/de/file.mp4",
+		"https://files.example.org/geo/de/file.mp4",
+		"https://cdn-storage.br.de.example.com/geo/x.mp4",
+		"not a url",
+		"",
+	} {
+		if GeoLimited(u) {
+			t.Errorf("GeoLimited(%q) = true", u)
+		}
+	}
+}
+
+func TestRunCallsAMediathekFileRefusedOutsideItsCountryARegionBlock(t *testing.T) {
+	_, rec := runFake(t, "refusedlimited:full", Options{})
+	if got := rec.last(); got.Status != core.StatusError || got.Reason != core.ReasonGeoBlocked {
+		t.Fatalf("last update = %+v, want an Error with Reason %q", got, core.ReasonGeoBlocked)
+	}
+}
+
+func TestRunLeavesARefusalOfAWorldwideFileToTheClassifier(t *testing.T) {
+	_, rec := runFake(t, "refusedopen:full", Options{})
+	if got := rec.last(); got.Status != core.StatusError || got.Reason != core.ReasonUnknown {
+		t.Fatalf("last update = %+v, want an Error with no Reason of its own", got)
+	}
+}
