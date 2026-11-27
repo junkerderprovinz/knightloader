@@ -25,6 +25,8 @@ type youtube struct {
 	// pageless makes every channel page answer without a canonical link, as
 	// a consent page would.
 	pageless bool
+	// feedDown makes every feed answer 503, as YouTube's feeds sometimes do.
+	feedDown bool
 }
 
 func (y *youtube) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -45,6 +47,9 @@ func (y *youtube) RoundTrip(r *http.Request) (*http.Response, error) {
 	}
 	if r.URL.Host != "www.youtube.com" {
 		return answer(http.StatusNotFound, "")
+	}
+	if y.feedDown && r.URL.Path == "/feeds/videos.xml" {
+		return answer(http.StatusServiceUnavailable, "")
 	}
 	switch {
 	case r.URL.Path == "/feeds/videos.xml" && r.URL.Query().Get("channel_id") == "UCsXVk37bltHxD1rDPwtNM8Q":
@@ -188,5 +193,27 @@ func TestResolveRefusesWhatCannotBeFetched(t *testing.T) {
 		if _, err := Resolve(context.Background(), Sources{}, raw); !errors.As(err, &refused) {
 			t.Errorf("%q came back as %v, want a refusal of the address", raw, err)
 		}
+	}
+}
+
+func TestAChannelStillResolvesWhileYouTubeWithholdsItsFeed(t *testing.T) {
+	src, y := ytSources(t)
+	y.feedDown = true
+	got, err := Resolve(context.Background(), src, "https://www.youtube.com/@kurzgesagt")
+	if err != nil {
+		t.Fatalf("a feed answering 503 refused the channel: %v", err)
+	}
+	if got.URL != "https://www.youtube.com/feeds/videos.xml?channel_id=UCsXVk37bltHxD1rDPwtNM8Q" || !isKurzgesagt(got.Title) {
+		t.Errorf("resolved to %+v, want the channel's feed named after its page", got.Subscription)
+	}
+	if got.Channel == nil || got.Channel.URL != "https://www.youtube.com/channel/UCsXVk37bltHxD1rDPwtNM8Q/videos" {
+		t.Errorf("the listing is missing: %+v", got.Channel)
+	}
+}
+
+func TestAChannelYouTubeDoesNotKnowIsRefused(t *testing.T) {
+	src, _ := ytSources(t)
+	if got, err := Resolve(context.Background(), src, "https://www.youtube.com/channel/UCxxxxxxxxxxxxxxxxxxxxxx"); err == nil {
+		t.Fatalf("an unknown channel resolved to %+v", got.Subscription)
 	}
 }

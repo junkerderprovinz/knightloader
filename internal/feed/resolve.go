@@ -120,14 +120,23 @@ func resolveYouTube(ctx context.Context, src Sources, u *url.URL) (Resolved, err
 }
 
 // youTubeRows builds the two rows for one channel or playlist and names them
-// after the feed, which proves the feed exists.
+// after the feed. Only a 404 refuses them: YouTube's feeds also fail for a
+// while on channels that exist, and the address follows a fixed pattern, so
+// the subscription is offered anyway and its polls try again.
 func youTubeRows(ctx context.Context, src Sources, feedURL, listURL, title string) (Resolved, error) {
 	f, err := fetch(ctx, src.HTTP, feedURL)
-	if err != nil {
-		return Resolved{}, fmt.Errorf("YouTube did not hand out the feed of %s: %w", listURL, err)
-	}
-	if f.Title != "" {
-		title = f.Title
+	var status *statusError
+	switch {
+	case err == nil:
+		if f.Title != "" {
+			title = f.Title
+		}
+	case errors.As(err, &status) && status.code == http.StatusNotFound:
+		return Resolved{}, fmt.Errorf("YouTube knows no feed for %s: %w", listURL, err)
+	case title == "" && src.Lister != nil:
+		if l, lerr := src.Lister.List(ctx, listURL, ListQuery{Limit: 1}); lerr == nil {
+			title = l.Title
+		}
 	}
 	return Resolved{
 		Subscription: Subscription{URL: feedURL, Kind: KindRSS, Title: title},

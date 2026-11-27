@@ -467,7 +467,7 @@ func fetch(ctx context.Context, hc *http.Client, rawurl string) (Feed, error) {
 		// A 404 page or a login form parses to zero entries and would read as
 		// "nothing new" forever. Drain a little so the connection is reused.
 		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4<<10))
-		return Feed{}, fmt.Errorf("the server answered %s", resp.Status)
+		return Feed{}, &statusError{code: resp.StatusCode, status: resp.Status}
 	}
 	return Parse(rawurl, resp.Body)
 }
@@ -504,3 +504,11 @@ func copyPriority(p *int) *int {
 	v := *p
 	return &v
 }
+
+// statusError is a feed server's answer other than 200.
+type statusError struct {
+	code   int
+	status string
+}
+
+func (e *statusError) Error() string { return "the server answered " + e.status }
