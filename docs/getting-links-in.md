@@ -535,9 +535,10 @@ in the settings, a log or the diagnostics bundle.
 Your sessions are yours, so they only go along with links that you added
 yourself: signed in to KnightLoader, through an API token with the admin
 right, or with the browser extension. A link from a token that may only add
-and read (a friend's, an automation's), from the phone app, from a feed or
-from the watch folder is fetched as anybody would see it. That way nobody who
-can only add links gets at what your accounts open.
+and read (a friend's, an automation's), from the phone app, from a
+[subscription](subscriptions.md) or from the watch folder is fetched as
+anybody would see it. That way nobody who can only add links gets at what
+your accounts open.
 
 ## Other sites that want you signed in
 
