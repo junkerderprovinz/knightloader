@@ -67,7 +67,7 @@ RUN apk add --no-cache g++ make curl \
 # from distroless, kept in /usr/local/lib/glibc apart from Alpine's musl ones,
 # and patchelf points its loader and library path there, as denoland/deno's own
 # Alpine image does.
-FROM gcr.io/distroless/cc-debian13:latest@sha256:dac90a25ffe03ebaace90cda886b081e61ab6cd77ac47eda51f7bcc15c320765 AS glibc
+FROM gcr.io/distroless/cc-debian13:latest@sha256:e8343d4a7da8bb210df0c3ea29de38bbadbba6c773bed0cd8bde506fca3a5c44 AS glibc
 
 FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS deno
 # Deno's GitHub releases are immutable, so the .sha256sum beside the zip holds
