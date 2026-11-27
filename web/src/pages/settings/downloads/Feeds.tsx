@@ -52,7 +52,7 @@ import { happened } from '../../../lib/countdown';
 import { useDraft } from '../context';
 import { RowRefusal, SettingRow, Sheet, SubCard } from '../controls';
 import { ModuleCard } from '../ModuleToggle';
-import { BackfillRow, LengthFields, MediathekFields, PatternField } from './FeedEntries';
+import { BackfillRow, FIRST_BACKFILL, LengthFields, MediathekFields, PatternField } from './FeedEntries';
 import { MediaRows, SponsorBlockOverride } from './FeedMedia';
 
 // Feeds lists the subscriptions this instance follows: RSS and Atom feeds,
@@ -240,18 +240,21 @@ export function FeedsCard({ hue }: { hue: number }) {
   // would send as a key without a value.
   const write = (next: FeedSubscription[]) => patch({ feeds: next });
 
-  /**
-   * Moves a pending row into the draft, refusing anything the server would
-   * reject or merge away.
-   */
-  const commit = (row: FeedSubscription): Verdict => {
+  /** What the server would make of a pending row's address: refuse it, merge it away, or take it. */
+  const check = (row: FeedSubscription): Verdict => {
     const url = row.url.trim();
     if (url === '') return 'blank';
     if (!usableAddress(url)) return 'invalid';
     // A second row for one address would be merged away on save.
     if (rows.some((r) => r.url.trim() === url)) return 'duplicate';
-    write([...rows, { ...row, url }]);
     return 'ok';
+  };
+
+  /** Moves a pending row into the draft once check lets it. */
+  const commit = (row: FeedSubscription): Verdict => {
+    const verdict = check(row);
+    if (verdict === 'ok') write([...rows, { ...row, url: row.url.trim() }]);
+    return verdict;
   };
 
   const add = () => {
@@ -298,6 +301,7 @@ export function FeedsCard({ hue }: { hue: number }) {
                 status={health[row.url]}
                 open={openRow === idOf(row.url)}
                 onToggle={() => setOpenRow(openRow === idOf(row.url) ? '' : idOf(row.url))}
+                onCheck={() => 'ok'}
                 onCommit={() => 'ok'}
                 onChange={(next) => write(rows.map((r) => (r.url === row.url ? next : r)))}
                 onRemove={() => write(rows.filter((r) => r.url !== row.url))}
@@ -313,6 +317,7 @@ export function FeedsCard({ hue }: { hue: number }) {
                 priorities={priorities}
                 open={openRow === p.id}
                 onToggle={() => setOpenRow(openRow === p.id ? '' : p.id)}
+                onCheck={check}
                 onCommit={(row) => {
                   // Kept so closing a half-typed row keeps the text.
                   setPending((list) => list.map((r) => (r.id === p.id ? { ...r, row } : r)));
@@ -375,6 +380,7 @@ function FeedRow({
   priorities,
   status,
   onToggle,
+  onCheck,
   onCommit,
   onChange,
   onRemove,
@@ -388,6 +394,7 @@ function FeedRow({
   priorities: { id: string; label: string }[];
   onToggle: () => void;
   status?: FeedStatus;
+  onCheck: (row: FeedSubscription) => Verdict;
   onCommit: (row: FeedSubscription) => Verdict;
   onChange: (next: FeedSubscription) => void;
   onRemove: () => void;
@@ -406,6 +413,11 @@ function FeedRow({
   const [found, setFound] = useState<FeedResolved | null>(null);
   const [notFound, setNotFound] = useState('');
 
+  // A new channel waits until its older videos are chosen: the server checks
+  // a new subscription as soon as it is saved, and only that first check
+  // hands older videos over.
+  const held = !stored && kind === 'channel';
+
   const urlReason =
     verdict === 'invalid'
       ? t('settings.feeds.urlInvalid')
@@ -418,7 +430,8 @@ function FeedRow({
     const next = { ...row, ...fields, url: fields.url || typed };
     setFound(null);
     setText(next.url);
-    setVerdict(onCommit(next));
+    if (kindOf(next) === 'channel') onChange({ ...next, backfill: next.backfill ?? { ...FIRST_BACKFILL } });
+    else setVerdict(onCommit(next));
   };
 
   const lookUp = async (typed: string) => {
@@ -447,13 +460,13 @@ function FeedRow({
       void lookUp(typed);
       return;
     }
-    setVerdict(onCommit({ ...row, url: typed }));
+    setVerdict((held ? onCheck : onCommit)({ ...row, url: typed }));
   };
 
   const chooseKind = (next: FeedKind) => {
     const out = without(row, 'kind', 'backfill', 'mediathek');
     if (next !== 'rss') out.kind = next;
-    if (next === 'channel' && row.backfill) out.backfill = row.backfill;
+    if (next === 'channel') out.backfill = row.backfill ?? { ...FIRST_BACKFILL };
     if (next === 'mediathek' && row.mediathek) out.mediathek = row.mediathek;
     onChange(out);
   };
@@ -586,6 +599,17 @@ function FeedRow({
 
             {found && <FoundOffer found={found} onTake={(r) => take(r, text.trim())} />}
 
+            {held && (
+              <>
+                <BackfillRow row={row} onChange={onChange} />
+                <div className="flex justify-end">
+                  <Button icon={<IconAdd />} onClick={() => setVerdict(onCommit({ ...row, url: text.trim() }))}>
+                    {t('settings.feeds.add')}
+                  </Button>
+                </div>
+              </>
+            )}
+
             <SettingRow control="long" label={t('settings.feeds.name')} hint={t('settings.feeds.nameHint')}>
               <TextInput
                 value={row.title ?? ''}
@@ -615,7 +639,7 @@ function FeedRow({
           )}
 
           <SubCard label={t('settings.feeds.sectionEntries')}>
-            {kind === 'channel' && <BackfillRow row={row} onChange={onChange} />}
+            {kind === 'channel' && !held && <BackfillRow row={row} onChange={onChange} />}
             <PatternField
               label={t('settings.feeds.filter')}
               hint={t('settings.feeds.filterHint')}
