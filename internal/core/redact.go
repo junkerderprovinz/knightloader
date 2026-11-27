@@ -73,10 +73,19 @@ var magnetAddresses = map[string]bool{"tr": true, "xs": true, "as": true, "ws": 
 // WithoutCredentials. An argument that is itself an address, as a redirect or
 // a proxy takes one, is redacted the same way. Arguments may be separated by
 // "&" or ";". Anything that is not an address comes back as it is.
-func RedactURL(s string) string {
-	s = userinfo.ReplaceAllString(s, "$1")
-	s = pathSecrets.ReplaceAllString(s, "${1}redacted")
-	s = slackHook.ReplaceAllString(s, "${1}redacted")
+func RedactURL(s string) string { return hide(s, "redacted", "$1") }
+
+// MaskURL is RedactURL with every hidden part shown as an ellipsis, sign-in
+// included, so a member who edits the address can still see where the
+// credentials were.
+func MaskURL(s string) string { return hide(s, "…", "${1}…@") }
+
+// hide is RedactURL with mark in place of each hidden value and signIn as
+// the replacement for a sign-in.
+func hide(s, mark, signIn string) string {
+	s = userinfo.ReplaceAllString(s, signIn)
+	s = pathSecrets.ReplaceAllString(s, "${1}"+mark)
+	s = slackHook.ReplaceAllString(s, "${1}"+mark)
 	head, query, ok := strings.Cut(s, "?")
 	if !ok {
 		return s
@@ -106,12 +115,12 @@ func RedactURL(s string) string {
 		}
 		switch {
 		case secretArgs[name]:
-			arg = key + "=redacted"
+			arg = key + "=" + mark
 		case magnet && magnetAddresses[kind]:
 			arg = key + "=" + url.QueryEscape(HostOf(decoded))
 		default:
 			if inner, rounds := nestedAddress(decoded); rounds > 0 {
-				if redacted := RedactURL(inner); redacted != inner {
+				if redacted := hide(inner, mark, signIn); redacted != inner {
 					for range rounds {
 						redacted = url.QueryEscape(redacted)
 					}

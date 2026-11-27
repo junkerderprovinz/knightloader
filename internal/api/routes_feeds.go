@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -72,6 +73,7 @@ func registerFeeds(reg *Registry, a *app.App) {
 			// The configured order, so the table lines up with the rows on the
 			// settings card.
 			subs := a.Settings.Get().Feeds
+			_, member := memberOf(r)
 			rows := make([]feedRow, 0, len(subs))
 			for _, s := range subs {
 				row := feedRow{URL: strings.TrimSpace(s.URL), Kind: s.Kind, Title: s.Title}
@@ -85,6 +87,9 @@ func registerFeeds(reg *Registry, a *app.App) {
 					// that is not polled yet is the runner catching up at startup,
 					// not a fault.
 					row.Error = err.Error()
+				}
+				if member {
+					row.URL, row.Error = core.MaskURL(row.URL), core.RedactText(row.Error)
 				}
 				rows = append(rows, row)
 			}
@@ -104,6 +109,13 @@ func registerFeeds(reg *Registry, a *app.App) {
 				return
 			}
 			sub := subs[0]
+			_, member := memberOf(r)
+			if member && strings.Contains(sub.URL, "…") {
+				// The masked address a member reads stands for the stored one.
+				if real, ok := unmasked(sub.URL, a.Settings.Get().Feeds); ok {
+					sub.URL = real
+				}
+			}
 			if err := sub.Validate(); err != nil {
 				// A 400, unlike a failed fetch: the row itself is wrong.
 				http.Error(w, err.Error()+"; fix that field and test again", http.StatusBadRequest)
@@ -114,7 +126,11 @@ func registerFeeds(reg *Registry, a *app.App) {
 			if err != nil {
 				// 200 with the reason in the body, as in /api/reconnect/import:
 				// the request was fine and the far end was not.
-				writeJSON(w, feedTestFailure(err))
+				failed := feedTestFailure(err)
+				if member {
+					failed.Error = core.RedactText(failed.Error)
+				}
+				writeJSON(w, failed)
 				return
 			}
 			writeJSON(w, feedTest{Preview: p})
@@ -149,13 +165,9 @@ func registerFeeds(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/feeds/subscriptions",
-		"the configured subscription rows, as the settings hold them",
+		"the configured subscription rows, as the settings hold them; a member gets the addresses with their credentials masked",
 		func(w http.ResponseWriter, r *http.Request) {
-			subs := a.Settings.Get().Feeds
-			if subs == nil {
-				subs = []feed.Subscription{}
-			}
-			writeJSON(w, subs)
+			writeJSON(w, subscriptionsFor(r, a.Settings.Get().Feeds))
 		})
 
 	reg.Add(http.MethodPut, "/api/feeds/subscriptions",
@@ -166,6 +178,24 @@ func registerFeeds(reg *Registry, a *app.App) {
 				return
 			}
 			if _, ok := memberOf(r); ok {
+				// A member reads masked addresses, so one sent back unchanged
+				// stands for the stored one and must not overwrite it.
+				stored := a.Settings.Get().Feeds
+				for i := range rows {
+					if !strings.Contains(rows[i].URL, "…") {
+						continue
+					}
+					real, found := unmasked(strings.TrimSpace(rows[i].URL), stored)
+					if !found {
+						writeJSONStatus(w, http.StatusBadRequest, map[string]any{
+							"error": fmt.Sprintf("feed row %d still holds a hidden part (…) of an address no subscription has; "+
+								"type the whole address", i+1),
+							"field": fmt.Sprintf("feeds.%d", i),
+						})
+						return
+					}
+					rows[i].URL = real
+				}
 				// Where files land is configuration, so a member picks only among
 				// the folders the owner set up, as for POST /api/links. Checked
 				// here rather than in groupLimits so the refusal names the row.
@@ -205,10 +235,30 @@ func registerFeeds(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			subs := applied.Feeds
-			if subs == nil {
-				subs = []feed.Subscription{}
-			}
-			writeJSON(w, subs)
+			writeJSON(w, subscriptionsFor(r, applied.Feeds))
 		})
+}
+
+// subscriptionsFor is the subscription rows as caller r may read them: whole
+// for the owner, with masked addresses for a member, since a private feed's
+// address holds the owner's passkey or API key.
+func subscriptionsFor(r *http.Request, subs []feed.Subscription) []feed.Subscription {
+	out := make([]feed.Subscription, len(subs))
+	copy(out, subs)
+	if _, member := memberOf(r); member {
+		for i := range out {
+			out[i].URL = core.MaskURL(out[i].URL)
+		}
+	}
+	return out
+}
+
+// unmasked finds the stored address a member's masked one stands for.
+func unmasked(masked string, stored []feed.Subscription) (string, bool) {
+	for _, s := range stored {
+		if core.MaskURL(s.URL) == masked {
+			return s.URL, true
+		}
+	}
+	return "", false
 }

@@ -182,3 +182,77 @@ func jsonPath(p string) string {
 	b, _ := json.Marshal(p)
 	return strings.Trim(string(b), `"`)
 }
+
+func TestAMemberSeesSubscriptionAddressesWithoutTheirSecrets(t *testing.T) {
+	t.Parallel()
+	a, _, _, member, owner := groupServer(t)
+	feeds := feedServer(t)
+	// A private feed answers only the passkey it was given.
+	private := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("passkey") != "abc123" {
+			http.Error(w, "wrong passkey", http.StatusForbidden)
+			return
+		}
+		w.Header().Set("Content-Type", "application/rss+xml")
+		_, _ = w.Write([]byte(`<?xml version="1.0"?><rss version="2.0"><channel><title>Funk</title>` +
+			`<item><title>Folge 1</title><link>https://example.invalid/e/1</link><guid>pf-1</guid></item></channel></rss>`))
+	}))
+	t.Cleanup(private.Close)
+	secret := private.URL + "/rss?passkey=abc123&cat=4"
+	masked := private.URL + "/rss?passkey=…&cat=4"
+	if status, out := owner(http.MethodPut, "/api/feeds/subscriptions", `[{"url":"`+secret+`"},{"url":"`+feeds.URL+`/b"}]`); status != http.StatusOK {
+		t.Fatalf("the owner's save answered %d: %s", status, out)
+	}
+
+	firstURL := func(call func(string, string, string) (int, []byte), path string) string {
+		t.Helper()
+		status, out := call(http.MethodGet, path, "")
+		var rows []struct {
+			URL string `json:"url"`
+		}
+		if status != http.StatusOK || json.Unmarshal(out, &rows) != nil || len(rows) == 0 {
+			t.Fatalf("GET %s answered %d: %s", path, status, out)
+		}
+		return rows[0].URL
+	}
+	if got := firstURL(member, "/api/feeds/subscriptions"); got != masked {
+		t.Errorf("a member reads the subscription as %q, want %q", got, masked)
+	}
+	if got := firstURL(member, "/api/feeds"); got != masked {
+		t.Errorf("a member reads its health as %q, want %q", got, masked)
+	}
+	if got := firstURL(owner, "/api/feeds/subscriptions"); got != secret {
+		t.Errorf("the owner reads the subscription as %q, want the full address", got)
+	}
+	status, out := member(http.MethodPost, "/api/feeds/test", `{"url":"`+masked+`"}`)
+	var tested struct {
+		Error string `json:"error"`
+		Total int    `json:"total"`
+	}
+	if status != http.StatusOK || json.Unmarshal(out, &tested) != nil || tested.Error != "" || tested.Total == 0 {
+		t.Errorf("a member testing the masked address answered %d: %s, want the stored feed fetched", status, out)
+	}
+
+	if status, out := member(http.MethodPut, "/api/feeds/subscriptions", `[{"url":"`+masked+`","title":"Funk"},{"url":"`+feeds.URL+`/b"}]`); status != http.StatusOK {
+		t.Fatalf("a member saving the masked address back answered %d: %s", status, out)
+	}
+	if got := a.Settings.Get().Feeds[0]; got.URL != secret || got.Title != "Funk" {
+		t.Errorf("after a member's edit the row is %q titled %q, want the stored address kept", got.URL, got.Title)
+	}
+
+	status, out = member(http.MethodPut, "/api/feeds/subscriptions", `[{"url":"`+private.URL+`/other?passkey=…"},{"url":"`+feeds.URL+`/b"}]`)
+	var refusal struct {
+		Field string `json:"field"`
+	}
+	if status != http.StatusBadRequest || json.Unmarshal(out, &refusal) != nil || refusal.Field != "feeds.0" {
+		t.Errorf("a masked address that matches no subscription answered %d: %s", status, out)
+	}
+
+	fresh := private.URL + "/rss?passkey=new456"
+	if status, out := member(http.MethodPut, "/api/feeds/subscriptions", `[{"url":"`+fresh+`"},{"url":"`+feeds.URL+`/b"}]`); status != http.StatusOK {
+		t.Fatalf("a member entering a new address answered %d: %s", status, out)
+	}
+	if got := a.Settings.Get().Feeds[0].URL; got != fresh {
+		t.Errorf("a member's new address was stored as %q, want %q", got, fresh)
+	}
+}

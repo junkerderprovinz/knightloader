@@ -132,3 +132,20 @@ func TestATaskWithoutCredentialsKeepsEverythingElse(t *testing.T) {
 		t.Error("WithoutCredentials() changed the task it was called on")
 	}
 }
+
+func TestMaskURLShowsEachHiddenPartAsAnEllipsis(t *testing.T) {
+	for in, want := range map[string]string{
+		"https://tracker.example/rss?passkey=abc123&cat=4":          "https://tracker.example/rss?passkey=…&cat=4",
+		"https://indexer.example/api?t=search&apikey=s3cr3t":        "https://indexer.example/api?t=search&apikey=…",
+		"https://feeds.example/x.xml?token=t&key=k&sid=s&auth=a":    "https://feeds.example/x.xml?token=…&key=…&sid=…&auth=…",
+		"https://feeds.example/x.xml?secret=s&password=p":           "https://feeds.example/x.xml?secret=…&password=…",
+		"https://jo:hunter2@feeds.example/private.xml":              "https://…@feeds.example/private.xml",
+		"https://rss.torrentleech.org/abcdef0123456789":             "https://rss.torrentleech.org/…",
+		"https://www.youtube.com/feeds/videos.xml?channel_id=UC4Q":  "https://www.youtube.com/feeds/videos.xml?channel_id=UC4Q",
+		"https://mediathekviewweb.de/#query=%21ard%20%23tagesschau": "https://mediathekviewweb.de/#query=%21ard%20%23tagesschau",
+	} {
+		if got := MaskURL(in); got != want {
+			t.Errorf("MaskURL(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
