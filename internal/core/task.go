@@ -179,6 +179,19 @@ const (
 // download depends on it.
 type Origin string
 
+// DownloadedCheck says whether one link is checked against what this
+// instance has downloaded before (see Task.DownloadedCheck).
+type DownloadedCheck string
+
+const (
+	// DownloadedCheckSetting leaves it to the instance's switch.
+	DownloadedCheckSetting DownloadedCheck = ""
+	// DownloadedCheckOn checks the link with the switch off as well.
+	DownloadedCheckOn DownloadedCheck = "on"
+	// DownloadedCheckOff adds the link with the switch on as well.
+	DownloadedCheckOff DownloadedCheck = "off"
+)
+
 // UnpackResult is how the last unpacking of a file's archive ended, as the
 // task keeps it once the job that says so is gone.
 type UnpackResult string
@@ -583,6 +596,19 @@ type Task struct {
 	// Variant is which form of the resource was picked, such as a yt-dlp
 	// format, so a re-run fetches the same one.
 	Variant string `json:"variant,omitempty"`
+	// Media is the video a yt-dlp row downloads, as yt-dlp's download archive
+	// names it (see dedupe.MediaKey), once its link or its probe has said. A
+	// finished row is filed under it in the store's media archive, which is
+	// how the same video is known again under another link. Side rows
+	// (thumbnail, subtitles, description) have none, since fetching them is
+	// not having the video.
+	Media string `json:"-"`
+	// DownloadedCheck is whether a link already downloaded is rejected, where
+	// the way the link came decides that rather than the instance's switch:
+	// a subscription checks its entries unless it allows repeats. It is
+	// asked again once a probe names the file or the video. Not persisted,
+	// as a restart asks nothing again.
+	DownloadedCheck DownloadedCheck `json:"-"`
 	// PickSent is what a variant row was sent to fetch, before a probe turned
 	// its pick into one of the source's own tracks, so the same pick sent
 	// again is known as this row and not downloaded twice.
