@@ -119,8 +119,10 @@ type intake struct {
 	file bool
 
 	// choice is the batch's own choice for a yt-dlp link's rows (see
-	// LinkBatchOptions.Choice).
+	// LinkBatchOptions.Choice), and preset the one it stages with in place of
+	// the host's (LinkBatchOptions.Preset).
 	choice *ytdlp.LinkChoice
+	preset *ytdlp.HosterPreset
 
 	// pin is the backend every row of the link is pinned to (see
 	// LinkBatchOptions.Resolver).
@@ -326,7 +328,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		if t := a.stage(u, batch.FileName, 0, intake{
 			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-			sizeProbes: &probes, choice: batch.Choice, pin: batch.Resolver, listed: batch.listed, foldDone: batch.foldDone,
+			sizeProbes: &probes, choice: batch.Choice, preset: batch.Preset, pin: batch.Resolver, listed: batch.listed, foldDone: batch.foldDone,
 			byAdmin: batch.ByAdmin, downloaded: batch.downloaded,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
@@ -1042,7 +1044,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
 		// exist as soon as the link appears.
-		a.expandYtdlpVariants(staged, in.choice, have)
+		a.expandYtdlpVariants(staged, in.preset, in.choice, have)
 		// Before the answer and any automatic start, and as the family, so
 		// downloading it anyway brings back every row with its pick.
 		held := staged.Media != "" && a.holdIfDownloaded(staged.ID)

@@ -9,7 +9,9 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"regexp"
+	"net/url"
+	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,20 +19,35 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// maxSeen is how many entry keys one subscription remembers. It must be at
-// least maxItems, or an entry still in the feed could age out and be staged
-// again, and it is larger so an entry that briefly drops out and returns is
-// still recognised. It is bounded because the memory is persisted, and a
-// memory the store refuses comes back empty after a restart and restages the
-// feed. 500 keys is about 10 KB per subscription.
+// maxSeen is how many entry keys an RSS subscription remembers. It must be
+// at least maxItems, or an entry still in the feed could age out and be
+// staged again, and it is larger so an entry that briefly drops out and
+// returns is still recognised. 500 keys is about 10 KB per subscription.
 const maxSeen = 500
+
+// maxSeenListing is the same for channels and Mediathek searches. A channel's
+// backfill can hand over its whole history, and forgetting part of it would
+// stage those videos again should they reappear in a listing.
+const maxSeenListing = 20000
+
+// channelWindow is how many of a channel's newest videos an ordinary poll
+// lists: far more than a channel publishes between polls, and few enough
+// that a poll is a handful of page requests.
+const channelWindow = 100
+
+func seenCap(k Kind) int {
+	if k == KindChannel || k == KindMediathek {
+		return maxSeenListing
+	}
+	return maxSeen
+}
 
 // poller polls one feed and hands each new entry to a sink.
 type poller struct {
 	// url is the fetch address and the key the memory is stored under. A
 	// different address is a different subscription with its own poller.
 	url   string
-	http  *http.Client
+	src   Sources
 	state State
 	onJob func(Job)
 
@@ -40,11 +57,11 @@ type poller struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	// cmu guards sub and filt, which Apply replaces in place so an edited
+	// cmu guards sub and match, which Apply replaces in place so an edited
 	// subscription keeps its memory rather than seeding again.
-	cmu  sync.Mutex
-	sub  Subscription
-	filt *regexp.Regexp
+	cmu   sync.Mutex
+	sub   Subscription
+	match matcher
 
 	// seen, order, primed and loaded belong to the polling goroutine alone.
 	// primed tells "polled before, remembered nothing" from "never polled";
@@ -78,13 +95,13 @@ func newPoller(r *Runner, s Subscription) *poller {
 	ctx, cancel := context.WithCancel(r.ctx)
 	return &poller{
 		url:    s.URL,
-		http:   r.http,
+		src:    r.src,
 		state:  r.state,
 		onJob:  r.onJob,
 		ctx:    ctx,
 		cancel: cancel,
 		sub:    s,
-		filt:   s.filter(),
+		match:  s.matcher(),
 		seen:   make(map[string]bool),
 		stop:   make(chan struct{}),
 		done:   make(chan struct{}),
@@ -96,7 +113,7 @@ func newPoller(r *Runner, s Subscription) *poller {
 // so the next poll is measured against the new interval at once.
 func (p *poller) configure(s Subscription) {
 	p.cmu.Lock()
-	p.sub, p.filt = s, s.filter()
+	p.sub, p.match = s, s.matcher()
 	p.cmu.Unlock()
 	select {
 	case p.wake <- struct{}{}:
@@ -104,10 +121,10 @@ func (p *poller) configure(s Subscription) {
 	}
 }
 
-func (p *poller) config() (Subscription, *regexp.Regexp) {
+func (p *poller) config() (Subscription, matcher) {
 	p.cmu.Lock()
 	defer p.cmu.Unlock()
-	return p.sub, p.filt
+	return p.sub, p.match
 }
 
 func (p *poller) start() {
@@ -184,18 +201,19 @@ func (p *poller) poll() {
 		p.notePoll(err)
 		return
 	}
-	sub, filt := p.config()
-	f, err := p.fetch()
+	sub, m := p.config()
+	w := p.window(sub)
+	f, err := p.src.read(p.ctx, sub, w.q)
 	if err != nil {
 		log.Print(core.RedactText(fmt.Sprintf("feed %s was not read: %v", p.url, err)))
 		p.notePoll(err)
 		return
 	}
 
-	fresh := p.pick(f, sub, filt)
+	fresh := p.pick(f, sub, m, w)
 	// Remember before handing over, as watch.consume does: a crash mid-handover
 	// loses one entry rather than restaging the batch on every poll.
-	p.remember(f)
+	p.remember(f, seenCap(sub.Kind))
 	p.notePoll(nil)
 
 	for _, j := range fresh {
@@ -258,30 +276,120 @@ func (p *poller) load() error {
 	return nil
 }
 
+// backfills reports whether a subscription's first poll hands over what is
+// already there rather than seeding.
+func backfills(sub Subscription) bool {
+	return sub.Kind == KindChannel && sub.Backfill != nil
+}
+
+// window is what one poll lists of a channel and how much of that a
+// backfill hands over: the first upto entries, or those since a date. A
+// backfill lists at least an ordinary poll's window, so the second poll finds
+// nothing it would take for new.
+type window struct {
+	q     ListQuery
+	upto  int
+	since time.Time
+}
+
+func (p *poller) window(sub Subscription) window {
+	w := window{q: ListQuery{Limit: channelWindow}}
+	if p.primed || !backfills(sub) {
+		return w
+	}
+	switch b := sub.Backfill; b.Mode {
+	case BackfillCount:
+		w.q.Limit, w.upto = max(b.N, channelWindow), b.N
+	case BackfillDays:
+		w.since = time.Now().AddDate(0, 0, -b.N)
+		w.q.Since = w.since
+	default:
+		w.q = ListQuery{}
+	}
+	return w
+}
+
 // pick decides which of a document's entries are handed over. A first poll
-// hands over nothing; see seed.
-func (p *poller) pick(f Feed, sub Subscription, filt *regexp.Regexp) []Job {
-	if !p.primed {
+// hands over nothing unless the subscription backfills; see seed.
+func (p *poller) pick(f Feed, sub Subscription, m matcher, w window) []Job {
+	first := !p.primed
+	if first && !backfills(sub) {
 		p.seed(f)
 		return nil
 	}
 	var out []Job
-	for _, it := range f.Items {
-		if p.seen[it.Key()] {
+	for i, it := range f.Items {
+		if p.seen[it.Key()] || (w.upto > 0 && i >= w.upto) {
 			continue
 		}
-		if !sub.wants(filt, it.Title) {
+		if !w.since.IsZero() && !it.Published.IsZero() && it.Published.Before(w.since) {
 			continue
 		}
-		out = append(out, Job{
-			URL:      it.Link,
-			Package:  packageName(it, f, p.url),
-			Dir:      sub.Dir,
-			Priority: copyPriority(sub.Priority),
-			Source:   p.url,
-		})
+		it, why := m.judge(p.ctx, p.src.Prober, it)
+		if why != "" {
+			continue
+		}
+		out = append(out, newJob(it, f, sub))
+	}
+	if first {
+		log.Print(core.RedactText(fmt.Sprintf("feed %s: the first poll hands over %d of the %d entries already there, as its backfill asks", p.url, len(out), len(f.Items))))
 	}
 	return out
+}
+
+// newJob is one picked entry with everything the subscription asked for.
+func newJob(it Item, f Feed, sub Subscription) Job {
+	show := showName(f, sub)
+	j := Job{
+		URL:      it.Link,
+		Package:  packageName(it, f, sub.URL),
+		Show:     show,
+		Title:    it.Title,
+		FileName: it.FileName,
+		Dir:      sub.Dir,
+		Priority: copyPriority(sub.Priority),
+		Source:   sub.URL,
+		Duration: it.Duration,
+		Sub:      sub,
+	}
+	j.Sub.Priority = copyPriority(sub.Priority)
+	if sub.Naming == NamingChannel {
+		j.Package = show
+	}
+	if it.Subtitle != "" {
+		j.Subtitle = it.Subtitle
+		j.SubtitleName = subtitleName(it, it.Subtitle)
+	}
+	return j
+}
+
+// showName is the channel or show a subscription follows: what the user
+// called it, else what the feed calls itself, else its address.
+func showName(f Feed, sub Subscription) string {
+	if sub.Title != "" {
+		return sub.Title
+	}
+	if f.Title != "" {
+		return f.Title
+	}
+	return sub.URL
+}
+
+// subtitleName names a subtitle file after its video, with the extension its
+// address shows or TTML, which the broadcasters serve without one.
+func subtitleName(it Item, link string) string {
+	base := strings.TrimSuffix(it.FileName, path.Ext(it.FileName))
+	if base == "" {
+		base = it.Title
+	}
+	ext := ".ttml"
+	if u, err := url.Parse(link); err == nil {
+		switch e := strings.ToLower(path.Ext(u.Path)); e {
+		case ".srt", ".vtt", ".ttml", ".xml", ".dfxp", ".ass", ".sub":
+			ext = e
+		}
+	}
+	return base + ext
 }
 
 // seed is a subscription's first poll: every entry in the feed is remembered
@@ -298,9 +406,9 @@ func (p *poller) seed(f Feed) {
 }
 
 // remember records every entry in the document, filtered or not, and drops
-// the oldest keys once the memory is full. The document's keys go first on
-// every poll, so an entry still in the feed never ages out.
-func (p *poller) remember(f Feed) {
+// the oldest keys once the memory holds limit of them. The document's keys
+// go first on every poll, so an entry still in the feed never ages out.
+func (p *poller) remember(f Feed, limit int) {
 	next := make([]string, 0, len(f.Items)+len(p.order))
 	fresh := make(map[string]bool, len(f.Items))
 	for _, it := range f.Items {
@@ -317,8 +425,8 @@ func (p *poller) remember(f Feed) {
 			next = append(next, k)
 		}
 	}
-	if len(next) > maxSeen {
-		next = next[:maxSeen]
+	if len(next) > limit {
+		next = next[:limit]
 	}
 
 	p.order = next
@@ -338,10 +446,6 @@ func (p *poller) remember(f Feed) {
 	}
 }
 
-func (p *poller) fetch() (Feed, error) {
-	return fetch(p.ctx, p.http, p.url)
-}
-
 // fetch is one GET of one feed document. The preview (preview.go) uses it too,
 // so a test fetch reports exactly what a poll would get.
 func fetch(ctx context.Context, hc *http.Client, rawurl string) (Feed, error) {
@@ -351,7 +455,7 @@ func fetch(ctx context.Context, hc *http.Client, rawurl string) (Feed, error) {
 	}
 	// A redirect is the publisher's choice, and must not take the request
 	// further into the network than the subscribed address.
-	req = req.WithContext(httpx.Confine(ctx, httpx.ScopeOfHost(ctx, req.URL.Hostname())))
+	req = req.WithContext(httpx.Confine(ctx, scopeOf(ctx, req.URL.Hostname())))
 	// Some sites serve HTML to a client that accepts anything.
 	req.Header.Set("Accept", "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.9, */*;q=0.5")
 	resp, err := hc.Do(req)
@@ -366,6 +470,17 @@ func fetch(ctx context.Context, hc *http.Client, rawurl string) (Feed, error) {
 		return Feed{}, fmt.Errorf("the server answered %s", resp.Status)
 	}
 	return Parse(rawurl, resp.Body)
+}
+
+// scopeOf is how far into the network a fetch from host may go. The services
+// the resolver and the Mediathek kind talk to are public, which needs no DNS
+// lookup to know.
+func scopeOf(ctx context.Context, host string) httpx.Scope {
+	switch strings.ToLower(host) {
+	case "www.youtube.com", "mediathekviewweb.de":
+		return httpx.ScopePublic
+	}
+	return httpx.ScopeOfHost(ctx, host)
 }
 
 // packageName is what a staged link is filed under: the entry's title, else

@@ -25,12 +25,83 @@ type Job struct {
 	URL string
 	// Package is what the link is filed under, never empty; see packageName.
 	Package string
+	// Show is the channel or show the entry belongs to, never empty. With
+	// NamingChannel it is the package and the folder.
+	Show string
+	// Title is the entry's own title, which its file is named after.
+	Title string
+	// FileName is the name to save the link under, empty to leave it to the
+	// download.
+	FileName string
+	// Subtitle is a subtitle file to stage beside the link, and SubtitleName
+	// what it is saved as; both empty for none.
+	Subtitle     string
+	SubtitleName string
 	// Dir is the subscription's destination override, empty for none.
 	Dir string
 	// Priority is the subscription's priority, nil when it named none.
 	Priority *int
 	// Source is the feed this came from, for log lines.
 	Source string
+	// Duration is the entry's length, zero when unknown.
+	Duration time.Duration
+	// Sub is the subscription as it was when the entry was picked, for the
+	// options the app applies to the staged rows.
+	Sub Subscription
+}
+
+// Lister lists a channel or playlist for KindChannel. The app answers with
+// yt-dlp; it is an interface so tests stay offline.
+type Lister interface {
+	List(ctx context.Context, url string, q ListQuery) (Feed, error)
+}
+
+// ListQuery bounds one listing.
+type ListQuery struct {
+	// Limit is how many of the newest entries to list, zero for all.
+	Limit int
+	// Since, when set, carries the listing on past Limit up to the first
+	// entry older than it.
+	Since time.Time
+}
+
+// Sources is what subscriptions are read with.
+type Sources struct {
+	// HTTP fetches feeds and Mediathek searches. Nil means the shared
+	// internal/httpx policy.
+	HTTP *http.Client
+	// Lister lists channels. Without one a channel subscription reports that
+	// it cannot be read.
+	Lister Lister
+	// Prober finds the length of an entry that does not carry one, for a
+	// subscription with a length bound. Nil leaves such lengths unknown.
+	Prober Prober
+	// MediathekAPI is the search endpoint, empty for MediathekViewWeb's.
+	MediathekAPI string
+}
+
+func (src Sources) withDefaults() Sources {
+	if src.HTTP == nil {
+		src.HTTP = httpx.New(httpx.Options{})
+	}
+	if src.MediathekAPI == "" {
+		src.MediathekAPI = MediathekAPI
+	}
+	return src
+}
+
+// read fetches what one subscription carries.
+func (src Sources) read(ctx context.Context, sub Subscription, q ListQuery) (Feed, error) {
+	switch sub.Kind {
+	case KindChannel:
+		if src.Lister == nil {
+			return Feed{}, errors.New("a channel is listed with yt-dlp, which is not available here")
+		}
+		return src.Lister.List(ctx, strings.TrimSpace(sub.URL), q)
+	case KindMediathek:
+		return queryMediathek(ctx, src.HTTP, src.MediathekAPI, sub, mediathekWindow)
+	}
+	return fetch(ctx, src.HTTP, strings.TrimSpace(sub.URL))
 }
 
 // Health is how one subscription is doing. It lives in memory only: the
@@ -83,6 +154,11 @@ type Options struct {
 	// internal/httpx policy.
 	HTTP *http.Client
 
+	// Lister, Prober and MediathekAPI are as in Sources.
+	Lister       Lister
+	Prober       Prober
+	MediathekAPI string
+
 	// Context bounds every fetch; cancelling it stops the runner like Close.
 	// Nil means context.Background.
 	Context context.Context
@@ -90,7 +166,7 @@ type Options struct {
 
 // Runner polls a set of feeds and hands each new entry to a sink.
 type Runner struct {
-	http  *http.Client
+	src   Sources
 	state State
 	onJob func(Job)
 	ctx   context.Context
@@ -112,16 +188,12 @@ func New(o Options) (*Runner, error) {
 		// and they could not be recovered later.
 		return nil, errors.New("feed: OnJob is required")
 	}
-	client := o.HTTP
-	if client == nil {
-		client = httpx.New(httpx.Options{})
-	}
 	ctx := o.Context
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	r := &Runner{
-		http:  client,
+		src:   Sources{HTTP: o.HTTP, Lister: o.Lister, Prober: o.Prober, MediathekAPI: o.MediathekAPI}.withDefaults(),
 		state: o.State,
 		onJob: o.OnJob,
 		ctx:   ctx,

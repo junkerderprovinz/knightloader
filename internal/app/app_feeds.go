@@ -1,98 +1,161 @@
 package app
 
-// RSS and Atom subscriptions. Like the drop folders in app_watch.go, nobody is
-// watching when a feed entry arrives, and every entry goes through
-// addLinksFrom so the filter, crawler, Packagizer and mirror check apply.
+// Feed subscriptions: RSS and Atom feeds, channels yt-dlp lists, and
+// Mediathek searches. Like the drop folders in app_watch.go, nobody is
+// watching when an entry arrives, and every entry goes through addLinksFrom
+// so the filter, crawler, Packagizer and mirror check apply.
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
+	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/confirm"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// feedStateBucket is the interface-state bucket that records what each
-// subscription has already staged. It is not configuration, and a bucket of
-// its own keeps the browser's layout writes from overwriting it.
-//
-// store.MaxUIStateBytes is 256 KiB and internal/feed remembers at most 500
-// keys per subscription, about 10 KB, so a couple of dozen feeds fit. Past
-// that the store refuses the write and the runner logs it.
-const feedStateBucket = "feeds"
-
-// feedState is the runner's State, kept as one document for all subscriptions
-// so removed addresses can be cleaned up. Subscriptions poll on separate
-// goroutines and each rewrites the whole document, hence the mutex.
+// feedState is the runner's State, kept in the store's table of its own (see
+// store.FeedSeen).
 type feedState struct {
 	app *App
-	mu  sync.Mutex
 }
 
 func (f *feedState) Seen(url string) ([]string, bool, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	doc, err := f.load()
-	if err != nil {
-		return nil, false, err
-	}
-	keys, known := doc[url]
-	return keys, known, nil
+	return f.app.Store.FeedSeen(url)
 }
 
+// SetSeen also drops the records of subscriptions that are not configured,
+// so a feed that is removed and added back seeds again.
 func (f *feedState) SetSeen(url string, keys []string) error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	doc, err := f.load()
-	if err != nil {
+	if err := f.app.Store.SetFeedSeen(url, keys); err != nil {
 		return err
 	}
-	doc[url] = keys
-	// Records of subscriptions that are not configured are dropped here,
-	// so a feed that is removed and added back seeds again.
-	for u := range doc {
-		if u != url && !f.configured(u) {
-			delete(doc, u)
-		}
-	}
-	b, err := json.Marshal(doc)
-	if err != nil {
-		return err
-	}
-	return f.app.SetUIState(feedStateBucket, string(b))
-}
-
-func (f *feedState) load() (map[string][]string, error) {
-	value, err := f.app.UIState(feedStateBucket)
-	if err != nil {
-		return nil, err
-	}
-	doc := map[string][]string{}
-	if value == "" {
-		return doc, nil
-	}
-	if err := json.Unmarshal([]byte(value), &doc); err != nil {
-		// Starting afresh would stage every feed's whole current window, so the
-		// poller skips the poll instead.
-		return nil, err
-	}
-	return doc, nil
-}
-
-// configured reports whether an address is still one of the subscriptions.
-func (f *feedState) configured(url string) bool {
+	keep := []string{url}
 	for _, s := range f.app.Settings.Get().Feeds {
-		if strings.TrimSpace(s.URL) == url {
-			return true
+		keep = append(keep, strings.TrimSpace(s.URL))
+	}
+	return f.app.Store.KeepFeedSeen(keep)
+}
+
+// feedListingTimeout bounds one listing of a channel, and a backfill of all of
+// a channel gets feedBackfillTimeout: yt-dlp reads about thirty videos per
+// page request.
+const (
+	feedListingTimeout  = 2 * time.Minute
+	feedBackfillTimeout = 30 * time.Minute
+)
+
+// listing is the part of the yt-dlp backend a channel subscription needs.
+type listing interface {
+	List(ctx context.Context, url string, limit int, each func(ytdlp.ListingEntry) bool) error
+}
+
+// feedLister lists channels for internal/feed with the yt-dlp backend wired
+// at the time of the poll.
+type feedLister struct{ a *App }
+
+func (l feedLister) List(ctx context.Context, url string, q feed.ListQuery) (feed.Feed, error) {
+	l.a.bmu.RLock()
+	b, ok := l.a.ytdlp.(listing)
+	l.a.bmu.RUnlock()
+	if !ok {
+		return feed.Feed{}, errors.New(ytdlpMissing)
+	}
+	limit := q.Limit
+	if !q.Since.IsZero() {
+		// The listing goes past the limit until it reaches the date, which
+		// only the entries can tell.
+		limit = 0
+	}
+	timeout := feedListingTimeout
+	if limit == 0 {
+		timeout = feedBackfillTimeout
+	}
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	var f feed.Feed
+	err := b.List(ctx, url, limit, func(e ytdlp.ListingEntry) bool {
+		return addListed(&f, q, e)
+	})
+	if err != nil {
+		return feed.Feed{}, err
+	}
+	return f, nil
+}
+
+// addListed adds one listed video to f and reports whether the listing should
+// go on.
+func addListed(f *feed.Feed, q feed.ListQuery, e ytdlp.ListingEntry) bool {
+	var published time.Time
+	if e.Timestamp > 0 {
+		published = time.Unix(e.Timestamp, 0)
+	}
+	if q.Limit > 0 && len(f.Items) >= q.Limit &&
+		(q.Since.IsZero() || (!published.IsZero() && published.Before(q.Since))) {
+		return false
+	}
+	if f.Title == "" {
+		// A channel's tabs are titled "<channel> - Videos"; a playlist keeps
+		// its own title.
+		f.Title = e.Playlist
+		if e.Channel != "" && (e.Playlist == "" || strings.HasPrefix(e.Playlist, e.Channel+" - ")) {
+			f.Title = e.Channel
+		}
+		if e.ChannelID != "" {
+			f.Link = "https://www.youtube.com/channel/" + e.ChannelID
 		}
 	}
-	return false
+	// The same id YouTube's own feed gives the video, so a key does not
+	// depend on which kind found it.
+	guid := strings.ToLower(e.Extractor) + ":" + e.ID
+	if e.Extractor == "Youtube" {
+		guid = "yt:video:" + e.ID
+	}
+	if e.ID == "" {
+		guid = ""
+	}
+	f.Items = append(f.Items, feed.Item{
+		Title:     e.Title,
+		Link:      e.URL,
+		GUID:      guid,
+		Published: published,
+		Duration:  time.Duration(e.Duration * float64(time.Second)),
+	})
+	return true
+}
+
+// feedProber finds an entry's length with the same yt-dlp probe staging
+// runs, so a video that passes is not probed a second time.
+type feedProber struct{ a *App }
+
+func (p feedProber) Duration(ctx context.Context, link string) (time.Duration, error) {
+	if res := p.a.stagingResolverFor(link, ""); res == nil || res.Info().ID != "ytdlp" {
+		return 0, fmt.Errorf("%s is not a link yt-dlp can measure", link)
+	}
+	tp, ok := p.a.ytdlpTitleProber()
+	if !ok {
+		return 0, errors.New(ytdlpMissing)
+	}
+	r, err := p.a.linkProbe(ctx, tp, link, nil, false)
+	if err != nil {
+		return 0, err
+	}
+	return time.Duration(r.Duration * float64(time.Second)), nil
+}
+
+// feedSources is what the runner and the test button read subscriptions with.
+func (a *App) feedSources(hc *http.Client) feed.Sources {
+	return feed.Sources{HTTP: hc, Lister: feedLister{a}, Prober: feedProber{a}}
 }
 
 // applyFeeds makes the feed runner match the configuration on every settings
@@ -111,10 +174,13 @@ func (a *App) applyFeeds(s settings.Settings) {
 		return
 	}
 	if a.feeds == nil {
+		src := a.feedSources(nil)
 		r, err := feed.New(feed.Options{
 			Subscriptions: subs,
 			OnJob:         a.onFeedEntry,
 			State:         &feedState{app: a},
+			Lister:        src.Lister,
+			Prober:        src.Prober,
 			Context:       a.ctx,
 		})
 		if err != nil {
@@ -153,15 +219,22 @@ func (a *App) FeedHealth() []feed.Health {
 	return a.feeds.Health()
 }
 
-// feedTestClient serves the settings page's test button. It is built once so
-// repeated presses share one connection pool, and it has the same options as
-// a poller's client so the test answers about the real request.
+// feedTestClient serves the settings page's test and resolve buttons. It is
+// built once so repeated presses share one connection pool, and it has the
+// same options as a poller's client so the test answers about the real
+// request.
 var feedTestClient = httpx.New(httpx.Options{})
 
-// InspectFeed fetches one feed once and reports what it carries, staging
-// nothing and marking nothing as seen. It never touches the live runner.
+// InspectFeed fetches one subscription once and reports what it carries,
+// staging nothing and marking nothing as seen. It never touches the live
+// runner.
 func (a *App) InspectFeed(ctx context.Context, s feed.Subscription) (feed.Preview, error) {
-	return feed.Inspect(ctx, feedTestClient, s)
+	return feed.Inspect(ctx, a.feedSources(feedTestClient), s)
+}
+
+// ResolveFeed works out the subscription for a pasted address.
+func (a *App) ResolveFeed(ctx context.Context, raw string) (feed.Resolved, error) {
+	return feed.Resolve(ctx, a.feedSources(feedTestClient), raw)
 }
 
 // onFeedEntry stages one new entry on its own goroutine, so the subscription's
@@ -187,23 +260,37 @@ func feedScope(source string) *httpx.Scope {
 // then starts anything, so the destination is set before a download picks
 // where to write.
 func (a *App) stageFeedJob(j feed.Job) {
-	ids := idsOf(a.addLinksFrom([]string{j.URL}, j.Package, OriginFeed, LinkBatchOptions{Within: feedScope(j.Source)}))
+	sub := j.Sub
+	batch := LinkBatchOptions{Within: feedScope(j.Source), Source: j.Source, Preset: sub.Media}
+	if j.FileName != "" {
+		// A plain file under the entry's name: the CDN's own name says nothing,
+		// and a backend that names files itself would undo this one.
+		batch.File, batch.FileName = true, sanitizeSegment(j.FileName)
+	}
+	ids := idsOf(a.addLinksFrom([]string{j.URL}, j.Package, OriginFeed, batch))
 	if len(ids) == 0 {
 		// Filtered or duplicate; not logged, or a filtered feed would log on
 		// every poll.
 		return
 	}
+	if j.Subtitle != "" {
+		sb := LinkBatchOptions{Within: batch.Within, Source: j.Source, File: true, FileName: sanitizeSegment(j.SubtitleName)}
+		ids = append(ids, idsOf(a.addLinksFrom([]string{j.Subtitle}, j.Package, OriginFeed, sb))...)
+	}
 	// A video feed's entry is a yt-dlp link, and the options below are for
 	// every row it became.
 	ids = a.withVariantFamilies(ids)
-	log.Printf("feed %s added %s", j.Source, j.Package)
+	log.Printf("feed %s added %s", core.RedactURL(j.Source), j.Package)
 
 	var (
 		opts TaskOptions
 		set  bool
 	)
-	if j.Dir != "" {
-		dir := j.Dir
+	dir := j.Dir
+	if sub.Naming == feed.NamingChannel && j.Show != "" {
+		dir = a.showDir(dir, j.Show)
+	}
+	if dir != "" {
 		opts.Dir, set = &dir, true
 	}
 	if j.Priority != nil {
@@ -213,11 +300,43 @@ func (a *App) stageFeedJob(j feed.Job) {
 	}
 	if set {
 		if err := a.SetTaskOptions(ids, opts); err != nil {
-			log.Printf("feed %s: %v", j.Source, err)
+			log.Printf("feed %s: %v", core.RedactURL(j.Source), err)
 		}
 	}
 
-	// Only the instance's own AutoConfirm decides: a feed entry is written by a
-	// stranger, who should not get to start downloads on this machine.
-	a.autoConfirm(ids)
+	// A feed entry is written by a stranger, so only the instance's own
+	// AutoConfirm or the subscription's own switch starts it. With AutoConfirm
+	// on, the entry waits out the countdown like any other link.
+	switch {
+	case a.Settings.Get().AutoConfirm:
+		a.autoConfirm(ids)
+	case sub.AutoStart:
+		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerAutoConfirm)
+	}
+}
+
+// showDir is the folder a show's entries go to: a folder named after it in
+// the subscription's own folder, or in the download folder. Where the
+// download folder already gets a folder per package, which is the show,
+// that one is used.
+func (a *App) showDir(base, show string) string {
+	if base == "" {
+		if a.Settings.Get().SubfolderByPackage {
+			return ""
+		}
+		base = a.defaultDir()
+	}
+	return filepath.Join(base, sanitizeSegment(show))
+}
+
+// feedPresets maps each subscription that picks its own rows to that choice,
+// by the address its entries carry as their source.
+func feedPresets(s settings.Settings) map[string]ytdlp.HosterPreset {
+	out := map[string]ytdlp.HosterPreset{}
+	for _, sub := range s.Feeds {
+		if sub.Media != nil {
+			out[strings.TrimSpace(sub.URL)] = *sub.Media
+		}
+	}
+	return out
 }

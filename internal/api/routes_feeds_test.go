@@ -14,11 +14,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// feedStateBucket is the interface-state key internal/app keeps each
-// subscription's staged-entry record under. It is spelled out so the test
-// reads the stored bytes independently of the code that writes them.
-const feedStateBucket = "feeds"
-
 // feedServer serves one small RSS document with three entries, two of which
 // share a title prefix so a filter has something to take and something to leave.
 func feedServer(t *testing.T) *httptest.Server {
@@ -79,8 +74,7 @@ func TestATestFetchStagesNothingAndRemembersNothing(t *testing.T) {
 	defer srv.Close()
 	feeds := feedServer(t)
 
-	before := `{"` + feeds.URL + `":[]}`
-	if err := a.SetUIState(feedStateBucket, before); err != nil {
+	if err := a.Store.SetFeedSeen(feeds.URL, []string{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -97,13 +91,13 @@ func TestATestFetchStagesNothingAndRemembersNothing(t *testing.T) {
 	if got := stagedWithin(a, time.Second); len(got) != 0 {
 		t.Errorf("a test fetch staged %d link(s); pressing test must never add anything to the collector", len(got))
 	}
-	after, err := a.UIState(feedStateBucket)
+	after, _, err := a.Store.FeedSeen(feeds.URL)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if after != before {
-		t.Errorf("a test fetch wrote the seen-memory:\n before %s\n  after %s\n"+
-			"the subscription would now be seeded and would add nothing when it is saved", before, after)
+	if len(after) != 0 {
+		t.Errorf("a test fetch wrote the seen-memory: %v\n"+
+			"the subscription would be seeded and would add nothing when it is saved", after)
 	}
 }
 

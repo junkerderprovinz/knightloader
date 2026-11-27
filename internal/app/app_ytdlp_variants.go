@@ -195,9 +195,13 @@ func (r familyRow) key() string { return r.variant + "\x00" + r.bitrate + "\x00"
 func rowKey(t *core.Task) string { return t.Variant + "\x00" + t.AudioBitrate + "\x00" + t.AudioLang }
 
 // familyRows lists the rows a link of host is staged as, video first, from
-// the host's preset or a choice the link arrived with.
-func (a *App) familyRows(host string, choice *ytdlp.LinkChoice) []familyRow {
+// the host's preset, or base where the batch brought its own, or a choice the
+// link arrived with.
+func (a *App) familyRows(host string, base *ytdlp.HosterPreset, choice *ytdlp.LinkChoice) []familyRow {
 	preset := a.HosterPresetFor(host)
+	if base != nil {
+		preset = base.Sanitize()
+	}
 	var own ytdlp.LinkChoice
 	if choice != nil {
 		preset = preset.ForChoice(*choice)
@@ -254,7 +258,7 @@ func (a *App) lackedPicks(u string, choice *ytdlp.LinkChoice) map[string]bool {
 	if len(have) == 0 {
 		return nil
 	}
-	for _, r := range a.familyRows(torrentHost(u), choice) {
+	for _, r := range a.familyRows(torrentHost(u), nil, choice) {
 		if r.on && !have[r.key()] {
 			return have
 		}
@@ -271,8 +275,8 @@ func (a *App) lackedPicks(u string, choice *ytdlp.LinkChoice) map[string]bool {
 // unpacking switch the batch and the Packagizer gave the staged row. A choice
 // the batch arrived with stands in for the preset for this link alone, and
 // the rows in have, which the list already fetches, are set aside too.
-func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, have map[string]bool) {
-	rows := a.familyRows(primary.Host, choice)
+func (a *App) expandYtdlpVariants(primary *core.Task, base *ytdlp.HosterPreset, choice *ytdlp.LinkChoice, have map[string]bool) {
+	rows := a.familyRows(primary.Host, base, choice)
 	video := rows[0]
 
 	a.mu.Lock()
@@ -797,19 +801,23 @@ func (a *App) applyFixedVariantExts() {
 // row's own switch holds while its kind stays listed.
 //
 // Rows that have left the collector are not touched: a preset decides what a
-// link collects, not what is already downloading.
+// link collects, not what is already downloading. A feed entry whose
+// subscription picks its own rows follows that pick.
 func (a *App) applyVariantPresets() {
 	presets := map[string]ytdlp.HosterPreset{}
+	own := feedPresets(a.Settings.Get())
 	a.mu.Lock()
 	var touched []taskCopy
 	for _, t := range a.tasks {
 		if t.Status != core.StatusCollected || t.Variant == "" {
 			continue
 		}
-		p, ok := presets[t.Host]
-		if !ok {
-			p = a.HosterPresetFor(t.Host)
-			presets[t.Host] = p
+		p, ok := own[t.Source]
+		if !ok || t.Origin != OriginFeed {
+			if p, ok = presets[t.Host]; !ok {
+				p = a.HosterPresetFor(t.Host)
+				presets[t.Host] = p
+			}
 		}
 		kind, _ := variantDecode(t.Variant)
 		off := !p.HasVariant(kind)
