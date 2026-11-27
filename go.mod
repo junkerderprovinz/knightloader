@@ -10,14 +10,14 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
-	github.com/dop251/goja v0.0.0-20261122185237-35fdc4b88e39
+	github.com/dop251/goja v0.0.0-20261125210501-5e92a7e24d0c
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/jlaffaye/ftp v0.2.4
 	github.com/junkerderprovinz/parleyport v1.3.8
 	github.com/klauspost/compress v1.20.5
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/nwaples/rardecode/v2 v2.4.6
-	github.com/pkg/sftp v1.13.12
+	github.com/pkg/sftp v1.13.13
 	github.com/ulikunitz/xz v0.5.17
 	golang.org/x/crypto v0.59.0
 	golang.org/x/image v0.48.0

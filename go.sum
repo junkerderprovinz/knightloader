@@ -92,6 +92,8 @@ github.com/dlclark/regexp2/v2 v2.11.0 h1:z5uRPHav+eTVpoffDSuUP2KPS4f1ONZaPDK73S8
 github.com/dlclark/regexp2/v2 v2.11.0/go.mod h1:avUrQvPaLz2DrFNHJF0taWAFFX2C1GMSSoeiqFjcBmU=
 github.com/dop251/goja v0.0.0-20261122185237-35fdc4b88e39 h1:njdoK99Ob0Aa/s2LfWKFvC47tNqC0GnCpb1uBkkPrLU=
 github.com/dop251/goja v0.0.0-20261122185237-35fdc4b88e39/go.mod h1:L1yoLBco9M3b2Gdh1UZHg+BIePeAdV1bwknaLLxAgoc=
+github.com/dop251/goja v0.0.0-20261125210501-5e92a7e24d0c h1:DrPWTQKJbBWxW/xaQcnUMPtoYScy0n7bkJR3ONvcIBA=
+github.com/dop251/goja v0.0.0-20261125210501-5e92a7e24d0c/go.mod h1:L1yoLBco9M3b2Gdh1UZHg+BIePeAdV1bwknaLLxAgoc=
 github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc h1:MKYt39yZJi0Z9xEeRmDX2L4ocE0ETKcHKw6MVL3R+co=
 github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc/go.mod h1:VULptt4Q/fNzQUJlqY/GP3qHyU7ZH46mFkBZe0ZTokU=
 github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 h1:2tV76y6Q9BB+NEBasnqvs7e49aEBFI8ejC89PSnWH+4=
@@ -277,6 +279,8 @@ github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.13.12 h1:Myhzy/ZzLPnCtE2F2WtDHsgs8RfgMnH2gfbHuCJhkMU=
 github.com/pkg/sftp v1.13.12/go.mod h1:uNkH9roSXglNJqM+glJJi+TQXQUm0fXFWqCFmT8hsN0=
+github.com/pkg/sftp v1.13.13 h1:lfbNTnT3zEilT8XxmwBBb5sdqJJBTunll5OVNCZPwrs=
+github.com/pkg/sftp v1.13.13/go.mod h1:uNkH9roSXglNJqM+glJJi+TQXQUm0fXFWqCFmT8hsN0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/protolambda/ctxlock v0.1.0 h1:rCUY3+vRdcdZXqT07iXgyr744J2DU2LCBIXowYAjBCE=
 github.com/protolambda/ctxlock v0.1.0/go.mod h1:vefhX6rIZH8rsg5ZpOJfEDYQOppZi19SfPiGOFrNnwM=
