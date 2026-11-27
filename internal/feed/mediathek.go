@@ -207,7 +207,7 @@ func queryMediathek(ctx context.Context, hc *http.Client, api string, s Subscrip
 	if err != nil {
 		return Feed{}, err
 	}
-	req = req.WithContext(httpx.Confine(ctx, httpx.ScopeOfHost(ctx, req.URL.Hostname())))
+	req = req.WithContext(httpx.Confine(ctx, scopeOf(ctx, req.URL.Hostname())))
 	// The API reads its JSON body only when it is sent as plain text.
 	req.Header.Set("Content-Type", "text/plain")
 	req.Header.Set("Accept", "application/json")

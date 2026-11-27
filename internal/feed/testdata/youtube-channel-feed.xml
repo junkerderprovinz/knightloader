@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCsXVk37bltHxD1rDPwtNM8Q"/>
+ <id>yt:channel:sXVk37bltHxD1rDPwtNM8Q</id>
+ <yt:channelId>sXVk37bltHxD1rDPwtNM8Q</yt:channelId>
+ <title>Kurzgesagt &#8211; In a Nutshell</title>
+ <link rel="alternate" href="https://www.youtube.com/channel/UCsXVk37bltHxD1rDPwtNM8Q"/>
+ <author>
+  <name>Kurzgesagt &#8211; In a Nutshell</name>
+  <uri>https://www.youtube.com/channel/UCsXVk37bltHxD1rDPwtNM8Q</uri>
+ </author>
+ <published>2013-07-09T20:17:20+00:00</published>
+ <entry>
+  <id>yt:video:3X0UcSRQOY4</id>
+  <yt:videoId>3X0UcSRQOY4</yt:videoId>
+  <yt:channelId>UCsXVk37bltHxD1rDPwtNM8Q</yt:channelId>
+  <title>Something in Your Kitchen Could Save Millions of Lives!</title>
+  <link rel="alternate" href="https://www.youtube.com/shorts/3X0UcSRQOY4"/>
+  <author>
+   <name>Kurzgesagt &#8211; In a Nutshell</name>
+   <uri>https://www.youtube.com/channel/UCsXVk37bltHxD1rDPwtNM8Q</uri>
+  </author>
+  <published>2026-11-26T15:00:16+00:00</published>
+  <updated>2026-11-26T15:00:16+00:00</updated>
+  <media:group>
+   <media:title>Something in Your Kitchen Could Save Millions of Lives!</media:title>
+   <media:content url="https://www.youtube.com/v/3X0UcSRQOY4?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/3X0UcSRQOY4/hqdefault.jpg" width="480" height="360"/>
+   <media:description></media:description>
+   <media:community>
+    <media:starRating count="7484" average="5.00" min="1" max="5"/>
+    <media:statistics views="109658"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:hCkyIuXEGGk</id>
+  <yt:videoId>hCkyIuXEGGk</yt:videoId>
+  <yt:channelId>UCsXVk37bltHxD1rDPwtNM8Q</yt:channelId>
+  <title>What Happens If We Spin the Earth Twice as Fast?</title>
+  <link rel="alternate" href="https://www.youtube.com/shorts/hCkyIuXEGGk"/>
+  <author>
+   <name>Kurzgesagt &#8211; In a Nutshell</name>
+   <uri>https://www.youtube.com/channel/UCsXVk37bltHxD1rDPwtNM8Q</uri>
+  </author>
+  <published>2026-11-24T16:00:24+00:00</published>
+  <updated>2026-11-25T08:37:42+00:00</updated>
+  <media:group>
+   <media:title>What Happens If We Spin the Earth Twice as Fast?</media:title>
+   <media:content url="https://www.youtube.com/v/hCkyIuXEGGk?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/hCkyIuXEGGk/hqdefault.jpg" width="480" height="360"/>
+   <media:description></media:description>
+   <media:community>
+    <media:starRating count="12520" average="5.00" min="1" max="5"/>
+    <media:statistics views="262714"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>

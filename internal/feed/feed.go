@@ -58,6 +58,9 @@ type Item struct {
 type Feed struct {
 	// Title is the feed's own name, the package for entries without a title.
 	Title string
+	// Link is the page of the channel the entries belong to, where the
+	// source names one.
+	Link  string
 	Items []Item
 }
 

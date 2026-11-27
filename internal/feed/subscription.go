@@ -194,6 +194,10 @@ func (s Subscription) Every() time.Duration {
 // is never polled on a guess.
 func (s Subscription) Validate() error {
 	raw := strings.TrimSpace(s.URL)
+	if raw == "" && s.Kind == KindMediathek && s.Mediathek != nil {
+		// Sanitize gives such a row this address.
+		raw = MediathekURL(*s.Mediathek, s.MinMinutes, s.MaxMinutes)
+	}
 	if raw == "" {
 		return fmt.Errorf("feed: a subscription needs an address")
 	}
