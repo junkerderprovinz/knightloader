@@ -2246,6 +2246,7 @@ export const pl: Dict = {
   'settings.feeds.emptyHint': 'Subskrypcja sama sprawdza kanał i wkłada nowości do kolektora.',
   'settings.feeds.duplicate': 'Ten adres jest już subskrybowany.',
   'settings.feeds.urlInvalid': 'Użyj pełnego adresu zaczynającego się od http:// lub https://, na przykład https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Pod tym adresem nie ma niczego do subskrybowania. Sprawdź go albo wklej adres kanału RSS, kanału YouTube lub wyszukiwania w MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'To nie jest poprawne wyrażenie regularne, więc filtr nie zostaje zapisany.',
   'settings.categories.add': 'Dodaj kategorię',
   'settings.categories.remove': 'Usuń',

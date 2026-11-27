@@ -2254,6 +2254,7 @@ export const uk: Dict = {
   'settings.feeds.emptyHint': 'Підписка сама перевіряє стрічку і кладе нове до збирача.',
   'settings.feeds.duplicate': 'На цю адресу вже є підписка.',
   'settings.feeds.urlInvalid': 'Вкажіть повну адресу, що починається з http:// або https://, наприклад https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'За цією адресою немає нічого, на що можна підписатися. Перевірте її або вставте адресу стрічки, каналу YouTube чи пошуку в MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Це не коректний регулярний вираз, тому фільтр не зберігається.',
   'settings.categories.add': 'Додати категорію',
   'settings.categories.remove': 'Вилучити',

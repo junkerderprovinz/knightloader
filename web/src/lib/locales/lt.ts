@@ -2253,6 +2253,7 @@ export const lt: Dict = {
   'settings.feeds.emptyHint': 'Prenumerata pati tikrina kanalą ir tai, kas nauja, deda į rinktuvą.',
   'settings.feeds.duplicate': 'Šis adresas jau prenumeruojamas.',
   'settings.feeds.urlInvalid': 'Naudok visą adresą, prasidedantį http:// arba https://, pavyzdžiui, https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Šiuo adresu nėra nieko, ką būtų galima prenumeruoti. Patikrink jį arba įklijuok sklaidos kanalo, YouTube kanalo ar MediathekViewWeb paieškos adresą.',
   'settings.feeds.filterInvalid': 'Tai nėra tinkamas reguliarusis reiškinys, todėl filtras neišsaugomas.',
   'settings.categories.add': 'Pridėti kategoriją',
   'settings.categories.remove': 'Šalinti',

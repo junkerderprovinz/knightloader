@@ -2857,6 +2857,7 @@ export const en = {
   'settings.feeds.emptyHint': 'A subscription checks a feed on its own and puts what is new into the link collector.',
   'settings.feeds.duplicate': 'This address is already subscribed.',
   'settings.feeds.urlInvalid': 'Use a full address that starts with http:// or https://, like https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'There is nothing to subscribe to at this address. Check it, or paste the address of a feed, a YouTube channel or a MediathekViewWeb search.',
   'settings.feeds.filterInvalid': 'This is not a valid regular expression, so the filter is not saved.',
   'settings.categories.add': 'Add category',
   'settings.categories.remove': 'Remove',

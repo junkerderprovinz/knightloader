@@ -2252,6 +2252,7 @@ export const fa: Dict = {
   'settings.feeds.emptyHint': 'یک اشتراک خودش فید را بررسی می‌کند و آنچه را تازه است در گردآور می‌گذارد.',
   'settings.feeds.duplicate': 'این نشانی از پیش مشترک شده است.',
   'settings.feeds.urlInvalid': 'یک نشانی کامل به کار ببر که با http:// یا https:// شروع شود، مثل https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'در این نشانی چیزی برای مشترک شدن نیست. آن را بررسی کن، یا نشانی یک فید، یک کانال YouTube یا یک جست‌وجو در MediathekViewWeb را بچسبان.',
   'settings.feeds.filterInvalid': 'این یک عبارت باقاعدهٔ معتبر نیست، برای همین پالایه ذخیره نمی‌شود.',
   'settings.categories.add': 'افزودن دسته',
   'settings.categories.remove': 'حذف',

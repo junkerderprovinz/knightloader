@@ -2253,6 +2253,7 @@ export const hu: Dict = {
   'settings.feeds.emptyHint': 'A feliratkozás magától ellenőriz egy feedet, és az újat beteszi a gyűjtőbe.',
   'settings.feeds.duplicate': 'Erre a címre már feliratkoztál.',
   'settings.feeds.urlInvalid': 'Teljes címet adj meg, amely http:// vagy https:// előtaggal kezdődik, például https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Ezen a címen nincs semmi, amire fel lehetne iratkozni. Ellenőrizd, vagy illeszd be egy feed, egy YouTube-csatorna vagy egy MediathekViewWeb-keresés címét.',
   'settings.feeds.filterInvalid': 'Ez nem érvényes reguláris kifejezés, ezért a szűrő nem mentődik el.',
   'settings.categories.add': 'Kategória hozzáadása',
   'settings.categories.remove': 'Eltávolítás',

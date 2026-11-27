@@ -2254,6 +2254,7 @@ export const ar: Dict = {
   'settings.feeds.emptyHint': 'الاشتراك يفحص خلاصة من تلقاء نفسه ويضع الجديد في المُجمِّع.',
   'settings.feeds.duplicate': 'هذا العنوان مشترَك فيه سلفًا.',
   'settings.feeds.urlInvalid': 'استخدم عنوانًا كاملًا يبدأ بـ http:// أو https://، مثل https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'لا يوجد في هذا العنوان شيء يمكن الاشتراك فيه. تحقّق منه، أو الصق عنوان خلاصة أو قناة YouTube أو بحث في MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'هذا ليس تعبيرًا نمطيًا صالحًا، لذلك لا يُحفظ المرشّح.',
   'settings.categories.add': 'إضافة فئة',
   'settings.categories.remove': 'إزالة',

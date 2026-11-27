@@ -2251,6 +2251,7 @@ export const et: Dict = {
   'settings.feeds.emptyHint': 'Tellimus kontrollib voogu ise ja paneb uue kogujasse.',
   'settings.feeds.duplicate': 'See aadress on juba tellitud.',
   'settings.feeds.urlInvalid': 'Kasuta täielikku aadressi, mis algab http:// või https://, näiteks https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Sellel aadressil pole midagi, mida tellida. Kontrolli seda või kleebi voo, YouTube\'i kanali või MediathekViewWebi otsingu aadress.',
   'settings.feeds.filterInvalid': 'See pole kehtiv regulaaravaldis, seega filtrit ei salvestata.',
   'settings.categories.add': 'Lisa kategooria',
   'settings.categories.remove': 'Eemalda',

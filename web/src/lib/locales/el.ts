@@ -2253,6 +2253,7 @@ export const el: Dict = {
   'settings.feeds.emptyHint': 'Μια συνδρομή ελέγχει μόνη της μια ροή και βάζει ό,τι είναι νέο στον συλλέκτη.',
   'settings.feeds.duplicate': 'Αυτή η διεύθυνση είναι ήδη σε συνδρομή.',
   'settings.feeds.urlInvalid': 'Χρησιμοποίησε μια πλήρη διεύθυνση που ξεκινά με http:// ή https://, για παράδειγμα https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Σε αυτή τη διεύθυνση δεν υπάρχει κάτι για συνδρομή. Έλεγξέ την ή επικόλλησε τη διεύθυνση μιας ροής, ενός καναλιού YouTube ή μιας αναζήτησης στο MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Αυτή δεν είναι έγκυρη κανονική έκφραση, γι’ αυτό το φίλτρο δεν αποθηκεύεται.',
   'settings.categories.add': 'Προσθήκη κατηγορίας',
   'settings.categories.remove': 'Αφαίρεση',

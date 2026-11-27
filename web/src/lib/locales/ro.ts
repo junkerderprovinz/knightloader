@@ -2187,6 +2187,7 @@ export const ro: Dict = {
   'settings.feeds.duplicate': 'La această adresă există deja un abonament.',
 
   'settings.feeds.urlInvalid': 'Folosește o adresă completă care începe cu http:// sau https://, de exemplu https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'La această adresă nu există nimic la care să te abonezi. Verific-o sau lipește adresa unui flux, a unui canal YouTube ori a unei căutări MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Aceasta nu este o expresie regulată validă, așa că filtrul nu se salvează.',
   'settings.hostRules.title': 'Excepții per hoster',
   'settings.hostRules.titleHint': 'Câte un rând pentru fiecare hoster care are nevoie de alte numere decât cele de pe pagina Descărcări. Un hoster fără rând păstrează valorile globale, deci un tabel gol nu schimbă nimic. Un rând acoperă gazda pe care o numești și fiecare subdomeniu al ei: rapidgator.net acoperă și rg.rapidgator.net, dar nu acoperă notrapidgator.net. Dacă două rânduri se potrivesc cu același link, câștigă numele de gazdă mai lung.',

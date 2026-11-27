@@ -2253,6 +2253,7 @@ export const eu: Dict = {
   'settings.feeds.emptyHint': 'Harpidetza batek feed bat bere kabuz egiaztatzen du eta berria dena biltzailean uzten du.',
   'settings.feeds.duplicate': 'Helbide hau jada harpidetuta dago.',
   'settings.feeds.urlInvalid': 'Erabili http:// edo https:// aurrizkiarekin hasten den helbide oso bat, adibidez https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Helbide honetan ez dago harpidetzeko ezer. Egiaztatu, edo itsatsi feed baten, YouTube kanal baten edo MediathekViewWeb bilaketa baten helbidea.',
   'settings.feeds.filterInvalid': 'Hau ez da adierazpen erregular baliozkoa, beraz iragazkia ez da gordetzen.',
   'settings.categories.add': 'Gehitu kategoria',
   'settings.categories.remove': 'Kendu',

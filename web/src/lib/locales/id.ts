@@ -2252,6 +2252,7 @@ export const id: Dict = {
   'settings.feeds.emptyHint': 'Sebuah langganan memeriksa feed dengan sendirinya dan menaruh yang baru ke pengumpul.',
   'settings.feeds.duplicate': 'Alamat ini sudah ada di daftar langganan.',
   'settings.feeds.urlInvalid': 'Gunakan alamat lengkap yang diawali http:// atau https://, misalnya https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Tidak ada yang bisa dilanggani di alamat ini. Periksa alamatnya, atau tempel alamat feed, kanal YouTube, atau pencarian MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Ini bukan ekspresi reguler yang valid, jadi penyaring tidak disimpan.',
   'settings.categories.add': 'Tambah kategori',
   'settings.categories.remove': 'Hapus',

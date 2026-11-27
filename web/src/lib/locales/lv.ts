@@ -2253,6 +2253,7 @@ export const lv: Dict = {
   'settings.feeds.emptyHint': 'Abonements pats pārbauda plūsmu un ieliek jaunumus savācējā.',
   'settings.feeds.duplicate': 'Šī adrese jau ir abonēta.',
   'settings.feeds.urlInvalid': 'Izmanto pilnu adresi, kas sākas ar http:// vai https://, piemēram, https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Šajā adresē nav nekā, ko abonēt. Pārbaudi to vai ielīmē plūsmas, YouTube kanāla vai MediathekViewWeb meklēšanas adresi.',
   'settings.feeds.filterInvalid': 'Šī nav derīga regulārā izteiksme, tāpēc filtrs netiek saglabāts.',
   'settings.categories.add': 'Pievienot kategoriju',
   'settings.categories.remove': 'Noņemt',

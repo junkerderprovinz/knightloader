@@ -2263,6 +2263,7 @@ export const he: Dict = {
   'settings.feeds.emptyHint': 'מינוי בודק פיד בעצמו ומכניס את מה שחדש לאוסף.',
   'settings.feeds.duplicate': 'הכתובת הזאת כבר במינוי.',
   'settings.feeds.urlInvalid': 'השתמש בכתובת מלאה שמתחילה ב-http:// או ב-https://, למשל https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'בכתובת הזאת אין שום דבר להירשם אליו. כדאי לבדוק אותה, או להדביק כתובת של פיד, של ערוץ YouTube או של חיפוש ב-MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'זה לא ביטוי רגולרי תקין, ולכן המסנן לא נשמר.',
   'settings.categories.add': 'הוסף קטגוריה',
   'settings.categories.remove': 'הסר',

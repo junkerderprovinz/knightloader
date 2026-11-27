@@ -2253,6 +2253,7 @@ export const hi: Dict = {
   'settings.feeds.emptyHint': 'सदस्यता किसी फ़ीड को अपने आप जाँचती है और जो नया मिले उसे कलेक्टर में रख देती है।',
   'settings.feeds.duplicate': 'यह पता पहले से सदस्यता में है।',
   'settings.feeds.urlInvalid': 'पूरा पता इस्तेमाल करें जो http:// या https:// से शुरू हो, जैसे https://example.org/feed.xml।',
+  'settings.feeds.notFound': 'इस पते पर सदस्यता लेने लायक कुछ नहीं मिला। पता जाँच लें, या किसी फ़ीड, YouTube चैनल या MediathekViewWeb खोज का पता चिपकाएँ।',
   'settings.feeds.filterInvalid': 'यह मान्य रेगुलर एक्सप्रेशन नहीं है, इसलिए फ़िल्टर सहेजा नहीं जाता।',
   'settings.categories.add': 'श्रेणी जोड़ें',
   'settings.categories.remove': 'हटाएँ',

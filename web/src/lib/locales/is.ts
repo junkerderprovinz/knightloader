@@ -2252,6 +2252,7 @@ export const is: Dict = {
   'settings.feeds.emptyHint': 'Áskrift athugar straum af sjálfu sér og setur það sem er nýtt í safnarann.',
   'settings.feeds.duplicate': 'Það er þegar áskrift að þessari slóð.',
   'settings.feeds.urlInvalid': 'Notaðu fulla slóð sem byrjar á http:// eða https://, til dæmis https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Á þessari slóð er ekkert til að gerast áskrifandi að. Athugaðu hana, eða límdu inn slóð straums, YouTube-rásar eða leitar á MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Þetta er ekki gild regluleg segð, svo sían er ekki vistuð.',
   'settings.categories.add': 'Bæta við flokki',
   'settings.categories.remove': 'Fjarlægja',

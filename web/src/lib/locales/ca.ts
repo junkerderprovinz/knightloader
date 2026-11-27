@@ -2252,6 +2252,7 @@ export const ca: Dict = {
   'settings.feeds.emptyHint': 'Una subscripció consulta un feed pel seu compte i posa les novetats al col·lector.',
   'settings.feeds.duplicate': 'Aquesta adreça ja està subscrita.',
   'settings.feeds.urlInvalid': 'Fes servir una adreça completa que comenci per http:// o https://, com ara https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'En aquesta adreça no hi ha res a què subscriure’s. Revisa-la, o enganxa l’adreça d’un feed, d’un canal de YouTube o d’una cerca de MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Això no és una expressió regular vàlida, així que el filtre no es desa.',
   'settings.categories.add': 'Afegeix una categoria',
   'settings.categories.remove': 'Elimina',

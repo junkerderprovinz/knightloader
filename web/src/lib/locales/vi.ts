@@ -2252,6 +2252,7 @@ export const vi: Dict = {
   'settings.feeds.emptyHint': 'Một đăng ký tự kiểm tra một feed và đưa những gì mới vào bộ thu thập.',
   'settings.feeds.duplicate': 'Địa chỉ này đã được đăng ký rồi.',
   'settings.feeds.urlInvalid': 'Dùng một địa chỉ đầy đủ bắt đầu bằng http:// hoặc https://, ví dụ https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Ở địa chỉ này không có gì để đăng ký. Hãy kiểm tra lại, hoặc dán địa chỉ của một feed, một kênh YouTube hay một tìm kiếm trên MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Đây không phải là biểu thức chính quy hợp lệ nên bộ lọc không được lưu.',
   'settings.categories.add': 'Thêm danh mục',
   'settings.categories.remove': 'Gỡ bỏ',

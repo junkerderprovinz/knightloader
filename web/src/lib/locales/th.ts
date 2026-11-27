@@ -2251,6 +2251,7 @@ export const th: Dict = {
   'settings.feeds.emptyHint': 'การติดตามจะตรวจฟีดด้วยตัวเองและนำของใหม่เข้าไปในตัวรวบรวม',
   'settings.feeds.duplicate': 'ที่อยู่นี้ถูกติดตามอยู่แล้ว',
   'settings.feeds.urlInvalid': 'ใช้ที่อยู่แบบเต็มที่ขึ้นต้นด้วย http:// หรือ https:// เช่น https://example.org/feed.xml',
+  'settings.feeds.notFound': 'ที่อยู่นี้ไม่มีอะไรให้ติดตาม ลองตรวจสอบที่อยู่ หรือวางที่อยู่ของฟีด ช่อง YouTube หรือการค้นหาใน MediathekViewWeb',
   'settings.feeds.filterInvalid': 'นี่ไม่ใช่นิพจน์ปกติที่ถูกต้อง จึงไม่บันทึกตัวกรอง',
   'settings.categories.add': 'เพิ่มหมวดหมู่',
   'settings.categories.remove': 'เอาออก',

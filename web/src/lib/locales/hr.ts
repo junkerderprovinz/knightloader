@@ -2265,6 +2265,7 @@ export const hr: Dict = {
   'settings.feeds.emptyHint': 'Pretplata sama provjerava feed i ono što je novo stavlja u sakupljač.',
   'settings.feeds.duplicate': 'Na ovu adresu već si pretplaćen.',
   'settings.feeds.urlInvalid': 'Upotrijebi punu adresu koja počinje s http:// ili https://, na primjer https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Na ovoj adresi nema ničega na što se možeš pretplatiti. Provjeri je ili zalijepi adresu feeda, YouTube kanala ili pretrage na MediathekViewWebu.',
   'settings.feeds.filterInvalid': 'Ovo nije valjan regularni izraz, pa se filtar ne sprema.',
   'settings.categories.add': 'Dodaj kategoriju',
   'settings.categories.remove': 'Ukloni',

@@ -2252,6 +2252,7 @@ export const ko: Dict = {
   'settings.feeds.emptyHint': '구독은 피드를 스스로 확인해서 새로운 것을 수집함에 넣습니다.',
   'settings.feeds.duplicate': '이 주소는 이미 구독하고 있습니다.',
   'settings.feeds.urlInvalid': 'http:// 또는 https://로 시작하는 전체 주소를 쓰세요(예: https://example.org/feed.xml).',
+  'settings.feeds.notFound': '이 주소에는 구독할 수 있는 것이 없습니다. 주소를 확인하거나 피드, YouTube 채널, MediathekViewWeb 검색의 주소를 붙여 넣으세요.',
   'settings.feeds.filterInvalid': '올바른 정규식이 아니어서 필터가 저장되지 않습니다.',
   'settings.categories.add': '카테고리 추가',
   'settings.categories.remove': '제거',

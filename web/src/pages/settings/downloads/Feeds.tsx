@@ -36,6 +36,7 @@ import {
 import { fmtDate, fmtPlaytime } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
+  ApiError,
   fetchFeeds,
   priorityChoices,
   resolveFeed,
@@ -411,7 +412,9 @@ function FeedRow({
   const pasted = useRef(false);
   const [lookingUp, setLookingUp] = useState(false);
   const [found, setFound] = useState<FeedResolved | null>(null);
-  const [notFound, setNotFound] = useState('');
+  // feedNotFound gets a sentence of its own, with the server's technical
+  // reason kept beneath it for anyone who has to look further.
+  const [notFound, setNotFound] = useState<{ line: string; detail: string } | null>(null);
 
   // A new channel waits until its older videos are chosen: the server checks
   // a new subscription as soon as it is saved, and only that first check
@@ -423,7 +426,8 @@ function FeedRow({
       ? t('settings.feeds.urlInvalid')
       : verdict === 'duplicate'
         ? t('settings.feeds.duplicate')
-        : notFound;
+        : (notFound?.line ?? '');
+  const urlDetail = verdict === 'invalid' || verdict === 'duplicate' ? '' : notFound?.detail;
 
   const take = (resolved: FeedResolved, typed: string) => {
     const { channel: _channel, ...fields } = resolved;
@@ -444,7 +448,12 @@ function FeedRow({
       if (answer.kind === 'mediathek' || answer.channel) setFound({ ...answer, url: answer.url || typed });
       else take(answer, typed);
     } catch (e) {
-      setNotFound(e instanceof Error && e.message ? e.message : String(e));
+      const said = e instanceof Error && e.message ? e.message : String(e);
+      setNotFound(
+        e instanceof ApiError && e.code === 'feedNotFound'
+          ? { line: t('settings.feeds.notFound'), detail: said }
+          : { line: said, detail: '' },
+      );
     } finally {
       setLookingUp(false);
     }
@@ -579,7 +588,7 @@ function FeedRow({
                     setText(typed);
                     setVerdict('blank');
                     setFound(null);
-                    setNotFound('');
+                    setNotFound(null);
                     if (pasted.current) {
                       pasted.current = false;
                       void lookUp(typed.trim());
@@ -594,7 +603,16 @@ function FeedRow({
                   }}
                 />
               )}
-              {urlReason && <FieldError id={urlReasonId}>{urlReason}</FieldError>}
+              {urlReason && (
+                <FieldError id={urlReasonId}>
+                  {urlReason}
+                  {urlDetail && (
+                    <span data-detail dir="auto" className="mt-0.5 block text-meta text-carbon-textMuted">
+                      {urlDetail}
+                    </span>
+                  )}
+                </FieldError>
+              )}
             </SettingRow>
 
             {found && <FoundOffer found={found} onTake={(r) => take(r, text.trim())} />}

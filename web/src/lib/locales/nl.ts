@@ -2245,6 +2245,7 @@ export const nl: Dict = {
   'settings.feeds.emptyHint': 'Een abonnement controleert een feed uit zichzelf en zet wat nieuw is in de verzamelaar.',
   'settings.feeds.duplicate': 'Op dit adres ben je al geabonneerd.',
   'settings.feeds.urlInvalid': 'Gebruik een volledig adres dat begint met http:// of https://, bijvoorbeeld https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Op dit adres is niets om op te abonneren. Controleer het, of plak het adres van een feed, een YouTube-kanaal of een zoekopdracht op MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Dit is geen geldige reguliere expressie, dus het filter wordt niet opgeslagen.',
   'settings.categories.add': 'Categorie toevoegen',
   'settings.categories.remove': 'Verwijderen',

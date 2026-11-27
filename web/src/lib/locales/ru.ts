@@ -2245,6 +2245,7 @@ export const ru: Dict = {
   'settings.feeds.emptyHint': 'Подписка сама проверяет ленту и кладёт новое в сборщик.',
   'settings.feeds.duplicate': 'На этот адрес уже есть подписка.',
   'settings.feeds.urlInvalid': 'Укажите полный адрес, который начинается с http:// или https://, например https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'По этому адресу не нашлось ничего, на что можно подписаться. Проверьте его или вставьте адрес ленты, канала YouTube или поиска в MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Это не корректное регулярное выражение, поэтому фильтр не сохраняется.',
   'settings.categories.add': 'Добавить категорию',
   'settings.categories.remove': 'Удалить',

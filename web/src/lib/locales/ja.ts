@@ -2252,6 +2252,7 @@ export const ja: Dict = {
   'settings.feeds.emptyHint': '購読はフィードを自分で確認して、新しいものをコレクターへ入れます。',
   'settings.feeds.duplicate': 'このアドレスはすでに購読しています。',
   'settings.feeds.urlInvalid': 'http:// または https:// で始まる完全なアドレスを使ってください（例: https://example.org/feed.xml）。',
+  'settings.feeds.notFound': 'このアドレスには購読できるものがありません。アドレスを確認するか、フィード、YouTube チャンネル、MediathekViewWeb の検索のアドレスを貼り付けてください。',
   'settings.feeds.filterInvalid': '有効な正規表現ではないため、フィルターは保存されません。',
   'settings.categories.add': 'カテゴリーを追加',
   'settings.categories.remove': '削除',

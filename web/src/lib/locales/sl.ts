@@ -2253,6 +2253,7 @@ export const sl: Dict = {
   'settings.feeds.emptyHint': 'Naročnina sama preveri vir in novo odloži v zbiralnik.',
   'settings.feeds.duplicate': 'Na ta naslov si že naročen.',
   'settings.feeds.urlInvalid': 'Uporabi celoten naslov, ki se začne s http:// ali https://, na primer https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Na tem naslovu ni ničesar, na kar bi se lahko naročil. Preveri ga ali prilepi naslov vira, kanala na YouTubu ali iskanja na MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'To ni veljaven regularni izraz, zato se filter ne shrani.',
   'settings.categories.add': 'Dodaj kategorijo',
   'settings.categories.remove': 'Odstrani',

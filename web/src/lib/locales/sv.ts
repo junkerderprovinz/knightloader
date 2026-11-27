@@ -2253,6 +2253,7 @@ export const sv: Dict = {
   'settings.feeds.emptyHint': 'En prenumeration kontrollerar ett flöde av sig själv och lägger det som är nytt i samlaren.',
   'settings.feeds.duplicate': 'Den här adressen är redan prenumererad.',
   'settings.feeds.urlInvalid': 'Använd en fullständig adress som börjar med http:// eller https://, till exempel https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Det finns inget att prenumerera på på den här adressen. Kontrollera den, eller klistra in adressen till ett flöde, en YouTube-kanal eller en sökning på MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Det här är inte ett giltigt reguljärt uttryck, så filtret sparas inte.',
   'settings.categories.add': 'Lägg till kategori',
   'settings.categories.remove': 'Ta bort',

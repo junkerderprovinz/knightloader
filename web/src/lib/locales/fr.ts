@@ -2245,6 +2245,7 @@ export const fr: Dict = {
   'settings.feeds.emptyHint': 'Un abonnement vérifie un flux tout seul et met les nouveautés dans le collecteur.',
   'settings.feeds.duplicate': 'Cette adresse est déjà abonnée.',
   'settings.feeds.urlInvalid': 'Indiquez une adresse complète qui commence par http:// ou https://, par exemple https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Il n’y a rien à quoi s’abonner à cette adresse. Vérifiez-la, ou collez l’adresse d’un flux, d’une chaîne YouTube ou d’une recherche MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Ce n’est pas une expression régulière valide, le filtre n’est donc pas enregistré.',
   'settings.categories.add': 'Ajouter une catégorie',
   'settings.categories.remove': 'Supprimer',

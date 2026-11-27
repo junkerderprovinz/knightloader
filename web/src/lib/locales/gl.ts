@@ -2251,6 +2251,7 @@ export const gl: Dict = {
   'settings.feeds.emptyHint': 'Unha subscrición comproba un feed pola súa conta e pon o novo no colector.',
   'settings.feeds.duplicate': 'A este enderezo xa estás subscrito.',
   'settings.feeds.urlInvalid': 'Usa un enderezo completo que comece por http:// ou https://, por exemplo https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Neste enderezo non hai nada ao que subscribirse. Revísao, ou pega o enderezo dun feed, dunha canle de YouTube ou dunha busca de MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Isto non é unha expresión regular válida, así que o filtro non se garda.',
   'settings.categories.add': 'Engadir categoría',
   'settings.categories.remove': 'Quitar',

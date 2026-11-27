@@ -2263,6 +2263,7 @@ export const sr: Dict = {
   'settings.feeds.emptyHint': 'Претплата сама проверава фид и оно што је ново ставља у сакупљач.',
   'settings.feeds.duplicate': 'Ова адреса је већ у претплати.',
   'settings.feeds.urlInvalid': 'Користи пуну адресу која почиње са http:// или https://, на пример https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'На овој адреси нема ничега на шта можеш да се претплатиш. Провери је или налепи адресу фида, YouTube канала или претраге на MediathekViewWeb-у.',
   'settings.feeds.filterInvalid': 'Ово није исправан регуларни израз, па се филтер не чува.',
   'settings.categories.add': 'Додај категорију',
   'settings.categories.remove': 'Уклони',

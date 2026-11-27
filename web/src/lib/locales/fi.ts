@@ -2252,6 +2252,7 @@ export const fi: Dict = {
   'settings.feeds.emptyHint': 'Tilaus tarkistaa syötteen itsestään ja panee uuden kerääjään.',
   'settings.feeds.duplicate': 'Tämä osoite on jo tilattu.',
   'settings.feeds.urlInvalid': 'Käytä kokonaista osoitetta, joka alkaa http:// tai https://, esimerkiksi https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Tästä osoitteesta ei löydy mitään tilattavaa. Tarkista osoite tai liitä syötteen, YouTube-kanavan tai MediathekViewWeb-haun osoite.',
   'settings.feeds.filterInvalid': 'Tämä ei ole kelvollinen säännöllinen lauseke, joten suodatinta ei tallenneta.',
   'settings.categories.add': 'Lisää kategoria',
   'settings.categories.remove': 'Poista',

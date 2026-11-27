@@ -49,7 +49,11 @@ beforeEach(() => {
       const body = init?.body ? JSON.parse(String(init.body)) : undefined;
       if (path === '/api/feeds/resolve') {
         const answer = resolved[body.url];
-        return answer ? reply(answer) : reply({ error: 'No feed was found at this address.' }, 400);
+        if (answer) return reply(answer);
+        if (body.url === 'https://nothing.example/') {
+          return reply({ error: 'dial tcp: lookup nothing.example: no such host', code: 'feedNotFound' }, 400);
+        }
+        return reply({ error: 'No feed was found at this address.' }, 400);
       }
       if (path === '/api/feeds/test') {
         tested = body;
@@ -318,6 +322,18 @@ it('says why a pasted address leads nowhere', async () => {
   const url = field('Feed address');
   await paste(url, 'https://example.org/nothing');
   expect(reason(url)).toBe('No feed was found at this address.');
+});
+
+it('says in its own words that a pasted address holds nothing, with the reason beneath', async () => {
+  addRow();
+  const url = field('Feed address');
+  await paste(url, 'https://nothing.example/');
+  const said = document.getElementById(url.getAttribute('aria-describedby')!)!;
+  const detail = said.querySelector('[data-detail]');
+  expect(detail?.textContent).toBe('dial tcp: lookup nothing.example: no such host');
+  expect(said.textContent?.replace(detail!.textContent!, '')).toBe(
+    'There is nothing to subscribe to at this address. Check it, or paste the address of a feed, a YouTube channel or a MediathekViewWeb search.',
+  );
 });
 
 it('keeps a Mediathek search that names nothing out of the draft', () => {

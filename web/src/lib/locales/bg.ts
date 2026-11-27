@@ -2254,6 +2254,7 @@ export const bg: Dict = {
   'settings.feeds.emptyHint': 'Абонаментът проверява емисията сам и слага новото в колектора.',
   'settings.feeds.duplicate': 'Този адрес вече е абониран.',
   'settings.feeds.urlInvalid': 'Използвай пълен адрес, който започва с http:// или https://, например https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'На този адрес няма нищо, за което да се абонираш. Провери го или постави адреса на емисия, на канал в YouTube или на търсене в MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Това не е валиден регулярен израз, затова филтърът не се запазва.',
   'settings.categories.add': 'Добави категория',
   'settings.categories.remove': 'Премахни',

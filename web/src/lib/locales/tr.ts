@@ -2252,6 +2252,7 @@ export const tr: Dict = {
   'settings.feeds.emptyHint': 'Bir abonelik bir feedi kendiliğinden denetler ve yeni olanı toplayıcıya koyar.',
   'settings.feeds.duplicate': 'Bu adrese zaten abone olunmuş.',
   'settings.feeds.urlInvalid': 'http:// veya https:// ile başlayan tam bir adres kullan, örneğin https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Bu adreste abone olunacak bir şey yok. Adresi kontrol et ya da bir feedin, bir YouTube kanalının veya bir MediathekViewWeb aramasının adresini yapıştır.',
   'settings.feeds.filterInvalid': 'Bu geçerli bir düzenli ifade değil, bu yüzden süzgeç kaydedilmez.',
   'settings.categories.add': 'Kategori ekle',
   'settings.categories.remove': 'Kaldır',

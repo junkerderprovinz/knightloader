@@ -2245,6 +2245,7 @@ export const es: Dict = {
   'settings.feeds.emptyHint': 'Una suscripción comprueba un feed por su cuenta y pone lo nuevo en el colector.',
   'settings.feeds.duplicate': 'Esta dirección ya está suscrita.',
   'settings.feeds.urlInvalid': 'Usa una dirección completa que empiece por http:// o https://, por ejemplo https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'En esta dirección no hay nada a lo que suscribirse. Revísala o pega la dirección de un feed, de un canal de YouTube o de una búsqueda de MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Esto no es una expresión regular válida, así que el filtro no se guarda.',
   'settings.categories.add': 'Añadir categoría',
   'settings.categories.remove': 'Quitar',

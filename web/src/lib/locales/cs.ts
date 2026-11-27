@@ -2262,6 +2262,7 @@ export const cs: Dict = {
   'settings.feeds.emptyHint': 'Odběr si feed kontroluje sám a co je nového, dá do sběrače.',
   'settings.feeds.duplicate': 'Tahle adresa už je odebíraná.',
   'settings.feeds.urlInvalid': 'Použij celou adresu, která začíná na http:// nebo https://, třeba https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Na této adrese není nic, co by šlo odebírat. Zkontroluj ji, nebo vlož adresu feedu, kanálu YouTube nebo hledání na MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Tohle není platný regulární výraz, proto se filtr neuloží.',
   'settings.categories.add': 'Přidat kategorii',
   'settings.categories.remove': 'Odebrat',

@@ -2249,6 +2249,7 @@ export const zh: Dict = {
   'settings.feeds.emptyHint': '订阅会自己去检查一个 feed，并把新出现的内容放进收集器。',
   'settings.feeds.duplicate': '这个地址已经订阅过了。',
   'settings.feeds.urlInvalid': '用一个以 http:// 或 https:// 开头的完整地址，例如 https://example.org/feed.xml。',
+  'settings.feeds.notFound': '这个地址上没有可以订阅的内容。请检查地址，或者粘贴一个 feed、一个 YouTube 频道或一个 MediathekViewWeb 搜索的地址。',
   'settings.feeds.filterInvalid': '这不是有效的正则表达式，所以过滤器没有保存。',
   'settings.categories.add': '添加分类',
   'settings.categories.remove': '移除',

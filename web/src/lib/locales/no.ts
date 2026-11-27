@@ -2255,6 +2255,7 @@ export const no: Dict = {
   'settings.feeds.emptyHint': 'Et abonnement sjekker en feed av seg selv og legger det som er nytt, i samleren.',
   'settings.feeds.duplicate': 'Denne adressen er det allerede et abonnement på.',
   'settings.feeds.urlInvalid': 'Bruk en fullstendig adresse som begynner med http:// eller https://, for eksempel https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Det finnes ingenting å abonnere på på denne adressen. Sjekk den, eller lim inn adressen til en feed, en YouTube-kanal eller et søk på MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Dette er ikke et gyldig regulært uttrykk, så filteret blir ikke lagret.',
   'settings.categories.add': 'Legg til kategori',
   'settings.categories.remove': 'Fjern',

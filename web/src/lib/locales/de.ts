@@ -2499,6 +2499,7 @@ export const de: Dict = {
   'settings.feeds.emptyHint': 'Ein Abo prüft einen Feed von allein und legt Neues in den Linksammler.',
   'settings.feeds.duplicate': 'Diese Adresse ist schon abonniert.',
   'settings.feeds.urlInvalid': 'Gib eine vollständige Adresse ein, die mit http:// oder https:// beginnt, etwa https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Unter dieser Adresse gibt es nichts zu abonnieren. Prüf sie, oder füg die Adresse eines Feeds, eines YouTube-Kanals oder einer MediathekViewWeb-Suche ein.',
   'settings.feeds.filterInvalid': 'Das ist kein gültiger regulärer Ausdruck, deshalb wird der Filter nicht gespeichert.',
   'settings.categories.add': 'Kategorie hinzufügen',
   'settings.categories.remove': 'Entfernen',

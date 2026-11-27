@@ -2263,6 +2263,7 @@ export const sk: Dict = {
   'settings.feeds.emptyHint': 'Odber si feed kontroluje sám a to, čo je nové, ukladá do zberača.',
   'settings.feeds.duplicate': 'Táto adresa je už odoberaná.',
   'settings.feeds.urlInvalid': 'Použi celú adresu, ktorá začína na http:// alebo https://, napríklad https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Na tejto adrese nie je nič, čo by sa dalo odoberať. Skontroluj ju alebo vlož adresu feedu, kanála YouTube alebo hľadania na MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Toto nie je platný regulárny výraz, preto sa filter neuloží.',
   'settings.categories.add': 'Pridať kategóriu',
   'settings.categories.remove': 'Odstrániť',

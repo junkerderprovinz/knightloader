@@ -2252,6 +2252,7 @@ export const da: Dict = {
   'settings.feeds.emptyHint': 'Et abonnement tjekker et feed af sig selv og lægger det nye i samleren.',
   'settings.feeds.duplicate': 'Der er allerede et abonnement på denne adresse.',
   'settings.feeds.urlInvalid': 'Brug en fuld adresse, der starter med http:// eller https://, for eksempel https://example.org/feed.xml.',
+  'settings.feeds.notFound': 'Der er intet at abonnere på på denne adresse. Tjek den, eller indsæt adressen på et feed, en YouTube-kanal eller en søgning på MediathekViewWeb.',
   'settings.feeds.filterInvalid': 'Det er ikke et gyldigt regulært udtryk, så filteret bliver ikke gemt.',
   'settings.categories.add': 'Tilføj kategori',
   'settings.categories.remove': 'Fjern',
