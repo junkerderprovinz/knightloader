@@ -796,7 +796,7 @@ export const en = {
   'subs.naming.channel': 'Channel or show',
   'subs.namingHint': 'Entry title gives every entry a package of its own. Channel or show puts all files into one package and folder named after the subscription.',
   'subs.library': 'Library layout',
-  'subs.library.default': 'Instance setting',
+  'subs.library.default': 'Standard',
   'subs.library.series': 'Series',
   'subs.libraryHint': 'Series files episodes the way Jellyfin and Plex expect them, with a folder for each show and each year.',
   'subs.autoStart': 'Start downloads by itself',

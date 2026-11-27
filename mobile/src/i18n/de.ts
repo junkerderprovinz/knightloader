@@ -797,7 +797,7 @@ export const de: Dict = {
   'subs.naming.channel': 'Kanal oder Sendung',
   'subs.namingHint': 'Beim Eintragstitel bekommt jeder Eintrag ein eigenes Paket. Bei Kanal oder Sendung kommen alle Dateien in ein Paket und einen Ordner mit dem Namen des Abos.',
   'subs.library': 'Ordnerstruktur',
-  'subs.library.default': 'Wie in der Instanz',
+  'subs.library.default': 'Standard',
   'subs.library.series': 'Serie',
   'subs.libraryHint': 'Bei Serie werden Folgen so abgelegt, wie Jellyfin und Plex sie erwarten, mit einem Ordner pro Sendung und pro Jahr.',
   'subs.autoStart': 'Downloads selbst starten',
