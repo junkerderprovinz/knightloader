@@ -89,9 +89,10 @@ func TestResolvingAPastedAddress(t *testing.T) {
 	status, out = owner(http.MethodPost, "/api/feeds/resolve", `{"url":"`+dead.URL+`"}`)
 	var failed struct {
 		Error string `json:"error"`
+		Code  string `json:"code"`
 	}
-	if status != http.StatusBadRequest || json.Unmarshal(out, &failed) != nil || failed.Error == "" {
-		t.Errorf("an address with nothing there answered %d: %s, want 400 with the reason", status, out)
+	if status != http.StatusBadRequest || json.Unmarshal(out, &failed) != nil || failed.Error == "" || failed.Code != "feedNotFound" {
+		t.Errorf("an address with nothing there answered %d: %s, want 400 with the code feedNotFound and the reason", status, out)
 	}
 
 	if status, out := owner(http.MethodPost, "/api/feeds/resolve", `{"url":"file:///etc/passwd"}`); status != http.StatusBadRequest {

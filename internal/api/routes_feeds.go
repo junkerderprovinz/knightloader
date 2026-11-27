@@ -140,9 +140,9 @@ func registerFeeds(reg *Registry, a *app.App) {
 					http.Error(w, err.Error()+"; paste an http or https address", http.StatusBadRequest)
 					return
 				}
-				// A refusal with the reason, which both apps show beside the
-				// address the person pasted.
-				writeJSONStatus(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+				// The code gets both apps' own words, and the reason stays as
+				// the detail beneath them.
+				writeJSONStatus(w, http.StatusBadRequest, map[string]string{"error": err.Error(), "code": "feedNotFound"})
 				return
 			}
 			writeJSON(w, res)
