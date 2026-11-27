@@ -76,6 +76,9 @@ type LinkBatchOptions struct {
 	// preset.
 	Choice *ytdlp.LinkChoice
 	Format string
+	// Preset stands in for the host's preset for this batch's yt-dlp links,
+	// as a feed subscription's own pick of rows does. A Choice still wins.
+	Preset *ytdlp.HosterPreset
 	// Start confirms and starts the batch at once, whatever AutoConfirm says,
 	// for a caller that asked for a download rather than a list entry.
 	Start bool

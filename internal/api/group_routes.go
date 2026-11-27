@@ -49,6 +49,15 @@ var groupRoutes = map[string]bool{
 	// settings.
 	"GET /api/download-folders": true,
 	"GET /api/categories":       true,
+
+	// The subscriptions, apart from the rest of the settings. A member's save
+	// is held to the download folders by the handler itself, so its refusal
+	// can name the row.
+	"GET /api/feeds":               true,
+	"POST /api/feeds/test":         true,
+	"POST /api/feeds/resolve":      true,
+	"GET /api/feeds/subscriptions": true,
+	"PUT /api/feeds/subscriptions": true,
 	// A container or a .torrent picked on the phone, as JSON. The web
 	// interface's multipart uploads stay its own.
 	"POST /api/containers/phone":     true,

@@ -53,7 +53,8 @@ var serverBuckets = map[string]bool{
 	parkBucket:           true,
 	downloadClientBucket: true,
 	qbitBucket:           true,
-	// internal/app's feedStateBucket and suspendBucket.
+	// The bucket internal/store takes the feed memory over from, and
+	// internal/app's suspendBucket.
 	"feeds":            true,
 	"schedule.suspend": true,
 }
