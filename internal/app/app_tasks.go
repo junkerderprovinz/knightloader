@@ -808,33 +808,50 @@ func rangeTotal(contentRange string) int64 {
 }
 
 // holdIfDownloaded asks the history again about a collected link whose size
-// was unknown at staging, which a mirror policy that compares sizes needs,
-// and moves the link to the rejected links when the history has the file. A
-// link the user restored from the history's own hold is left alone.
-func (a *App) holdIfDownloaded(id string) {
+// was unknown at staging, which a mirror policy that compares sizes needs, or
+// whose video a probe has just named, and moves the link to the rejected links
+// when it repeats a download, a yt-dlp link with its whole family. A link the
+// user restored from the history's own hold is left alone. It reports whether
+// it held the link.
+func (a *App) holdIfDownloaded(id string) bool {
 	a.mu.Lock()
 	t := a.tasks[id]
 	if t == nil || t.Skipped || (restoredLink(t) && t.SkipCode == skipDownloaded) || t.Status != core.StatusCollected {
 		a.mu.Unlock()
-		return
+		return false
 	}
-	cand := candidateOf(t)
+	cand, media, check := candidateOf(t), t.Media, t.DownloadedCheck
 	a.mu.Unlock()
 
-	v := a.downloadedVerdict(cand)
+	v := a.downloadedVerdict(cand, media, check)
 	if !v.Rejected {
-		return
+		return false
 	}
 	a.mu.Lock()
 	t = a.tasks[id]
 	if t == nil || t.Skipped || t.Status != core.StatusCollected {
 		a.mu.Unlock()
-		return
+		return false
 	}
-	holdForHistoryLocked(t, v)
-	c := a.copyLocked(t)
+	var held []taskCopy
+	for _, x := range a.rowsOfLocked(t) {
+		if !x.Skipped && x.Status == core.StatusCollected {
+			holdForHistoryLocked(x, v)
+			held = append(held, a.copyLocked(x))
+		}
+	}
 	a.mu.Unlock()
-	a.publish(&c)
+	a.publishTasks(held)
+	return true
+}
+
+// rowsOfLocked is t with the rest of its yt-dlp family, or t alone. Caller
+// holds a.mu.
+func (a *App) rowsOfLocked(t *core.Task) []*core.Task {
+	if t.Variant == "" {
+		return []*core.Task{t}
+	}
+	return a.familyLocked(t)
 }
 
 // probeYtdlpTitle asks the yt-dlp backend for a collected task's title and
@@ -867,6 +884,40 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 		a.setTaskName(id, title)
 	}
 	a.applyProbeFormats(rawurl, res.Formats)
+	if a.setTaskMedia(id, dedupe.MediaKey(res.Extractor, res.ID)) {
+		a.holdIfDownloaded(id)
+	}
+}
+
+// setTaskMedia gives the rows of a task's family that fetch the video the
+// identity a probe named, and reports whether that told them something new.
+func (a *App) setTaskMedia(id, key string) bool {
+	if key == "" {
+		return false
+	}
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil {
+		a.mu.Unlock()
+		return false
+	}
+	var changed []taskCopy
+	for _, x := range a.rowsOfLocked(t) {
+		if fetchesTheVideo(x) && x.Media != key {
+			x.Media = key
+			changed = append(changed, a.copyLocked(x))
+		}
+	}
+	a.mu.Unlock()
+	a.publishTasks(changed)
+	return len(changed) > 0
+}
+
+// fetchesTheVideo reports whether a row downloads the video itself, which is
+// what the media archive counts, rather than a picture or text beside it.
+func fetchesTheVideo(t *core.Task) bool {
+	kind, _ := variantDecode(t.Variant)
+	return kind == "" || kind == ytdlp.VariantVideo || kind == ytdlp.VariantAudio
 }
 
 // restageAsFile hands a collected yt-dlp link that its probe found to be a

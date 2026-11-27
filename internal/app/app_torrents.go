@@ -97,7 +97,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 		v = trackerBan(t, a.Settings.Get().Torrent)
 	}
 	if !v.Rejected {
-		v = a.downloadedVerdict(cand)
+		v = a.downloadedVerdict(cand, "", core.DownloadedCheckSetting)
 	}
 	if v.Rejected {
 		return a.hold(cand, v, intake{origin: origin}, now, files), nil

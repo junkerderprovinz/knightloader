@@ -559,7 +559,7 @@ func TestAMirrorIsRejectedWhenItsNameHoldsCharactersTheSavedFileDoesNot(t *testi
 				t.Errorf("the mirror %q was staged (skipped=%v, code=%q), want it rejected as %q",
 					raw, got.Skipped, got.SkipCode, name)
 			}
-			if !a.historyNeedsSize(rules.Candidate{URL: "https://three.example/f/abc", Filename: raw}) {
+			if !a.historyNeedsSize(rules.Candidate{URL: "https://three.example/f/abc", Filename: raw}, core.DownloadedCheckSetting) {
 				t.Errorf("a mirror %q of unknown size is answered without its size, want it to wait for the probe", raw)
 			}
 		})

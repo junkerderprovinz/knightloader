@@ -150,6 +150,7 @@ func (a *App) stagePlaylistEntries(playlistURL string, pl ytdlp.Playlist, pkg st
 			listed:        batch.listed,
 			foldDone:      batch.foldDone,
 			byAdmin:       batch.ByAdmin,
+			downloaded:    batch.downloaded,
 			playlistEntry: true,
 		})
 		if t == nil {
