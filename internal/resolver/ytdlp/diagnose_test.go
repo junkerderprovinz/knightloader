@@ -221,3 +221,29 @@ func TestErrorLineFallsBackToTheLastLine(t *testing.T) {
 		}
 	}
 }
+
+// yt-dlp prints a GeoRestrictedError with the extractor's own sentence, the
+// countries it names and a closing line about a VPN, the German and Austrian
+// Mediatheks and SRF among them. Other extractors raise a plain error with a
+// sentence of their own.
+func TestDiagnoseReadsEveryWordingOfARegionBlock(t *testing.T) {
+	const vpn = "\nYou might want to use a VPN or a proxy server (with --proxy) to workaround."
+	for name, stderr := range map[string]string{
+		"ARD Mediathek":    "ERROR: This video is not available due to geoblocking\nThis video is available in Germany." + vpn,
+		"arte":             "ERROR: Video restricted to 'DE_FR'\nThis video is available in Germany, France." + vpn,
+		"SRF":              "ERROR: For legal reasons, this video is only available in Switzerland.\nThis video is available in Switzerland." + vpn,
+		"the default":      "ERROR: This video is not available from your location due to geo restriction" + vpn,
+		"a country":        "ERROR: [tv5unis] 12345: This content is not available in your country",
+		"a region":         "ERROR: [viu] 12345: Video 12345 is not available in your region.",
+		"unavailable":      "ERROR: [tidal] 12345: Track unavailable in your country due to licensing restrictions",
+		"geo-restricted":   "ERROR: [abc] 12345: HLS/DASH fragments and mp4 URLs are geo-restricted; only available in AU",
+		"bilibili's guess": "ERROR: [BiliBili] BV1xx: This video may be deleted or geo-restricted. You might want to try a VPN or a proxy server (with --proxy)",
+		"a region and DRM": "ERROR: [wwe] 12345: This video is either unavailable in your region or is DRM protected",
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := Diagnose(stderr); got != core.ReasonGeoBlocked {
+				t.Errorf("Diagnose(%q) = %q, want %q", stderr, got, core.ReasonGeoBlocked)
+			}
+		})
+	}
+}
