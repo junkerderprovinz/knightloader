@@ -68,8 +68,9 @@ type poller struct {
 	closeOnce sync.Once
 	stop      chan struct{}
 	done      chan struct{}
-	// wake tells a sleeping loop that the interval changed. It is buffered
-	// by one and sent to without blocking, so saving twice never stalls.
+	// wake tells a sleeping loop that the subscription was edited. It is
+	// buffered by one and sent to without blocking, so saving twice never
+	// stalls.
 	wake chan struct{}
 }
 
@@ -91,8 +92,8 @@ func newPoller(r *Runner, s Subscription) *poller {
 	}
 }
 
-// configure installs an edited subscription on a running poller and cuts the
-// current sleep short, so a shorter interval applies at once.
+// configure installs an edited subscription on a running poller and wakes it,
+// so the next poll is measured against the new interval at once.
 func (p *poller) configure(s Subscription) {
 	p.cmu.Lock()
 	p.sub, p.filt = s, s.filter()
@@ -138,10 +139,13 @@ func (p *poller) loop() {
 	if !p.sleeping() {
 		p.poll()
 	}
+	// The next poll is due an interval after the last one, whatever the
+	// interval is by then, so a save that leaves it alone moves nothing and
+	// a shorter one already overdue polls at once.
+	last := time.Now()
 	for {
 		sub, _ := p.config()
-		// A new timer each round, since the interval can be edited.
-		t := time.NewTimer(sub.Every())
+		t := time.NewTimer(time.Until(last.Add(sub.Every())))
 		select {
 		case <-p.stop:
 			t.Stop()
@@ -151,10 +155,10 @@ func (p *poller) loop() {
 			t.Stop()
 			return
 		case <-p.wake:
-			// Edited: re-read the interval without fetching.
 			t.Stop()
 		case <-t.C:
 			p.poll()
+			last = time.Now()
 		}
 	}
 }
