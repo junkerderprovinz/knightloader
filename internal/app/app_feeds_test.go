@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -214,5 +215,54 @@ func TestAListingByDateGoesOnUntilTheDate(t *testing.T) {
 	}
 	if len(f.Items) != 2 {
 		t.Fatalf("kept %d entries", len(f.Items))
+	}
+}
+
+func TestASubscriptionEntryCarriesItsSponsorBlockAndSeriesChoice(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	a.SetHalted(true)
+	sb := feed.SponsorBlock{Remove: []string{"sponsor"}, Mark: []string{"intro"}}
+	a.stageFeedJob(feedJob("https://host.example/ep.bin", feed.Subscription{SponsorBlock: &sb, Library: feed.LibrarySeries}))
+
+	for _, x := range a.Tasks() {
+		var gotSB ytdlp.SponsorBlock
+		if err := json.Unmarshal(x.SponsorBlock, &gotSB); err != nil || !slices.Equal(gotSB.Remove, sb.Remove) || !slices.Equal(gotSB.Mark, sb.Mark) {
+			t.Errorf("the row's SponsorBlock choice is %s (%v), want the subscription's %+v", x.SponsorBlock, err, sb)
+		}
+		var gotSeries ytdlp.Series
+		if err := json.Unmarshal(x.Series, &gotSeries); err != nil || gotSeries.Show != "Kellerfunk" {
+			t.Errorf("the row is filed under show %s (%v), want Kellerfunk", x.Series, err)
+		}
+	}
+}
+
+func TestASeriesSubscriptionLeavesTheShowFolderToTheLayout(t *testing.T) {
+	a, base := newRuleApp(t, func(*settings.Settings, string) {})
+	a.SetHalted(true)
+	j := feedJob("https://host.example/ep.bin", feed.Subscription{Naming: feed.NamingChannel, Library: feed.LibrarySeries, Dir: filepath.Join(base, "tv")})
+	j.Dir = j.Sub.Dir
+	a.stageFeedJob(j)
+
+	for _, x := range a.Tasks() {
+		if want := filepath.Join(base, "tv"); x.Dir != want {
+			t.Errorf("a series entry landed in %q, want %q, where the layout adds the show folder itself", x.Dir, want)
+		}
+	}
+}
+
+func TestASubscriptionChecksWhatWasDownloadedUnlessItAllowsRepeats(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	a.SetHalted(true)
+	a.stageFeedJob(feedJob("https://host.example/checked.bin", feed.Subscription{}))
+	a.stageFeedJob(feedJob("https://host.example/repeats.bin", feed.Subscription{AllowDownloaded: true}))
+
+	want := map[string]core.DownloadedCheck{
+		"https://host.example/checked.bin": core.DownloadedCheckOn,
+		"https://host.example/repeats.bin": core.DownloadedCheckOff,
+	}
+	for _, x := range a.Tasks() {
+		if x.DownloadedCheck != want[x.URL] {
+			t.Errorf("%s is checked against the downloads with %q, want %q", x.URL, x.DownloadedCheck, want[x.URL])
+		}
 	}
 }

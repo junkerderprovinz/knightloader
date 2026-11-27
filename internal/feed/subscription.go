@@ -58,18 +58,13 @@ const (
 )
 
 // SponsorBlock names the SponsorBlock categories cut out of a video and those
-// only marked as chapters.
-type SponsorBlock struct {
-	Remove []string `json:"remove"`
-	Mark   []string `json:"mark"`
-}
+// only marked as chapters, as the yt-dlp backend takes them.
+type SponsorBlock = ytdlp.SponsorBlock
 
-// sponsorCategories are yt-dlp's SponsorBlock categories. The markOnly ones
-// describe a point or a chapter and cannot be cut.
+// The markOnly categories describe a point or a chapter and cannot be cut.
 var (
-	sponsorCategories = []string{"sponsor", "intro", "outro", "selfpromo", "preview", "filler",
-		"interaction", "music_offtopic", "poi_highlight", "chapter", "hook"}
-	markOnly = []string{"poi_highlight", "chapter"}
+	sponsorCategories = ytdlp.SponsorBlockCategories()
+	markOnly          = []string{"poi_highlight", "chapter"}
 )
 
 // Backfill is what the first poll of a channel hands over, where otherwise it

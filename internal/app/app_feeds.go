@@ -18,9 +18,11 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -229,7 +231,29 @@ var feedTestClient = httpx.New(httpx.Options{})
 // staging nothing and marking nothing as seen. It never touches the live
 // runner.
 func (a *App) InspectFeed(ctx context.Context, s feed.Subscription) (feed.Preview, error) {
-	return feed.Inspect(ctx, a.feedSources(feedTestClient), s)
+	p, err := feed.Inspect(ctx, a.feedSources(feedTestClient), s)
+	if err != nil {
+		return p, err
+	}
+	return a.markDownloaded(p, s), nil
+}
+
+// markDownloaded turns away the entries of a test that the subscription would
+// reject as downloaded before, the same check staging makes.
+func (a *App) markDownloaded(p feed.Preview, s feed.Subscription) feed.Preview {
+	if s.AllowDownloaded {
+		return p
+	}
+	for i, e := range p.Entries {
+		if !e.Matches {
+			continue
+		}
+		if v := a.downloadedVerdict(rules.Candidate{URL: e.Link}, dedupe.MediaKeyOf(e.Link), core.DownloadedCheckOn); v.Rejected {
+			p.Entries[i].Matches, p.Entries[i].Reason = false, feed.ReasonDownloaded
+			p.Matched--
+		}
+	}
+	return p
 }
 
 // ResolveFeed works out the subscription for a pasted address.
@@ -261,7 +285,10 @@ func feedScope(source string) *httpx.Scope {
 // where to write.
 func (a *App) stageFeedJob(j feed.Job) {
 	sub := j.Sub
-	batch := LinkBatchOptions{Within: feedScope(j.Source), Source: j.Source, Preset: sub.Media}
+	batch := LinkBatchOptions{Within: feedScope(j.Source), Source: j.Source, Preset: sub.Media, downloaded: core.DownloadedCheckOn}
+	if sub.AllowDownloaded {
+		batch.downloaded = core.DownloadedCheckOff
+	}
 	if j.FileName != "" {
 		// A plain file under the entry's name: the CDN's own name says nothing,
 		// and a backend that names files itself would undo this one.
@@ -274,7 +301,7 @@ func (a *App) stageFeedJob(j feed.Job) {
 		return
 	}
 	if j.Subtitle != "" {
-		sb := LinkBatchOptions{Within: batch.Within, Source: j.Source, File: true, FileName: sanitizeSegment(j.SubtitleName)}
+		sb := LinkBatchOptions{Within: batch.Within, Source: j.Source, File: true, FileName: sanitizeSegment(j.SubtitleName), downloaded: batch.downloaded}
 		ids = append(ids, idsOf(a.addLinksFrom([]string{j.Subtitle}, j.Package, OriginFeed, sb))...)
 	}
 	// A video feed's entry is a yt-dlp link, and the options below are for
@@ -287,7 +314,8 @@ func (a *App) stageFeedJob(j feed.Job) {
 		set  bool
 	)
 	dir := j.Dir
-	if sub.Naming == feed.NamingChannel && j.Show != "" {
+	// The series layout makes the show's folder itself.
+	if sub.Naming == feed.NamingChannel && j.Show != "" && sub.Library != feed.LibrarySeries {
 		dir = a.showDir(dir, j.Show)
 	}
 	if dir != "" {
@@ -297,6 +325,12 @@ func (a *App) stageFeedJob(j feed.Job) {
 		// Copied, since the pointer belongs to the poller that built the job.
 		priority := *j.Priority
 		opts.Priority, set = &priority, true
+	}
+	if sub.SponsorBlock != nil {
+		opts.SponsorBlock, set = sub.SponsorBlock, true
+	}
+	if sub.Library == feed.LibrarySeries {
+		opts.Series, set = &ytdlp.Series{Show: j.Show}, true
 	}
 	if set {
 		if err := a.SetTaskOptions(ids, opts); err != nil {

@@ -17,6 +17,8 @@ const (
 	ReasonExclude Reason = "exclude"
 	ReasonShort   Reason = "short"
 	ReasonLong    Reason = "long"
+	// ReasonDownloaded is set by the app, which knows what was downloaded.
+	ReasonDownloaded Reason = "downloaded"
 )
 
 // Prober finds out how long an entry is when its feed does not say, so a

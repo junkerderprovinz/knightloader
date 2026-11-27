@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -210,5 +211,31 @@ func TestALinkTheHistoryHasNamesTheFolderItsVideoWasSavedIn(t *testing.T) {
 	got := onlyTask(t, a.AddLinks([]string{"https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PL0123456789"}, ""))
 	if !heldAsDownloaded(*got) || got.SkipParams["folder"] != filepath.Join("media", "Rick Astley") {
 		t.Errorf("the link came back skipped=%v with folder %q, want it held with the folder", got.Skipped, got.SkipParams["folder"])
+	}
+}
+
+func TestASubscriptionTestNamesTheEntriesDownloadedBefore(t *testing.T) {
+	a := historyApp(t, nil)
+	videoDownloadedBefore(t, a, "old", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", rickRoll, filepath.Join("media", "Never Gonna Give You Up.mp4"))
+	preview := func() feed.Preview {
+		return feed.Preview{Total: 2, Matched: 2, Entries: []feed.PreviewEntry{
+			{Title: "Never Gonna Give You Up", Link: "https://youtu.be/dQw4w9WgXcQ", Matches: true},
+			{Title: "Something new", Link: "https://www.youtube.com/watch?v=new0video00", Matches: true},
+		}}
+	}
+
+	got := a.markDownloaded(preview(), feed.Subscription{})
+	if e := got.Entries[0]; e.Matches || e.Reason != feed.ReasonDownloaded {
+		t.Errorf("a video downloaded before reads matches=%v reason=%q, want it skipped as downloaded", e.Matches, e.Reason)
+	}
+	if e := got.Entries[1]; !e.Matches || e.Reason != "" {
+		t.Errorf("a new video reads matches=%v reason=%q, want it taken", e.Matches, e.Reason)
+	}
+	if got.Matched != 1 {
+		t.Errorf("matched = %d, want 1", got.Matched)
+	}
+
+	if again := a.markDownloaded(preview(), feed.Subscription{AllowDownloaded: true}); !again.Entries[0].Matches || again.Matched != 2 {
+		t.Errorf("a subscription that takes repeats skipped %+v", again.Entries[0])
 	}
 }
