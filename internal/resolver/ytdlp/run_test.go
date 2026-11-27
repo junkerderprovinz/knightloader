@@ -256,6 +256,14 @@ func ytdlpHelper(mode string) {
 		fmt.Println("[download] Destination: " + final)
 		fmt.Println("KLP:" + `{"live":"True","p":{"downloaded_bytes":5,"speed":1.0,"filename":"` + jsonPath(final) + `"}}`)
 		time.Sleep(time.Minute)
+	case "geoplaceholder", "geoworldwide":
+		// The media line yt-dlp printed for a real ORF episode, then the
+		// download it went on with.
+		record := map[string]string{"geoplaceholder": "orf-austria-only.txt", "geoworldwide": "orf-worldwide.txt"}[mode]
+		b, _ := os.ReadFile(filepath.Join("testdata", "geo", record))
+		fmt.Println(strings.TrimSpace(string(b)))
+		fmt.Println("[download] Destination: " + final)
+		_ = os.WriteFile(final, []byte("bytes"), 0o644)
 	case "hang":
 		// Part way through, and staying there until it is killed.
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)

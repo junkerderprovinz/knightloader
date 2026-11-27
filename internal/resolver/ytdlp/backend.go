@@ -503,6 +503,9 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		already bool
 		// cut is set once SponsorBlock segments were cut out of the file.
 		cut bool
+		// geo is set when the stream turns out to be the site's stand-in for
+		// a video this region may not see. The run stops and fails.
+		geo bool
 	)
 	apart := opts.Variant == VariantVideo && opts.Embed.Separate
 	sc := bufio.NewScanner(stdout)
@@ -534,6 +537,13 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 				}
 			}
 			b.onUpdate(taskID, u)
+			continue
+		}
+		if media, ok := strings.CutPrefix(line, mediaPrefix); ok {
+			if geoPlaceholder(media) {
+				geo = true
+				cancel()
+			}
 			continue
 		}
 		if planned, ok := strings.CutPrefix(line, plannedPrefix); ok {
@@ -596,8 +606,16 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 	if grace != nil {
 		grace.Stop()
 	}
-	if ctx.Err() != nil && stoppedBy == "" && !already {
+	if ctx.Err() != nil && stoppedBy == "" && !already && !geo {
 		return core.Update{}, false // cancelled by Pause/Remove
+	}
+	if geo {
+		b.discardRun(taskID, dir)
+		return core.Update{
+			Status: core.StatusError,
+			Err:    "yt-dlp: the site shows this video only in some countries and sent a stand-in clip to this one",
+			Reason: core.ReasonGeoBlocked,
+		}, true
 	}
 	if final == "" {
 		final = sidecarFile(opts.Variant, written)
@@ -615,13 +633,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		return done(stoppedBy), true
 	}
 	if already {
-		b.mu.Lock()
-		var files []string
-		if p := b.parts[taskID]; p != nil {
-			files = slices.Clone(p.files)
-		}
-		b.mu.Unlock()
-		Discard(taskID, []string{dir}, files, b.InUse)
+		b.discardRun(taskID, dir)
 		final = ""
 		return done(""), true
 	}
@@ -659,6 +671,17 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		return b.placeSubtitles(taskID, out, dir, opts, final, written, subFiles), true
 	}
 	return done(""), true
+}
+
+// discardRun deletes what the task's runs wrote into dir so far.
+func (b *Backend) discardRun(taskID, dir string) {
+	b.mu.Lock()
+	var files []string
+	if p := b.parts[taskID]; p != nil {
+		files = slices.Clone(p.files)
+	}
+	b.mu.Unlock()
+	Discard(taskID, []string{dir}, files, b.InUse)
 }
 
 // convertVideo encodes the video of file again as HEVC into an mkv beside it,
@@ -913,6 +936,10 @@ func namedByQuality(o Options) bool {
 // plannedPrefix marks the line on which a video row's yt-dlp names the file it
 // is about to write, before it fetches a byte of it.
 const plannedPrefix = "KLF:"
+
+// mediaPrefix marks the line on which a media row's yt-dlp names the address of
+// the stream it is about to fetch, the first one of a merge.
+const mediaPrefix = "KLU:"
 
 // alreadyThere reports whether the video yt-dlp is about to write as planned
 // is there under the quality nameByQuality would give it. yt-dlp looks for its
@@ -1540,13 +1567,14 @@ func buildArgs(dir string, o Options) []string {
 		args = append(args, "--merge-output-format", merge)
 		args = append(args, embedArgs(o, true)...)
 		if namedByQuality(o) {
-			// --print alone would silence the progress lines and skip the
-			// download.
-			args = append(args, "--print", "video:"+plannedPrefix+"%(filename)s", "--no-simulate", "--no-quiet")
+			args = append(args, "--print", "video:"+plannedPrefix+"%(filename)s")
 		}
 	}
 	// Only the rows that download media need these.
 	if o.Variant == VariantVideo || o.Variant == VariantAudio {
+		// --print alone would silence the progress lines and skip the
+		// download.
+		args = append(args, "--print", "video:"+mediaPrefix+"%(requested_formats.0.url,url)s", "--no-simulate", "--no-quiet")
 		if needsInfoJSON(o) {
 			args = append(args, "--write-info-json")
 		}
