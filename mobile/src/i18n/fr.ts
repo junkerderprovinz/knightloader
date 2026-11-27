@@ -748,6 +748,7 @@ export const fr: Dict = {
   'subs.kindHint': 'Un flux apporte ce que liste son document RSS ou Atom. Une chaîne est lue par yt-dlp et peut aussi apporter des vidéos plus anciennes. Une recherche Mediathek interroge mediathekviewweb.de.',
   'subs.url': 'Adresse',
   'subs.urlHint': 'L’instance reconnaît l’abonnement à cette adresse.',
+  'subs.urlMasked': 'Les parties affichées en … restent masquées sur ce téléphone. L’instance s’en sert quand même.',
   'subs.urlStoredHint': 'L’instance reconnaît l’abonnement à cette adresse, elle reste donc telle quelle. Pour en utiliser une autre, supprimez l’abonnement et ajoutez-le à nouveau.',
   'subs.urlMissing': 'Saisissez d’abord une adresse.',
   'subs.urlInvalid': 'Ce n’est pas une adresse web. Elle doit commencer par http:// ou https://.',

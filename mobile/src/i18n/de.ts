@@ -746,6 +746,7 @@ export const de: Dict = {
   'subs.kindHint': 'Ein Feed bringt, was sein RSS- oder Atom-Dokument auflistet. Einen Kanal liest yt-dlp, und er kann auch ältere Videos bringen. Eine Mediathek-Suche fragt bei mediathekviewweb.de nach.',
   'subs.url': 'Adresse',
   'subs.urlHint': 'An dieser Adresse erkennt die Instanz das Abo.',
+  'subs.urlMasked': 'Die Teile mit … bleiben auf diesem Handy verborgen. Die Instanz verwendet sie trotzdem.',
   'subs.urlStoredHint': 'An dieser Adresse erkennt die Instanz das Abo, deshalb bleibt sie, wie sie ist. Für eine andere Adresse entfernst du das Abo und legst es neu an.',
   'subs.urlMissing': 'Gib zuerst eine Adresse ein.',
   'subs.urlInvalid': 'Das ist keine Webadresse. Eine Webadresse fängt mit http:// oder https:// an.',

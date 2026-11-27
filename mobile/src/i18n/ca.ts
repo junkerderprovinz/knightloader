@@ -747,6 +747,7 @@ export const ca: Dict = {
   'subs.kindHint': 'Un feed porta el que llista el seu document RSS o Atom. Un canal el llegeix yt-dlp i també pot portar vídeos anteriors. Una cerca de Mediathek pregunta a mediathekviewweb.de.',
   'subs.url': 'Adreça',
   'subs.urlHint': 'La instància reconeix la subscripció per aquesta adreça.',
+  'subs.urlMasked': 'Les parts que es mostren com a … queden amagades en aquest telèfon. La instància les continua fent servir.',
   'subs.urlStoredHint': 'La instància reconeix la subscripció per aquesta adreça, així que es queda com és. Per fer-ne servir una altra, elimina la subscripció i torna-la a afegir.',
   'subs.urlMissing': 'Escriu primer una adreça.',
   'subs.urlInvalid': 'Això no és una adreça web. Ha de començar per http:// o https://.',

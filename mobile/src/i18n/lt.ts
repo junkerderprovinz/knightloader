@@ -745,6 +745,7 @@ export const lt: Dict = {
   'subs.kindHint': 'Sklaidos kanalas atneša tai, ką išvardija jo RSS ar Atom dokumentas. Kanalą skaito yt-dlp, todėl jis gali atnešti ir senesnių vaizdo įrašų. Mediathek paieška klausia mediathekviewweb.de.',
   'subs.url': 'Adresas',
   'subs.urlHint': 'Egzempliorius atpažįsta prenumeratą pagal šį adresą.',
+  'subs.urlMasked': 'Dalys, rodomos kaip …, šiame telefone lieka paslėptos. Egzempliorius jas vis tiek naudoja.',
   'subs.urlStoredHint': 'Egzempliorius atpažįsta prenumeratą pagal šį adresą, todėl jis lieka nepakeistas. Jei nori kito, pašalink prenumeratą ir pridėk ją iš naujo.',
   'subs.urlMissing': 'Pirmiausia įvesk adresą.',
   'subs.urlInvalid': 'Tai ne žiniatinklio adresas. Jis turi prasidėti http:// arba https://.',

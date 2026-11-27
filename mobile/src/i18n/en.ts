@@ -745,6 +745,7 @@ export const en = {
   'subs.kindHint': 'A feed brings what its RSS or Atom document lists. A channel is read by yt-dlp and can bring older videos as well. A Mediathek search asks mediathekviewweb.de.',
   'subs.url': 'Address',
   'subs.urlHint': 'The instance knows the subscription by this address.',
+  'subs.urlMasked': 'The parts shown as … stay hidden on this phone. The instance still uses them.',
   'subs.urlStoredHint': 'The instance knows the subscription by this address, so it stays as it is. To use another one, remove the subscription and add it again.',
   'subs.urlMissing': 'Enter an address first.',
   'subs.urlInvalid': 'That is not a web address. It has to start with http:// or https://.',

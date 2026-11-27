@@ -745,6 +745,7 @@ export const vi: Dict = {
   'subs.kindHint': 'Feed mang về những gì tài liệu RSS hoặc Atom của nó liệt kê. Kênh được yt-dlp đọc và cũng có thể mang về video cũ hơn. Tìm kiếm Mediathek hỏi mediathekviewweb.de.',
   'subs.url': 'Địa chỉ',
   'subs.urlHint': 'Phiên bản nhận ra đăng ký qua địa chỉ này.',
+  'subs.urlMasked': 'Những phần hiển thị là … vẫn được ẩn trên điện thoại này. Phiên bản vẫn dùng chúng.',
   'subs.urlStoredHint': 'Phiên bản nhận ra đăng ký qua địa chỉ này, nên địa chỉ được giữ nguyên. Để dùng địa chỉ khác, hãy gỡ đăng ký rồi thêm lại.',
   'subs.urlMissing': 'Hãy nhập địa chỉ trước.',
   'subs.urlInvalid': 'Đây không phải địa chỉ web. Địa chỉ phải bắt đầu bằng http:// hoặc https://.',

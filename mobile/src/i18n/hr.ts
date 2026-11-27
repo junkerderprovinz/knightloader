@@ -745,6 +745,7 @@ export const hr: Dict = {
   'subs.kindHint': 'Feed donosi ono što navodi njegov RSS ili Atom dokument. Kanal čita yt-dlp, pa može donijeti i starije videe. Pretraga u Mediatheku pita mediathekviewweb.de.',
   'subs.url': 'Adresa',
   'subs.urlHint': 'Instanca prepoznaje pretplatu po ovoj adresi.',
+  'subs.urlMasked': 'Dijelovi prikazani kao … ostaju skriveni na ovom telefonu. Instanca ih i dalje koristi.',
   'subs.urlStoredHint': 'Instanca prepoznaje pretplatu po ovoj adresi, pa ona ostaje kakva jest. Za neku drugu adresu ukloni pretplatu i ponovno je dodaj.',
   'subs.urlMissing': 'Najprije unesi adresu.',
   'subs.urlInvalid': 'To nije web adresa. Mora počinjati s http:// ili https://.',

@@ -745,6 +745,7 @@ export const et: Dict = {
   'subs.kindHint': 'Voog toob selle, mida tema RSS- või Atom-dokument loetleb. Kanalit loeb yt-dlp ja see võib tuua ka vanemaid videoid. Mediatheki otsing küsib saidilt mediathekviewweb.de.',
   'subs.url': 'Aadress',
   'subs.urlHint': 'Eksemplar tunneb tellimuse ära selle aadressi järgi.',
+  'subs.urlMasked': 'Osad, mis on näidatud kui …, jäävad selles telefonis peidetuks. Eksemplar kasutab neid ikkagi.',
   'subs.urlStoredHint': 'Eksemplar tunneb tellimuse ära selle aadressi järgi, seega jääb see selliseks, nagu on. Teise aadressi kasutamiseks eemalda tellimus ja lisa see uuesti.',
   'subs.urlMissing': 'Sisesta kõigepealt aadress.',
   'subs.urlInvalid': 'See ei ole veebiaadress. See peab algama http:// või https://.',

@@ -747,6 +747,7 @@ export const no: Dict = {
   'subs.kindHint': 'En feed gir det RSS- eller Atom-dokumentet lister opp. En kanal leses av yt-dlp og kan også gi eldre videoer. Et Mediathek-søk spør mediathekviewweb.de.',
   'subs.url': 'Adresse',
   'subs.urlHint': 'Instansen kjenner igjen abonnementet på denne adressen.',
+  'subs.urlMasked': 'Delene som vises som …, forblir skjult på denne telefonen. Instansen bruker dem likevel.',
   'subs.urlStoredHint': 'Instansen kjenner igjen abonnementet på denne adressen, så den blir stående som den er. Vil du bruke en annen, fjerner du abonnementet og legger det til på nytt.',
   'subs.urlMissing': 'Skriv inn en adresse først.',
   'subs.urlInvalid': 'Det er ikke en nettadresse. Den må begynne med http:// eller https://.',

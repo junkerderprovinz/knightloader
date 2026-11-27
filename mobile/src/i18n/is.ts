@@ -746,6 +746,7 @@ export const is: Dict = {
   'subs.kindHint': 'Straumur kemur með það sem RSS- eða Atom-skjal hans listar. Rás er lesin af yt-dlp og getur líka komið með eldri myndbönd. Mediathek-leit spyr mediathekviewweb.de.',
   'subs.url': 'Slóð',
   'subs.urlHint': 'Tilvikið þekkir áskriftina á þessari slóð.',
+  'subs.urlMasked': 'Hlutarnir sem birtast sem … haldast faldir í þessum síma. Tilvikið notar þá samt.',
   'subs.urlStoredHint': 'Tilvikið þekkir áskriftina á þessari slóð, svo hún helst óbreytt. Til að nota aðra slóð skaltu fjarlægja áskriftina og bæta henni við aftur.',
   'subs.urlMissing': 'Sláðu fyrst inn slóð.',
   'subs.urlInvalid': 'Þetta er ekki veffang. Það þarf að byrja á http:// eða https://.',

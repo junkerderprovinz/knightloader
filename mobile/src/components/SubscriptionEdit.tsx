@@ -7,6 +7,7 @@ import {
   AUDIO_FORMATS,
   DEFAULT_INTERVAL_MINUTES,
   DEFAULT_MEDIA,
+  HIDDEN,
   EXTRAS,
   MARK_ONLY,
   QUALITIES,
@@ -146,7 +147,7 @@ export function SubscriptionEdit({
     setBusy(true);
     setError('');
     try {
-      onSaved(await saveSubscription(conn, open.was, row));
+      onSaved(await saveSubscription(conn, open.was === null ? null : open.row, row));
     } catch (e) {
       setBusy(false);
       if (e instanceof SubscriptionFault) {
@@ -179,7 +180,7 @@ export function SubscriptionEdit({
     if (open.was === null) return;
     setBusy(true);
     try {
-      onSaved(await removeSubscription(conn, open.was));
+      onSaved(await removeSubscription(conn, open.row));
     } catch (e) {
       setBusy(false);
       setError(errorText(t, e));
@@ -237,9 +238,14 @@ export function SubscriptionEdit({
               </EditField>
               <EditField label={t('subs.url')} info={stored ? t('subs.urlStoredHint') : t('subs.urlHint')}>
                 {stored ? (
-                  <Text style={[styles.address, { color: c.textSub }]} selectable>
-                    {row.url}
-                  </Text>
+                  <>
+                    <Text style={[styles.address, { color: c.textSub }]} selectable>
+                      {row.url}
+                    </Text>
+                    {row.url.includes(HIDDEN) ? (
+                      <Text style={[styles.note, { color: c.textMuted }]}>{t('subs.urlMasked')}</Text>
+                    ) : null}
+                  </>
                 ) : (
                   <EditBox value={row.url} onChange={(url) => set({ url })} label={t('subs.url')} placeholder="https://" keyboard="url" />
                 )}
@@ -665,6 +671,7 @@ const styles = StyleSheet.create({
   status: { fontSize: TYPE.subline, marginTop: 2 },
   body: { ...capped, paddingHorizontal: 16 },
   address: { fontSize: TYPE.body },
+  note: { fontSize: TYPE.subline, marginTop: 4 },
   pair: { flexDirection: 'row', gap: 12 },
   half: { flex: 1 },
   fault: { fontSize: TYPE.subline, marginTop: 6 },

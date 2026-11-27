@@ -745,6 +745,7 @@ export const hu: Dict = {
   'subs.kindHint': 'A feed azt hozza, amit az RSS- vagy Atom-dokumentuma felsorol. A csatornát a yt-dlp olvassa, és régebbi videókat is hozhat. A Mediathek-keresés a mediathekviewweb.de oldalt kérdezi.',
   'subs.url': 'Cím',
   'subs.urlHint': 'A példány erről a címről ismeri fel a feliratkozást.',
+  'subs.urlMasked': 'A … jellel mutatott részek rejtve maradnak ezen a telefonon. A példány ettől még használja őket.',
   'subs.urlStoredHint': 'A példány erről a címről ismeri fel a feliratkozást, ezért a cím nem változtatható. Ha másikat szeretnél, távolítsd el a feliratkozást, és add hozzá újra.',
   'subs.urlMissing': 'Előbb adj meg egy címet.',
   'subs.urlInvalid': 'Ez nem webcím. http:// vagy https:// előtaggal kell kezdődnie.',

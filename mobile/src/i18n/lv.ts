@@ -745,6 +745,7 @@ export const lv: Dict = {
   'subs.kindHint': 'Plūsma atnes to, ko uzskaita tās RSS vai Atom dokuments. Kanālu nolasa yt-dlp, un tas var atnest arī vecākus video. Mediathek meklēšana vaicā mediathekviewweb.de.',
   'subs.url': 'Adrese',
   'subs.urlHint': 'Instance atpazīst abonementu pēc šīs adreses.',
+  'subs.urlMasked': 'Daļas, kas redzamas kā …, šajā tālrunī paliek paslēptas. Instance tās tik un tā izmanto.',
   'subs.urlStoredHint': 'Instance atpazīst abonementu pēc šīs adreses, tāpēc tā paliek nemainīta. Lai izmantotu citu, noņem abonementu un pievieno to no jauna.',
   'subs.urlMissing': 'Vispirms ievadi adresi.',
   'subs.urlInvalid': 'Tā nav tīmekļa adrese. Tai jāsākas ar http:// vai https://.',

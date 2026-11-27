@@ -728,6 +728,7 @@ export const zh: Dict = {
   'subs.kindHint': 'Feed 带来它的 RSS 或 Atom 文档里列出的内容。频道由 yt-dlp 读取，也能带来较早的视频。Mediathek 搜索会去问 mediathekviewweb.de。',
   'subs.url': '地址',
   'subs.urlHint': '实例靠这个地址来识别订阅。',
+  'subs.urlMasked': '显示为 … 的部分在这部手机上保持隐藏，实例仍会使用它们。',
   'subs.urlStoredHint': '实例靠这个地址来识别订阅，所以地址不能改。要换一个地址，请移除这个订阅后重新添加。',
   'subs.urlMissing': '请先输入地址。',
   'subs.urlInvalid': '这不是网址。网址必须以 http:// 或 https:// 开头。',

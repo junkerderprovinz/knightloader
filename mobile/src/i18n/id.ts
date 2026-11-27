@@ -746,6 +746,7 @@ export const id: Dict = {
   'subs.kindHint': 'Feed membawa apa yang tercantum di dokumen RSS atau Atom-nya. Kanal dibaca oleh yt-dlp dan bisa juga membawa video lama. Pencarian Mediathek bertanya ke mediathekviewweb.de.',
   'subs.url': 'Alamat',
   'subs.urlHint': 'Instans mengenali langganan dari alamat ini.',
+  'subs.urlMasked': 'Bagian yang ditampilkan sebagai … tetap tersembunyi di ponsel ini. Instans tetap menggunakannya.',
   'subs.urlStoredHint': 'Instans mengenali langganan dari alamat ini, jadi alamatnya tidak bisa diubah. Untuk memakai alamat lain, hapus langganan ini lalu tambahkan lagi.',
   'subs.urlMissing': 'Masukkan alamat dulu.',
   'subs.urlInvalid': 'Itu bukan alamat web. Alamat harus diawali http:// atau https://.',

@@ -745,6 +745,7 @@ export const fi: Dict = {
   'subs.kindHint': 'Syöte tuo sen, mitä sen RSS- tai Atom-dokumentti luettelee. Kanavan lukee yt-dlp, ja se voi tuoda myös vanhempia videoita. Mediathek-haku kysyy sivustolta mediathekviewweb.de.',
   'subs.url': 'Osoite',
   'subs.urlHint': 'Instanssi tunnistaa tilauksen tästä osoitteesta.',
+  'subs.urlMasked': 'Kohdat, jotka näkyvät muodossa …, pysyvät piilossa tässä puhelimessa. Instanssi käyttää niitä silti.',
   'subs.urlStoredHint': 'Instanssi tunnistaa tilauksen tästä osoitteesta, joten se pysyy ennallaan. Jos haluat käyttää toista osoitetta, poista tilaus ja lisää se uudelleen.',
   'subs.urlMissing': 'Anna ensin osoite.',
   'subs.urlInvalid': 'Tämä ei ole verkko-osoite. Sen täytyy alkaa http:// tai https://.',

@@ -748,6 +748,7 @@ export const eu: Dict = {
   'subs.kindHint': 'Feed batek bere RSS edo Atom dokumentuak zerrendatzen duena ekartzen du. Kanal bat yt-dlp-k irakurtzen du, eta bideo zaharragoak ere ekar ditzake. Mediathek-bilaketa batek mediathekviewweb.de guneari galdetzen dio.',
   'subs.url': 'Helbidea',
   'subs.urlHint': 'Instantziak helbide honen bidez ezagutzen du harpidetza.',
+  'subs.urlMasked': '… gisa erakusten diren zatiak ezkutuan geratzen dira telefono honetan. Instantziak hala ere erabiltzen ditu.',
   'subs.urlStoredHint': 'Instantziak helbide honen bidez ezagutzen du harpidetza, beraz dagoen bezala geratzen da. Beste bat erabiltzeko, kendu harpidetza eta gehitu berriro.',
   'subs.urlMissing': 'Idatzi helbide bat lehenik.',
   'subs.urlInvalid': 'Hori ez da web helbide bat. http:// edo https:// aurrizkiarekin hasi behar du.',

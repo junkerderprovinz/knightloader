@@ -733,6 +733,7 @@ export const ko: Dict = {
   'subs.kindHint': '피드는 RSS 또는 Atom 문서에 나온 것을 가져옵니다. 채널은 yt-dlp가 읽으며, 예전 동영상도 가져올 수 있습니다. Mediathek 검색은 mediathekviewweb.de에 묻습니다.',
   'subs.url': '주소',
   'subs.urlHint': '인스턴스는 이 주소로 구독을 구별합니다.',
+  'subs.urlMasked': '…로 표시된 부분은 이 휴대폰에서 계속 숨겨집니다. 인스턴스는 그대로 사용합니다.',
   'subs.urlStoredHint': '인스턴스는 이 주소로 구독을 구별하므로 주소는 바꿀 수 없습니다. 다른 주소를 쓰려면 구독을 제거하고 다시 추가하세요.',
   'subs.urlMissing': '먼저 주소를 입력하세요.',
   'subs.urlInvalid': '웹 주소가 아닙니다. http:// 또는 https://로 시작해야 합니다.',

@@ -747,6 +747,7 @@ export const es: Dict = {
   'subs.kindHint': 'Un feed trae lo que lista su documento RSS o Atom. Un canal lo lee yt-dlp y también puede traer vídeos anteriores. Una búsqueda de Mediathek pregunta a mediathekviewweb.de.',
   'subs.url': 'Dirección',
   'subs.urlHint': 'La instancia reconoce la suscripción por esta dirección.',
+  'subs.urlMasked': 'Las partes que se muestran como … quedan ocultas en este teléfono. La instancia las sigue usando.',
   'subs.urlStoredHint': 'La instancia reconoce la suscripción por esta dirección, así que se queda como está. Para usar otra, quita la suscripción y vuelve a añadirla.',
   'subs.urlMissing': 'Escribe primero una dirección.',
   'subs.urlInvalid': 'Eso no es una dirección web. Tiene que empezar por http:// o https://.',

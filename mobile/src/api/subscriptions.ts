@@ -128,23 +128,42 @@ async function writeSubscriptions(conn: ServerConnection, rows: Subscription[]):
   return stored ?? rows;
 }
 
+/** What an instance shows a member in place of a credential in an address. */
+export const HIDDEN = '…';
+
 /**
- * saveSubscription stores row in place of the one stored under `was`, or as a
- * new one when `was` is null. The list is read again first, so a row added or
- * changed in the web interface while the phone had the list open is kept.
+ * storedAt finds the row as it was opened in the list as it is now. Two rows
+ * can read alike once a passkey in them is hidden, so the whole row is matched
+ * first and the address alone only after that.
  */
-export async function saveSubscription(conn: ServerConnection, was: string | null, row: Subscription): Promise<Subscription[]> {
+function storedAt(rows: Subscription[], was: Subscription): number {
+  const whole = JSON.stringify(was);
+  const same = rows.findIndex((r) => JSON.stringify(r) === whole);
+  return same >= 0 ? same : rows.findIndex((r) => r.url.trim() === was.url.trim());
+}
+
+/**
+ * saveSubscription stores row in place of `was`, the row as it was opened, or
+ * as a new one when `was` is null. The list is read again first, so a row
+ * added or changed in the web interface while the phone had the list open is
+ * kept. Every address goes back as it came, hidden parts included, which is
+ * what the instance matches to the address it stored.
+ */
+export async function saveSubscription(conn: ServerConnection, was: Subscription | null, row: Subscription): Promise<Subscription[]> {
   const next = tidy(row);
   const rows = await fetchSubscriptions(conn);
-  const at = was === null ? -1 : rows.findIndex((r) => r.url.trim() === was.trim());
-  // The instance would merge a second row for one address into the first.
-  if (rows.some((r, i) => i !== at && r.url.trim() === next.url)) throw new SubscriptionFault('subs.duplicate');
+  const at = was === null ? -1 : storedAt(rows, was);
+  // The instance would merge a second row for one address into the first. An
+  // address with a hidden part is left to the instance, which can tell.
+  const taken = !next.url.includes(HIDDEN) && rows.some((r, i) => i !== at && r.url.trim() === next.url);
+  if (taken) throw new SubscriptionFault('subs.duplicate');
   return writeSubscriptions(conn, at < 0 ? [...rows, next] : rows.map((r, i) => (i === at ? next : r)));
 }
 
-export async function removeSubscription(conn: ServerConnection, url: string): Promise<Subscription[]> {
+export async function removeSubscription(conn: ServerConnection, was: Subscription): Promise<Subscription[]> {
   const rows = await fetchSubscriptions(conn);
-  return writeSubscriptions(conn, rows.filter((r) => r.url.trim() !== url.trim()));
+  const at = storedAt(rows, was);
+  return writeSubscriptions(conn, rows.filter((_, i) => i !== at));
 }
 
 /** fetchFeedHealth is what the instance knows of each subscription, by address. */

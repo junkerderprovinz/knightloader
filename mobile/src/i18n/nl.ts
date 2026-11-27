@@ -747,6 +747,7 @@ export const nl: Dict = {
   'subs.kindHint': 'Een feed brengt wat het RSS- of Atom-document opsomt. Een kanaal wordt door yt-dlp uitgelezen en kan ook oudere video’s brengen. Een Mediathek-zoekopdracht vraagt het na bij mediathekviewweb.de.',
   'subs.url': 'Adres',
   'subs.urlHint': 'De instantie herkent het abonnement aan dit adres.',
+  'subs.urlMasked': 'De delen die als … worden getoond, blijven op deze telefoon verborgen. De instantie gebruikt ze wel.',
   'subs.urlStoredHint': 'De instantie herkent het abonnement aan dit adres, dus het blijft zoals het is. Wil je een ander adres, verwijder het abonnement dan en voeg het opnieuw toe.',
   'subs.urlMissing': 'Vul eerst een adres in.',
   'subs.urlInvalid': 'Dat is geen webadres. Het moet beginnen met http:// of https://.',

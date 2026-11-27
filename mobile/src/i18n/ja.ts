@@ -734,6 +734,7 @@ export const ja: Dict = {
   'subs.kindHint': 'フィードは、RSS または Atom 文書に載っているものを届けます。チャンネルは yt-dlp が読み取り、古い動画も取り込めます。Mediathek 検索は mediathekviewweb.de に問い合わせます。',
   'subs.url': 'アドレス',
   'subs.urlHint': 'インスタンスはこのアドレスで購読を識別します。',
+  'subs.urlMasked': '… と表示される部分は、このスマートフォンでは隠れたままです。インスタンスはそのまま使います。',
   'subs.urlStoredHint': 'インスタンスはこのアドレスで購読を識別するため、アドレスは変更できません。別のアドレスを使うには、購読を削除してから追加し直してください。',
   'subs.urlMissing': '先にアドレスを入力してください。',
   'subs.urlInvalid': 'ウェブのアドレスではありません。http:// または https:// で始まる必要があります。',

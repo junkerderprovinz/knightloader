@@ -744,6 +744,7 @@ export const cs: Dict = {
   'subs.kindHint': 'Feed přináší to, co vypisuje jeho dokument RSS nebo Atom. Kanál čte yt-dlp a může přinést i starší videa. Hledání v Mediathek se ptá mediathekviewweb.de.',
   'subs.url': 'Adresa',
   'subs.urlHint': 'Instance pozná odběr podle této adresy.',
+  'subs.urlMasked': 'Části zobrazené jako … zůstávají na tomto telefonu skryté. Instance je přesto používá.',
   'subs.urlStoredHint': 'Instance pozná odběr podle této adresy, proto zůstává, jak je. Pokud chceš jinou, odeber odběr a přidej ho znovu.',
   'subs.urlMissing': 'Nejdřív zadej adresu.',
   'subs.urlInvalid': 'Tohle není webová adresa. Musí začínat na http:// nebo https://.',

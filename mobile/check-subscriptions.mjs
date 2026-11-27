@@ -88,7 +88,7 @@ const api = compile(join(here, 'src', 'api', 'subscriptions.ts'), {
     { url: 'https://b.example/feed.xml', intervalMinutes: 30 },
   ];
   calls = [];
-  const next = await api.saveSubscription(conn, 'https://b.example/feed.xml', {
+  const next = await api.saveSubscription(conn, stored[1], {
     url: 'https://b.example/feed.xml',
     intervalMinutes: 60,
     title: 'B',
@@ -143,11 +143,52 @@ const api = compile(join(here, 'src', 'api', 'subscriptions.ts'), {
     { url: 'https://b.example/feed.xml', intervalMinutes: 0 },
   ];
   calls = [];
-  await api.removeSubscription(conn, 'https://a.example/feed.xml');
+  await api.removeSubscription(conn, stored[0]);
   expect('a removal writes the list without the row', puts()[0].body.map((r) => r.url), ['https://b.example/feed.xml']);
   calls = [];
-  await api.removeSubscription(conn, 'https://b.example/feed.xml');
+  await api.removeSubscription(conn, stored[0]);
   expect('removing the last row writes an empty list', puts()[0].body, []);
+}
+
+// An instance hides a credential in an address from a member as `…` and
+// matches the hidden address it gets back to the one it stored.
+{
+  const hidden = 'https://tracker.example/rss?passkey=…&cat=4';
+  stored = [
+    { url: hidden, intervalMinutes: 0, title: 'Tracker' },
+    { url: 'https://a.example/feed.xml', intervalMinutes: 0 },
+  ];
+  calls = [];
+  await api.saveSubscription(conn, stored[1], { url: 'https://a.example/feed.xml', intervalMinutes: 0, title: 'A' });
+  expect('a save sends every address back as it came, hidden parts included', puts()[0].body.map((r) => r.url), [hidden, 'https://a.example/feed.xml']);
+  calls = [];
+  await api.saveSubscription(conn, stored[0], { ...stored[0], title: 'Tracker, films' });
+  expect('and so does the edited row', puts()[0].body[0], { url: hidden, intervalMinutes: 0, title: 'Tracker, films' });
+}
+
+{
+  // Two subscriptions that differ only in their passkey read alike once it is hidden.
+  const hidden = 'https://tracker.example/rss?passkey=…';
+  stored = [
+    { url: hidden, intervalMinutes: 0, title: 'Mine' },
+    { url: hidden, intervalMinutes: 0, title: 'Shared' },
+  ];
+  calls = [];
+  let fault = null;
+  try {
+    await api.saveSubscription(conn, stored[1], { ...stored[1], intervalMinutes: 60 });
+  } catch (e) {
+    fault = e;
+  }
+  expect('rows that read alike once hidden are not refused as the same', fault?.key, undefined);
+  expect('and the edit lands on the row that was opened', puts()[0]?.body.map((r) => r.intervalMinutes), [0, 60]);
+  stored = [
+    { url: hidden, intervalMinutes: 0, title: 'Mine' },
+    { url: hidden, intervalMinutes: 0, title: 'Shared' },
+  ];
+  calls = [];
+  await api.removeSubscription(conn, stored[0]);
+  expect('removing one of them leaves the other', puts()[0].body.map((r) => r.title), ['Shared']);
 }
 
 {
@@ -556,6 +597,7 @@ async function editor(open, more = {}) {
     '/downloads',
   ]);
   expect('a stored address can be read but not typed over', [e.box('subs.url'), e.words().includes('https://a.example/feed.xml')], [undefined, true]);
+  expect('an address with nothing hidden needs no word about it', e.words().includes(t('subs.urlMasked')), false);
   expect('the folder is offered the download folders', e.of('PickChips').values, ['/downloads', '/media/serien']);
   expect('the priority is offered as not set, then the ladder', e.well('subs.priority').options.map((o) => o.value), ['unset', '3', '2', '1', '0', '-1', '-2', '-3']);
   expect('a feed has no backfill and no Mediathek boxes', [e.well('subs.backfill'), e.box('subs.mtTopic')], [undefined, undefined]);
@@ -742,6 +784,12 @@ async function editor(open, more = {}) {
   const bad = await editor({ was: null, row: { url: 'https://b.example/feed.xml', intervalMinutes: 0, titleFilter: '(' } });
   await bad.press('subs.save');
   expect('so does a field that is wrong before anything is sent', count(bad, 'subs.includeInvalid'), 2);
+}
+
+{
+  const hidden = 'https://tracker.example/rss?passkey=…&cat=4';
+  const e = await editor({ was: hidden, row: { url: hidden, intervalMinutes: 0 } });
+  expect('an address with hidden parts says they are still used', e.words().includes(t('subs.urlMasked')), true);
 }
 
 // The way in, from the settings.

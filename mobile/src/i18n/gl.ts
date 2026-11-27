@@ -747,6 +747,7 @@ export const gl: Dict = {
   'subs.kindHint': 'Un feed trae o que lista o seu documento RSS ou Atom. Unha canle lese con yt-dlp e pode traer tamén vídeos máis antigos. Unha busca na Mediathek pregúntalle a mediathekviewweb.de.',
   'subs.url': 'Enderezo',
   'subs.urlHint': 'A instancia recoñece a subscrición por este enderezo.',
+  'subs.urlMasked': 'As partes que se amosan como … quedan agochadas neste teléfono. A instancia segue usándoas.',
   'subs.urlStoredHint': 'A instancia recoñece a subscrición por este enderezo, así que queda como está. Para usar outro, quita a subscrición e engádea de novo.',
   'subs.urlMissing': 'Escribe primeiro un enderezo.',
   'subs.urlInvalid': 'Isto non é un enderezo web. Ten que empezar por http:// ou https://.',

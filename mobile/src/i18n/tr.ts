@@ -745,6 +745,7 @@ export const tr: Dict = {
   'subs.kindHint': 'Bir feed, RSS ya da Atom belgesinin listelediğini getirir. Bir kanalı yt-dlp okur ve eski videoları da getirebilir. Bir Mediathek araması mediathekviewweb.de’ye sorar.',
   'subs.url': 'Adres',
   'subs.urlHint': 'Örnek, aboneliği bu adresten tanır.',
+  'subs.urlMasked': '… olarak gösterilen kısımlar bu telefonda gizli kalır. Örnek bunları yine de kullanır.',
   'subs.urlStoredHint': 'Örnek, aboneliği bu adresten tanır, bu yüzden adres olduğu gibi kalır. Başka bir adres için aboneliği kaldır ve yeniden ekle.',
   'subs.urlMissing': 'Önce bir adres gir.',
   'subs.urlInvalid': 'Bu bir web adresi değil. http:// ya da https:// ile başlamalı.',

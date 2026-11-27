@@ -747,6 +747,7 @@ export const it: Dict = {
   'subs.kindHint': 'Un feed porta ciò che elenca il suo documento RSS o Atom. Un canale viene letto da yt-dlp e può portare anche video più vecchi. Una ricerca Mediathek interroga mediathekviewweb.de.',
   'subs.url': 'Indirizzo',
   'subs.urlHint': 'L’istanza riconosce l’abbonamento da questo indirizzo.',
+  'subs.urlMasked': 'Le parti mostrate come … restano nascoste su questo telefono. L’istanza le usa comunque.',
   'subs.urlStoredHint': 'L’istanza riconosce l’abbonamento da questo indirizzo, quindi resta com’è. Per usarne un altro, rimuovi l’abbonamento e aggiungilo di nuovo.',
   'subs.urlMissing': 'Inserisci prima un indirizzo.',
   'subs.urlInvalid': 'Questo non è un indirizzo web. Deve iniziare con http:// o https://.',

@@ -746,6 +746,7 @@ export const ro: Dict = {
   'subs.kindHint': 'Un flux aduce ce listează documentul lui RSS sau Atom. Un canal este citit de yt-dlp și poate aduce și videoclipuri mai vechi. O căutare în Mediathek întreabă mediathekviewweb.de.',
   'subs.url': 'Adresă',
   'subs.urlHint': 'Instanța recunoaște abonamentul după această adresă.',
+  'subs.urlMasked': 'Părțile afișate ca … rămân ascunse pe acest telefon. Instanța le folosește în continuare.',
   'subs.urlStoredHint': 'Instanța recunoaște abonamentul după această adresă, așa că ea rămâne cum este. Ca să folosești alta, elimină abonamentul și adaugă-l din nou.',
   'subs.urlMissing': 'Introdu mai întâi o adresă.',
   'subs.urlInvalid': 'Aceasta nu este o adresă web. Trebuie să înceapă cu http:// sau https://.',

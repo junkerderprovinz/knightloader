@@ -745,6 +745,7 @@ export const sl: Dict = {
   'subs.kindHint': 'Vir prinese, kar našteva njegov dokument RSS ali Atom. Kanal prebere yt-dlp, zato lahko prinese tudi starejše videe. Iskanje v Mediatheku vpraša mediathekviewweb.de.',
   'subs.url': 'Naslov',
   'subs.urlHint': 'Instanca prepozna naročnino po tem naslovu.',
+  'subs.urlMasked': 'Deli, prikazani kot …, ostanejo na tem telefonu skriti. Instanca jih kljub temu uporablja.',
   'subs.urlStoredHint': 'Instanca prepozna naročnino po tem naslovu, zato ostane, kakršen je. Če želiš drugega, odstrani naročnino in jo dodaj znova.',
   'subs.urlMissing': 'Najprej vnesi naslov.',
   'subs.urlInvalid': 'To ni spletni naslov. Začeti se mora s http:// ali https://.',
