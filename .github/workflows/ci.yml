@@ -73,14 +73,14 @@ jobs:
             # manifest, release.yml and the extension's version route.
             # check-module-lines.mjs reads the module codes from the two
             # routes files, check-one-name.mjs the app's English and German,
+            # the SponsorBlock test every app catalogue,
             # check-root-layers.mjs the extension's stylesheet, and
             # lib/taskError.test.ts the failure codes.
             web:
               - 'web/**'
               - 'mobile/app.json'
               - '.github/release-notes/**'
-              - 'mobile/src/i18n/en.ts'
-              - 'mobile/src/i18n/de.ts'
+              - 'mobile/src/i18n/*.ts'
               - 'extension/src/manifest.json'
               - 'extension/src/glimstone.css'
               - '.github/workflows/release.yml'
