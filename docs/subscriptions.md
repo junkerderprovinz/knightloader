@@ -3,7 +3,7 @@
 A subscription is something KnightLoader checks by itself at an interval. Each
 new entry goes to the link collector like a link you pasted, so the filter,
 the crawler, the Packagizer and the mirror check all apply to it. You find
-them in the **Feed subscriptions** card under Settings > Downloads, and in the
+them in the **Subscriptions** card under Settings > Downloads, and in the
 phone app under Settings > Subscriptions.
 
 There are three kinds:

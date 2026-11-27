@@ -25,6 +25,8 @@ let resolved: Record<string, unknown>;
 /** The body of the last POST /api/feeds/test. */
 let tested: unknown;
 let testAnswer: unknown;
+/** What GET /api/feeds answers; unanswered while undefined. */
+let feedTable: unknown;
 
 const OPTIONS = {
   ytdlpQualities: ['best', '1080p', '720p'],
@@ -39,6 +41,7 @@ beforeEach(() => {
   resolved = {};
   tested = undefined;
   testAnswer = { title: '', entries: [], total: 0, matched: 0 };
+  feedTable = undefined;
   vi.stubGlobal(
     'fetch',
     vi.fn((input: string, init?: RequestInit) => {
@@ -53,6 +56,7 @@ beforeEach(() => {
         return reply(testAnswer);
       }
       if (path === '/api/options') return reply(OPTIONS);
+      if (path === '/api/feeds' && feedTable) return reply(feedTable);
       // The feed table and the priority ladder are left unanswered.
       return new Promise(() => {});
     }),
@@ -419,4 +423,43 @@ it('marks a row that starts on its own', () => {
 it('shows a row by its name', () => {
   mount([{ url: 'https://www.youtube.com/@kurzgesagt', intervalMinutes: 0, kind: 'channel', title: 'Kurzgesagt' }]);
   expect(host.querySelector('li')?.textContent).toContain('Kurzgesagt');
+});
+
+it('counts an entry downloaded before as left out, even without a filter', async () => {
+  testAnswer = {
+    title: 'jawed',
+    total: 1,
+    matched: 0,
+    entries: [{ title: 'Me at the zoo', link: 'https://youtu.be/jNQXAC9IVRw', matches: false, duration: 19, reason: 'downloaded' }],
+  };
+  mount([{ url: 'https://www.youtube.com/@jawed', intervalMinutes: 0, kind: 'channel' }]);
+  openRow(0);
+  click('Test');
+  await act(async () => {});
+  const text = document.body.textContent ?? '';
+  expect(text).not.toContain('No title filter');
+  expect(text).toContain('0 of 1 entries are taken');
+  expect(text).toContain('Nothing in this feed is taken right now.');
+});
+
+it('titles the card for every kind of subscription', () => {
+  mount();
+  expect(host.textContent).toContain('Subscriptions');
+  expect(host.textContent).not.toContain('Feed subscriptions');
+});
+
+it('counts one remembered entry in the singular', async () => {
+  feedTable = [
+    {
+      url: 'https://example.org/feed.xml',
+      polling: true,
+      lastPolledAt: '2026-11-27T08:00:00Z',
+      seeded: true,
+      remembered: 1,
+    },
+  ];
+  mount([{ url: 'https://example.org/feed.xml', intervalMinutes: 0 }]);
+  await act(async () => {});
+  openRow(0);
+  expect(document.body.textContent).toContain('1 entry remembered');
 });

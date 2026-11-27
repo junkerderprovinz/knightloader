@@ -865,8 +865,14 @@ function FeedProbe({ row }: { row: FeedSubscription }) {
     }
   };
 
-  const titleOnly = !!row.titleFilter && !row.excludeFilter && !row.minMinutes && !row.maxMinutes;
-  const filtered = !!(row.titleFilter || row.excludeFilter || row.minMinutes || row.maxMinutes);
+  // The server also turns entries away for reasons the row does not set, such
+  // as an entry downloaded before, so the summary follows the answer as well.
+  const otherReason = !!result?.entries.some((e) => e.reason && e.reason !== 'include');
+  const titleOnly = !!row.titleFilter && !row.excludeFilter && !row.minMinutes && !row.maxMinutes && !otherReason;
+  const filtered =
+    !!(row.titleFilter || row.excludeFilter || row.minMinutes || row.maxMinutes) ||
+    otherReason ||
+    (!!result && result.matched < result.total);
 
   return (
     <FieldGroup label={t('settings.feeds.testResult')} hint={t('settings.feeds.testHint')}>

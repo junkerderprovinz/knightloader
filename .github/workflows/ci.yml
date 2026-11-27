@@ -73,7 +73,7 @@ jobs:
             # manifest, release.yml and the extension's version route.
             # check-module-lines.mjs reads the module codes from the two
             # routes files, check-one-name.mjs the app's English and German,
-            # the SponsorBlock test every app catalogue,
+            # lib/appWords.test.ts every app catalogue,
             # check-root-layers.mjs the extension's stylesheet, and
             # lib/taskError.test.ts the failure codes.
             web:
