@@ -103,6 +103,15 @@ function click(name: string) {
   act(() => b.click());
 }
 
+/** A button inside the open window, apart from the card's own of the same name. */
+function inDialog(name: string): HTMLButtonElement {
+  const found = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
+    (b) => b.textContent === name,
+  );
+  if (!found) throw new Error(`no button "${name}" in the window`);
+  return found;
+}
+
 /** Adds a row and opens its window. */
 function addRow() {
   mount();
@@ -232,7 +241,7 @@ it('subscribes a pasted channel to its feed', async () => {
   ]);
 });
 
-it('subscribes a pasted channel as a channel when older videos are wanted', async () => {
+it('holds a pasted channel back until its older videos are chosen', async () => {
   resolved['https://www.youtube.com/@kurzgesagt'] = {
     kind: 'rss',
     url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCsXVk37bltHxD1rDPwtNM8Q',
@@ -242,9 +251,41 @@ it('subscribes a pasted channel as a channel when older videos are wanted', asyn
   addRow();
   await paste(field('Feed address'), 'https://www.youtube.com/@kurzgesagt');
   click('Older videos too');
-  expect(stored[0]).toMatchObject({ kind: 'channel', url: 'https://www.youtube.com/@kurzgesagt', title: 'Kurzgesagt' });
-  // The window stays open on the stored row, which offers the backfill.
-  expect(tab('All')).toBeDefined();
+  // The first check is the only one a backfill applies to, so the row waits.
+  expect(stored).toEqual([]);
+  expect(tab('Last videos').getAttribute('aria-selected')).toBe('true');
+  expect(field('How many videos').value).toBe('10');
+  typeAndLeave(field('How many videos'), '25');
+  expect(stored).toEqual([]);
+  act(() => inDialog('Add subscription').click());
+  expect(stored[0]).toMatchObject({
+    kind: 'channel',
+    url: 'https://www.youtube.com/@kurzgesagt',
+    title: 'Kurzgesagt',
+    backfill: { mode: 'count', n: 25 },
+  });
+});
+
+it('holds a typed channel back when its address is left', () => {
+  addRow();
+  act(() => tab('Channel or playlist').click());
+  typeAndLeave(field('Channel or playlist address'), 'https://www.youtube.com/@kurzgesagt');
+  expect(stored).toEqual([]);
+  act(() => tab('None').click());
+  act(() => inDialog('Add subscription').click());
+  expect(stored).toHaveLength(1);
+  expect(stored[0].kind).toBe('channel');
+  expect(stored[0].backfill).toBeUndefined();
+});
+
+it('says why a held channel cannot be added', () => {
+  addRow();
+  act(() => tab('Channel or playlist').click());
+  const url = field('Channel or playlist address');
+  typeAndLeave(url, 'youtube.com/@kurzgesagt');
+  act(() => inDialog('Add subscription').click());
+  expect(stored).toEqual([]);
+  expect(reason(url)).toBe('Use a full address that starts with http:// or https://, like https://example.org/feed.xml.');
 });
 
 it('offers to subscribe to a pasted Mediathek search', async () => {
@@ -297,7 +338,7 @@ it('fetches the last videos of a channel on the first check', () => {
   mount([{ url: 'https://www.youtube.com/@kurzgesagt', intervalMinutes: 0, kind: 'channel' }]);
   openRow(0);
   act(() => tab('Last videos').click());
-  expect(stored[0].backfill).toEqual({ mode: 'count', n: 20 });
+  expect(stored[0].backfill).toEqual({ mode: 'count', n: 10 });
   typeAndLeave(field('How many videos'), '5');
   expect(stored[0].backfill).toEqual({ mode: 'count', n: 5 });
   act(() => tab('None').click());

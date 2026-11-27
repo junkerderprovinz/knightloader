@@ -10,7 +10,10 @@ import { SettingRow } from '../controls';
 // the whole settings document.
 
 /** Where a count or a span of days starts when it is first chosen. */
-const BACKFILL_START: Record<'count' | 'days', number> = { count: 20, days: 30 };
+const BACKFILL_START: Record<'count' | 'days', number> = { count: 10, days: 30 };
+
+/** What a new channel starts with: a few recent videos, since a channel can hold thousands. */
+export const FIRST_BACKFILL: FeedBackfill = { mode: 'count', n: BACKFILL_START.count };
 
 /**
  * compiles catches a pattern JavaScript cannot parse. RE2 refuses more than
