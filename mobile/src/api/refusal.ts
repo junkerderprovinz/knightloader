@@ -6,12 +6,16 @@ export class ApiError extends Error {
   code?: string;
   /** What the sentence for code names, such as the file a rename met. */
   params?: Record<string, string>;
+  /** The setting a refused save is about, such as "feeds.2", so the form can
+   *  put the sentence beside it. */
+  field?: string;
 
-  constructor(message: string, status: number, code?: string, params?: Record<string, string>) {
+  constructor(message: string, status: number, code?: string, params?: Record<string, string>, field?: string) {
     super(message);
     this.status = status;
     this.code = code;
     this.params = params;
+    this.field = field;
   }
 }
 
@@ -19,10 +23,11 @@ export class ApiError extends Error {
 // {error, code}; the message is then the sentence, not the envelope.
 function refusal(body: string, status: number): ApiError {
   try {
-    const p = JSON.parse(body) as { error?: unknown; code?: unknown; params?: unknown };
+    const p = JSON.parse(body) as { error?: unknown; code?: unknown; params?: unknown; field?: unknown };
     if (p && typeof p.error === 'string') {
       const params = p.params && typeof p.params === 'object' ? (p.params as Record<string, string>) : undefined;
-      return new ApiError(p.error, status, typeof p.code === 'string' ? p.code : undefined, params);
+      const code = typeof p.code === 'string' ? p.code : undefined;
+      return new ApiError(p.error, status, code, params, typeof p.field === 'string' ? p.field : undefined);
     }
   } catch {
     // Plain text.

@@ -23,9 +23,11 @@ expect('a refusal with a code of its own', errorText(t, refusedCall(409, '{"erro
 expect('an instance reset since this phone paired', errorText(t, refusedCall(410, 'reset')), en['error.groupReset']);
 expect('a phone taken out of the group', errorText(t, refusedCall(410, 'removed')), 'removed');
 expect('a refusal with no code', errorText(t, refusedCall(500, 'disk full')), 'disk full');
+expect('a refused save names the field it is about', refusedCall(400, '{"error":"bad pattern","field":"feeds.2"}').field, 'feeds.2');
+expect('a refusal about no field names none', refusedCall(400, '{"error":"bad"}').field, undefined);
 
 if (problems.length) {
   console.error(problems.join('\n'));
   process.exit(1);
 }
-console.log("ok: a refusal the app knows reads in its own words, every other one keeps the server's");
+console.log("ok: a refusal the app knows reads in its own words, every other one keeps the server's, and a refused field is named");
