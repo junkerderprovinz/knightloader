@@ -4638,4 +4638,7 @@ export const hu: Dict = {
   'signin.arrived.signInFirst': 'Előbb jelentkezzen be.',
   'signin.arrived.testOk': 'A próba-bejelentkezés sikerült, és a szolgáltatás a bejelentkezési oldalon van.',
   'signin.arrived.throttled': 'Túl sok próbálkozás. Várjon egy percet, majd próbálja újra.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

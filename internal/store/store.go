@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -281,7 +282,28 @@ func Open(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
+	if err := createTables(db, tables); err != nil {
+		db.Close()
+		return nil, err
+	}
 	return &Store{db: db, path: path}, nil
+}
+
+// tables are created on every open beside the numbered migrations and leave
+// PRAGMA user_version alone, so a build from before them still opens the
+// database and goes past what it does not know. Each statement must be safe
+// to run again.
+var tables = slices.Concat(
+	mediaSchema,
+)
+
+func createTables(db *sql.DB, steps []string) error {
+	for _, step := range steps {
+		if _, err := db.Exec(step); err != nil {
+			return fmt.Errorf("store: create table: %w", err)
+		}
+	}
+	return nil
 }
 
 // Path is the file this store was opened on, as given to Open. It is for
@@ -505,7 +527,10 @@ func (s *Store) Save(t *core.Task) error {
 	}
 	// The history is written in the same save, so a finished download is
 	// recorded before anything can trim it from the list. A no-op otherwise.
-	return s.recordFinished(t)
+	if err := s.recordFinished(t); err != nil {
+		return err
+	}
+	return s.recordMedia(t)
 }
 
 // codeParams is the values of a code as their column holds them, empty for
@@ -522,7 +547,11 @@ func codeParams(p map[string]string) string {
 // list says nothing about what was downloaded, which is why the history is not
 // a view over this table.
 func (s *Store) Delete(id string) error {
-	_, err := s.db.Exec(`DELETE FROM tasks WHERE id=?`, id)
+	if _, err := s.db.Exec(`DELETE FROM tasks WHERE id=?`, id); err != nil {
+		return err
+	}
+	// A video the task never finished leaves nothing to remember.
+	_, err := s.db.Exec(`DELETE FROM `+mediaTable+` WHERE task_id=? AND finished_at=0`, id)
 	return err
 }
 
@@ -629,5 +658,17 @@ func (s *Store) All() ([]*core.Task, error) {
 		}
 		out = append(out, t)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	// The one connection is the rows' until they close.
+	rows.Close()
+	media, err := s.taskMedia()
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range out {
+		t.Media = media[t.ID]
+	}
+	return out, nil
 }

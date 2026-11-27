@@ -4626,4 +4626,7 @@ export const fa: Dict = {
   'signin.arrived.signInFirst': 'لطفاً اول وارد شوید.',
   'signin.arrived.testOk': 'ورود آزمایشی موفق بود و سرویس در صفحهٔ ورود است.',
   'signin.arrived.throttled': 'تلاش‌ها بیش از حد است. یک دقیقه صبر کنید و دوباره امتحان کنید.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

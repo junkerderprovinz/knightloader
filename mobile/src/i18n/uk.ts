@@ -707,4 +707,7 @@ export const uk: Dict = {
   'settings.help': 'Довідка',
   'versionCard.anyStore': 'Оновлення надходять через магазин, з якого в тебе застосунок.',
   'versionCard.direct': 'Нові версії можна завантажити на сторінці релізів.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

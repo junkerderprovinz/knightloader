@@ -4625,4 +4625,7 @@ export const ko: Dict = {
   'signin.arrived.signInFirst': '먼저 로그인해 주세요.',
   'signin.arrived.testOk': '테스트 로그인이 성공했고, 서비스가 로그인 페이지에 있습니다.',
   'signin.arrived.throttled': '시도가 너무 많습니다. 1분 기다린 다음 다시 시도해 주세요.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

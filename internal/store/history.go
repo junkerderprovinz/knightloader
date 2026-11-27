@@ -148,8 +148,11 @@ func (s *Store) MarkHistoryRemoved(ids []string, removed bool) error {
 		for _, id := range chunk {
 			args = append(args, id)
 		}
-		if _, err := s.db.Exec(
-			`UPDATE history SET removed=? WHERE id IN (?`+strings.Repeat(",?", len(chunk)-1)+`)`, args...); err != nil {
+		in := `(?` + strings.Repeat(",?", len(chunk)-1) + `)`
+		if _, err := s.db.Exec(`UPDATE history SET removed=? WHERE id IN `+in, args...); err != nil {
+			return err
+		}
+		if _, err := s.db.Exec(`UPDATE `+mediaTable+` SET removed=? WHERE task_id IN `+in, args...); err != nil {
 			return err
 		}
 	}
@@ -179,11 +182,15 @@ func (s *Store) TrimHistory(max int) (int, error) {
 	return int(n), err
 }
 
-// ClearHistory empties the record. It has a button of its own; nothing else
+// ClearHistory empties the record, and the media archive's finished
+// downloads with it (see media.go). It has a button of its own; nothing else
 // empties the history as a side effect.
 func (s *Store) ClearHistory() error {
-	_, err := s.db.Exec(`DELETE FROM history`)
-	s.historyRev.Add(1)
+	defer s.historyRev.Add(1)
+	if _, err := s.db.Exec(`DELETE FROM history`); err != nil {
+		return err
+	}
+	_, err := s.db.Exec(`DELETE FROM ` + mediaTable + ` WHERE finished_at>0`)
 	return err
 }
 

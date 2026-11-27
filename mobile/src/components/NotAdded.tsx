@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { heldReason, originWord, skippedReason, when, type Held, type SkippedLink } from '../api/notAdded';
+import { heldReason, originWord, restoreWord, skippedReason, when, type Held, type SkippedLink } from '../api/notAdded';
 import { useT } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
@@ -54,13 +54,24 @@ export function HeldLinks({
             name={h.name && h.name !== h.url ? h.name : h.url}
             source={[originWord(t, h.origin), when(h.createdAt)].filter(Boolean).join(' · ')}
             action={
-              restore && (
+              restore &&
+              (h.skipCode === 'downloaded' ? (
+                // Worded, since getting a file a second time is a choice the
+                // row should spell out.
+                <GlimButton
+                  tone="quiet"
+                  label={t(restoreWord(h))}
+                  icon={(ink) => <Restore color={ink} />}
+                  disabled={busy}
+                  onPress={() => void restore([h.id])}
+                />
+              ) : (
                 <IconBadge
                   icon={<Restore color={c.textSub} />}
                   onPress={() => !busy && void restore([h.id])}
-                  accessibilityLabel={t('collector.filtered.restore')}
+                  accessibilityLabel={t(restoreWord(h))}
                 />
-              )
+              ))
             }
           />
         ))}

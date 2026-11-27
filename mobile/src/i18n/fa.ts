@@ -707,4 +707,7 @@ export const fa: Dict = {
   'settings.help': 'راهنما',
   'versionCard.anyStore': 'به‌روزرسانی‌ها از فروشگاهی می‌آیند که برنامه را از آن گرفته‌ای.',
   'versionCard.direct': 'نسخه‌های تازه در صفحهٔ انتشارها برای بارگیری هستند.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

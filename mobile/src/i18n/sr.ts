@@ -707,4 +707,7 @@ export const sr: Dict = {
   'settings.help': 'Помоћ',
   'versionCard.anyStore': 'Ажурирања стижу преко продавнице из које имаш апликацију.',
   'versionCard.direct': 'Нове верзије се преузимају са странице издања.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

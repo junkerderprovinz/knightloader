@@ -4647,4 +4647,7 @@ export const sk: Dict = {
   'signin.arrived.signInFirst': 'Najprv sa prosím prihláste.',
   'signin.arrived.testOk': 'Testovacie prihlásenie sa podarilo a služba je na prihlasovacej stránke.',
   'signin.arrived.throttled': 'Príliš veľa pokusov. Počkajte minútu a skúste to znova.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

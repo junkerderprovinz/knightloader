@@ -25,7 +25,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "bg": [
       "failure.quotaUsed.line",
@@ -51,7 +54,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ca": [
       "failure.quotaUsed.line",
@@ -77,7 +83,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "cs": [
       "failure.quotaUsed.line",
@@ -103,7 +112,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "da": [
       "failure.quotaUsed.line",
@@ -129,7 +141,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "el": [
       "failure.quotaUsed.line",
@@ -155,7 +170,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "es": [
       "failure.quotaUsed.line",
@@ -181,7 +199,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "et": [
       "failure.quotaUsed.line",
@@ -207,7 +228,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "eu": [
       "failure.quotaUsed.line",
@@ -233,7 +257,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "fa": [
       "failure.quotaUsed.line",
@@ -259,7 +286,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "fi": [
       "failure.quotaUsed.line",
@@ -285,7 +315,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "fr": [
       "failure.quotaUsed.line",
@@ -311,7 +344,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "gl": [
       "failure.quotaUsed.line",
@@ -337,7 +373,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "he": [
       "failure.quotaUsed.line",
@@ -363,7 +402,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "hi": [
       "failure.quotaUsed.line",
@@ -389,7 +431,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "hr": [
       "failure.quotaUsed.line",
@@ -415,7 +460,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "hu": [
       "failure.quotaUsed.line",
@@ -441,7 +489,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "id": [
       "failure.quotaUsed.line",
@@ -467,7 +518,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "is": [
       "failure.quotaUsed.line",
@@ -493,7 +547,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "it": [
       "failure.quotaUsed.line",
@@ -519,7 +576,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ja": [
       "failure.quotaUsed.line",
@@ -545,7 +605,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ko": [
       "failure.quotaUsed.line",
@@ -571,7 +634,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "lt": [
       "failure.quotaUsed.line",
@@ -597,7 +663,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "lv": [
       "failure.quotaUsed.line",
@@ -623,7 +692,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ms": [
       "failure.quotaUsed.line",
@@ -649,7 +721,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "nl": [
       "failure.quotaUsed.line",
@@ -675,7 +750,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "no": [
       "failure.quotaUsed.line",
@@ -701,7 +779,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "pl": [
       "failure.quotaUsed.line",
@@ -727,7 +808,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "pt": [
       "failure.quotaUsed.line",
@@ -753,7 +837,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ro": [
       "failure.quotaUsed.line",
@@ -779,7 +866,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ru": [
       "failure.quotaUsed.line",
@@ -805,7 +895,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sk": [
       "failure.quotaUsed.line",
@@ -831,7 +924,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sl": [
       "failure.quotaUsed.line",
@@ -857,7 +953,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sr": [
       "failure.quotaUsed.line",
@@ -883,7 +982,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sv": [
       "failure.quotaUsed.line",
@@ -909,7 +1011,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "th": [
       "failure.quotaUsed.line",
@@ -935,7 +1040,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "tr": [
       "failure.quotaUsed.line",
@@ -961,7 +1069,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "uk": [
       "failure.quotaUsed.line",
@@ -987,7 +1098,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "vi": [
       "failure.quotaUsed.line",
@@ -1013,7 +1127,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "zh": [
       "failure.quotaUsed.line",
@@ -1039,7 +1156,10 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ]
   },
   "identicalNote": "Keys whose value in a catalogue is the English one because English is right in that language, checked one language at a time: brand names (PayPal, GitHub), values without words (https://…), and words the language shares with English or took over unchanged (Premium, Server, Online, Version, Storm, Accent). They are kept apart from \"locales\" because the two lists mean opposite things. A key listed there is waiting for a translation; a key listed here has had one, and the answer was to keep the English. check-untranslated.mjs holds both lists against the catalogues. If an entry here stops being identical, somebody chose a word of their own, and the entry has to go.",

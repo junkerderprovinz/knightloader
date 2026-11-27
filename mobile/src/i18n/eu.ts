@@ -710,4 +710,7 @@ export const eu: Dict = {
   'settings.help': 'Laguntza',
   'versionCard.anyStore': 'Eguneraketak aplikazioa lortu zenuen dendatik datoz.',
   'versionCard.direct': 'Bertsio berriak argitalpenen orrian deskargatzen dira.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

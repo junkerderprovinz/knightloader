@@ -4638,4 +4638,7 @@ export const uk: Dict = {
   'signin.arrived.signInFirst': 'Спершу увійдіть.',
   'signin.arrived.testOk': 'Пробний вхід вдався, і служба є на сторінці входу.',
   'signin.arrived.throttled': 'Забагато спроб. Зачекайте хвилину і спробуйте знову.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

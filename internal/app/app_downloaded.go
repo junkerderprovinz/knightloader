@@ -1,9 +1,11 @@
 package app
 
-// The download history as a duplicate check. A link this instance has already
-// downloaded is rejected with the name and date of that download, so a feed
-// that lists it again or a second paste does not fetch the file twice. It goes
-// to the rejected links rather than away, and a restore adds it anyway.
+// The download history and the media archive as a duplicate check. A link
+// this instance has already downloaded is rejected with the name, date and,
+// where known, folder of that download, so a feed that lists it again, a
+// second paste or the same video under another link does not fetch it twice.
+// It goes to the rejected links rather than away, and a restore adds it
+// anyway.
 
 import (
 	"fmt"
@@ -12,9 +14,11 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // skipDownloaded is the code of a link rejected because the history has it.
@@ -32,14 +36,25 @@ type downloadedIndex struct {
 	finished map[string]time.Time // by history task id
 }
 
-// downloadedVerdict rejects a candidate the history already has: the same URL,
-// or under the mirror policy the same file at another URL. It answers with an
-// empty verdict when the check is switched off or the history cannot be read,
-// since a link the history could not vouch for is added as before.
-func (a *App) downloadedVerdict(cand rules.Candidate) rules.Verdict {
+// downloadedVerdict rejects a candidate this instance has already
+// downloaded: the same video by its yt-dlp identity (media, "" when unknown),
+// the same URL, or under the mirror policy the same file at another URL. check
+// is the entrance's say in whether the link is checked at all. It answers with
+// an empty verdict when the check is off or the records cannot be read, since
+// a link they could not vouch for is added as before.
+func (a *App) downloadedVerdict(cand rules.Candidate, media string, check core.DownloadedCheck) rules.Verdict {
 	s := a.Settings.Get()
-	if !s.RejectDownloaded {
+	if !checksDownloaded(s, check) {
 		return rules.Verdict{}
+	}
+	if media != "" {
+		r, ok, err := a.Store.DownloadedMedia(media)
+		if err != nil {
+			log.Printf("the media archive could not be read for the duplicate check: %v", err)
+		}
+		if ok {
+			return downloadedAs(r.Name, r.FinishedAt, r.Folder)
+		}
 	}
 	m, at := a.downloaded.match(a, dedupe.ParsePolicy(s.MirrorPolicy), asSaved(cand))
 	if !m.Seen() {
@@ -49,12 +64,35 @@ func (a *App) downloadedVerdict(cand rules.Candidate) rules.Verdict {
 	if name == "" {
 		name = m.Of.URL
 	}
-	return rules.Verdict{
-		Rejected: true,
-		Reason:   fmt.Sprintf("already downloaded as %q on %s", name, at.Format("2006-01-02")),
-		Code:     skipDownloaded,
-		Params:   map[string]string{"name": name, "finished": at.Format(time.RFC3339)},
+	folder, err := a.Store.MediaFolder(m.Of.ID)
+	if err != nil {
+		log.Printf("the media archive could not be read for the duplicate check: %v", err)
 	}
+	return downloadedAs(name, at, folder)
+}
+
+// downloadedAs is the verdict on a repeat of the download saved as name at
+// finished, in folder where that is known.
+func downloadedAs(name string, finished time.Time, folder string) rules.Verdict {
+	reason := fmt.Sprintf("already downloaded as %q on %s", name, finished.Format("2006-01-02"))
+	params := map[string]string{"name": name, "finished": finished.Format(time.RFC3339)}
+	if folder != "" {
+		reason += " in " + folder
+		params["folder"] = folder
+	}
+	return rules.Verdict{Rejected: true, Reason: reason, Code: skipDownloaded, Params: params}
+}
+
+// checksDownloaded reports whether a link is checked against what was
+// downloaded before.
+func checksDownloaded(s settings.Settings, check core.DownloadedCheck) bool {
+	switch check {
+	case core.DownloadedCheckOn:
+		return true
+	case core.DownloadedCheckOff:
+		return false
+	}
+	return s.RejectDownloaded
 }
 
 // forgetDownloaded marks the history rows of downloads removed from the list by
@@ -71,9 +109,9 @@ func (a *App) forgetDownloaded(ids []string, removed bool) {
 // historyNeedsSize reports whether the history holds a file of the
 // candidate's name and only its unknown size decides whether this is that
 // file (see dedupe.Set.NeedsSize).
-func (a *App) historyNeedsSize(cand rules.Candidate) bool {
+func (a *App) historyNeedsSize(cand rules.Candidate, check core.DownloadedCheck) bool {
 	s := a.Settings.Get()
-	if !s.RejectDownloaded {
+	if !checksDownloaded(s, check) {
 		return false
 	}
 	d := &a.downloaded
@@ -89,11 +127,15 @@ func asSaved(cand rules.Candidate) dedupe.Entry {
 	return dedupe.Entry{URL: dedupeURL(cand.URL), Name: collide.SafeName(cand.Filename), Size: cand.Filesize}
 }
 
-// dedupeURL spells an uploaded .torrent as a magnet of its info hash, so the
-// history and the list know a torrent whether it came as a file or as a
-// magnet.
+// dedupeURL is the address the history and the list know a link by: a
+// hoster's file under its own file link (see hosterLink), and an uploaded
+// .torrent as a magnet of its info hash, so a torrent is one whether it came
+// as a file or as a magnet.
 func dedupeURL(u string) string {
-	if !torrent.IsURI(u) || torrent.IsMagnet(u) {
+	if !torrent.IsURI(u) {
+		return hosterLink(u)
+	}
+	if torrent.IsMagnet(u) {
 		return u
 	}
 	md, err := (torrent.Resolver{}).Describe(u)

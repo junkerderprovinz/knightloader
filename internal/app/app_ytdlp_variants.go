@@ -297,7 +297,7 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, 
 	for _, r := range rows[1:] {
 		on := r.on && !have[r.key()]
 		_, sub := variantDecode(r.variant)
-		a.insertVariantSibling(&core.Task{
+		sibling := &core.Task{
 			URL: pc.URL,
 			// pc.Name rather than the URL: a playlist entry is already named by
 			// the listing, and setTaskName does not rename siblings of a primary
@@ -324,7 +324,13 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, 
 			Priority:     pc.Priority,
 			Comment:      pc.Comment,
 			AutoExtract:  copyBool(pc.AutoExtract),
-		})
+
+			DownloadedCheck: pc.DownloadedCheck,
+		}
+		if fetchesTheVideo(sibling) {
+			sibling.Media = pc.Media
+		}
+		a.insertVariantSibling(sibling)
 	}
 }
 

@@ -704,4 +704,7 @@ export const ar: Dict = {
   'settings.help': 'المساعدة',
   'versionCard.anyStore': 'تصل التحديثات عبر المتجر الذي حصلت منه على التطبيق.',
   'versionCard.direct': 'تأتي الإصدارات الجديدة للتنزيل في صفحة الإصدارات.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

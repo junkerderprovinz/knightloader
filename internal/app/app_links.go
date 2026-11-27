@@ -89,6 +89,10 @@ type intake struct {
 	comment     string
 	category    string
 
+	// downloaded is what the entrance says about the check for links already
+	// downloaded (see core.Task.DownloadedCheck).
+	downloaded core.DownloadedCheck
+
 	// playlistEntry marks a link from a --flat-playlist listing. Such links do
 	// not start their own title probe, since one playlist can yield hundreds;
 	// probePlaylistEntries probes them one at a time instead.
@@ -251,7 +255,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// otherwise contact a host a rule told us to avoid.
 		cand := rules.Candidate{URL: u, Package: pkg, Filename: batch.FileName, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, intake{origin: origin, file: batch.File, listed: batch.listed, byAdmin: batch.ByAdmin}, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, intake{origin: origin, file: batch.File, listed: batch.listed, byAdmin: batch.ByAdmin, downloaded: batch.downloaded}, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -301,6 +305,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 					sizeProbes: &probes, listed: batch.listed, foldDone: batch.foldDone, byAdmin: batch.ByAdmin,
+					downloaded: batch.downloaded,
 				})
 				if t == nil {
 					continue
@@ -322,7 +327,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 			sizeProbes: &probes, choice: batch.Choice, pin: batch.Resolver, listed: batch.listed, foldDone: batch.foldDone,
-			byAdmin: batch.ByAdmin,
+			byAdmin: batch.ByAdmin, downloaded: batch.downloaded,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
@@ -900,7 +905,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	// After the list, so a link that is in both is noted once, as a copy of the
 	// row the user can see.
-	if v := a.downloadedVerdict(cand); v.Rejected {
+	if v := a.downloadedVerdict(cand, "", in.downloaded); v.Rejected {
 		return a.hold(cand, v, in, now, nil)
 	}
 
@@ -919,6 +924,8 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		Host:         torrentHost(u),
 		CreatedAt:    now,
 		AddedByAdmin: in.byAdmin,
+
+		DownloadedCheck: in.downloaded,
 	}
 	// Batch options go on before finishStaging runs the Packagizer, so a
 	// matching rule overwrites them.
@@ -966,6 +973,9 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	t.Resolver = res.Info().ID
 	t.Mode = a.modeForLocked(t, t.Resolver)
+	if t.Resolver == "ytdlp" {
+		t.Media = dedupe.MediaKeyOf(u)
+	}
 	result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
 	if err != nil {
 		recordFailure(t, failure{err: err})
@@ -1002,7 +1012,8 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		}
 	}
 	// Again with the resolved name and size, which the mirror policy may need.
-	if v := a.downloadedVerdict(cand); v.Rejected {
+	// A video known by its link is checked below, once it is a family.
+	if v := a.downloadedVerdict(cand, "", in.downloaded); v.Rejected {
 		return a.hold(cand, v, in, now, nil)
 	}
 	var staged *core.Task
@@ -1019,7 +1030,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if staged != nil && (res.Info().ID == "direct" || in.file && res.Info().ID == "http") {
 		probe := func() { a.analyze(t.ID, result.DirectURL) }
 		switch {
-		case !a.historyNeedsSize(cand):
+		case !a.historyNeedsSize(cand, in.downloaded):
 			a.spawn(probe)
 		case in.sizeProbes != nil:
 			// Waited for, so the answer to whoever sent the link already says
@@ -1032,9 +1043,13 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		// Local map writes and a save, so it runs inline and the variant rows
 		// exist as soon as the link appears.
 		a.expandYtdlpVariants(staged, in.choice, have)
+		// Before the answer and any automatic start, and as the family, so
+		// downloading it anyway brings back every row with its pick.
+		held := staged.Media != "" && a.holdIfDownloaded(staged.ID)
 		// A title probe, except for playlist entries, whose listing already
-		// named them (see probePlaylistEntries).
-		if !in.playlistEntry {
+		// named them (see probePlaylistEntries), and a held link, whose host
+		// is not asked anything until somebody wants it after all.
+		if !in.playlistEntry && !held {
 			a.spawn(func() { a.probeYtdlpTitle(t.ID, result.DirectURL) })
 		}
 	}
@@ -1359,22 +1374,24 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	all := len(ids) == 0
 
 	a.mu.Lock()
+	a.withHeldFamiliesLocked(want)
 	var picked []string
-	pending := map[string]rules.Candidate{}
+	pending := map[string]*core.Task{}
 	for id, t := range a.tasks {
 		if !t.Skipped || !(all || want[id]) {
 			continue
 		}
 		picked = append(picked, id)
 		if t.SkipCode != skipDownloaded {
-			pending[id] = candidateOf(t)
+			c := *t
+			pending[id] = &c
 		}
 	}
 	a.mu.Unlock()
 	// Asked outside the lock, since the history may have to be read from disk.
 	verdicts := map[string]rules.Verdict{}
-	for id, cand := range pending {
-		if v := a.downloadedVerdict(cand); v.Rejected {
+	for id, t := range pending {
+		if v := a.downloadedVerdict(candidateOf(t), t.Media, t.DownloadedCheck); v.Rejected {
 			verdicts[id] = v
 		}
 	}
@@ -1424,6 +1441,7 @@ func (a *App) ClearFiltered(ids []string) []string {
 	all := len(ids) == 0
 
 	a.mu.Lock()
+	a.withHeldFamiliesLocked(want)
 	doomed := make([]string, 0, 8)
 	for id, t := range a.tasks {
 		if t.Skipped && (all || want[id]) {
@@ -1433,6 +1451,24 @@ func (a *App) ClearFiltered(ids []string) []string {
 	a.mu.Unlock()
 	// RemoveTasks also updates the mirror set and open screens.
 	return a.RemoveTasks(doomed, false)
+}
+
+// withHeldFamiliesLocked adds to want the held rows of every yt-dlp family a
+// row in it belongs to. A video is held as its family, and the rejected links
+// show it once, so restoring or clearing that one entry is meant for every
+// row. Caller holds a.mu.
+func (a *App) withHeldFamiliesLocked(want map[string]bool) {
+	for id := range want {
+		t := a.tasks[id]
+		if t == nil || !t.Skipped || t.Variant == "" {
+			continue
+		}
+		for _, x := range a.familyLocked(t) {
+			if x.Skipped {
+				want[x.ID] = true
+			}
+		}
+	}
 }
 
 // heldLink reports whether a task id belongs to a held link, and the code it

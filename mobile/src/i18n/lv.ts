@@ -707,4 +707,7 @@ export const lv: Dict = {
   'settings.help': 'Palīdzība',
   'versionCard.anyStore': 'Atjauninājumi nāk caur veikalu, no kura tev ir lietotne.',
   'versionCard.direct': 'Jaunās versijas var lejupielādēt laidienu lapā.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

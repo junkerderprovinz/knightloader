@@ -4646,4 +4646,7 @@ export const ro: Dict = {
   'signin.arrived.signInFirst': 'Conectează-te mai întâi.',
   'signin.arrived.testOk': 'Conectarea de test a reușit, iar serviciul e pe pagina de conectare.',
   'signin.arrived.throttled': 'Prea multe încercări. Așteaptă un minut, apoi încearcă din nou.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

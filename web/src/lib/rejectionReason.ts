@@ -24,8 +24,9 @@ export function rejectionReason(
   params: Record<string, string> | undefined,
   english: string | undefined,
 ): string {
-  const key = code ? KEYS[code] : undefined;
+  let key = code ? KEYS[code] : undefined;
   if (!key) return english ?? '';
+  if (code === 'downloaded' && params?.folder) key = 'collector.filtered.reason.downloadedIn';
   // The server sends the finish time as a timestamp, for the reader's own date format.
   const vars = params?.finished ? { ...params, finished: fmtDate(params.finished) } : params;
   return t(key, vars);

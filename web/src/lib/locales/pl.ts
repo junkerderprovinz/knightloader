@@ -4622,4 +4622,7 @@ export const pl: Dict = {
   'signin.arrived.signInFirst': 'Najpierw się zaloguj.',
   'signin.arrived.testOk': 'Logowanie testowe się udało, a usługa jest na stronie logowania.',
   'signin.arrived.throttled': 'Za dużo prób. Poczekaj minutę i spróbuj ponownie.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

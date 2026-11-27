@@ -4628,4 +4628,7 @@ export const lv: Dict = {
   'signin.arrived.signInFirst': 'Vispirms pieraksties.',
   'signin.arrived.testOk': 'Testa pierakstīšanās izdevās, un pakalpojums ir pierakstīšanās lapā.',
   'signin.arrived.throttled': 'Pārāk daudz mēģinājumu. Pagaidi minūti un mēģini vēlreiz.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

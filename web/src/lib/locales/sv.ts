@@ -4637,4 +4637,7 @@ export const sv: Dict = {
   'signin.arrived.signInFirst': 'Logga in först.',
   'signin.arrived.testOk': 'Testinloggningen fungerade, och tjänsten finns på inloggningssidan.',
   'signin.arrived.throttled': 'För många försök. Vänta en minut och försök sedan igen.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

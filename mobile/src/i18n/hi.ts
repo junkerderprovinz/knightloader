@@ -707,4 +707,7 @@ export const hi: Dict = {
   'settings.help': 'सहायता',
   'versionCard.anyStore': 'अपडेट उसी स्टोर से आते हैं जहाँ से आपने ऐप लिया है।',
   'versionCard.direct': 'नए संस्करण रिलीज़ पेज पर डाउनलोड के लिए आते हैं।',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

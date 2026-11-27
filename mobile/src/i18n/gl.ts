@@ -709,4 +709,7 @@ export const gl: Dict = {
   'settings.help': 'Axuda',
   'versionCard.anyStore': 'As actualizacións chegan pola tenda da que tes a app.',
   'versionCard.direct': 'As versións novas descárganse da páxina de versións.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

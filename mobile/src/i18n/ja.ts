@@ -696,4 +696,7 @@ export const ja: Dict = {
   'settings.help': 'ヘルプ',
   'versionCard.anyStore': 'アップデートはアプリを入手したストアから届きます。',
   'versionCard.direct': '新しいバージョンはリリースページからダウンロードできます。',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

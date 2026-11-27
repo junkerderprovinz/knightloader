@@ -4635,4 +4635,7 @@ export const ar: Dict = {
   'signin.arrived.signInFirst': 'سجّل الدخول أولًا من فضلك.',
   'signin.arrived.testOk': 'نجح تسجيل الدخول التجريبي، والخدمة على صفحة تسجيل الدخول.',
   'signin.arrived.throttled': 'محاولات كثيرة جدًا. انتظر دقيقة ثم حاول مرة أخرى.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

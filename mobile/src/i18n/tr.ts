@@ -707,4 +707,7 @@ export const tr: Dict = {
   'settings.help': 'Yardım',
   'versionCard.anyStore': 'Güncellemeler uygulamayı aldığın mağazadan gelir.',
   'versionCard.direct': 'Yeni sürümler sürüm sayfasından indirilir.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

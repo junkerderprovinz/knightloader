@@ -95,6 +95,10 @@ type LinkBatchOptions struct {
 	// foldDone folds a link into its finished rows as well, which the mirror
 	// set lets go of (see AddLinkBatch).
 	foldDone bool
+	// downloaded decides the check for links already downloaded for the
+	// whole batch, where the instance's switch should not: a subscription
+	// sets it from its allowDownloaded (see core.Task.DownloadedCheck).
+	downloaded core.DownloadedCheck
 }
 
 // LinkBatch is what a batch of links came to: the rows it created, and the

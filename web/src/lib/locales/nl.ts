@@ -4620,4 +4620,7 @@ export const nl: Dict = {
   'signin.arrived.signInFirst': 'Log eerst in.',
   'signin.arrived.testOk': 'De testlogin is gelukt, en de dienst staat op de loginpagina.',
   'signin.arrived.throttled': 'Te veel pogingen. Wacht een minuut en probeer het dan opnieuw.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

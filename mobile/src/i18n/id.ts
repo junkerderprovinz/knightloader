@@ -708,4 +708,7 @@ export const id: Dict = {
   'settings.help': 'Bantuan',
   'versionCard.anyStore': 'Pembaruan datang lewat toko tempat kamu mendapatkan aplikasi ini.',
   'versionCard.direct': 'Versi baru tersedia untuk diunduh di halaman rilis.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

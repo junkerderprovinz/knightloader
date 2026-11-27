@@ -4638,4 +4638,7 @@ export const el: Dict = {
   'signin.arrived.signInFirst': 'Συνδέσου πρώτα.',
   'signin.arrived.testOk': 'Η δοκιμαστική σύνδεση πέτυχε, και η υπηρεσία είναι στη σελίδα σύνδεσης.',
   'signin.arrived.throttled': 'Πάρα πολλές προσπάθειες. Περίμενε ένα λεπτό και δοκίμασε ξανά.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

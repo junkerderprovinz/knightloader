@@ -4634,4 +4634,7 @@ export const ja: Dict = {
   'signin.arrived.signInFirst': '先にログインしてください。',
   'signin.arrived.testOk': 'テストログインが成功し、サービスがログインページに表示されました。',
   'signin.arrived.throttled': '試行回数が多すぎます。1 分待ってからもう一度お試しください。',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

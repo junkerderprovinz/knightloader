@@ -710,4 +710,7 @@ export const ms: Dict = {
   'settings.help': 'Bantuan',
   'versionCard.anyStore': 'Kemas kini datang melalui kedai tempat anda mendapatkan apl ini.',
   'versionCard.direct': 'Versi baharu boleh dimuat turun di halaman keluaran.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

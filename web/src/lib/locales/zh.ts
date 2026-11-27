@@ -4621,4 +4621,7 @@ export const zh: Dict = {
   'signin.arrived.signInFirst': '请先登录。',
   'signin.arrived.testOk': '测试登录成功，服务已显示在登录页面上。',
   'signin.arrived.throttled': '尝试次数过多。请等一分钟后再试。',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

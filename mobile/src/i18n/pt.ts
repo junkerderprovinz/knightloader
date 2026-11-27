@@ -708,4 +708,7 @@ export const pt: Dict = {
   'settings.help': 'Ajuda',
   'versionCard.anyStore': 'As atualizações chegam pela loja de onde tens a app.',
   'versionCard.direct': 'As versões novas transferem-se da página de lançamentos.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

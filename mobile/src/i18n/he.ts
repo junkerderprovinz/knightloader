@@ -703,4 +703,7 @@ export const he: Dict = {
   'settings.help': 'עזרה',
   'versionCard.anyStore': 'העדכונים מגיעים מהחנות שממנה התקנת את האפליקציה.',
   'versionCard.direct': 'גרסאות חדשות זמינות להורדה בדף הגרסאות.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

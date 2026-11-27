@@ -4624,4 +4624,7 @@ export const ca: Dict = {
   'signin.arrived.signInFirst': 'Primer inicieu la sessió, si us plau.',
   'signin.arrived.testOk': "L'inici de sessió de prova ha funcionat i el servei és a la pàgina d'inici de sessió.",
   'signin.arrived.throttled': 'Massa intents. Espereu un minut i torneu-ho a provar.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

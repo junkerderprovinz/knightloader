@@ -707,4 +707,7 @@ export const ru: Dict = {
   'settings.help': 'Справка',
   'versionCard.anyStore': 'Обновления приходят через магазин, из которого у тебя приложение.',
   'versionCard.direct': 'Новые версии можно скачать на странице релизов.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

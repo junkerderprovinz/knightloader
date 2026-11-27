@@ -707,4 +707,7 @@ export const hu: Dict = {
   'settings.help': 'Súgó',
   'versionCard.anyStore': 'A frissítések abból az áruházból jönnek, ahonnan az alkalmazást szerezted.',
   'versionCard.direct': 'Az új verziók a kiadások oldaláról tölthetők le.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

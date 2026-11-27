@@ -4621,4 +4621,7 @@ export const it: Dict = {
   'signin.arrived.signInFirst': 'Accedi prima, per favore.',
   'signin.arrived.testOk': "L'accesso di prova è riuscito e il servizio è nella pagina di accesso.",
   'signin.arrived.throttled': 'Troppi tentativi. Aspetta un minuto, poi riprova.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

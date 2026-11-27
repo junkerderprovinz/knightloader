@@ -4636,4 +4636,7 @@ export const th: Dict = {
   'signin.arrived.signInFirst': 'ลงชื่อเข้าใช้ก่อนนะ',
   'signin.arrived.testOk': 'การลงชื่อเข้าใช้ทดสอบสำเร็จ และบริการอยู่บนหน้าลงชื่อเข้าใช้แล้ว',
   'signin.arrived.throttled': 'ลองหลายครั้งเกินไป รอสักนาทีแล้วลองอีกครั้ง',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

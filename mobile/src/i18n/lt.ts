@@ -707,4 +707,7 @@ export const lt: Dict = {
   'settings.help': 'Pagalba',
   'versionCard.anyStore': 'Atnaujinimai ateina per parduotuvę, iš kurios gavai programą.',
   'versionCard.direct': 'Naujas versijas galima atsisiųsti iš leidimų puslapio.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

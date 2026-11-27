@@ -709,4 +709,7 @@ export const es: Dict = {
   'settings.help': 'Ayuda',
   'versionCard.anyStore': 'Las actualizaciones llegan por la tienda de la que tienes la app.',
   'versionCard.direct': 'Las versiones nuevas se descargan de la página de versiones.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

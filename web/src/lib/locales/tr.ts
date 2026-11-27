@@ -4636,4 +4636,7 @@ export const tr: Dict = {
   'signin.arrived.signInFirst': 'Lütfen önce giriş yap.',
   'signin.arrived.testOk': 'Deneme girişi başarılı oldu ve hizmet giriş sayfasında.',
   'signin.arrived.throttled': 'Çok fazla deneme. Bir dakika bekle, sonra tekrar dene.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

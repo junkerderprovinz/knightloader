@@ -56,3 +56,52 @@ it('lists every link its title counts', async () => {
   const foot = host.querySelector('footer')!;
   expect([...foot.querySelectorAll('button')].map((b) => b.textContent)).not.toContain('Show');
 });
+
+const renderHeld = (rows: Task[]) =>
+  act(async () =>
+    root.render(
+      <I18nProvider>
+        <ToastProvider>
+          <FilteredLinks held={rows} />
+        </ToastProvider>
+      </I18nProvider>,
+    ),
+  );
+
+const repeat = (id: string, variant?: string) =>
+  ({
+    id,
+    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PL1',
+    name: 'Never Gonna Give You Up',
+    variant,
+    skipped: true,
+    skipCode: 'downloaded',
+    skipParams: { name: 'Clip [1080p].mp4', finished: '2026-10-03T18:15:00Z', folder: '/media/Rick Astley' },
+    origin: 'feed',
+    createdAt: '2026-11-01T08:00:00Z',
+  }) as unknown as Task;
+
+it('marks a repeat as already downloaded with its folder and offers to download it anyway', async () => {
+  await renderHeld([repeat('v')]);
+  const row = host.querySelector('.glim-row')!;
+  expect(row.textContent).toContain('already downloaded as "Clip [1080p].mp4"');
+  expect(row.textContent).toContain('/media/Rick Astley');
+  expect(row.textContent).toContain('subscription');
+  expect([...row.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Download anyway']);
+});
+
+it('keeps Restore for a link a rule rejected', async () => {
+  await renderHeld([{ ...repeat('r'), skipCode: 'filterRule', skipParams: { rule: 'no samples' } } as Task]);
+  const row = host.querySelector('.glim-row')!;
+  expect([...row.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Restore']);
+});
+
+it('shows a held video once for its whole family', async () => {
+  await renderHeld([repeat('thumb', 'thumbnail'), repeat('video', 'video'), repeat('audio', 'audio')]);
+  expect(host.querySelectorAll('.glim-row')).toHaveLength(1);
+  expect(host.querySelector('h3')!.textContent).toContain('1');
+
+  await act(async () => host.querySelector<HTMLButtonElement>('.glim-row button')!.click());
+  const call = vi.mocked(fetch).mock.calls.find(([url]) => url === '/api/collector/filtered/restore')!;
+  expect(JSON.parse(String(call[1]!.body))).toEqual({ ids: ['video'] });
+});
