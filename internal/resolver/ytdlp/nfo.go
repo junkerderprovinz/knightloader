@@ -26,6 +26,8 @@ type infoDict struct {
 	Description string   `json:"description"`
 	Uploader    string   `json:"uploader"`
 	Channel     string   `json:"channel"`
+	ChannelID   string   `json:"channel_id"`
+	ChannelURL  string   `json:"channel_url"`
 	UploadDate  string   `json:"upload_date"` // YYYYMMDD, yt-dlp's own format
 	Duration    float64  `json:"duration"`    // seconds
 	Thumbnail   string   `json:"thumbnail"`
@@ -103,22 +105,16 @@ func buildNFO(d infoDict) nfoMovie {
 	}
 	m.Genres = trimList(d.Categories, maxNFOTags)
 	m.Tags = trimList(d.Tags, maxNFOTags)
-	if d.ID != "" {
-		// Kodi treats the type as an opaque namespace; extractor_key names the
-		// same source the same way every time.
-		kind := strings.ToLower(strings.TrimSpace(d.Extractor))
-		if kind == "" {
-			kind = "ytdlp"
-		}
-		m.UniqueID = &uniqueID{Type: kind, Default: true, Value: d.ID}
-	}
+	m.UniqueID = sourceID(d.Extractor, d.ID)
 	return m
 }
 
-// writeNFO renders the document to path, with the XML header encoding/xml
-// does not emit.
-func writeNFO(path string, d infoDict) error {
-	body, err := xml.MarshalIndent(buildNFO(d), "", "  ")
+func writeNFO(path string, d infoDict) error { return writeXML(path, buildNFO(d)) }
+
+// writeXML renders doc to path, with the XML header encoding/xml does not
+// emit.
+func writeXML(path string, doc any) error {
+	body, err := xml.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		return err
 	}

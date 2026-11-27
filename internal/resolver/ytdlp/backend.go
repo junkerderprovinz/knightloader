@@ -899,12 +899,17 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 	if needsInfoJSON(o) {
 		path := infoJSONPath(final)
 		info, haveInfo = readInfoJSON(path)
-		if o.Embed.NFO && haveInfo {
+		// It was only asked for as input for the steps below.
+		_ = os.Remove(path)
+		switch {
+		case episode(o) && haveInfo && u.File != "":
+			final = b.placeEpisode(*o.Series, final, info)
+			u.File = final
+			u.Name = strings.TrimSuffix(filepath.Base(final), filepath.Ext(final))
+		case o.Embed.NFO && haveInfo:
 			// A failed sidecar does not fail a complete download.
 			_ = writeNFO(nfoPath(final), info)
 		}
-		// The info json was only requested as input for the steps above.
-		_ = os.Remove(path)
 	}
 	if o.Measure.Enabled {
 		mctx, cancel := context.WithTimeout(context.Background(), measureTimeout)
@@ -937,7 +942,7 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 // namedByQuality reports a video row whose file takes the quality of its
 // frame once it is written (nameByQuality): one under the video template.
 func namedByQuality(o Options) bool {
-	return o.Variant == VariantVideo && o.OutputTemplate == "" && !o.Embed.Separate
+	return o.Variant == VariantVideo && o.OutputTemplate == "" && !o.Embed.Separate && o.Series == nil
 }
 
 // plannedPrefix marks the line on which a video row's yt-dlp names the file it
@@ -1007,9 +1012,12 @@ func joinNote(first, second string) string {
 }
 
 // needsInfoJSON reports whether this task asks yt-dlp for --write-info-json:
-// the NFO is built from it, and the short-file check needs the duration the
+// the NFOs are built from it, and the short-file check needs the duration the
 // source announced.
-func needsInfoJSON(o Options) bool { return o.Embed.NFO || o.Measure.Enabled }
+func needsInfoJSON(o Options) bool { return o.Embed.NFO || o.Measure.Enabled || episode(o) }
+
+// episode reports a row filed as an episode of a show (see Series).
+func episode(o Options) bool { return o.Series != nil && o.Variant == VariantVideo }
 
 // infoJSONPath is where yt-dlp put the info json for a finished file: the
 // output template with the extension replaced.
@@ -1600,6 +1608,9 @@ func buildArgs(dir string, o Options) []string {
 // name, as JDownloader's "*VIDEO_NAME* (*QUALITY*)" does, so two picks of one
 // video land beside each other instead of on one name.
 func outputTemplate(o Options) string {
+	if o.Series != nil && o.Variant == VariantVideo {
+		return seriesTemplate(*o.Series)
+	}
 	if o.OutputTemplate != "" {
 		return o.OutputTemplate
 	}
