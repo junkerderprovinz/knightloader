@@ -53,11 +53,11 @@ export function HeldLinks({
             reason={heldReason(t, h)}
             name={h.name && h.name !== h.url ? h.name : h.url}
             source={[originWord(t, h.origin), when(h.createdAt)].filter(Boolean).join(' · ')}
-            action={
-              restore &&
-              (h.skipCode === 'downloaded' ? (
-                // Worded, since getting a file a second time is a choice the
-                // row should spell out.
+            // Worded, since getting a file a second time is a choice the row
+            // should spell out, and under the reason, which for a repeat is
+            // a long sentence that needs the card's width.
+            below={
+              restore && h.skipCode === 'downloaded' ? (
                 <GlimButton
                   tone="quiet"
                   label={t(restoreWord(h))}
@@ -65,13 +65,16 @@ export function HeldLinks({
                   disabled={busy}
                   onPress={() => void restore([h.id])}
                 />
-              ) : (
+              ) : undefined
+            }
+            action={
+              restore && h.skipCode !== 'downloaded' ? (
                 <IconBadge
                   icon={<Restore color={c.textSub} />}
                   onPress={() => !busy && void restore([h.id])}
                   accessibilityLabel={t(restoreWord(h))}
                 />
-              ))
+              ) : undefined
             }
           />
         ))}
@@ -165,7 +168,19 @@ function Rows({ children }: { children: ReactNode }) {
   );
 }
 
-function Row({ reason, name, source, action }: { reason: string; name: string; source: string; action?: ReactNode }) {
+function Row({
+  reason,
+  name,
+  source,
+  action,
+  below,
+}: {
+  reason: string;
+  name: string;
+  source: string;
+  action?: ReactNode;
+  below?: ReactNode;
+}) {
   const { c } = useAppearance();
   return (
     <View style={styles.row}>
@@ -175,6 +190,7 @@ function Row({ reason, name, source, action }: { reason: string; name: string; s
         </Text>
         <Text style={[styles.reason, { color: c.textSub }]}>{reason}</Text>
         {source !== '' && <Text style={[styles.source, NUM, { color: c.textMuted }]}>{source}</Text>}
+        {below ? <View style={styles.below}>{below}</View> : null}
       </View>
       {action}
     </View>
@@ -190,5 +206,6 @@ const styles = StyleSheet.create({
   name: { fontSize: TYPE.body },
   reason: { fontSize: TYPE.subline },
   source: { fontSize: TYPE.meta },
+  below: { flexDirection: 'row', marginTop: 6 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
 });

@@ -16,6 +16,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { compile, mount } from './stand-in-react.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const load = (...p) => import(pathToFileURL(join(here, 'src', ...p)).href);
@@ -237,6 +238,28 @@ expect('the collector filters are the web list', COLLECTOR_FILTERS, listOf('COLL
   const go = readFileSync(join(here, '..', 'internal', 'settings', 'settings_queue.go'), 'utf8');
   const ceiling = Number(go.match(/if n\.MaxConcurrent > (\d+)/)?.[1]);
   expect("the top is the server's", countOf(String(ceiling + 1)), ceiling);
+}
+
+// A repeat's row carries its button under the reason, so the long history
+// sentence keeps the card's width instead of a column beside the button.
+{
+  const notAdded = await load('api', 'notAdded.ts');
+  const view = compile(join(here, 'src', 'components', 'NotAdded.tsx'), {
+    'react-native': { ScrollView: 'ScrollView', StyleSheet: { create: (st) => st }, View: 'View' },
+    '../api/notAdded': notAdded,
+    '../i18n/I18nContext': { useT: () => ({ t: (k) => k }) },
+    '../theme/AppearanceContext': { useAppearance: () => ({ c: {} }) },
+    '../theme/tokens': { NUM: {}, TYPE: {} },
+    './glim': { GlimButton: 'GlimButton', NotchCard: 'NotchCard' },
+    './IconBadge': { __esModule: true, default: 'IconBadge', Cross: 'Cross', Empty: 'Empty', Restore: 'Restore' },
+    './Text': { Text: 'Text' },
+  });
+  const repeat = task({ id: 'd', skipped: true, skipCode: 'downloaded', skipParams: { name: 'clip.mkv', finished: '', folder: '/data' } });
+  const ruled = task({ id: 'r', skipped: true, skipCode: 'filterRule', skipParams: { rule: 'no samples' } });
+  const shown = mount(() => view.HeldLinks({ held: [repeat, ruled], onRestore: async () => {}, onClear: async () => {} })).shown();
+  const rows = shown.elements.filter((e) => typeof e.type === 'function' && e.props.reason !== undefined);
+  expect('a repeat offers its download under the reason', [rows[1]?.props.below?.type, rows[1]?.props.action], ['GlimButton', undefined]);
+  expect('a rule hold keeps its badge beside the row', [rows[0]?.props.action?.type, rows[0]?.props.below], ['IconBadge', undefined]);
 }
 
 if (problems.length) {
