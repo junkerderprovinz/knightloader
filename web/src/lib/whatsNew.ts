@@ -51,6 +51,23 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.9.9',
+    changes: [
+      { id: 'channel-subscriptions', text: 'whatsnew.change.channelSubscriptions', names: { downloads: 'settings.nav.downloads' } },
+      { id: 'mediathek-subscriptions', text: 'whatsnew.change.mediathekSubscriptions', names: { search: 'settings.feeds.subscribeSearch' } },
+      { id: 'subscription-downloads', text: 'whatsnew.change.subscriptionDownloads', names: { start: 'settings.feeds.autoStart' } },
+      { id: 'subscription-filters', text: 'whatsnew.change.subscriptionFilters' },
+      { id: 'subscription-library', text: 'whatsnew.change.subscriptionLibrary', names: { library: 'settings.feeds.library' } },
+      {
+        id: 'sponsorblock',
+        text: 'whatsnew.change.sponsorBlock',
+        names: { sponsorBlock: 'settings.resolvers.sponsorBlock', page: 'settings.nav.resolvers' },
+      },
+      { id: 'media-repeats', text: 'whatsnew.change.mediaRepeats', names: { anyway: 'collector.filtered.downloadAnyway' } },
+      { id: 'app-subscriptions', text: 'whatsnew.change.appSubscriptions' },
+    ],
+  },
+  {
     version: '2.9.8',
     changes: [
       { id: 'extension-relay', text: 'whatsnew.change.extensionRelay', names: { relay: 'relay.title' } },
