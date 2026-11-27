@@ -23,7 +23,8 @@ registerHooks({
   },
 });
 
-const { wellForm } = await import(new URL('./src/components/wellForm.ts', import.meta.url).href);
+const { segmentFlex, wellForm } = await import(new URL('./src/components/wellForm.ts', import.meta.url).href);
+const { readFileSync } = await import('node:fs');
 
 const problems = [];
 const check = (what, got, want) => {
@@ -44,6 +45,19 @@ check('a long name takes its own width', wellForm(GROOVE, corners, GLYPH), 'cont
 check('names too long for the row leave the glyphs alone', wellForm(GROOVE, scaled(corners, 1.6), GLYPH), 'squeezed');
 check('a well without glyphs keeps its names while they fit', wellForm(GROOVE, tabs, null), 'even');
 check('and turns into the dropdown once they do not', wellForm(GROOVE, scaled(tabs, 2), null), 'list');
+
+// Android cuts a one-line name that overflows its segment by any fraction of
+// a point, so a name only counts as fitting with room to spare.
+const share = (GROOVE - 6 - 2 * 2) / 3;
+check('a name that fills its share to the point takes its own width', wellForm(GROOVE, [share - 12, 40, 40], null), 'content');
+check('a name with room to spare still shares the groove equally', wellForm(GROOVE, [share - 16, 40, 40], null), 'even');
+
+// Yoga reads `flex: 1` as a basis of 0 whenever flexBasis is auto, so a
+// segment laid out by its name has to say grow, shrink and basis apart.
+check('a segment laid out by its name starts from its name', JSON.stringify(segmentFlex('content')), JSON.stringify({ flexGrow: 1, flexShrink: 0, flexBasis: 'auto' }));
+check('an even segment starts from nothing', JSON.stringify(segmentFlex('even')), JSON.stringify({ flexGrow: 1, flexShrink: 1, flexBasis: 0 }));
+const glim = readFileSync(new URL('./src/components/glim.tsx', import.meta.url), 'utf8');
+check('the segment style leaves the flex shorthand out', /^\s*segment: \{[^}]*\bflex: /m.test(glim), false);
 
 if (problems.length > 0) {
   for (const p of problems) console.error(`✗ ${p}`);

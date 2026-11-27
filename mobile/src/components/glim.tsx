@@ -19,7 +19,7 @@ import { InfoTip, Tip } from './InfoTip';
 import { Back, Check, boxForInk } from './IconBadge';
 import { Arrive, NoArrival } from './Moving';
 import { Text } from './Text';
-import { SEGMENT_PAD, WELL_GAP, WELL_PAD, wellForm } from './wellForm';
+import { SEGMENT_PAD, WELL_GAP, WELL_PAD, segmentFlex, wellForm } from './wellForm';
 
 /**
  * The GlimStone controls, as React Native.
@@ -206,7 +206,7 @@ export function WellSelector<T extends string>({
                  too few to keep a square corner inside a pill's arc. */
               style={[
                 styles.segment,
-                form === 'content' && styles.segmentByName,
+                segmentFlex(form),
                 corners.pill,
                 on && { backgroundColor: fill },
               ]}
@@ -565,10 +565,10 @@ const styles = StyleSheet.create({
   well: { flexDirection: 'row', padding: WELL_PAD, gap: WELL_GAP, alignSelf: 'stretch' },
   // The dropdown stands without the groove around it.
   wellListed: { padding: 0 },
-  segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: SEGMENT_PAD, alignItems: 'center' },
-  // Laid out by their names, the segments start from them and share out what
-  // is left, so a long name keeps its words while the short ones give up room.
-  segmentByName: { flexGrow: 1, flexShrink: 0, flexBasis: 'auto' },
+  // Laid out by their names (segmentFlex), the segments start from them and
+  // share out what is left, so a long name keeps its words while the short
+  // ones give up room.
+  segment: { minWidth: 0, paddingVertical: 7, paddingHorizontal: SEGMENT_PAD, alignItems: 'center' },
   segmentName: { flexDirection: 'row', alignItems: 'center', gap: SEGMENT_GAP, maxWidth: '100%' },
   // Wide enough that no label wraps while it is measured.
   measure: { position: 'absolute', top: 0, left: 0, width: 4000, flexDirection: 'row', opacity: 0 },
