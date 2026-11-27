@@ -151,13 +151,9 @@ type runState struct {
 }
 
 // concurrentFragments is how many fragments of one video yt-dlp fetches at
-// once, and httpChunkSize how large a single range request is: the values
-// yt-dlp's own documentation uses. They are not settings; the speed limit
-// covers anyone who wants a slower download.
-const (
-	concurrentFragments = 4
-	httpChunkSize       = 10 << 20
-)
+// once, the value yt-dlp's own documentation uses. It is not a setting; the
+// speed limit covers anyone who wants a slower download.
+const concurrentFragments = 4
 
 func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *Backend {
 	return &Backend{
@@ -1441,11 +1437,11 @@ func buildArgs(dir string, o Options) []string {
 		"--newline", "--no-warnings", "--no-color",
 		"--progress-template", progressTemplateFor(o),
 		// yt-dlp fetches DASH and HLS fragments one at a time by default,
-		// paying a round trip for each; YouTube throttles a single long range
-		// response but not chunked ones. Both flags are harmless where they
-		// do not apply.
+		// paying a round trip for each. There is no --http-chunk-size: the
+		// YouTube extractor already chunks its downloads against throttling,
+		// and a global size would override it and break HLS fragments that
+		// are byte ranges of one file, as arte.tv serves them.
 		"--concurrent-fragments", strconv.Itoa(concurrentFragments),
-		"--http-chunk-size", strconv.Itoa(httpChunkSize),
 	}
 	if !o.Playlist {
 		args = append(args, "--no-playlist")

@@ -233,16 +233,20 @@ func TestBuildArgsCustomOutputTemplate(t *testing.T) {
 	}
 }
 
-// Both flags are needed: one avoids a round trip per fragment in series, the
-// other avoids throttling of a single long response.
-func TestBuildArgsAsksForConcurrentFragmentsAndChunkedRanges(t *testing.T) {
+func TestBuildArgsFetchesFragmentsConcurrently(t *testing.T) {
 	args := buildArgs(filepath.Join("some", "dir"), Options{})
-
 	if got, ok := valueAfter(args, "--concurrent-fragments"); !ok || got != "4" {
 		t.Errorf("--concurrent-fragments = %q (present: %v), want \"4\": %v", got, ok, args)
 	}
-	if got, ok := valueAfter(args, "--http-chunk-size"); !ok || got != "10485760" {
-		t.Errorf("--http-chunk-size = %q (present: %v), want 10 MiB: %v", got, ok, args)
+}
+
+// A chunk size given on the command line overrides the one an extractor sets
+// per format, and breaks HLS fragments that are byte ranges of one file (see
+// TestAByteRangeHLSStreamDownloads).
+func TestBuildArgsLeavesTheChunkSizeToTheExtractor(t *testing.T) {
+	args := buildArgs(filepath.Join("some", "dir"), Options{})
+	if v, ok := valueAfter(args, "--http-chunk-size"); ok {
+		t.Errorf("--http-chunk-size %s is set for every site: %v", v, args)
 	}
 }
 
