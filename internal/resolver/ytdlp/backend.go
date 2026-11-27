@@ -501,6 +501,8 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		// The run stops and finishes as when yt-dlp finds the file under its
 		// own name.
 		already bool
+		// cut is set once SponsorBlock segments were cut out of the file.
+		cut bool
 	)
 	apart := opts.Variant == VariantVideo && opts.Embed.Separate
 	sc := bufio.NewScanner(stdout)
@@ -564,6 +566,10 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: opts.shown(filepath.Base(name)), WorkFile: name})
 			continue
 		}
+		if cutBySponsorBlock(line) {
+			cut = true
+			continue
+		}
 		if path, ok := wroteFile(line); ok && b.ownFile(taskID, dir, out, path) {
 			written = append(written, path)
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: path})
@@ -597,7 +603,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		final = sidecarFile(opts.Variant, written)
 	}
 	done := func(note string) core.Update {
-		u := b.finish(opts, final, subFiles, note)
+		u := b.finish(opts, final, subFiles, note, cut)
 		if apart && u.Status == core.StatusDone {
 			u.OtherFiles = keptApart(opts, final, others, written)
 		}
@@ -800,7 +806,7 @@ func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final str
 	if landed == "" && len(placed) > 0 {
 		landed = placed[len(placed)-1]
 	}
-	u := b.finish(o, landed, subFiles, "")
+	u := b.finish(o, landed, subFiles, "", false)
 	if u.Status == core.StatusDone {
 		for _, p := range placed {
 			if p != landed {
@@ -819,11 +825,13 @@ var liveStopGrace = 30 * time.Second
 // finish handles a successful yt-dlp exit around the file it produced: NFO,
 // measurement and the checks that turn a success into a failure (a subtitle
 // row without subtitles, and optionally a file shorter than the source
-// announced). stoppedBy, a live limit's reason, stays on the note.
+// announced). stoppedBy, a live limit's reason, stays on the note. cut says
+// SponsorBlock segments were cut out, which leaves the file shorter than
+// announced on purpose.
 //
 // It does not take run's context: the live guard cancels that context to stop
 // a recording, and ffprobe would then never run for capped downloads.
-func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string) core.Update {
+func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string, cut bool) core.Update {
 	u := core.Update{Status: core.StatusDone, Speed: 0, Note: stoppedBy}
 	// --no-warnings hides yt-dlp's note about a missing language, so the
 	// subtitle files it wrote are the only evidence (see
@@ -874,7 +882,7 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		if m, err := probeMedia(mctx, b.ffprobeBinary(), final); err == nil {
 			u.Note = joinNote(u.Note, m.Summary())
 			if haveInfo {
-				if pct, ok := gotPercent(info.Duration, m.Duration); ok && pct < o.Measure.ShortPercent {
+				if pct, ok := gotPercent(info.Duration, m.Duration); ok && pct < o.Measure.ShortPercent && !cut {
 					warn := shortWarning(info.Duration, m.Duration)
 					if o.Measure.FailOnShort {
 						u.Status = core.StatusError
@@ -1545,6 +1553,7 @@ func buildArgs(dir string, o Options) []string {
 		if o.Live.Enabled && o.Live.FromStart {
 			args = append(args, "--live-from-start")
 		}
+		args = append(args, o.SponsorBlock.args()...)
 	}
 	args = append(args, "-o", filepath.Join(dir, tmpl))
 	return args

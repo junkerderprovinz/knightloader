@@ -86,11 +86,15 @@ func ytdlpHelper(mode string) {
 	dir := helperOutDir()
 	final := filepath.Join(dir, "A Video.mkv")
 	switch mode {
-	case "video":
+	case "video", "sponsorcut":
 		_ = os.WriteFile(final, []byte("bytes"), 0o644)
 		_ = os.WriteFile(filepath.Join(dir, "A Video.info.json"), []byte(helperInfoJSON), 0o644)
 		fmt.Println("[download] Destination: " + final)
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
+		if mode == "sponsorcut" {
+			fmt.Println("[SponsorBlock] Found 2 segments in the SponsorBlock database")
+			fmt.Println("[ModifyChapters] Removing chapters from " + final)
+		}
 	case "merge":
 		// Two half-streams, then the merged file that replaces them. The
 		// progress lines count only the stream being fetched.
