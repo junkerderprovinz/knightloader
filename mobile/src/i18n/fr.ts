@@ -729,6 +729,7 @@ export const fr: Dict = {
   'subs.offerOlder': 'S’abonner avec les vidéos plus anciennes',
   'subs.offerSearch': 'S’abonner à cette recherche',
   'subs.byHand': 'Configurer à la main',
+  'subs.notFound': 'Il n’y a rien à quoi s’abonner à cette adresse. Vérifiez-la, ou collez l’adresse d’un flux, d’une chaîne YouTube ou d’une recherche MediathekViewWeb.',
   'subs.list': 'Vos abonnements',
   'subs.empty': 'Aucun abonnement pour l’instant.',
   'subs.emptyHint': 'Collez un lien ci-dessus pour ajouter votre premier abonnement.',

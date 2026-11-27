@@ -721,6 +721,7 @@ export const th: Dict = {
   'subs.offerOlder': 'ติดตามพร้อมวิดีโอเก่า',
   'subs.offerSearch': 'ติดตามการค้นหานี้',
   'subs.byHand': 'ตั้งค่าเอง',
+  'subs.notFound': 'ที่อยู่นี้ไม่มีอะไรให้ติดตาม ลองตรวจสอบที่อยู่ หรือวางที่อยู่ของฟีด ช่อง YouTube หรือการค้นหาใน MediathekViewWeb',
   'subs.list': 'การติดตามของคุณ',
   'subs.empty': 'ยังไม่มีการติดตาม',
   'subs.emptyHint': 'วางลิงก์ด้านบนเพื่อเพิ่มการติดตามแรกของคุณ',

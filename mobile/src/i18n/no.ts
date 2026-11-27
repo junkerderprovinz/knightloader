@@ -728,6 +728,7 @@ export const no: Dict = {
   'subs.offerOlder': 'Abonner med eldre videoer',
   'subs.offerSearch': 'Abonner på dette søket',
   'subs.byHand': 'Sett opp manuelt',
+  'subs.notFound': 'Det finnes ingenting å abonnere på på denne adressen. Sjekk den, eller lim inn adressen til en feed, en YouTube-kanal eller et søk på MediathekViewWeb.',
   'subs.list': 'Abonnementene dine',
   'subs.empty': 'Ingen abonnementer ennå.',
   'subs.emptyHint': 'Lim inn en lenke over for å legge til ditt første.',

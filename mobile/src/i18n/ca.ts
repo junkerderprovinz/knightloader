@@ -728,6 +728,7 @@ export const ca: Dict = {
   'subs.offerOlder': 'Subscriu-te amb vídeos anteriors',
   'subs.offerSearch': 'Subscriu-te a aquesta cerca',
   'subs.byHand': 'Configura-ho a mà',
+  'subs.notFound': 'En aquesta adreça no hi ha res a què subscriure’s. Revisa-la, o enganxa l’adreça d’un feed, d’un canal de YouTube o d’una cerca de MediathekViewWeb.',
   'subs.list': 'Les teves subscripcions',
   'subs.empty': 'Encara no hi ha cap subscripció.',
   'subs.emptyHint': 'Enganxa un enllaç a dalt per afegir la primera.',

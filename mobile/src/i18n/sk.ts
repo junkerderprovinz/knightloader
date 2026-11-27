@@ -725,6 +725,7 @@ export const sk: Dict = {
   'subs.offerOlder': 'Odoberať aj so staršími videami',
   'subs.offerSearch': 'Odoberať toto hľadanie',
   'subs.byHand': 'Nastaviť ručne',
+  'subs.notFound': 'Na tejto adrese nie je nič, čo by sa dalo odoberať. Skontroluj ju alebo vlož adresu feedu, kanála YouTube alebo hľadania na MediathekViewWeb.',
   'subs.list': 'Tvoje odbery',
   'subs.empty': 'Zatiaľ žiadne odbery.',
   'subs.emptyHint': 'Vlož odkaz hore a pridaj svoj prvý.',

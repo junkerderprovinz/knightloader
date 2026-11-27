@@ -41,7 +41,7 @@ export default function SubscriptionsScreen({ conn, onBack }: { conn: ServerConn
   const [link, setLink] = useState('');
   const [looking, setLooking] = useState(false);
   const [found, setFound] = useState<{ name: string; offers: Offer[] } | null>(null);
-  const [lookError, setLookError] = useState('');
+  const [lookError, setLookError] = useState<{ text: string; reason: string } | null>(null);
   const [open, setOpen] = useState<OpenSubscription | null>(null);
 
   const load = useCallback(async () => {
@@ -75,19 +75,25 @@ export default function SubscriptionsScreen({ conn, onBack }: { conn: ServerConn
     if (text) {
       setLink(text.trim());
       setFound(null);
-      setLookError('');
+      setLookError(null);
     }
   };
 
   const lookUp = async () => {
     setLooking(true);
     setFound(null);
-    setLookError('');
+    setLookError(null);
     try {
       const r = await resolveSubscription(conn, link);
       setFound({ name: r.title?.trim() || r.channel?.title?.trim() || '', offers: offersOf(r, link) });
     } catch (e) {
-      setLookError(errorText(t, e));
+      // The instance's reason is a technical one, so the app's own sentence
+      // leads and the reason follows quietly beneath it.
+      setLookError(
+        e instanceof ApiError && e.code === 'feedNotFound'
+          ? { text: t('subs.notFound'), reason: e.message }
+          : { text: errorText(t, e), reason: '' },
+      );
     }
     setLooking(false);
   };
@@ -131,7 +137,7 @@ export default function SubscriptionsScreen({ conn, onBack }: { conn: ServerConn
                   onChange={(v) => {
                     setLink(v);
                     setFound(null);
-                    setLookError('');
+                    setLookError(null);
                   }}
                   label={t('subs.link')}
                   placeholder="https://"
@@ -166,7 +172,12 @@ export default function SubscriptionsScreen({ conn, onBack }: { conn: ServerConn
               ) : null}
               {lookError ? (
                 <View style={styles.found}>
-                  <Text style={[styles.lookError, { color: c.statusWarnText }]}>{lookError}</Text>
+                  <View>
+                    <Text style={[styles.lookError, { color: c.statusWarnText }]}>{lookError.text}</Text>
+                    {lookError.reason ? (
+                      <Text style={[styles.lookReason, { color: c.textMuted }]}>{lookError.reason}</Text>
+                    ) : null}
+                  </View>
                   <GlimButton
                     tone="quiet"
                     label={t('subs.byHand')}
@@ -246,6 +257,7 @@ const styles = StyleSheet.create({
   found: { marginTop: 14, gap: 8 },
   foundName: { fontSize: TYPE.body, fontWeight: '600' },
   lookError: { fontSize: TYPE.subline },
+  lookReason: { fontSize: TYPE.meta, marginTop: 4 },
   empty: { alignItems: 'center', paddingVertical: 18, gap: 4 },
   emptyText: { fontSize: TYPE.body, textAlign: 'center' },
   emptyHint: { fontSize: TYPE.subline, textAlign: 'center' },

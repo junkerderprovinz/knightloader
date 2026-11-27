@@ -726,6 +726,7 @@ export const lv: Dict = {
   'subs.offerOlder': 'Abonēt ar vecākiem video',
   'subs.offerSearch': 'Abonēt šo meklēšanu',
   'subs.byHand': 'Iestatīt manuāli',
+  'subs.notFound': 'Šajā adresē nav nekā, ko abonēt. Pārbaudi to vai ielīmē plūsmas, YouTube kanāla vai MediathekViewWeb meklēšanas adresi.',
   'subs.list': 'Tavi abonementi',
   'subs.empty': 'Vēl nav neviena abonementa.',
   'subs.emptyHint': 'Ielīmē saiti augšā, lai pievienotu pirmo.',

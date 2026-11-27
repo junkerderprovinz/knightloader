@@ -726,6 +726,7 @@ export const et: Dict = {
   'subs.offerOlder': 'Telli koos vanemate videotega',
   'subs.offerSearch': 'Telli see otsing',
   'subs.byHand': 'Seadista käsitsi',
+  'subs.notFound': 'Sellel aadressil pole midagi, mida tellida. Kontrolli seda või kleebi voo, YouTube\'i kanali või MediathekViewWebi otsingu aadress.',
   'subs.list': 'Sinu tellimused',
   'subs.empty': 'Tellimusi veel ei ole.',
   'subs.emptyHint': 'Kleebi ülal link, et lisada oma esimene tellimus.',

@@ -723,6 +723,7 @@ export const ar: Dict = {
   'subs.offerOlder': 'الاشتراك مع الفيديوهات الأقدم',
   'subs.offerSearch': 'الاشتراك في هذا البحث',
   'subs.byHand': 'الإعداد يدويًا',
+  'subs.notFound': 'لا يوجد في هذا العنوان شيء يمكن الاشتراك فيه. تحقّق منه، أو الصق عنوان خلاصة أو قناة YouTube أو بحث في MediathekViewWeb.',
   'subs.list': 'اشتراكاتك',
   'subs.empty': 'لا اشتراكات بعد.',
   'subs.emptyHint': 'الصق رابطًا في الأعلى لإضافة اشتراكك الأول.',

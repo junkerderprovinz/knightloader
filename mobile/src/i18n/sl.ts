@@ -726,6 +726,7 @@ export const sl: Dict = {
   'subs.offerOlder': 'Naroči se s starejšimi videi',
   'subs.offerSearch': 'Naroči se na to iskanje',
   'subs.byHand': 'Nastavi ročno',
+  'subs.notFound': 'Na tem naslovu ni ničesar, na kar bi se lahko naročil. Preveri ga ali prilepi naslov vira, kanala na YouTubu ali iskanja na MediathekViewWeb.',
   'subs.list': 'Tvoje naročnine',
   'subs.empty': 'Še ni naročnin.',
   'subs.emptyHint': 'Zgoraj prilepi povezavo in dodaj prvo.',

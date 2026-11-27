@@ -727,6 +727,7 @@ export const sv: Dict = {
   'subs.offerOlder': 'Prenumerera med äldre videor',
   'subs.offerSearch': 'Prenumerera på den här sökningen',
   'subs.byHand': 'Ställ in för hand',
+  'subs.notFound': 'Det finns inget att prenumerera på på den här adressen. Kontrollera den, eller klistra in adressen till ett flöde, en YouTube-kanal eller en sökning på MediathekViewWeb.',
   'subs.list': 'Dina prenumerationer',
   'subs.empty': 'Inga prenumerationer än.',
   'subs.emptyHint': 'Klistra in en länk ovan för att lägga till din första.',

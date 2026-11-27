@@ -714,6 +714,7 @@ export const ko: Dict = {
   'subs.offerOlder': '예전 동영상과 함께 구독',
   'subs.offerSearch': '이 검색 구독하기',
   'subs.byHand': '직접 설정',
+  'subs.notFound': '이 주소에는 구독할 수 있는 것이 없습니다. 주소를 확인하거나 피드, YouTube 채널, MediathekViewWeb 검색의 주소를 붙여 넣으세요.',
   'subs.list': '내 구독',
   'subs.empty': '아직 구독이 없습니다.',
   'subs.emptyHint': '위에 링크를 붙여 넣어 첫 구독을 추가하세요.',

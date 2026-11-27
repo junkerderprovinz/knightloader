@@ -728,6 +728,7 @@ export const gl: Dict = {
   'subs.offerOlder': 'Subscribirse cos vídeos máis antigos',
   'subs.offerSearch': 'Subscribirse a esta busca',
   'subs.byHand': 'Configurala a man',
+  'subs.notFound': 'Neste enderezo non hai nada ao que subscribirse. Revísao, ou pega o enderezo dun feed, dunha canle de YouTube ou dunha busca de MediathekViewWeb.',
   'subs.list': 'As túas subscricións',
   'subs.empty': 'Aínda non hai subscricións.',
   'subs.emptyHint': 'Pega unha ligazón aquí enriba para engadir a primeira.',

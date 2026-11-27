@@ -726,6 +726,7 @@ export const en = {
   'subs.offerOlder': 'Subscribe with older videos',
   'subs.offerSearch': 'Subscribe to this search',
   'subs.byHand': 'Set it up by hand',
+  'subs.notFound': 'There is nothing to subscribe to at this address. Check it, or paste the address of a feed, a YouTube channel or a MediathekViewWeb search.',
   'subs.list': 'Your subscriptions',
   'subs.empty': 'No subscriptions yet.',
   'subs.emptyHint': 'Paste a link above to add your first one.',

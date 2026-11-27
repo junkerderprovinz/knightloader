@@ -727,6 +727,7 @@ export const da: Dict = {
   'subs.offerOlder': 'Abonnér med ældre videoer',
   'subs.offerSearch': 'Abonnér på denne søgning',
   'subs.byHand': 'Sæt op manuelt',
+  'subs.notFound': 'Der er intet at abonnere på på denne adresse. Tjek den, eller indsæt adressen på et feed, en YouTube-kanal eller en søgning på MediathekViewWeb.',
   'subs.list': 'Dine abonnementer',
   'subs.empty': 'Ingen abonnementer endnu.',
   'subs.emptyHint': 'Indsæt et link ovenfor for at tilføje dit første.',

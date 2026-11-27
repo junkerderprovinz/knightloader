@@ -728,6 +728,7 @@ export const nl: Dict = {
   'subs.offerOlder': 'Abonneren met oudere video’s',
   'subs.offerSearch': 'Abonneren op deze zoekopdracht',
   'subs.byHand': 'Zelf instellen',
+  'subs.notFound': 'Op dit adres is niets om op te abonneren. Controleer het, of plak het adres van een feed, een YouTube-kanaal of een zoekopdracht op MediathekViewWeb.',
   'subs.list': 'Je abonnementen',
   'subs.empty': 'Nog geen abonnementen.',
   'subs.emptyHint': 'Plak hierboven een link om je eerste toe te voegen.',

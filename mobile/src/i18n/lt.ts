@@ -726,6 +726,7 @@ export const lt: Dict = {
   'subs.offerOlder': 'Prenumeruoti su senesniais vaizdo įrašais',
   'subs.offerSearch': 'Prenumeruoti šią paiešką',
   'subs.byHand': 'Nustatyti rankiniu būdu',
+  'subs.notFound': 'Šiuo adresu nėra nieko, ką būtų galima prenumeruoti. Patikrink jį arba įklijuok sklaidos kanalo, YouTube kanalo ar MediathekViewWeb paieškos adresą.',
   'subs.list': 'Tavo prenumeratos',
   'subs.empty': 'Prenumeratų dar nėra.',
   'subs.emptyHint': 'Įklijuok nuorodą viršuje, kad pridėtum pirmąją.',

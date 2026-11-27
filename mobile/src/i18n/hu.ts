@@ -726,6 +726,7 @@ export const hu: Dict = {
   'subs.offerOlder': 'Feliratkozás a régebbi videókkal együtt',
   'subs.offerSearch': 'Feliratkozás erre a keresésre',
   'subs.byHand': 'Beállítás kézzel',
+  'subs.notFound': 'Ezen a címen nincs semmi, amire fel lehetne iratkozni. Ellenőrizd, vagy illeszd be egy feed, egy YouTube-csatorna vagy egy MediathekViewWeb-keresés címét.',
   'subs.list': 'Feliratkozásaid',
   'subs.empty': 'Még nincs feliratkozás.',
   'subs.emptyHint': 'Illessz be fent egy linket az első feliratkozásodhoz.',

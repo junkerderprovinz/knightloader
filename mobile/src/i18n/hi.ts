@@ -726,6 +726,7 @@ export const hi: Dict = {
   'subs.offerOlder': 'पुराने वीडियो के साथ सदस्यता लें',
   'subs.offerSearch': 'इस खोज की सदस्यता लें',
   'subs.byHand': 'हाथ से सेट करें',
+  'subs.notFound': 'इस पते पर सदस्यता लेने लायक कुछ नहीं मिला। पता जाँच लें, या किसी फ़ीड, YouTube चैनल या MediathekViewWeb खोज का पता चिपकाएँ।',
   'subs.list': 'आपकी सदस्यताएँ',
   'subs.empty': 'अभी कोई सदस्यता नहीं।',
   'subs.emptyHint': 'अपनी पहली सदस्यता जोड़ने के लिए ऊपर एक लिंक पेस्ट करें।',

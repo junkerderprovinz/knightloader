@@ -726,6 +726,7 @@ export const fi: Dict = {
   'subs.offerOlder': 'Tilaa vanhempien videoiden kanssa',
   'subs.offerSearch': 'Tilaa tämä haku',
   'subs.byHand': 'Määritä käsin',
+  'subs.notFound': 'Tästä osoitteesta ei löydy mitään tilattavaa. Tarkista osoite tai liitä syötteen, YouTube-kanavan tai MediathekViewWeb-haun osoite.',
   'subs.list': 'Tilauksesi',
   'subs.empty': 'Ei vielä tilauksia.',
   'subs.emptyHint': 'Liitä linkki yllä, niin voit lisätä ensimmäisen tilauksesi.',

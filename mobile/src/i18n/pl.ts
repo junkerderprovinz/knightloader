@@ -727,6 +727,7 @@ export const pl: Dict = {
   'subs.offerOlder': 'Subskrybuj ze starszymi filmami',
   'subs.offerSearch': 'Subskrybuj to wyszukiwanie',
   'subs.byHand': 'Skonfiguruj ręcznie',
+  'subs.notFound': 'Pod tym adresem nie ma niczego do subskrybowania. Sprawdź go albo wklej adres kanału RSS, kanału YouTube lub wyszukiwania w MediathekViewWeb.',
   'subs.list': 'Twoje subskrypcje',
   'subs.empty': 'Nie ma jeszcze subskrypcji.',
   'subs.emptyHint': 'Wklej link powyżej, żeby dodać pierwszą.',

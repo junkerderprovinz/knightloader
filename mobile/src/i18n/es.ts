@@ -728,6 +728,7 @@ export const es: Dict = {
   'subs.offerOlder': 'Suscribirse con vídeos anteriores',
   'subs.offerSearch': 'Suscribirse a esta búsqueda',
   'subs.byHand': 'Configurar a mano',
+  'subs.notFound': 'En esta dirección no hay nada a lo que suscribirse. Revísala o pega la dirección de un feed, de un canal de YouTube o de una búsqueda de MediathekViewWeb.',
   'subs.list': 'Tus suscripciones',
   'subs.empty': 'Todavía no hay suscripciones.',
   'subs.emptyHint': 'Pega un enlace arriba para añadir la primera.',

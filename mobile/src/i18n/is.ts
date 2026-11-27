@@ -727,6 +727,7 @@ export const is: Dict = {
   'subs.offerOlder': 'Áskrift með eldri myndböndum',
   'subs.offerSearch': 'Gerast áskrifandi að þessari leit',
   'subs.byHand': 'Setja upp handvirkt',
+  'subs.notFound': 'Á þessari slóð er ekkert til að gerast áskrifandi að. Athugaðu hana, eða límdu inn slóð straums, YouTube-rásar eða leitar á MediathekViewWeb.',
   'subs.list': 'Áskriftirnar þínar',
   'subs.empty': 'Engar áskriftir enn.',
   'subs.emptyHint': 'Límdu inn tengil hér fyrir ofan til að bæta við fyrstu áskriftinni.',

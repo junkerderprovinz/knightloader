@@ -528,6 +528,23 @@ async function editor(open, more = {}) {
   expect('and can still be set up by hand', h.of('SubscriptionEdit').open, { was: null, row: { url: 'https://blog.example/', intervalMinutes: 0 } });
 }
 
+{
+  const reason = 'no feed was found at https://blog.example/: Get "https://blog.example/": no such host';
+  refuse = (_m, path) => (path === '/feeds/resolve' ? refusal.refusedCall(400, JSON.stringify({ error: reason, code: 'feedNotFound' })) : null);
+  const s = mount(() => screenMod.default({ conn, onBack: () => {} }));
+  await s.settle();
+  const h = handle(s);
+  await h.type('subs.link', 'https://blog.example/');
+  await h.press('subs.lookUp');
+  refuse = () => null;
+  const lines = s.shown().elements.filter((e) => e.type === 'Text').map((e) => e.props.children);
+  expect('an address with nothing to subscribe to says so in the app words, the reason under it', [
+    lines.includes(t('subs.notFound')),
+    lines.indexOf(reason) === lines.indexOf(t('subs.notFound')) + 1,
+    h.of('GlimButton', t('subs.byHand')) !== undefined,
+  ], [true, true, true]);
+}
+
 // The editor.
 {
   stored = [{ url: 'https://a.example/feed.xml', intervalMinutes: 30, title: 'A', titleFilter: 'Folge', dir: '/downloads' }];

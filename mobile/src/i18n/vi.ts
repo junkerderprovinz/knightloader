@@ -726,6 +726,7 @@ export const vi: Dict = {
   'subs.offerOlder': 'Đăng ký kèm video cũ hơn',
   'subs.offerSearch': 'Đăng ký tìm kiếm này',
   'subs.byHand': 'Thiết lập thủ công',
+  'subs.notFound': 'Ở địa chỉ này không có gì để đăng ký. Hãy kiểm tra lại, hoặc dán địa chỉ của một feed, một kênh YouTube hay một tìm kiếm trên MediathekViewWeb.',
   'subs.list': 'Đăng ký của bạn',
   'subs.empty': 'Chưa có đăng ký nào.',
   'subs.emptyHint': 'Dán một liên kết ở trên để thêm đăng ký đầu tiên.',

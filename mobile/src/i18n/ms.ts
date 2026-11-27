@@ -729,6 +729,7 @@ export const ms: Dict = {
   'subs.offerOlder': 'Langgan bersama video lama',
   'subs.offerSearch': 'Langgan carian ini',
   'subs.byHand': 'Sediakan secara manual',
+  'subs.notFound': 'Tiada apa-apa untuk dilanggan di alamat ini. Semak alamatnya, atau tampal alamat feed, saluran YouTube atau carian MediathekViewWeb.',
   'subs.list': 'Langganan anda',
   'subs.empty': 'Belum ada langganan.',
   'subs.emptyHint': 'Tampal pautan di atas untuk menambah langganan pertama anda.',

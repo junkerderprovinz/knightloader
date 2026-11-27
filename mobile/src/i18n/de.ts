@@ -727,6 +727,7 @@ export const de: Dict = {
   'subs.offerOlder': 'Mit älteren Videos abonnieren',
   'subs.offerSearch': 'Diese Suche abonnieren',
   'subs.byHand': 'Von Hand einrichten',
+  'subs.notFound': 'Unter dieser Adresse gibt es nichts zu abonnieren. Prüf sie, oder füg die Adresse eines Feeds, eines YouTube-Kanals oder einer MediathekViewWeb-Suche ein.',
   'subs.list': 'Deine Abos',
   'subs.empty': 'Noch keine Abos.',
   'subs.emptyHint': 'Füg oben einen Link ein, um dein erstes anzulegen.',

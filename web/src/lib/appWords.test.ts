@@ -51,6 +51,7 @@ it('names subscriptions as the phone app does, in every language', () => {
     differences([
       ['settings.module.feeds', 'subs.title'],
       ['health.part.feeds', 'subs.title'],
+      ['settings.feeds.notFound', 'subs.notFound'],
     ]),
   ).toEqual([]);
 });

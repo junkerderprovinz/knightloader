@@ -727,6 +727,7 @@ export const ro: Dict = {
   'subs.offerOlder': 'Abonează-te cu videoclipurile mai vechi',
   'subs.offerSearch': 'Abonează-te la această căutare',
   'subs.byHand': 'Configurează manual',
+  'subs.notFound': 'La această adresă nu există nimic la care să te abonezi. Verific-o sau lipește adresa unui flux, a unui canal YouTube ori a unei căutări MediathekViewWeb.',
   'subs.list': 'Abonamentele tale',
   'subs.empty': 'Niciun abonament încă.',
   'subs.emptyHint': 'Lipește un link mai sus ca să-l adaugi pe primul.',

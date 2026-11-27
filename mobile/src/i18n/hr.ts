@@ -726,6 +726,7 @@ export const hr: Dict = {
   'subs.offerOlder': 'Pretplati se sa starijim videima',
   'subs.offerSearch': 'Pretplati se na ovu pretragu',
   'subs.byHand': 'Postavi ručno',
+  'subs.notFound': 'Na ovoj adresi nema ničega na što se možeš pretplatiti. Provjeri je ili zalijepi adresu feeda, YouTube kanala ili pretrage na MediathekViewWebu.',
   'subs.list': 'Tvoje pretplate',
   'subs.empty': 'Još nema pretplata.',
   'subs.emptyHint': 'Zalijepi poveznicu iznad da dodaš prvu.',

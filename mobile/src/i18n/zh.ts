@@ -709,6 +709,7 @@ export const zh: Dict = {
   'subs.offerOlder': '连同较早的视频一起订阅',
   'subs.offerSearch': '订阅这个搜索',
   'subs.byHand': '手动设置',
+  'subs.notFound': '这个地址上没有可以订阅的内容。请检查地址，或者粘贴一个 feed、一个 YouTube 频道或一个 MediathekViewWeb 搜索的地址。',
   'subs.list': '你的订阅',
   'subs.empty': '还没有订阅。',
   'subs.emptyHint': '在上方粘贴一个链接，添加你的第一个订阅。',

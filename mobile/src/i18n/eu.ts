@@ -729,6 +729,7 @@ export const eu: Dict = {
   'subs.offerOlder': 'Harpidetu bideo zaharragoekin',
   'subs.offerSearch': 'Harpidetu bilaketa honetara',
   'subs.byHand': 'Konfiguratu eskuz',
+  'subs.notFound': 'Helbide honetan ez dago harpidetzeko ezer. Egiaztatu, edo itsatsi feed baten, YouTube kanal baten edo MediathekViewWeb bilaketa baten helbidea.',
   'subs.list': 'Zure harpidetzak',
   'subs.empty': 'Oraindik ez dago harpidetzarik.',
   'subs.emptyHint': 'Itsatsi esteka bat goian zure lehena gehitzeko.',

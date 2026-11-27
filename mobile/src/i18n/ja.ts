@@ -715,6 +715,7 @@ export const ja: Dict = {
   'subs.offerOlder': '古い動画も含めて購読',
   'subs.offerSearch': 'この検索を購読',
   'subs.byHand': '手動で設定',
+  'subs.notFound': 'このアドレスには購読できるものがありません。アドレスを確認するか、フィード、YouTube チャンネル、MediathekViewWeb の検索のアドレスを貼り付けてください。',
   'subs.list': '購読一覧',
   'subs.empty': '購読はまだありません。',
   'subs.emptyHint': '上にリンクを貼り付けると、最初の購読を追加できます。',

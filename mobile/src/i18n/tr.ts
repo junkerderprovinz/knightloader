@@ -726,6 +726,7 @@ export const tr: Dict = {
   'subs.offerOlder': 'Eski videolarla birlikte abone ol',
   'subs.offerSearch': 'Bu aramaya abone ol',
   'subs.byHand': 'Elle ayarla',
+  'subs.notFound': 'Bu adreste abone olunacak bir şey yok. Adresi kontrol et ya da bir feedin, bir YouTube kanalının veya bir MediathekViewWeb aramasının adresini yapıştır.',
   'subs.list': 'Aboneliklerin',
   'subs.empty': 'Henüz abonelik yok.',
   'subs.emptyHint': 'İlk aboneliğini eklemek için yukarıya bir bağlantı yapıştır.',

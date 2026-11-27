@@ -722,6 +722,7 @@ export const he: Dict = {
   'subs.offerOlder': 'הירשם כולל סרטונים ישנים יותר',
   'subs.offerSearch': 'הירשם לחיפוש הזה',
   'subs.byHand': 'הגדרה ידנית',
+  'subs.notFound': 'בכתובת הזאת אין שום דבר להירשם אליו. כדאי לבדוק אותה, או להדביק כתובת של פיד, של ערוץ YouTube או של חיפוש ב-MediathekViewWeb.',
   'subs.list': 'המינויים שלך',
   'subs.empty': 'עדיין אין מינויים.',
   'subs.emptyHint': 'הדבק קישור למעלה כדי להוסיף את המינוי הראשון שלך.',
