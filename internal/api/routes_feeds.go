@@ -140,9 +140,9 @@ func registerFeeds(reg *Registry, a *app.App) {
 					http.Error(w, err.Error()+"; paste an http or https address", http.StatusBadRequest)
 					return
 				}
-				// As in the test route: the request was fine and nothing usable
-				// was found there.
-				writeJSON(w, map[string]string{"error": err.Error()})
+				// A refusal with the reason, which both apps show beside the
+				// address the person pasted.
+				writeJSONStatus(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 				return
 			}
 			writeJSON(w, res)
