@@ -26,6 +26,7 @@ import CaptchasScreen from './src/screens/CaptchasScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
 import ShareScreen from './src/screens/ShareScreen';
+import SubscriptionsScreen from './src/screens/SubscriptionsScreen';
 import { CaptchaWatch } from './src/components/CaptchaWatch';
 import { fetchAppearance, onRemovedFromGroup, setRainbowPalette } from './src/api/client';
 import { ConfirmDialog } from './src/components/ConfirmDialog';
@@ -46,6 +47,7 @@ type RootStackParamList = {
   Captchas: undefined;
   Settings: undefined;
   LanguagePicker: undefined;
+  Subscriptions: { conn: ServerConnection };
   // `at` tells two shares of the same text apart, so the second one is sent too.
   Share: { text: string; title?: string; at: number };
 };
@@ -420,6 +422,7 @@ function Shell() {
                   <SettingsScreen
                     onBack={() => navigation.goBack()}
                     onOpenLanguagePicker={() => navigation.navigate('LanguagePicker')}
+                    onOpenSubscriptions={(c) => navigation.navigate('Subscriptions', { conn: c })}
                     onRemovedAllConnections={() => {
                       setConn(null);
                       setStandard(null);
@@ -447,6 +450,14 @@ function Shell() {
 
               <Stack.Screen name="LanguagePicker">
                 {({ navigation }) => <LanguagePickerScreen onBack={() => navigation.goBack()} />}
+              </Stack.Screen>
+
+              {/* Opened from the settings for one saved instance, whichever is
+                  active, since the subscriptions belong to that instance. */}
+              <Stack.Screen name="Subscriptions">
+                {({ navigation, route }) => (
+                  <SubscriptionsScreen conn={route.params.conn} onBack={() => navigation.goBack()} />
+                )}
               </Stack.Screen>
             </Stack.Navigator>
           </View>

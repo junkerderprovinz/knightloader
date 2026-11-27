@@ -722,6 +722,9 @@ jobs:
       - name: Link and package properties
         run: node check-task-edit.mjs
 
+      - name: Subscriptions
+        run: node check-subscriptions.mjs
+
       - name: Files picked on the phone
         run: node check-file-intake.mjs
 
