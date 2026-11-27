@@ -266,3 +266,17 @@ func TestASubscriptionChecksWhatWasDownloadedUnlessItAllowsRepeats(t *testing.T)
 		}
 	}
 }
+
+func TestASeriesMediathekEntryStillGetsItsShowFolder(t *testing.T) {
+	a, base := newRuleApp(t, func(*settings.Settings, string) {})
+	a.SetHalted(true)
+	j := feedJob("https://host.example/folge.mp4", feed.Subscription{Naming: feed.NamingChannel, Library: feed.LibrarySeries})
+	j.FileName = "Folge 1.mp4"
+	a.stageFeedJob(j)
+
+	for _, x := range a.Tasks() {
+		if want := filepath.Join(base, "Kellerfunk"); x.Dir != want {
+			t.Errorf("a direct file of a series subscription landed in %q, want %q, since the series layout only files yt-dlp videos", x.Dir, want)
+		}
+	}
+}

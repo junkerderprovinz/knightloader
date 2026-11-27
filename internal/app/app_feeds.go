@@ -313,9 +313,11 @@ func (a *App) stageFeedJob(j feed.Job) {
 		opts TaskOptions
 		set  bool
 	)
+	// The series layout files yt-dlp videos only, and makes the show's folder
+	// itself; a direct file keeps the plain one.
+	series := sub.Library == feed.LibrarySeries && j.FileName == ""
 	dir := j.Dir
-	// The series layout makes the show's folder itself.
-	if sub.Naming == feed.NamingChannel && j.Show != "" && sub.Library != feed.LibrarySeries {
+	if sub.Naming == feed.NamingChannel && j.Show != "" && !series {
 		dir = a.showDir(dir, j.Show)
 	}
 	if dir != "" {
@@ -329,7 +331,7 @@ func (a *App) stageFeedJob(j feed.Job) {
 	if sub.SponsorBlock != nil {
 		opts.SponsorBlock, set = sub.SponsorBlock, true
 	}
-	if sub.Library == feed.LibrarySeries {
+	if series {
 		opts.Series, set = &ytdlp.Series{Show: j.Show}, true
 	}
 	if set {
