@@ -183,17 +183,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261122185237-35fdc4b88e39.mod",
+        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261125210501-5e92a7e24d0c.mod",
         "sha256": "eaeb1cec3b41e983fb874ef0730a898a708df31b4c31c3292fd5eeafba12a83d",
         "dest": "gomod/github.com/dop251/goja/@v",
-        "dest-filename": "v0.0.0-20261122185237-35fdc4b88e39.mod"
+        "dest-filename": "v0.0.0-20261125210501-5e92a7e24d0c.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261122185237-35fdc4b88e39.zip",
-        "sha256": "02f5516d4feae8a4b18959ce97aa2d05d64301baed8005340cdf43afc37f7bb9",
+        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261125210501-5e92a7e24d0c.zip",
+        "sha256": "aee2e96165bc9e9199807d4fb48980dc58825f8e144e33949baa73747c877a4d",
         "dest": "gomod/github.com/dop251/goja/@v",
-        "dest-filename": "v0.0.0-20261122185237-35fdc4b88e39.zip"
+        "dest-filename": "v0.0.0-20261125210501-5e92a7e24d0c.zip"
     },
     {
         "type": "file",
@@ -841,17 +841,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/pkg/sftp/@v/v1.13.12.mod",
+        "url": "https://proxy.golang.org/github.com/pkg/sftp/@v/v1.13.13.mod",
         "sha256": "638fc2abaa296b06fe82bf11f9d71db7969b649dc9803fe8306790248e7c3b72",
         "dest": "gomod/github.com/pkg/sftp/@v",
-        "dest-filename": "v1.13.12.mod"
+        "dest-filename": "v1.13.13.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/pkg/sftp/@v/v1.13.12.zip",
-        "sha256": "ff44bd0b698800c685fa062a8f9b02e5a74051e1cb88b1a0b12c4f0e4d0ab98a",
+        "url": "https://proxy.golang.org/github.com/pkg/sftp/@v/v1.13.13.zip",
+        "sha256": "83005cc2156ae435f0ba5b8a4125868467f6f0eab78c53e15b3ab5ee084c7fe5",
         "dest": "gomod/github.com/pkg/sftp/@v",
-        "dest-filename": "v1.13.12.zip"
+        "dest-filename": "v1.13.13.zip"
     },
     {
         "type": "file",
