@@ -294,7 +294,7 @@ func writeKey(path string, key []byte, k *appkey.Key) error {
 			return err
 		}
 	}
-	return fsretry.Replace(path, []byte(text+"\n"))
+	return fsretry.Replace(path, []byte(text+"\n"), 0o600)
 }
 
 // ReadKey is the key in KeyFile, for a backup, which carries it in the clear.

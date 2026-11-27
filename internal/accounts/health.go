@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // HealthState is where one account currently stands. Only HealthOK routes
@@ -207,5 +208,5 @@ func (t *Tracker) flushLocked() {
 	if err != nil {
 		return
 	}
-	_ = writeAtomic(t.path, b)
+	_ = fsretry.Replace(t.path, b, 0o600)
 }

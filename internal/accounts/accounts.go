@@ -21,7 +21,6 @@ import (
 	"io/fs"
 	"log"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -334,38 +333,5 @@ func (s *Store) flush() error {
 	if err != nil {
 		return err
 	}
-	return writeAtomic(s.dbPath, b)
-}
-
-// writeAtomic replaces path with data so that a crash at any point leaves the
-// old file or the new one, never a truncated mix: the bytes go to a temporary
-// file in the same folder, reach the disk, and only then take the name.
-func writeAtomic(path string, data []byte) error {
-	f, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+".*.tmp")
-	if err != nil {
-		return err
-	}
-	tmp := f.Name()
-	defer os.Remove(tmp)
-	if _, err := f.Write(data); err != nil {
-		f.Close()
-		return err
-	}
-	if err := f.Sync(); err != nil {
-		f.Close()
-		return err
-	}
-	if err := f.Close(); err != nil {
-		return err
-	}
-	if err := fsretry.Rename(tmp, path); err != nil {
-		return err
-	}
-	// The rename itself lives in the folder. Windows cannot sync a folder,
-	// and there the rename is durable without it.
-	if d, err := os.Open(filepath.Dir(path)); err == nil {
-		_ = d.Sync()
-		d.Close()
-	}
-	return nil
+	return fsretry.Replace(s.dbPath, b, 0o600)
 }

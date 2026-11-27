@@ -138,7 +138,7 @@ func (h *History) Save() error {
 	h.dirty = false
 	h.mu.Unlock()
 	if err == nil {
-		err = writeAtomic(h.path, b)
+		err = fsretry.Replace(h.path, b, 0o600)
 	}
 	if err != nil {
 		h.mu.Lock()
@@ -146,18 +146,4 @@ func (h *History) Save() error {
 		h.mu.Unlock()
 	}
 	return err
-}
-
-func writeAtomic(path string, b []byte) error { return writeFileAtomic(path, b, 0o600) }
-
-func writeFileAtomic(path string, b []byte, perm os.FileMode) error {
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, b, perm); err != nil {
-		return err
-	}
-	if err := fsretry.Rename(tmp, path); err != nil {
-		os.Remove(tmp)
-		return err
-	}
-	return nil
 }

@@ -20,6 +20,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // instanceIDFile holds the id beside settings.json, which Load never writes,
@@ -44,7 +46,7 @@ func loadInstanceID(dir string, n Settings) Settings {
 	if n.InstanceID == "" {
 		return n
 	}
-	if err := writeFileAtomic(path, []byte(n.InstanceID+"\n")); err != nil {
+	if err := fsretry.Replace(path, []byte(n.InstanceID+"\n"), 0o600); err != nil {
 		log.Printf("settings: could not keep the instance id in %s, so the next start mints another: %v", path, err)
 	}
 	return n

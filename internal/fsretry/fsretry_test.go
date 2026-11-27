@@ -42,7 +42,7 @@ func TestReplaceLeavesOnlyTheNewFile(t *testing.T) {
 	if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := Replace(path, []byte("new")); err != nil {
+	if err := Replace(path, []byte("new"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if b, err := os.ReadFile(path); err != nil || string(b) != "new" {
@@ -53,5 +53,22 @@ func TestReplaceLeavesOnlyTheNewFile(t *testing.T) {
 	}
 	if info, err := os.Stat(path); err == nil && runtime.GOOS != "windows" && info.Mode().Perm() != 0o600 {
 		t.Errorf("mode %v, want 0600", info.Mode().Perm())
+	}
+}
+
+func TestReplaceGivesTheFileTheModeAskedFor(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows has no permission bits for other users")
+	}
+	path := filepath.Join(t.TempDir(), "abcd.torrent")
+	if err := Replace(path, []byte("d4:infoe"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm()&0o044 == 0 {
+		t.Errorf("mode %v, want it readable beyond its owner", info.Mode().Perm())
 	}
 }

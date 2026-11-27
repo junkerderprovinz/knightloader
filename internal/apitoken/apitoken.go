@@ -368,7 +368,7 @@ func writeJSON(path string, v any) error {
 	if err != nil {
 		return err
 	}
-	return fsretry.Replace(path, b)
+	return fsretry.Replace(path, b, 0o600)
 }
 
 // newSecret returns a new plaintext token. The "kl_" prefix makes a leaked

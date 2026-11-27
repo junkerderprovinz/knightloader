@@ -1150,37 +1150,11 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 			return s.cur, err
 		}
 	}
-	if err := writeFileAtomic(s.path, b); err != nil {
+	if err := fsretry.Replace(s.path, b, 0o600); err != nil {
 		return s.cur, err
 	}
 	s.cur = n
 	return n, nil
-}
-
-// writeFileAtomic replaces path with b through a synced temporary file in the
-// same folder. os.WriteFile truncates first, so a crash or a power cut in the
-// middle leaves a cut-off settings file, and Load can only fall back to
-// defaults for it.
-func writeFileAtomic(path string, b []byte) error {
-	f, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
-	if err != nil {
-		return err
-	}
-	tmp := f.Name()
-	_, err = f.Write(b)
-	if err == nil {
-		err = f.Sync()
-	}
-	if cerr := f.Close(); err == nil {
-		err = cerr
-	}
-	if err == nil {
-		err = fsretry.Rename(tmp, path)
-	}
-	if err != nil {
-		os.Remove(tmp)
-	}
-	return err
 }
 
 // ApplyPatch overlays patch's top-level keys onto base's own JSON encoding

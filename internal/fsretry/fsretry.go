@@ -2,6 +2,7 @@
 package fsretry
 
 import (
+	"crypto/rand"
 	"errors"
 	"io/fs"
 	"os"
@@ -31,13 +32,13 @@ func Rename(from, to string) error {
 
 // Replace puts data at path through a synced temporary file in the same
 // folder, so a crash leaves the old file or the new one and never a cut-off
-// one. Only the owner may read the file.
-func Replace(path string, data []byte) error {
-	f, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+// one. The file gets perm less the umask, as from os.WriteFile.
+func Replace(path string, data []byte, perm fs.FileMode) error {
+	tmp := filepath.Join(filepath.Dir(path), "."+filepath.Base(path)+".tmp-"+rand.Text())
+	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
 	if err != nil {
 		return err
 	}
-	tmp := f.Name()
 	_, err = f.Write(data)
 	if err == nil {
 		err = f.Sync()

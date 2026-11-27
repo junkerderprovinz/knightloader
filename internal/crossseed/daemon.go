@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/bencode"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
@@ -55,7 +56,7 @@ func (d *Daemon) Hand(ctx context.Context, src Source) error {
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return err
 		}
-		if err := writeFileAtomic(path, src.Torrent, 0o644); err != nil {
+		if err := fsretry.Replace(path, src.Torrent, 0o644); err != nil {
 			return err
 		}
 		form.Set("infoHash", strings.ToLower(src.Hash))

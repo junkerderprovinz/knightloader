@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"slices"
 	"sync"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/member"
+
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // groupFile keeps when this instance entered its phrase group and when
@@ -109,33 +109,12 @@ func loadGroupFile(path string) (*groupFile, error) {
 	return g, nil
 }
 
-// flushLocked replaces the file through a synced temporary file in the same
-// folder, so a crash leaves the old state or the new one and never a cut-off
-// file.
 func (g *groupFile) flushLocked() error {
 	b, err := json.Marshal(g.state)
 	if err != nil {
 		return err
 	}
-	f, err := os.CreateTemp(filepath.Dir(g.path), "."+filepath.Base(g.path)+".tmp-*")
-	if err != nil {
-		return err
-	}
-	tmp := f.Name()
-	_, err = f.Write(b)
-	if err == nil {
-		err = f.Sync()
-	}
-	if cerr := f.Close(); err == nil {
-		err = cerr
-	}
-	if err == nil {
-		err = fsretry.Rename(tmp, g.path)
-	}
-	if err != nil {
-		os.Remove(tmp)
-	}
-	return err
+	return fsretry.Replace(g.path, b, 0o600)
 }
 
 // SetJoined records that this instance entered a group at at, or left its

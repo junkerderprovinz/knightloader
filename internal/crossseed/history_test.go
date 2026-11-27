@@ -1,6 +1,7 @@
 package crossseed
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -74,5 +75,35 @@ func TestATorrentForgottenIsAskedAgainOnEveryTracker(t *testing.T) {
 	}
 	if !h.Asked("OPS", "cc") {
 		t.Error("another torrent was forgotten with it")
+	}
+}
+
+// A hard link to the old file is the witness: a save that rewrote the file in
+// place, and so could be cut off half way, would change what it reads.
+func TestASaveReplacesTheHistoryInsteadOfRewritingIt(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "cross-seed-asked.json")
+	h := OpenHistory(path)
+	h.Note("RED", "aa", Answer{Result: ResultNone})
+	if err := h.Save(); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	witness := filepath.Join(dir, "witness")
+	if err := os.Link(path, witness); err != nil {
+		t.Skipf("no hard links here: %v", err)
+	}
+	h.Note("OPS", "aa", Answer{Result: ResultInjected, InfoHash: "bb"})
+	if err := h.Save(); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := os.ReadFile(witness); string(got) != string(before) {
+		t.Error("the save rewrote the history in place")
+	}
+	if leftovers, _ := filepath.Glob(filepath.Join(dir, "*.tmp*")); len(leftovers) != 0 {
+		t.Errorf("temporary files left behind: %v", leftovers)
 	}
 }

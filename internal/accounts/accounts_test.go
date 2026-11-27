@@ -260,7 +260,7 @@ func TestASaveReplacesTheFileInsteadOfRewritingIt(t *testing.T) {
 	if got, _ := os.ReadFile(witness); string(got) != string(before) {
 		t.Error("the save rewrote accounts.json in place")
 	}
-	leftovers, _ := filepath.Glob(filepath.Join(dir, "accounts.json.*.tmp"))
+	leftovers, _ := filepath.Glob(filepath.Join(dir, "*.tmp*"))
 	if len(leftovers) != 0 {
 		t.Errorf("temporary files left behind: %v", leftovers)
 	}

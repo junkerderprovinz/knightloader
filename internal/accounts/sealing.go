@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // KeyringName is the file the credential key lives in, beside accounts.json.
@@ -55,5 +56,5 @@ func (s *Store) writeKeyring(k []byte) error {
 	if err != nil {
 		return err
 	}
-	return writeAtomic(s.keyPath, []byte(sealed+"\n"))
+	return fsretry.Replace(s.keyPath, []byte(sealed+"\n"), 0o600)
 }

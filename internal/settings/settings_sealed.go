@@ -12,6 +12,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 )
 
@@ -58,7 +59,7 @@ func LoadWithKey(dir string, key *appkey.Key) (*Store, error) {
 	if unsealed || stale || migrated {
 		b, err := s.encode(s.cur)
 		if err == nil {
-			err = writeFileAtomic(s.path, b)
+			err = fsretry.Replace(s.path, b, 0o600)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("writing %s: %w", s.path, err)
