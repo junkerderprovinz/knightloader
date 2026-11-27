@@ -6,7 +6,8 @@ import * as Clipboard from 'expo-clipboard';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { languageOf } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
-import { removeAllConnections } from '../storage/connections';
+import { listConnections, removeAllConnections } from '../storage/connections';
+import type { ServerConnection } from '../api/types';
 import { chosenDeviceName, modelName, setDeviceName } from '../api/deviceName';
 import { ownFingerprint } from '../storage/relayIdentity';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -71,6 +72,7 @@ import ColorPicker from '../components/ColorPicker';
 import { Text, TextInput } from '../components/Text';
 import { MovingScroll } from '../components/Moving';
 import { NotificationsCard } from '../components/NotificationsCard';
+import { SubscriptionsCard } from '../components/SubscriptionsCard';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
@@ -175,9 +177,11 @@ export default function SettingsScreen({
   onRemovedAllConnections,
   onRefreshAppearance,
   onSetPalette,
+  onOpenSubscriptions,
 }: {
   onBack: () => void;
   onOpenLanguagePicker: () => void;
+  onOpenSubscriptions: (conn: ServerConnection) => void;
   onRemovedAllConnections: () => void;
   onRefreshAppearance?: () => void;
   /** Write the rainbow palette back to the connected instance. Absent when
@@ -379,9 +383,11 @@ export default function SettingsScreen({
   // useFocusEffect rather than a mount-only effect: this screen stays mounted
   // underneath LanguagePickerScreen, so coming back from it with a changed
   // override needs a re-read on every return.
+  const [connections, setConnections] = useState<ServerConnection[]>([]);
   useFocusEffect(
     useCallback(() => {
       getLanguageOverride().then(setOverride);
+      void listConnections().then(setConnections);
     }, [])
   );
 
@@ -829,6 +835,8 @@ export default function SettingsScreen({
 
       {/* Position 9 is the next free one, so no other card changes colour. */}
       <NotificationsCard hue={9} />
+
+      <SubscriptionsCard hue={11} connections={connections} onOpen={onOpenSubscriptions} />
 
       {/* The other ways to run KnightLoader, as the web interface's Apps page
           offers them, under its card names and hints and in the README's
