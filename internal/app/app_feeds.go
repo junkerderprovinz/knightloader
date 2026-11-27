@@ -161,7 +161,7 @@ var feedTestClient = httpx.New(httpx.Options{})
 // InspectFeed fetches one feed once and reports what it carries, staging
 // nothing and marking nothing as seen. It never touches the live runner.
 func (a *App) InspectFeed(ctx context.Context, s feed.Subscription) (feed.Preview, error) {
-	return feed.Inspect(ctx, feedTestClient, s)
+	return feed.Inspect(ctx, feed.Sources{HTTP: feedTestClient}, s)
 }
 
 // onFeedEntry stages one new entry on its own goroutine, so the subscription's

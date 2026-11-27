@@ -8,10 +8,8 @@ package feed
 
 import (
 	"context"
-	"net/http"
-	"strings"
-
-	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"sync"
+	"time"
 )
 
 // maxPreview is how many entries one preview lists. The counts in Preview
@@ -29,8 +27,9 @@ type Preview struct {
 	// Total is how many entries the document carried, capped by maxItems as
 	// in a poll.
 	Total int `json:"total"`
-	// Matched is how many of those the title filter takes; with no filter it
-	// equals Total.
+	// Matched is how many of those the subscription takes; with no filter it
+	// equals Total. A length only a probe could tell is probed for the listed
+	// entries alone, so beyond them an unknown length counts as taken.
 	Matched int `json:"matched"`
 }
 
@@ -41,39 +40,67 @@ type PreviewEntry struct {
 	Title string `json:"title"`
 	// Link is what would be staged, the enclosure where there is one.
 	Link string `json:"link"`
-	// Matches says whether the title filter takes this entry.
+	// Matches says whether the subscription takes this entry.
 	Matches bool `json:"matches"`
+	// Duration is the entry's length in seconds, 0 when unknown.
+	Duration int `json:"duration"`
+	// Reason is why the entry is not taken, absent when it is.
+	Reason Reason `json:"reason,omitempty"`
 }
 
-// Inspect fetches one feed once and reports what it carries, without staging
-// anything or recording anything as seen. The subscription is validated
-// first, so a non-http address is never fetched and a broken pattern is
-// reported rather than ignored. A nil hc means the shared httpx policy.
-func Inspect(ctx context.Context, hc *http.Client, s Subscription) (Preview, error) {
+// previewWindow is how many videos a test lists of a channel; a full listing
+// would make the button wait on dozens of page requests.
+const previewWindow = 30
+
+// previewProbes is how many length probes a test runs side by side.
+const previewProbes = 4
+
+// Inspect fetches one subscription once and reports what it carries, without
+// staging anything or recording anything as seen. The subscription is
+// validated first, so a non-http address is never fetched and a broken
+// pattern is reported rather than ignored.
+func Inspect(ctx context.Context, src Sources, s Subscription) (Preview, error) {
 	if err := s.Validate(); err != nil {
 		return Preview{}, err
 	}
-	if hc == nil {
-		hc = httpx.New(httpx.Options{})
-	}
-	f, err := fetch(ctx, hc, strings.TrimSpace(s.URL))
+	src = src.withDefaults()
+	f, err := src.read(ctx, s, ListQuery{Limit: previewWindow})
 	if err != nil {
 		return Preview{}, err
 	}
 
-	filt := s.filter()
+	m := s.matcher()
 	out := Preview{
 		Title:   f.Title,
 		Entries: make([]PreviewEntry, 0, min(len(f.Items), maxPreview)),
 		Total:   len(f.Items),
 	}
-	for _, it := range f.Items {
-		ok := s.wants(filt, it.Title)
-		if ok {
-			out.Matched++
+	listed := f.Items[:min(len(f.Items), maxPreview)]
+	judged := make([]Reason, len(listed))
+	var wg sync.WaitGroup
+	slots := make(chan struct{}, previewProbes)
+	for i := range listed {
+		wg.Add(1)
+		slots <- struct{}{}
+		go func() {
+			defer func() { <-slots; wg.Done() }()
+			listed[i], judged[i] = m.judge(ctx, src.Prober, listed[i])
+		}()
+	}
+	wg.Wait()
+	for i, it := range f.Items {
+		var why Reason
+		if i < len(listed) {
+			it, why = listed[i], judged[i]
+			out.Entries = append(out.Entries, PreviewEntry{
+				Title: it.Title, Link: it.Link, Matches: why == "",
+				Duration: int(it.Duration / time.Second), Reason: why,
+			})
+		} else if why = m.byTitle(it.Title); why == "" {
+			why = m.byLength(it.Duration)
 		}
-		if len(out.Entries) < maxPreview {
-			out.Entries = append(out.Entries, PreviewEntry{Title: it.Title, Link: it.Link, Matches: ok})
+		if why == "" {
+			out.Matched++
 		}
 	}
 	return out, nil

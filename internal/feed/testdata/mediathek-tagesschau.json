@@ -1,0 +1,63 @@
+{
+ "result": {
+  "results": [
+   {
+    "channel": "ARD",
+    "topic": "tagesschau",
+    "title": "tagesschau 20:00 Uhr, 26.11.2026",
+    "description": "Einigung im Tarifstreit der Metall- und Elektroindustrie, St",
+    "timestamp": 1795719600,
+    "duration": 949,
+    "size": 226492416,
+    "url_website": "https://www.ardmediathek.de/video/Y3JpZDovL3RhZ2Vzc2NoYXUuZGUvMWVmNGIzNDUtYmZjMS00NTJhLWFjNTQtNDhiZTk4YjEyMzExLVNFTkRVTkdTVklERU8",
+    "url_subtitle": "https://api.ardmediathek.de/player-service/subtitle/ebutt/urn:ard:subtitle:a65360b2701c1868",
+    "url_video": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1126/TV-20261126-2023-0200.webxl.h264.mp4",
+    "url_video_low": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1126/TV-20261126-2023-0200.webm.h264.mp4",
+    "url_video_hd": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1126/TV-20261126-2023-0200.webxxl.h264.mp4",
+    "filmlisteTimestamp": 1795723920,
+    "id": "Vnl44Ut069YIo+pThvBomg641WNgGUTqz7ciyV2hrsc="
+   },
+   {
+    "channel": "ARD",
+    "topic": "tagesschau",
+    "title": "tagesschau 17:00 Uhr, 26.11.2026",
+    "description": "Bundeskanzler Merz will bei Haushaltsberatungen in Brüssel a",
+    "timestamp": 1795708800,
+    "duration": 1084,
+    "size": 260046848,
+    "url_website": "https://www.ardmediathek.de/video/Y3JpZDovL3RhZ2Vzc2NoYXUuZGUvYzY1ZWFkMGMtNDQ1NC00OTVhLWJiZDktMmY5NjY0ZWZkMDM1X2dhbnplU2VuZHVuZw",
+    "url_subtitle": "",
+    "url_video": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1126/TV-20261126-1726-2900.webxl.h264.mp4",
+    "url_video_low": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1126/TV-20261126-1726-2900.webm.h264.mp4",
+    "url_video_hd": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1126/TV-20261126-1726-2900.webxxl.h264.mp4",
+    "filmlisteTimestamp": 1795727460,
+    "id": "IPzXhmi+JkIChP45lygNlg27B4UwLF9YPKfGruF0Yo0="
+   },
+   {
+    "channel": "ARD",
+    "topic": "tagesschau",
+    "title": "tagesschau 20:00 Uhr, 25.11.2026",
+    "description": "Bundeskanzler Merz verteidigt in Generaldebatte im Bundestag",
+    "timestamp": 1795633200,
+    "duration": 967,
+    "size": 225443840,
+    "url_website": "https://www.ardmediathek.de/video/Y3JpZDovL3RhZ2Vzc2NoYXUuZGUvMDkxMDBmNmYtYWEzMC00ZTdiLWI0NTktNDBjMWVmODI0ZDgwLVNFTkRVTkdTVklERU8",
+    "url_subtitle": "https://api.ardmediathek.de/player-service/subtitle/ebutt/urn:ard:subtitle:e6f2d2144a09eb6f",
+    "url_video": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1125/TV-20261125-2022-3300.webxl.h264.mp4",
+    "url_video_low": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1125/TV-20261125-2022-3300.webm.h264.mp4",
+    "url_video_hd": "https://tagesschau-progressive.ard-mcdn.de/video/2026/1125/TV-20261125-2022-3300.webxxl.h264.mp4",
+    "filmlisteTimestamp": 1795637460,
+    "id": "x+BFBvGABrJ7lkDKuivKlSpQPqqi/uN7hdJrQs7ma+0="
+   }
+  ],
+  "queryInfo": {
+   "filmlisteTimestamp": 1795731060,
+   "searchEngineTime": "4.46",
+   "resultCount": 3,
+   "totalResults": 2544,
+   "totalRelation": "eq",
+   "totalEntries": 717325
+  }
+ },
+ "err": null
+}

@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,9 +41,17 @@ type Item struct {
 	// GUID is the feed's own identifier for the entry (RSS guid, Atom id), or
 	// empty. See Key.
 	GUID string
-	// Published is when the feed says the entry appeared, or zero. It is only
-	// logged.
+	// Published is when the feed says the entry appeared, or zero. A
+	// channel backfill by days goes by it; otherwise it is only logged.
 	Published time.Time
+	// Duration is the entry's length as its source announces it, zero when
+	// it does not.
+	Duration time.Duration
+	// Subtitle is a subtitle file to stage beside the entry, empty for none.
+	Subtitle string
+	// FileName is the name the entry's file is saved under, empty to leave
+	// it to the download. A Mediathek file would otherwise keep its CDN name.
+	FileName string
 }
 
 // Feed is one parsed document.
@@ -121,6 +131,7 @@ func Parse(base string, r io.Reader) (Feed, error) {
 			Link:      link,
 			GUID:      text(e.guid()),
 			Published: e.published(),
+			Duration:  e.duration(),
 		})
 	}
 	return out, nil
@@ -160,6 +171,25 @@ type entry struct {
 	PubDate   string `xml:"pubDate"`
 	Published string `xml:"published"`
 	Updated   string `xml:"updated"`
+
+	// Lengths, wherever the feed's dialect puts them. The local name
+	// "duration" is itunes:duration; media:content is spelled with its
+	// namespace because Atom has a <content> of its own.
+	Duration string         `xml:"duration"`
+	Media    []mediaContent `xml:"http://search.yahoo.com/mrss/ content"`
+	Group    mediaGroup     `xml:"http://search.yahoo.com/mrss/ group"`
+}
+
+type mediaContent struct {
+	Duration string `xml:"duration,attr"`
+}
+
+type mediaGroup struct {
+	Media []mediaContent `xml:"http://search.yahoo.com/mrss/ content"`
+	// YT is yt:duration, whose length is an attribute.
+	YT struct {
+		Seconds string `xml:"seconds,attr"`
+	} `xml:"duration"`
 }
 
 type link struct {
@@ -218,6 +248,43 @@ func (e entry) published() time.Time {
 		}
 	}
 	return time.Time{}
+}
+
+// duration is the first length the entry announces anywhere.
+func (e entry) duration() time.Duration {
+	raw := []string{e.Duration}
+	for _, m := range slices.Concat(e.Media, e.Group.Media) {
+		raw = append(raw, m.Duration)
+	}
+	raw = append(raw, e.Group.YT.Seconds)
+	for _, r := range raw {
+		if d := parseDuration(r); d > 0 {
+			return d
+		}
+	}
+	return 0
+}
+
+// parseDuration reads seconds ("3600", "61.5") or a clock ("45:10",
+// "1:02:03"), and zero for anything else.
+func parseDuration(raw string) time.Duration {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return 0
+	}
+	parts := strings.Split(raw, ":")
+	if len(parts) > 3 {
+		return 0
+	}
+	var total float64
+	for _, p := range parts {
+		n, err := strconv.ParseFloat(p, 64)
+		if err != nil || n < 0 {
+			return 0
+		}
+		total = total*60 + n
+	}
+	return time.Duration(total * float64(time.Second))
 }
 
 // timeLayouts are the date spellings feeds use. RFC 822 and RFC 3339 are often
