@@ -4638,4 +4638,7 @@ export const fi: Dict = {
   'signin.arrived.signInFirst': 'Kirjaudu ensin sisään.',
   'signin.arrived.testOk': 'Testikirjautuminen onnistui, ja palvelu on kirjautumissivulla.',
   'signin.arrived.throttled': 'Liian monta yritystä. Odota minuutti ja yritä sitten uudelleen.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

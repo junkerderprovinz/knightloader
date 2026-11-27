@@ -4636,4 +4636,7 @@ export const sl: Dict = {
   'signin.arrived.signInFirst': 'Najprej se prijavite.',
   'signin.arrived.testOk': 'Preizkusna prijava je uspela in storitev je na strani za prijavo.',
   'signin.arrived.throttled': 'Preveč poskusov. Počakajte minuto in poskusite znova.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

@@ -4633,4 +4633,7 @@ export const eu: Dict = {
   'signin.arrived.signInFirst': 'Hasi saioa lehenik, mesedez.',
   'signin.arrived.testOk': 'Proba-saio-hasiera ondo atera da, eta zerbitzua saio-hasierako orrian dago.',
   'signin.arrived.throttled': 'Saiakera gehiegi. Itxaron minutu bat eta saiatu berriro.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

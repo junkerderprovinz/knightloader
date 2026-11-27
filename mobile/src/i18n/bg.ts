@@ -707,4 +707,7 @@ export const bg: Dict = {
   'settings.help': 'Помощ',
   'versionCard.anyStore': 'Обновленията идват през магазина, от който имаш приложението.',
   'versionCard.direct': 'Новите версии се изтеглят от страницата с изданията.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

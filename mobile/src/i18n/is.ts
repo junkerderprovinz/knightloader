@@ -708,4 +708,7 @@ export const is: Dict = {
   'settings.help': 'Hjálp',
   'versionCard.anyStore': 'Uppfærslur berast í gegnum verslunina sem þú fékkst appið úr.',
   'versionCard.direct': 'Nýjar útgáfur eru sóttar á útgáfusíðunni.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

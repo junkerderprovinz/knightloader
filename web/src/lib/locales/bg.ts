@@ -4638,4 +4638,7 @@ export const bg: Dict = {
   'signin.arrived.signInFirst': 'Първо влезте.',
   'signin.arrived.testOk': 'Пробният вход успя и услугата е на страницата за вход.',
   'signin.arrived.throttled': 'Твърде много опити. Изчакайте минута и опитайте отново.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

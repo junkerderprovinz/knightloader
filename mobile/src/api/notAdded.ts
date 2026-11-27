@@ -19,6 +19,8 @@ export type Held = Task & {
   skipParams?: Record<string, string>;
   matchedRules?: string[];
   origin?: string;
+  /** The row's place in a yt-dlp family, as "video" or "thumbnail". */
+  variant?: string;
 };
 
 /** One entry of GET /api/collector/skipped, internal/app.SkippedLink. */
@@ -62,9 +64,15 @@ export function heldReason(t: Translate, h: Held): string {
   let why = h.skipReason ?? '';
   if (key) {
     const p = h.skipParams ?? {};
-    why = t(key, p.finished ? { ...p, finished: when(p.finished) } : p);
+    const wording = h.skipCode === 'downloaded' && p.folder ? 'collector.filtered.reason.downloadedIn' : key;
+    why = t(wording, p.finished ? { ...p, finished: when(p.finished) } : p);
   }
   return `${by}: ${why}`;
+}
+
+/** What setting a rejected link free is called: for one already downloaded, getting it again. */
+export function restoreWord(h: Held): TranslationKey {
+  return h.skipCode === 'downloaded' ? 'collector.filtered.downloadAnyway' : 'collector.filtered.restore';
 }
 
 const ORIGIN: Record<string, TranslationKey> = {
@@ -74,6 +82,7 @@ const ORIGIN: Record<string, TranslationKey> = {
   watch: 'collector.filtered.origin.watch',
   container: 'collector.filtered.origin.container',
   jdownloader: 'collector.filtered.origin.jdownloader',
+  feed: 'collector.filtered.origin.feed',
 };
 
 /** Where a link came from, or the instance's own word for a source this build does not know. */
@@ -130,7 +139,25 @@ export function skippedReason(t: Translate, s: SkippedLink): string {
   return kind ? t(kind, { detail: s.reason }) : s.reason;
 }
 
-/** The links the filter, the ban or the history holds, oldest first. */
+/**
+ * The links the filter, the ban or the history holds, oldest first. A video
+ * is held with its whole family, and listed once by its video row: the
+ * instance restores or clears the family from any one of them.
+ */
 export function heldOf(tasks: Task[]): Held[] {
-  return (tasks as Held[]).filter((x) => x.skipped).sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+  const family = new Map<string, Held>();
+  const out: Held[] = [];
+  for (const x of tasks as Held[]) {
+    if (!x.skipped) continue;
+    if (!x.variant) {
+      out.push(x);
+      continue;
+    }
+    // A space, which no link carries.
+    const k = `${x.url} ${x.createdAt}`;
+    const kept = family.get(k);
+    if (!kept || (x.variant.startsWith('video') && !kept.variant?.startsWith('video'))) family.set(k, x);
+  }
+  out.push(...family.values());
+  return out.sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
 }

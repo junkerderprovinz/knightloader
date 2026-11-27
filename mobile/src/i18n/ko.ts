@@ -695,4 +695,7 @@ export const ko: Dict = {
   'settings.help': '도움말',
   'versionCard.anyStore': '업데이트는 앱을 받은 스토어에서 받습니다.',
   'versionCard.direct': '새 버전은 릴리스 페이지에서 다운로드할 수 있습니다.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

@@ -34,7 +34,7 @@ const {
   offeredFilters,
   parseSearch,
 } = await load('api', 'narrowing.ts');
-const { heldOf, heldReason, originWord, skippedReason } = await load('api', 'notAdded.ts');
+const { heldOf, heldReason, originWord, restoreWord, skippedReason } = await load('api', 'notAdded.ts');
 const { amountIn, bytesOf, countOf, stepCount, unitFor } = await load('components', 'limitForm.ts');
 
 const problems = [];
@@ -174,7 +174,30 @@ expect('the collector filters are the web list', COLLECTOR_FILTERS, listOf('COLL
   expect('an unknown code keeps the English', heldReason(t, newer), 'r1, r2: English words');
   expect('held links oldest first, staged ones left out', heldOf([newer, task(), hist]).map((x) => x.id), ['h', 'n']);
   expect('a known origin is worded', originWord(t, 'cnl'), 'collector.filtered.origin.cnl');
-  expect('an unknown origin stays as sent', originWord(t, 'feed'), 'feed');
+  expect('a subscription is worded', originWord(t, 'feed'), 'collector.filtered.origin.feed');
+  expect('an unknown origin stays as sent', originWord(t, 'somewhere'), 'somewhere');
+  const repeat = (id, variant) =>
+    task({
+      id,
+      url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PL1',
+      variant,
+      skipped: true,
+      skipCode: 'downloaded',
+      skipParams: { name: 'clip.mp4', finished: 'not a date', folder: '/media/Rick' },
+      createdAt: '2026-11-01T08:00:00Z',
+    });
+  expect(
+    'a repeat names the folder it was saved in',
+    heldReason(t, repeat('v')),
+    'collector.filtered.byHistory: collector.filtered.reason.downloadedIn{"name":"clip.mp4","finished":"not a date","folder":"/media/Rick"}',
+  );
+  expect('a repeat is downloaded anyway', restoreWord(repeat('v')), 'collector.filtered.downloadAnyway');
+  expect('a rule hold is restored', restoreWord(rule), 'collector.filtered.restore');
+  expect(
+    'a held video is listed once for its family, by its video row',
+    heldOf([repeat('t', 'thumbnail'), repeat('v', 'video'), repeat('a', 'audio'), hist]).map((x) => x.id),
+    ['h', 'v'],
+  );
   expect(
     'a folded duplicate names what recognised it',
     skippedReason(t, { url: 'u', kind: 'duplicate', reason: 'r', code: 'sameFile', params: { name: 'n', signal: 'name+size', by: 'filter' }, at: '' }),

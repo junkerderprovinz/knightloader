@@ -690,4 +690,7 @@ export const zh: Dict = {
   'settings.help': '帮助',
   'versionCard.anyStore': '更新通过你获取此应用的商店提供。',
   'versionCard.direct': '新版本可在发布页面下载。',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

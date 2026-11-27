@@ -4634,4 +4634,7 @@ export const gl: Dict = {
   'signin.arrived.signInFirst': 'Inicia sesión primeiro, por favor.',
   'signin.arrived.testOk': 'O inicio de sesión de proba funcionou e o servizo está na páxina de inicio de sesión.',
   'signin.arrived.throttled': 'Demasiados intentos. Agarda un minuto e téntao de novo.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

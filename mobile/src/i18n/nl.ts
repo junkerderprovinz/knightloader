@@ -709,4 +709,7 @@ export const nl: Dict = {
   'settings.help': 'Hulp',
   'versionCard.anyStore': 'Updates komen via de store waar je de app vandaan hebt.',
   'versionCard.direct': 'Nieuwe versies download je op de releasepagina.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

@@ -42,12 +42,13 @@ export function FilteredLinks({ held }: { held: Task[] }) {
 
   if (!held.length) return null;
 
-  const newest = [...held].reverse();
+  const shown = onePerFamily(held);
+  const newest = [...shown].reverse();
 
   return (
     <Notice
       id="filtered"
-      title={t('collector.filtered.heldSummary', { n: held.length })}
+      title={t('collector.filtered.heldSummary', { n: shown.length })}
       info={t('collector.filtered.heldInfo')}
       actions={
         <>
@@ -69,13 +70,33 @@ export function FilteredLinks({ held }: { held: Task[] }) {
           at={fmtDate(h.createdAt)}
           action={
             <Button kind="secondary" icon={<IconRestore />} disabled={busy} onClick={() => restore([h.id])}>
-              {t('collector.filtered.restore')}
+              {t(h.skipCode === 'downloaded' ? 'collector.filtered.downloadAnyway' : 'collector.filtered.restore')}
             </Button>
           }
         />
       ))}
     </Notice>
   );
+}
+
+// onePerFamily keeps one row of each held yt-dlp family, its video row where
+// there is one. The server holds a video with every row of its family and
+// restores or clears them all from any one, so listing each would show the
+// same video up to five times.
+function onePerFamily(held: Task[]): Task[] {
+  const family = new Map<string, Task>();
+  const out: Task[] = [];
+  for (const h of held) {
+    if (!h.variant) {
+      out.push(h);
+      continue;
+    }
+    // A space, which no link carries.
+    const k = `${h.url} ${h.createdAt}`;
+    const kept = family.get(k);
+    if (!kept || (h.variant.startsWith('video') && !kept.variant?.startsWith('video'))) family.set(k, h);
+  }
+  return [...out, ...family.values()].sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
 }
 
 // heldBy names what caught the link: the download history, or the filter rule.

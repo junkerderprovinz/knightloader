@@ -4626,4 +4626,7 @@ export const fr: Dict = {
   'signin.arrived.signInFirst': "Veuillez d'abord vous connecter.",
   'signin.arrived.testOk': 'La connexion de test a réussi, et le service est sur la page de connexion.',
   'signin.arrived.throttled': 'Trop de tentatives. Attendez une minute, puis réessayez.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

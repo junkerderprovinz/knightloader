@@ -710,4 +710,7 @@ export const el: Dict = {
   'settings.help': 'Βοήθεια',
   'versionCard.anyStore': 'Οι ενημερώσεις έρχονται από το κατάστημα από όπου πήρες την εφαρμογή.',
   'versionCard.direct': 'Οι νέες εκδόσεις διατίθενται για λήψη στη σελίδα εκδόσεων.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

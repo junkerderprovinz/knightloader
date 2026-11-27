@@ -4638,4 +4638,7 @@ export const hi: Dict = {
   'signin.arrived.signInFirst': 'कृपया पहले साइन इन करें।',
   'signin.arrived.testOk': 'परीक्षण साइन इन सफल रहा, और सेवा साइन इन पेज पर है।',
   'signin.arrived.throttled': 'बहुत ज़्यादा कोशिशें। एक मिनट रुकें, फिर दोबारा कोशिश करें।',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

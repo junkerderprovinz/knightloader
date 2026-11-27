@@ -708,4 +708,7 @@ export const ro: Dict = {
   'settings.help': 'Ajutor',
   'versionCard.anyStore': 'Actualizările vin prin magazinul din care ai aplicația.',
   'versionCard.direct': 'Versiunile noi se descarcă de pe pagina de lansări.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

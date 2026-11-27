@@ -707,4 +707,7 @@ export const fi: Dict = {
   'settings.help': 'Ohje',
   'versionCard.anyStore': 'Päivitykset tulevat kaupasta, josta sait sovelluksen.',
   'versionCard.direct': 'Uudet versiot ladataan julkaisusivulta.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

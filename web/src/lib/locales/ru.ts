@@ -4617,4 +4617,7 @@ export const ru: Dict = {
   'signin.arrived.signInFirst': 'Сначала войдите.',
   'signin.arrived.testOk': 'Пробный вход получился, и служба есть на странице входа.',
   'signin.arrived.throttled': 'Слишком много попыток. Подождите минуту и попробуйте снова.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

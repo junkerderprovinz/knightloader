@@ -707,4 +707,7 @@ export const et: Dict = {
   'settings.help': 'Abi',
   'versionCard.anyStore': 'Uuendused tulevad poe kaudu, kust rakenduse said.',
   'versionCard.direct': 'Uued versioonid saab alla laadida väljalasete lehelt.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

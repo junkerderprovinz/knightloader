@@ -707,4 +707,7 @@ export const vi: Dict = {
   'settings.help': 'Trợ giúp',
   'versionCard.anyStore': 'Bản cập nhật đến qua cửa hàng nơi bạn tải ứng dụng.',
   'versionCard.direct': 'Phiên bản mới có trên trang phát hành để tải xuống.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

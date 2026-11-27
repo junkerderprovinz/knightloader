@@ -4654,4 +4654,7 @@ export const he: Dict = {
   'signin.arrived.signInFirst': 'יש להתחבר קודם.',
   'signin.arrived.testOk': 'התחברות הניסיון הצליחה, והשירות נמצא בדף ההתחברות.',
   'signin.arrived.throttled': 'יותר מדי ניסיונות. המתן דקה ונסה שוב.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

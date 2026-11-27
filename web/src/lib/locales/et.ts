@@ -4628,4 +4628,7 @@ export const et: Dict = {
   'signin.arrived.signInFirst': 'Logi kõigepealt sisse.',
   'signin.arrived.testOk': 'Testsisselogimine õnnestus ja teenus on sisselogimislehel.',
   'signin.arrived.throttled': 'Liiga palju katseid. Oota minut ja proovi siis uuesti.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

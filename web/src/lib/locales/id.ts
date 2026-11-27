@@ -4637,4 +4637,7 @@ export const id: Dict = {
   'signin.arrived.signInFirst': 'Silakan masuk dulu.',
   'signin.arrived.testOk': 'Masuk percobaan berhasil, dan layanan ada di halaman masuk.',
   'signin.arrived.throttled': 'Terlalu banyak percobaan. Tunggu satu menit, lalu coba lagi.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

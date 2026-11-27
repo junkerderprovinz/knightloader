@@ -706,4 +706,7 @@ export const sk: Dict = {
   'settings.help': 'Pomocník',
   'versionCard.anyStore': 'Aktualizácie prichádzajú cez obchod, z ktorého máš aplikáciu.',
   'versionCard.direct': 'Nové verzie sú na stiahnutie na stránke vydaní.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

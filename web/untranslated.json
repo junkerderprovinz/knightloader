@@ -30,7 +30,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "bg": [
       "skipped.reason.sameLink",
@@ -61,7 +64,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ca": [
       "skipped.reason.sameLink",
@@ -92,7 +98,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "cs": [
       "skipped.reason.sameLink",
@@ -123,7 +132,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "da": [
       "skipped.reason.sameLink",
@@ -154,7 +166,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "el": [
       "skipped.reason.sameLink",
@@ -185,7 +200,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "es": [
       "skipped.reason.sameLink",
@@ -216,7 +234,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "et": [
       "skipped.reason.sameLink",
@@ -247,7 +268,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "eu": [
       "skipped.reason.sameLink",
@@ -278,7 +302,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "fa": [
       "skipped.reason.sameLink",
@@ -309,7 +336,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "fi": [
       "skipped.reason.sameLink",
@@ -340,7 +370,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "fr": [
       "skipped.reason.sameLink",
@@ -371,7 +404,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "gl": [
       "skipped.reason.sameLink",
@@ -402,7 +438,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "he": [
       "skipped.reason.sameLink",
@@ -433,7 +472,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "hi": [
       "skipped.reason.sameLink",
@@ -464,7 +506,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "hr": [
       "skipped.reason.sameLink",
@@ -495,7 +540,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "hu": [
       "skipped.reason.sameLink",
@@ -526,7 +574,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "id": [
       "skipped.reason.sameLink",
@@ -557,7 +608,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "is": [
       "skipped.reason.sameLink",
@@ -588,7 +642,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "it": [
       "skipped.reason.sameLink",
@@ -619,7 +676,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ja": [
       "skipped.reason.sameLink",
@@ -650,7 +710,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ko": [
       "skipped.reason.sameLink",
@@ -681,7 +744,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "lt": [
       "skipped.reason.sameLink",
@@ -712,7 +778,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "lv": [
       "skipped.reason.sameLink",
@@ -743,7 +812,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ms": [
       "skipped.reason.sameLink",
@@ -774,7 +846,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "nl": [
       "skipped.reason.sameLink",
@@ -805,7 +880,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "no": [
       "skipped.reason.sameLink",
@@ -836,7 +914,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "pl": [
       "skipped.reason.sameLink",
@@ -867,7 +948,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "pt": [
       "skipped.reason.sameLink",
@@ -898,7 +982,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ro": [
       "skipped.reason.sameLink",
@@ -929,7 +1016,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "ru": [
       "skipped.reason.sameLink",
@@ -960,7 +1050,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sk": [
       "skipped.reason.sameLink",
@@ -991,7 +1084,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sl": [
       "skipped.reason.sameLink",
@@ -1022,7 +1118,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sr": [
       "skipped.reason.sameLink",
@@ -1053,7 +1152,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "sv": [
       "skipped.reason.sameLink",
@@ -1084,7 +1186,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "th": [
       "skipped.reason.sameLink",
@@ -1115,7 +1220,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "tr": [
       "skipped.reason.sameLink",
@@ -1146,7 +1254,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "uk": [
       "skipped.reason.sameLink",
@@ -1177,7 +1288,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "vi": [
       "skipped.reason.sameLink",
@@ -1208,7 +1322,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ],
     "zh": [
       "skipped.reason.sameLink",
@@ -1239,7 +1356,10 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "collector.filtered.reason.downloadedIn",
+      "collector.filtered.downloadAnyway",
+      "collector.filtered.origin.feed"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

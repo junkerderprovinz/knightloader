@@ -4637,4 +4637,7 @@ export const vi: Dict = {
   'signin.arrived.signInFirst': 'Bạn đăng nhập trước nhé.',
   'signin.arrived.testOk': 'Đăng nhập thử đã thành công, và dịch vụ có trên trang đăng nhập.',
   'signin.arrived.throttled': 'Quá nhiều lần thử. Đợi một phút rồi thử lại.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

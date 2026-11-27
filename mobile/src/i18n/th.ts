@@ -702,4 +702,7 @@ export const th: Dict = {
   'settings.help': 'วิธีใช้',
   'versionCard.anyStore': 'อัปเดตมาจากสโตร์ที่คุณติดตั้งแอปนี้',
   'versionCard.direct': 'เวอร์ชันใหม่ดาวน์โหลดได้ที่หน้ารีลีส',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

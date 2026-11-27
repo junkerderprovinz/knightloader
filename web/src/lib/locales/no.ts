@@ -4640,4 +4640,7 @@ export const no: Dict = {
   'signin.arrived.signInFirst': 'Logg inn først.',
   'signin.arrived.testOk': 'Testinnloggingen fungerte, og tjenesten står på innloggingssiden.',
   'signin.arrived.throttled': 'For mange forsøk. Vent et minutt, og prøv så igjen.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

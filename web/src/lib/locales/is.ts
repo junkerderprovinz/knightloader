@@ -4633,4 +4633,7 @@ export const is: Dict = {
   'signin.arrived.signInFirst': 'Skráðu þig fyrst inn.',
   'signin.arrived.testOk': 'Prófunarinnskráningin tókst og þjónustan er á innskráningarsíðunni.',
   'signin.arrived.throttled': 'Of margar tilraunir. Bíddu í mínútu og reyndu svo aftur.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

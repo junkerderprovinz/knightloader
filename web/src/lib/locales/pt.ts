@@ -4627,4 +4627,7 @@ export const pt: Dict = {
   'signin.arrived.signInFirst': 'Inicie sessão primeiro, por favor.',
   'signin.arrived.testOk': 'O início de sessão de teste funcionou, e o serviço está na página de início de sessão.',
   'signin.arrived.throttled': 'Demasiadas tentativas. Espere um minuto e tente novamente.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };

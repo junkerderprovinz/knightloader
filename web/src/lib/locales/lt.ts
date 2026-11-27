@@ -4639,4 +4639,7 @@ export const lt: Dict = {
   'signin.arrived.signInFirst': 'Pirmiausia prisijunk.',
   'signin.arrived.testOk': 'Bandomasis prisijungimas pavyko, ir paslauga yra prisijungimo puslapyje.',
   'signin.arrived.throttled': 'Per daug bandymų. Palauk minutę ir bandyk dar kartą.',
+  'collector.filtered.reason.downloadedIn': 'already downloaded as "{name}" to {folder} on {finished}',
+  'collector.filtered.downloadAnyway': 'Download anyway',
+  'collector.filtered.origin.feed': 'subscription',
 };
