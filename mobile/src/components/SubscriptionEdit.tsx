@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { errorText } from '../api/client';
 import type { ServerConnection } from '../api/types';
 import {
@@ -90,6 +91,7 @@ export function SubscriptionEdit({
   const { t, lang } = useT();
   const { c, corners } = useAppearance();
   const { motion } = useMotion();
+  const insets = useSafeAreaInsets();
   const [row, setRow] = useState<Subscription | null>(open?.row ?? null);
   const [folders, setFolders] = useState<string[]>([]);
   const [priorities, setPriorities] = useState<PriorityChoice[]>([]);
@@ -202,7 +204,12 @@ export function SubscriptionEdit({
             </View>
           </View>
 
-          <MovingScroll contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          {/* The window is drawn edge to edge, so the form keeps the
+              navigation bar's height free at its end. */}
+          <MovingScroll
+            contentContainerStyle={[styles.body, { paddingBottom: 32 + insets.bottom }]}
+            keyboardShouldPersistTaps="handled"
+          >
             <NotchCard title={t('subs.what')} hue={0}>
               <EditField label={t('subs.name')} info={t('subs.nameHint')}>
                 <EditBox value={row.title ?? ''} onChange={(title) => set({ title })} label={t('subs.name')} />
@@ -401,10 +408,12 @@ export function SubscriptionEdit({
             </NotchCard>
 
             {error ? <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text> : null}
-            <View style={styles.actions}>
-              {stored ? (
+            {stored ? (
+              <View style={styles.actions}>
                 <GlimButton tone="quiet" label={t('subs.remove')} icon={(ink) => <Trash color={ink} />} onPress={() => setRemoving(true)} />
-              ) : null}
+              </View>
+            ) : null}
+            <View style={styles.actions}>
               <GlimButton tone="quiet" grow label={t('subs.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
               <GlimButton grow label={t('subs.save')} icon={(ink) => <Check color={ink} />} busy={busy} onPress={save} />
             </View>
@@ -645,7 +654,7 @@ const styles = StyleSheet.create({
   titles: { flex: 1, minWidth: 0 },
   title: { fontSize: TYPE.status, fontWeight: '600' },
   status: { fontSize: TYPE.subline, marginTop: 2 },
-  body: { ...capped, paddingHorizontal: 16, paddingBottom: 32 },
+  body: { ...capped, paddingHorizontal: 16 },
   address: { fontSize: TYPE.body },
   pair: { flexDirection: 'row', gap: 12 },
   half: { flex: 1 },

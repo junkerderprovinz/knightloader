@@ -333,6 +333,7 @@ const view = {
   '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, corners: {}, accentInk: '' }) },
   '../theme/MotionContext': { useMotion: () => ({ motion: 'off' }) },
   '../theme/tokens': { TYPE: {} },
+  'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 24, bottom: 48, left: 0, right: 0 }) },
   '../components/glim': {
     CardButton: 'CardButton',
     GlimButton: 'GlimButton',
@@ -693,6 +694,25 @@ async function editor(open, more = {}) {
   await e.w.settle();
   expect('and then writes the list without the row', puts()[0]?.body.map((r) => r.url), ['https://b.example/feed.xml']);
   expect('and closes', [e.said.saved.length, e.said.closed], [1, 1]);
+}
+
+{
+  stored = [{ url: 'https://a.example/feed.xml', intervalMinutes: 0 }];
+  const e = await editor({ was: 'https://a.example/feed.xml', row: stored[0] });
+  const page = e.w.shown().elements.find((el) => el.type === 'MovingScroll');
+  const bottom = [page.props.contentContainerStyle].flat().reduce((n, st) => st?.paddingBottom ?? n, 0);
+  expect('the end of the form scrolls clear of the navigation bar', bottom >= 48 + 32, true);
+  // The innermost view around the button, which the walk reaches last.
+  const rowOf = (key) =>
+    e.w
+      .shown()
+      .elements.filter((el) => el.type === 'View' && inside(el).some((x) => x.type === 'GlimButton' && x.props.label === t(key)))
+      .at(-1);
+  const saveRow = rowOf('subs.save');
+  expect('remove stands apart from cancel and save, so both keep their words whole', [
+    inside(saveRow).some((x) => x.props?.label === t('subs.cancel')),
+    inside(saveRow).some((x) => x.props?.label === t('subs.remove')),
+  ], [true, false]);
 }
 
 // The way in, from the settings.
