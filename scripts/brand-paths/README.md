@@ -17,6 +17,9 @@ Vivaldi, which Font Awesome does not have. Simple Icons lists it under
 **CC BY 4.0**, from Vivaldi's press kit (<https://vivaldi.com/press>).
 Copyright Vivaldi Technologies AS.
 
+**Simple Icons** (<https://simpleicons.org>): TrueNAS, its `truenas.svg`.
+**CC0 1.0** for the path data.
+
 **Dashboard Icons** (`homarr-labs/dashboard-icons`, <https://dashboardicons.com>):
 Unraid, its `unraid.svg` with the gradient left out, since the button draws it
 in one ink. **Apache-2.0**, whose licence text is beside this file as
@@ -31,7 +34,7 @@ Every platform mark here is a trademark of its owner. They are used the one way 
 trademark may be used without permission, which is to refer to the thing they
 name: each sits on a download button for that platform, unmodified, and nothing
 here claims endorsement by or affiliation with Microsoft, Apple, the Linux
-Foundation, Docker, Google, Mozilla, Brave Software, Opera, Vivaldi Technologies or Lime Technology. The ZIP and the book are no one's marks; they stand for
+Foundation, Docker, Google, Mozilla, Brave Software, Opera, Vivaldi Technologies, Lime Technology or iXsystems. The ZIP and the book are no one's marks; they stand for
 the source archive and the manual.
 
 ## Adding one
