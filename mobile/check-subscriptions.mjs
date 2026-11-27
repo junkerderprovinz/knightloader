@@ -715,6 +715,18 @@ async function editor(open, more = {}) {
   ], [true, false]);
 }
 
+{
+  // The field a refusal names can be a long way up the form from Save.
+  const count = (e, key) => e.words().split(t(key)).length - 1;
+  stored = [{ url: 'https://a.example/feed.xml', intervalMinutes: 0 }];
+  const dup = await editor({ was: null, row: { url: 'https://a.example/feed.xml', intervalMinutes: 0 } });
+  await dup.press('subs.save');
+  expect('a refused save says why beside its field and beside Save', count(dup, 'subs.duplicate'), 2);
+  const bad = await editor({ was: null, row: { url: 'https://b.example/feed.xml', intervalMinutes: 0, titleFilter: '(' } });
+  await bad.press('subs.save');
+  expect('so does a field that is wrong before anything is sent', count(bad, 'subs.includeInvalid'), 2);
+}
+
 // The way in, from the settings.
 {
   const cardMod = compile(join(here, 'src', 'components', 'SubscriptionsCard.tsx'), {

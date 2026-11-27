@@ -123,15 +123,24 @@ export function SubscriptionEdit({
   const set = (patch: Partial<Subscription>) => {
     setRow((r) => (r ? { ...r, ...patch } : r));
     setFaults({});
+    setError('');
   };
   const kind = kindOf(row);
   const stored = open.was !== null;
   const status = stored ? healthText(t, lang, health) : null;
 
+  // The field a refusal names can be a long way up the form, so the reason
+  // stands beside Save as well.
+  const refuse = (field: FaultField | 'dir', text: string) => {
+    setFaults({ [field]: text });
+    setError(text);
+  };
+
   const save = async () => {
     const found = rowFaults(row);
     if (found.length > 0) {
       setFaults(Object.fromEntries(found.map((f) => [f.field, t(f.key)])));
+      setError(t(found[0].key));
       return;
     }
     setBusy(true);
@@ -141,11 +150,11 @@ export function SubscriptionEdit({
     } catch (e) {
       setBusy(false);
       if (e instanceof SubscriptionFault) {
-        setFaults({ url: t(e.key) });
+        refuse('url', t(e.key));
         return;
       }
       const said = saveRefusal(t, e, row);
-      if (said.field === 'dir') setFaults({ dir: said.text });
+      if (said.field === 'dir') refuse('dir', said.text);
       else setError(said.text);
       return;
     }
