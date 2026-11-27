@@ -1,0 +1,1 @@
+You can manage subscriptions in the app: paste a YouTube channel, playlist or MediathekViewWeb search, choose video or audio and the quality, and test it. A video downloaded before shows up in the rejected links with its date and folder. Credentials in subscription addresses stay hidden on the phone, and segment buttons show their whole label.

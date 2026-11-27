@@ -79,6 +79,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.9.9" date="2026-11-27">
+      <description>
+        <p>Subscribe to YouTube channels, playlists and Mediathek shows with their own download choices, SponsorBlock and a series layout for Jellyfin and Plex. A video downloaded before is not downloaded twice, and arte.tv videos download again.</p>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.9.9</url>
+    </release>
     <release version="2.9.8" date="2026-11-26">
       <description>
         <p>The browser extension pairs on your own relay and works with an instance that serves it, the Android app catches up with the web interface, and calls reach an instance while it reconnects.</p>
