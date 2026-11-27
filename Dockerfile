@@ -103,7 +103,7 @@ RUN --mount=type=bind,from=glibc,source=/usr/lib,target=/glibc \
 # and carry yt-dlp's YouTube solver scripts (yt-dlp-ejs).
 FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS ytdlp
 # renovate: datasource=github-releases depName=yt-dlp/yt-dlp versioning=loose extractVersion=^(?<version>.+)$
-ARG YTDLP_VERSION=2026.10.26
+ARG YTDLP_VERSION=2026.11.23
 ARG TARGETARCH
 # The sums are signed with yt-dlp's release key, the same file and fingerprint
 # the app checks its own yt-dlp updates with (internal/mediatools/signature.go).
