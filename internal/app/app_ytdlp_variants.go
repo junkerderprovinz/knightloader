@@ -53,11 +53,17 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 		kind = ytdlp.VariantVideo
 	}
 	base.Variant = kind
+	// A choice that does not decode leaves the instance's in place.
 	if len(t.SponsorBlock) > 0 {
-		// A choice that does not decode leaves the instance's in place.
 		var own ytdlp.SponsorBlock
 		if json.Unmarshal(t.SponsorBlock, &own) == nil {
 			base.SponsorBlock = own
+		}
+	}
+	if len(t.Series) > 0 {
+		var s ytdlp.Series
+		if json.Unmarshal(t.Series, &s) == nil {
+			base.Series = &s
 		}
 	}
 	switch kind {

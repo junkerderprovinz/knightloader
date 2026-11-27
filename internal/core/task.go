@@ -642,6 +642,9 @@ type Task struct {
 	// a ytdlp.SponsorBlock, which this package cannot name. Nil leaves it to
 	// the instance's setting.
 	SponsorBlock json.RawMessage `json:"-"`
+	// Series files a yt-dlp video row as an episode of a show, as the JSON of
+	// a ytdlp.Series. Nil files it under its title.
+	Series json.RawMessage `json:"-"`
 	// Category is the id of the settings.Category this link is filed under,
 	// or empty for the instance defaults.
 	//

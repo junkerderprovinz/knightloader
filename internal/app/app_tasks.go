@@ -1110,6 +1110,8 @@ type TaskOptions struct {
 	// SponsorBlock replaces the instance's SponsorBlock setting for a yt-dlp
 	// row, an empty one turning it off for that row.
 	SponsorBlock *ytdlp.SponsorBlock `json:"sponsorBlock,omitempty"`
+	// Series files a yt-dlp video row as an episode of the show it names.
+	Series *ytdlp.Series `json:"series,omitempty"`
 }
 
 // SetTaskOptions applies per-task overrides. A folder change on a running task
@@ -1160,6 +1162,14 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		}
 		sponsorBlock = raw
 	}
+	var series json.RawMessage
+	if o.Series != nil {
+		raw, err := json.Marshal(o.Series.Sanitize())
+		if err != nil {
+			return err
+		}
+		series = raw
+	}
 
 	a.mu.Lock()
 	var renameErr error
@@ -1187,6 +1197,9 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		}
 		if o.SponsorBlock != nil {
 			t.SponsorBlock = sponsorBlock
+		}
+		if o.Series != nil {
+			t.Series = series
 		}
 		// The bitrate first, since resolving the new pick reads it.
 		if o.AudioBitrate != nil {

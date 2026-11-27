@@ -520,3 +520,30 @@ func TestARowsOwnSponsorBlockChoiceSurvivesARestart(t *testing.T) {
 		}
 	}
 }
+
+func TestARowsSeriesLayoutSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	series := `{"show":"Kurzgesagt"}`
+	task := core.Task{ID: "v1", URL: "https://youtube.com/watch?v=x", Name: "x", CreatedAt: time.Now(), Series: []byte(series)}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 || string(all[0].Series) != series {
+		t.Fatalf("reloaded %+v, want the row with Series %s", all, series)
+	}
+}

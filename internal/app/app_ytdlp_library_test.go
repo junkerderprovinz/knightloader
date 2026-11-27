@@ -43,3 +43,19 @@ func TestAnEmptySponsorBlockChoiceTurnsTheInstancesOffForTheRow(t *testing.T) {
 		t.Errorf("the row still asks for %+v", got)
 	}
 }
+
+func TestARowSetToASeriesIsFiledAsAnEpisode(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	family := putYtdlpFamily(t, a, "https://youtube.com/watch?v=series00001", nil)
+	video, audio := family[ytdlp.VariantVideo], family[ytdlp.VariantAudio]
+
+	if err := a.SetTaskOptions([]string{video.ID}, TaskOptions{Series: &ytdlp.Series{Show: " Kurzgesagt "}}); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.ytdlpOptionsForTask(video.ID).Series; got == nil || got.Show != "Kurzgesagt" {
+		t.Errorf("the video row's series = %+v, want Kurzgesagt", got)
+	}
+	if got := a.ytdlpOptionsForTask(audio.ID).Series; got != nil {
+		t.Errorf("a row nobody set to a series is one: %+v", got)
+	}
+}

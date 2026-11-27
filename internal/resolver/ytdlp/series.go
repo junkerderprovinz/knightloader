@@ -38,7 +38,8 @@ type Series struct {
 	Show string `json:"show"`
 }
 
-func (s Series) sanitize() Series {
+// Sanitize trims the show's name and bounds its length.
+func (s Series) Sanitize() Series {
 	s.Show = clip(strings.TrimSpace(s.Show))
 	return s
 }

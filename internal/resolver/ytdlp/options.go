@@ -601,7 +601,7 @@ func (o Options) Sanitize() Options {
 	o.Live = o.Live.sanitize()
 	o.SponsorBlock = o.SponsorBlock.Sanitize()
 	if o.Series != nil {
-		s := o.Series.sanitize()
+		s := o.Series.Sanitize()
 		o.Series = &s
 	}
 	return o
