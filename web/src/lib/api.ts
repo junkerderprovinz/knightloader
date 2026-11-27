@@ -327,11 +327,37 @@ export async function fetchPieces(id: string, base = '/api'): Promise<PieceMap |
   return json<PieceMap | null>(await fetch(`${base}/tasks/${id}/pieces`));
 }
 
-/** One RSS or Atom subscription, mirroring feed.Subscription. */
+/** What a subscription follows: a feed, a yt-dlp channel or playlist, or a MediathekViewWeb search. */
+export type FeedKind = 'rss' | 'channel' | 'mediathek';
+
+/** Which older videos a channel's first check hands over instead of only noting them. */
+export interface FeedBackfill {
+  mode: 'all' | 'count' | 'days';
+  /** How many videos for count, how many days back for days. At least 1. */
+  n?: number;
+}
+
+/** The search a mediathek subscription runs; at least one of the three names is set. */
+export interface FeedMediathek {
+  channel: string;
+  topic: string;
+  title: string;
+  /** Falls back to the next one down where a show lacks it. */
+  quality: 'hd' | 'normal' | 'low';
+  /** Stages the subtitle file as a link of its own. */
+  subtitles: boolean;
+}
+
+/** One subscription, mirroring feed.Subscription. An absent optional field
+ *  has no opinion and leaves the question to the instance. */
 export interface FeedSubscription {
   /** http or https only. Also the subscription's identity, so a changed
    *  address starts over. */
   url: string;
+  /** Absent or "rss" for a feed. */
+  kind?: FeedKind;
+  /** The channel or show's name, for the list and for channel naming. */
+  title?: string;
   /** 0 means the server's default of 15; other values are clamped to 1..10080. */
   intervalMinutes: number;
   /**
@@ -345,6 +371,27 @@ export interface FeedSubscription {
   dir?: string;
   /** -3..3. Absent and 0 differ: 0 is a real priority. */
   priority?: number;
+  /** An RE2 pattern; an entry whose title matches it is skipped. */
+  excludeFilter?: string;
+  /** Length bounds in minutes, 0 or absent for none. */
+  minMinutes?: number;
+  maxMinutes?: number;
+  /** Confirms a staged entry at once, past the instance's AutoConfirm rule. */
+  autoStart?: boolean;
+  /** Adds an entry that was downloaded before instead of rejecting it. */
+  allowDownloaded?: boolean;
+  /** Which rows a staged yt-dlp link gets, in place of the host preset. */
+  media?: YtdlpHosterPreset | null;
+  /** "channel" names package and folder after the channel or show. */
+  naming?: '' | 'channel';
+  /** "series" lays files out for Jellyfin and Plex. */
+  library?: '' | 'series';
+  /** Absent for the instance default in ytdlp.sponsorBlock. */
+  sponsorBlock?: YtdlpSponsorBlock | null;
+  /** Kind "channel" only. */
+  backfill?: FeedBackfill | null;
+  /** Kind "mediathek" only. */
+  mediathek?: FeedMediathek | null;
 }
 
 /**
@@ -2474,6 +2521,34 @@ export interface YtdlpOptions {
   embed: YtdlpEmbed;
   measure: YtdlpMeasure;
   live: YtdlpLive;
+  /** Absent or empty for no SponsorBlock at all. */
+  sponsorBlock?: YtdlpSponsorBlock | null;
+}
+
+/** yt-dlp's SponsorBlock categories, in the order they are offered. */
+export const SPONSORBLOCK_CATEGORIES = [
+  'sponsor',
+  'intro',
+  'outro',
+  'selfpromo',
+  'preview',
+  'filler',
+  'interaction',
+  'music_offtopic',
+  'hook',
+  'poi_highlight',
+  'chapter',
+] as const;
+export type SponsorBlockCategory = (typeof SPONSORBLOCK_CATEGORIES)[number];
+
+/** Categories yt-dlp can only mark as a chapter, never cut. */
+export const SPONSORBLOCK_MARK_ONLY: ReadonlySet<SponsorBlockCategory> = new Set(['poi_highlight', 'chapter']);
+
+/** Which segments become --sponsorblock-remove and which --sponsorblock-mark.
+ *  A Go nil slice arrives as null. */
+export interface YtdlpSponsorBlock {
+  remove: SponsorBlockCategory[] | null;
+  mark: SponsorBlockCategory[] | null;
 }
 
 /** ytdlp.Embed: what gets written into the finished file rather than beside it. */
@@ -2987,13 +3062,20 @@ export interface FeedStatus {
   remembered: number;
 }
 
+/** Why a test fetch's entry would not be taken. */
+export type FeedSkipReason = 'include' | 'exclude' | 'short' | 'long' | 'downloaded';
+
 /** One entry of a test fetch, as a subscription would see it. */
 export interface FeedTestEntry {
   title: string;
   /** What would be staged: the enclosure when the entry carries one. */
   link: string;
-  /** Whether the title filter takes it. True for everything when there is none. */
+  /** Whether the row takes it. */
   matches: boolean;
+  /** Seconds, 0 when the feed does not say. */
+  duration?: number;
+  /** Absent when the entry is taken. */
+  reason?: FeedSkipReason;
 }
 
 /** FeedTest is what POST /api/feeds/test found. With `error` set, `entries`
@@ -3014,14 +3096,26 @@ export async function fetchFeeds(): Promise<FeedStatus[]> {
 }
 
 /**
- * testFeed fetches one feed once and reports what is in it, staging and
- * remembering nothing, so a title filter can be tried before saving. An
+ * testFeed fetches one subscription once and reports what is in it, staging
+ * and remembering nothing, so the row's filters can be tried before saving. An
  * invalid row throws the server's 400 sentence; an unreadable feed comes back
  * with `error` set.
  */
-export async function testFeed(url: string, titleFilter = ''): Promise<FeedTest> {
-  const r = await ok(await post('/api/feeds/test', { url, titleFilter }));
+export async function testFeed(row: FeedSubscription): Promise<FeedTest> {
+  const r = await ok(await post('/api/feeds/test', row));
   return (await json<FeedTest>(r)) ?? { title: '', entries: [], total: 0, matched: 0 };
+}
+
+/** A ready subscription for a pasted address. A YouTube channel comes as its
+ *  feed, with the channel kind beside it for older videos. */
+export interface FeedResolved extends Partial<FeedSubscription> {
+  channel?: Partial<FeedSubscription>;
+}
+
+/** resolveFeed turns a pasted address into a subscription, or throws the
+ *  server's sentence for what it could not find. */
+export async function resolveFeed(url: string): Promise<FeedResolved> {
+  return json<FeedResolved>(await post('/api/feeds/resolve', { url }));
 }
 
 // Native hoster logins are written into the headless JD sidecar's account

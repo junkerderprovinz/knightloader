@@ -26,6 +26,7 @@ import {
 } from '../../components/VariantPicker';
 import { fileTracks, mergedExtension } from './resolvers/fileTracks';
 import { ComponentsLink } from './resolvers/ComponentsLink';
+import { NO_SPONSORBLOCK, SponsorBlockRows } from './resolvers/SponsorBlock';
 import { IconAdd, IconClose, IconTrash } from '../../lib/icons';
 import {
   fetchHosterFormats,
@@ -679,6 +680,15 @@ export function Resolvers() {
             {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
           </Modal>
         )}
+      </Card>
+
+      {/* The default every yt-dlp link gets; a subscription can set its own. */}
+      <Card hue={8} className="flex flex-col gap-5">
+        <SectionTitle hint={t('settings.resolvers.sponsorBlockHint')}>{t('settings.resolvers.sponsorBlock')}</SectionTitle>
+        <SponsorBlockRows
+          value={ytdlp.sponsorBlock ?? NO_SPONSORBLOCK}
+          onChange={(sponsorBlock) => patchYtdlp({ sponsorBlock })}
+        />
       </Card>
     </div>
   );
