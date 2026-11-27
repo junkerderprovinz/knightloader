@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/mcpclient"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/parleyport/kit/signin"
@@ -293,11 +294,7 @@ func writeKey(path string, key []byte, k *appkey.Key) error {
 			return err
 		}
 	}
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, []byte(text+"\n"), 0o600); err != nil {
-		return err
-	}
-	return os.Rename(tmp, path)
+	return fsretry.Replace(path, []byte(text+"\n"))
 }
 
 // ReadKey is the key in KeyFile, for a backup, which carries it in the clear.

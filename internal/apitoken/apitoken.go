@@ -25,6 +25,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // Scope is one right a token can carry.
@@ -366,7 +368,7 @@ func writeJSON(path string, v any) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, b, 0o600)
+	return fsretry.Replace(path, b)
 }
 
 // newSecret returns a new plaintext token. The "kl_" prefix makes a leaked

@@ -35,3 +35,23 @@ func TestARenameWaitsForAReaderToLetGo(t *testing.T) {
 		t.Errorf("%s holds %q, want the renamed file", to, got)
 	}
 }
+
+func TestReplaceLeavesOnlyTheNewFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "tokens.json")
+	if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := Replace(path, []byte("new")); err != nil {
+		t.Fatal(err)
+	}
+	if b, err := os.ReadFile(path); err != nil || string(b) != "new" {
+		t.Fatalf("the file holds %q, %v", b, err)
+	}
+	if entries, _ := os.ReadDir(dir); len(entries) != 1 {
+		t.Errorf("the folder holds %d files, want the one replaced", len(entries))
+	}
+	if info, err := os.Stat(path); err == nil && runtime.GOOS != "windows" && info.Mode().Perm() != 0o600 {
+		t.Errorf("mode %v, want 0600", info.Mode().Perm())
+	}
+}

@@ -3,10 +3,13 @@ package apitoken
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -461,5 +464,53 @@ func TestOpenOnAnUnreadableFileStartsEmptyRatherThanFailing(t *testing.T) {
 	}
 	if _, _, err := s.Create("recovered"); err != nil {
 		t.Errorf("Create after a garbled load: %v", err)
+	}
+}
+
+// A reader sees what a crash at the same moment would leave on disk.
+func TestASaveNeverLeavesTheTokenFilesHalfWritten(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows will not replace a file another handle holds open, and this reader holds it nearly all the time")
+	}
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan struct{})
+	torn := make(chan string, 2)
+	var wg sync.WaitGroup
+	for _, name := range []string{"tokens.json", scopesFile} {
+		wg.Go(func() {
+			for {
+				select {
+				case <-done:
+					return
+				default:
+				}
+				b, err := os.ReadFile(filepath.Join(dir, name))
+				if err == nil && !json.Valid(b) {
+					torn <- fmt.Sprintf("%s held %q", name, b)
+					return
+				}
+			}
+		})
+	}
+	for i := range MaxTokens {
+		tok, _, err := s.Create(fmt.Sprintf("script %d", i))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if i%2 == 1 {
+			if err := s.Revoke(tok.ID); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	close(done)
+	wg.Wait()
+	close(torn)
+	for msg := range torn {
+		t.Errorf("in the middle of a save %s", msg)
 	}
 }
