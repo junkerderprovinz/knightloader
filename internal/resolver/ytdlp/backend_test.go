@@ -113,6 +113,13 @@ func TestMain(m *testing.M) {
 		fmt.Println(`{"title":"Entry One","formats":[]}`)
 		fmt.Println(`{"title":"Entry Two","formats":[]}`)
 		os.Exit(0)
+	case "identified":
+		fmt.Println(`{"title":"Clip","extractor_key":"Youtube","id":"dQw4w9WgXcQ","formats":[]}`)
+		os.Exit(0)
+	case "identifiedplaylist":
+		fmt.Println(`{"title":"Entry One","extractor_key":"Youtube","id":"aaaaaaaaaaa","formats":[]}`)
+		fmt.Println(`{"title":"Entry Two","extractor_key":"Youtube","id":"bbbbbbbbbbb","formats":[]}`)
+		os.Exit(0)
 	case "flatlisting":
 		// --flat-playlist -J: one object with the playlist title. The last two
 		// entries must be dropped: a nested playlist and a removed video

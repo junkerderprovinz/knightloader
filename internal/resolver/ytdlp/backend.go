@@ -1153,6 +1153,11 @@ type ProbeResult struct {
 	// title and a guessed extension, "LICENSE (best).unknown_video" for a
 	// text file, where a plain fetch keeps the server's name.
 	PlainFile bool
+	// Extractor and ID name the video as yt-dlp's download archive does,
+	// for the check that knows a video under any of its links. Both are
+	// empty for a link that probes as several videos.
+	Extractor string
+	ID        string
 }
 
 // Thumbnail is one picture a source offers beside its media. Width and
@@ -1301,6 +1306,7 @@ func (b *Backend) probeTitle(ctx context.Context, url string, sent map[string]st
 		WasLive      bool    `json:"was_live"`
 		LiveStatus   string  `json:"live_status"`
 		ExtractorKey string  `json:"extractor_key"`
+		ID           string  `json:"id"`
 		Direct       bool    `json:"direct"`
 	}
 	if err := json.Unmarshal([]byte(line), &raw); err != nil {
@@ -1322,6 +1328,9 @@ func (b *Backend) probeTitle(ctx context.Context, url string, sent map[string]st
 		SubtitleFormats: subtitleFormats(raw.Subtitles, raw.AutoCaptions),
 		Description:     strings.TrimSpace(raw.Description) != "",
 		PlainFile:       raw.ExtractorKey == "Generic" && raw.Direct,
+	}
+	if !strings.Contains(strings.TrimSpace(string(out)), "\n") {
+		res.Extractor, res.ID = raw.ExtractorKey, raw.ID
 	}
 	for _, th := range raw.Thumbnails {
 		res.Thumbnails = append(res.Thumbnails, Thumbnail{ID: th.ID, Width: th.Width, Height: th.Height, Ext: thumbnailExt(th.URL)})
