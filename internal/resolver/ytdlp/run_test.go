@@ -26,6 +26,10 @@ import (
 // because the same environment reaches both children.
 const runHelperEnv = "KL_YTDLP_RUN_HELPER"
 
+// artHelperEnv is where the site's image host listens, for the channel the
+// series modes answer with.
+const artHelperEnv = "KL_YTDLP_ART_HELPER"
+
 // runHelperMain never returns: it plays whichever of the two programs the
 // argv it was given belongs to, then exits.
 func runHelperMain(mode string) {
@@ -43,8 +47,49 @@ func runHelperMain(mode string) {
 			x265Helper(probeMode)
 		}
 	}
+	if slices.Contains(os.Args, "--flat-playlist") {
+		channelHelper(ytMode)
+	}
 	ytdlpHelper(ytMode)
 }
+
+// channelHelper answers the query for a channel's own page, with its avatar
+// and banner unless mode is "episodebare".
+func channelHelper(mode string) {
+	thumbs := ""
+	if mode != "episodebare" {
+		art := os.Getenv(artHelperEnv)
+		thumbs = `{"id":"0","url":"` + art + `/small","width":1060,"height":175},` +
+			`{"id":"banner_uncropped","url":"` + art + `/banner"},` +
+			`{"id":"avatar_uncropped","url":"` + art + `/avatar"}`
+	}
+	fmt.Println(`{"_type":"playlist","id":"UCsomechannel","channel":"Some Channel","description":"About the channel.",` +
+		`"thumbnails":[` + thumbs + `],"entries":[]}`)
+	os.Exit(0)
+}
+
+// helperOutTemplate fills in the plain -o template the way yt-dlp would for
+// the video of helperEpisodeJSON uploaded on day, "00000000" for none.
+func helperOutTemplate(day string) string {
+	for i, a := range os.Args {
+		if a != "-o" || i+1 >= len(os.Args) {
+			continue
+		}
+		if v := os.Args[i+1]; !strings.HasPrefix(v, "thumbnail:") && !strings.HasPrefix(v, "subtitle:") {
+			return strings.NewReplacer(
+				"%(upload_date>%Y|0000)s", day[:4], "%(upload_date>%m%d|0000)s", day[4:],
+				"%(channel,uploader,extractor)s", "Some Channel", "%(title)s", "A Video", "%(ext)s", "mkv", "%%", "%",
+			).Replace(v)
+		}
+	}
+	return ""
+}
+
+// helperEpisodeJSON is helperInfoJSON with the channel a series row reads.
+const helperEpisodeJSON = `{"id":"dQw4w9WgXcQ","title":"A Video","description":"Line one.\nLine two.",` +
+	`"uploader":"Some Channel","channel":"Some Channel","channel_id":"UCsomechannel",` +
+	`"channel_url":"https://example.invalid/channel/UCsomechannel","upload_date":"20260907","duration":2718.041,` +
+	`"webpage_url":"https://example.invalid/v","extractor_key":"Youtube"}`
 
 // helperOutDir returns the directory of the plain -o template, skipping the
 // "thumbnail:" and "subtitle:" ones music mode and kept streams add.
@@ -86,11 +131,15 @@ func ytdlpHelper(mode string) {
 	dir := helperOutDir()
 	final := filepath.Join(dir, "A Video.mkv")
 	switch mode {
-	case "video":
+	case "video", "sponsorcut":
 		_ = os.WriteFile(final, []byte("bytes"), 0o644)
 		_ = os.WriteFile(filepath.Join(dir, "A Video.info.json"), []byte(helperInfoJSON), 0o644)
 		fmt.Println("[download] Destination: " + final)
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
+		if mode == "sponsorcut" {
+			fmt.Println("[SponsorBlock] Found 2 segments in the SponsorBlock database")
+			fmt.Println("[ModifyChapters] Removing chapters from " + final)
+		}
 	case "merge":
 		// Two half-streams, then the merged file that replaces them. The
 		// progress lines count only the stream being fetched.
@@ -252,6 +301,31 @@ func ytdlpHelper(mode string) {
 		fmt.Println("[download] Destination: " + final)
 		fmt.Println("KLP:" + `{"live":"True","p":{"downloaded_bytes":5,"speed":1.0,"filename":"` + jsonPath(final) + `"}}`)
 		time.Sleep(time.Minute)
+	case "geoplaceholder", "geoworldwide":
+		// The media line yt-dlp printed for a real ORF episode, then the
+		// download it went on with.
+		record := map[string]string{"geoplaceholder": "orf-austria-only.txt", "geoworldwide": "orf-worldwide.txt"}[mode]
+		b, _ := os.ReadFile(filepath.Join("testdata", "geo", record))
+		fmt.Println(strings.TrimSpace(string(b)))
+		fmt.Println("[download] Destination: " + final)
+		_ = os.WriteFile(final, []byte("bytes"), 0o644)
+	case "refusedlimited", "refusedopen":
+		// A Mediathek file the CDN refuses: one of those only Germany may
+		// fetch, or one anyone may.
+		folder := map[string]string{"refusedlimited": "de", "refusedopen": "none"}[mode]
+		fmt.Println(mediaPrefix + "https://nrodlzdf-a.akamaihd.net/" + folder + "/zdf/26/11/261126_x/1/261126_x_3360k_p36v17.mp4")
+		fmt.Fprintln(os.Stderr, "ERROR: unable to download video data: HTTP Error 403: Forbidden")
+		os.Exit(1)
+	case "episode", "episodebare", "episodeundated":
+		day, info := "20260907", helperEpisodeJSON
+		if mode == "episodeundated" {
+			day, info = "00000000", strings.Replace(helperEpisodeJSON, `"upload_date":"20260907",`, "", 1)
+		}
+		file := helperOutTemplate(day)
+		_ = os.MkdirAll(filepath.Dir(file), 0o755)
+		fmt.Println("[download] Destination: " + file)
+		_ = os.WriteFile(file, []byte("bytes"), 0o644)
+		_ = os.WriteFile(strings.TrimSuffix(file, ".mkv")+".info.json", []byte(info), 0o644)
 	case "hang":
 		// Part way through, and staying there until it is killed.
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)

@@ -501,6 +501,13 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		// The run stops and finishes as when yt-dlp finds the file under its
 		// own name.
 		already bool
+		// cut is set once SponsorBlock segments were cut out of the file.
+		cut bool
+		// geo is set when the stream turns out to be the site's stand-in for
+		// a video this region may not see. The run stops and fails.
+		geo bool
+		// media is the address of the stream yt-dlp set out to fetch.
+		media string
 	)
 	apart := opts.Variant == VariantVideo && opts.Embed.Separate
 	sc := bufio.NewScanner(stdout)
@@ -534,6 +541,14 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 			b.onUpdate(taskID, u)
 			continue
 		}
+		if m, ok := strings.CutPrefix(line, mediaPrefix); ok {
+			media = m
+			if geoPlaceholder(media) {
+				geo = true
+				cancel()
+			}
+			continue
+		}
 		if planned, ok := strings.CutPrefix(line, plannedPrefix); ok {
 			if b.ownFile(taskID, dir, out, planned) && alreadyThere(planned) {
 				already = true
@@ -564,6 +579,10 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: opts.shown(filepath.Base(name)), WorkFile: name})
 			continue
 		}
+		if cutBySponsorBlock(line) {
+			cut = true
+			continue
+		}
 		if path, ok := wroteFile(line); ok && b.ownFile(taskID, dir, out, path) {
 			written = append(written, path)
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: path})
@@ -590,14 +609,22 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 	if grace != nil {
 		grace.Stop()
 	}
-	if ctx.Err() != nil && stoppedBy == "" && !already {
+	if ctx.Err() != nil && stoppedBy == "" && !already && !geo {
 		return core.Update{}, false // cancelled by Pause/Remove
+	}
+	if geo {
+		b.discardRun(taskID, dir)
+		return core.Update{
+			Status: core.StatusError,
+			Err:    "yt-dlp: the site shows this video only in some countries and sent a stand-in clip to this one",
+			Reason: core.ReasonGeoBlocked,
+		}, true
 	}
 	if final == "" {
 		final = sidecarFile(opts.Variant, written)
 	}
 	done := func(note string) core.Update {
-		u := b.finish(opts, final, subFiles, note)
+		u := b.finish(opts, final, subFiles, note, cut)
 		if apart && u.Status == core.StatusDone {
 			u.OtherFiles = keptApart(opts, final, others, written)
 		}
@@ -609,13 +636,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		return done(stoppedBy), true
 	}
 	if already {
-		b.mu.Lock()
-		var files []string
-		if p := b.parts[taskID]; p != nil {
-			files = slices.Clone(p.files)
-		}
-		b.mu.Unlock()
-		Discard(taskID, []string{dir}, files, b.InUse)
+		b.discardRun(taskID, dir)
 		final = ""
 		return done(""), true
 	}
@@ -638,12 +659,16 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		if msg == "" {
 			msg = err.Error()
 		}
+		// Diagnosed from the whole buffer, before errorLine cuts it down (see
+		// diagnose.go).
+		reason := Diagnose(raw)
+		if reason == core.ReasonUnknown && geoRefusal(raw, media, target) {
+			reason = core.ReasonGeoBlocked
+		}
 		return core.Update{
 			Status: core.StatusError,
 			Err:    "yt-dlp: " + msg,
-			// Diagnosed from the whole buffer, before errorLine cuts it
-			// down (see diagnose.go).
-			Reason: Diagnose(raw),
+			Reason: reason,
 			// No extractor for the link means another backend should try
 			// it, such as the plain HTTP fallback.
 			Unsupported: notMine(msg),
@@ -653,6 +678,17 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		return b.placeSubtitles(taskID, out, dir, opts, final, written, subFiles), true
 	}
 	return done(""), true
+}
+
+// discardRun deletes what the task's runs wrote into dir so far.
+func (b *Backend) discardRun(taskID, dir string) {
+	b.mu.Lock()
+	var files []string
+	if p := b.parts[taskID]; p != nil {
+		files = slices.Clone(p.files)
+	}
+	b.mu.Unlock()
+	Discard(taskID, []string{dir}, files, b.InUse)
 }
 
 // convertVideo encodes the video of file again as HEVC into an mkv beside it,
@@ -800,7 +836,7 @@ func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final str
 	if landed == "" && len(placed) > 0 {
 		landed = placed[len(placed)-1]
 	}
-	u := b.finish(o, landed, subFiles, "")
+	u := b.finish(o, landed, subFiles, "", false)
 	if u.Status == core.StatusDone {
 		for _, p := range placed {
 			if p != landed {
@@ -819,11 +855,13 @@ var liveStopGrace = 30 * time.Second
 // finish handles a successful yt-dlp exit around the file it produced: NFO,
 // measurement and the checks that turn a success into a failure (a subtitle
 // row without subtitles, and optionally a file shorter than the source
-// announced). stoppedBy, a live limit's reason, stays on the note.
+// announced). stoppedBy, a live limit's reason, stays on the note. cut says
+// SponsorBlock segments were cut out, which leaves the file shorter than
+// announced on purpose.
 //
 // It does not take run's context: the live guard cancels that context to stop
 // a recording, and ffprobe would then never run for capped downloads.
-func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string) core.Update {
+func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string, cut bool) core.Update {
 	u := core.Update{Status: core.StatusDone, Speed: 0, Note: stoppedBy}
 	// --no-warnings hides yt-dlp's note about a missing language, so the
 	// subtitle files it wrote are the only evidence (see
@@ -861,12 +899,17 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 	if needsInfoJSON(o) {
 		path := infoJSONPath(final)
 		info, haveInfo = readInfoJSON(path)
-		if o.Embed.NFO && haveInfo {
+		// It was only asked for as input for the steps below.
+		_ = os.Remove(path)
+		switch {
+		case episode(o) && haveInfo && u.File != "":
+			final = b.placeEpisode(*o.Series, final, info)
+			u.File = final
+			u.Name = strings.TrimSuffix(filepath.Base(final), filepath.Ext(final))
+		case o.Embed.NFO && haveInfo:
 			// A failed sidecar does not fail a complete download.
 			_ = writeNFO(nfoPath(final), info)
 		}
-		// The info json was only requested as input for the steps above.
-		_ = os.Remove(path)
 	}
 	if o.Measure.Enabled {
 		mctx, cancel := context.WithTimeout(context.Background(), measureTimeout)
@@ -874,7 +917,7 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		if m, err := probeMedia(mctx, b.ffprobeBinary(), final); err == nil {
 			u.Note = joinNote(u.Note, m.Summary())
 			if haveInfo {
-				if pct, ok := gotPercent(info.Duration, m.Duration); ok && pct < o.Measure.ShortPercent {
+				if pct, ok := gotPercent(info.Duration, m.Duration); ok && pct < o.Measure.ShortPercent && !cut {
 					warn := shortWarning(info.Duration, m.Duration)
 					if o.Measure.FailOnShort {
 						u.Status = core.StatusError
@@ -899,12 +942,16 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 // namedByQuality reports a video row whose file takes the quality of its
 // frame once it is written (nameByQuality): one under the video template.
 func namedByQuality(o Options) bool {
-	return o.Variant == VariantVideo && o.OutputTemplate == "" && !o.Embed.Separate
+	return o.Variant == VariantVideo && o.OutputTemplate == "" && !o.Embed.Separate && o.Series == nil
 }
 
 // plannedPrefix marks the line on which a video row's yt-dlp names the file it
 // is about to write, before it fetches a byte of it.
 const plannedPrefix = "KLF:"
+
+// mediaPrefix marks the line on which a media row's yt-dlp names the address of
+// the stream it is about to fetch, the first one of a merge.
+const mediaPrefix = "KLU:"
 
 // alreadyThere reports whether the video yt-dlp is about to write as planned
 // is there under the quality nameByQuality would give it. yt-dlp looks for its
@@ -965,9 +1012,12 @@ func joinNote(first, second string) string {
 }
 
 // needsInfoJSON reports whether this task asks yt-dlp for --write-info-json:
-// the NFO is built from it, and the short-file check needs the duration the
+// the NFOs are built from it, and the short-file check needs the duration the
 // source announced.
-func needsInfoJSON(o Options) bool { return o.Embed.NFO || o.Measure.Enabled }
+func needsInfoJSON(o Options) bool { return o.Embed.NFO || o.Measure.Enabled || episode(o) }
+
+// episode reports a row filed as an episode of a show (see Series).
+func episode(o Options) bool { return o.Series != nil && o.Variant == VariantVideo }
 
 // infoJSONPath is where yt-dlp put the info json for a finished file: the
 // output template with the extension replaced.
@@ -1532,19 +1582,21 @@ func buildArgs(dir string, o Options) []string {
 		args = append(args, "--merge-output-format", merge)
 		args = append(args, embedArgs(o, true)...)
 		if namedByQuality(o) {
-			// --print alone would silence the progress lines and skip the
-			// download.
-			args = append(args, "--print", "video:"+plannedPrefix+"%(filename)s", "--no-simulate", "--no-quiet")
+			args = append(args, "--print", "video:"+plannedPrefix+"%(filename)s")
 		}
 	}
 	// Only the rows that download media need these.
 	if o.Variant == VariantVideo || o.Variant == VariantAudio {
+		// --print alone would silence the progress lines and skip the
+		// download.
+		args = append(args, "--print", "video:"+mediaPrefix+"%(requested_formats.0.url,url)s", "--no-simulate", "--no-quiet")
 		if needsInfoJSON(o) {
 			args = append(args, "--write-info-json")
 		}
 		if o.Live.Enabled && o.Live.FromStart {
 			args = append(args, "--live-from-start")
 		}
+		args = append(args, o.SponsorBlock.args()...)
 	}
 	args = append(args, "-o", filepath.Join(dir, tmpl))
 	return args
@@ -1556,6 +1608,9 @@ func buildArgs(dir string, o Options) []string {
 // name, as JDownloader's "*VIDEO_NAME* (*QUALITY*)" does, so two picks of one
 // video land beside each other instead of on one name.
 func outputTemplate(o Options) string {
+	if o.Series != nil && o.Variant == VariantVideo {
+		return seriesTemplate(*o.Series)
+	}
 	if o.OutputTemplate != "" {
 		return o.OutputTemplate
 	}

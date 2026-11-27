@@ -254,6 +254,12 @@ var migrations = []string{
 	// The spoken language an audio row was asked for, a decision about the
 	// row like its bitrate.
 	`ALTER TABLE tasks ADD COLUMN audio_lang TEXT NOT NULL DEFAULT ''`,
+	// What a yt-dlp row cuts out or marks with SponsorBlock (JSON), where a
+	// subscription chose for it. Empty follows the instance's setting.
+	`ALTER TABLE tasks ADD COLUMN sponsor_block TEXT NOT NULL DEFAULT ''`,
+	// The show a yt-dlp row is filed under as an episode (JSON), where a
+	// subscription asked for the series layout.
+	`ALTER TABLE tasks ADD COLUMN series TEXT NOT NULL DEFAULT ''`,
 }
 
 // ErrNewerSchema is the refusal to open a database a newer build has written.
@@ -372,7 +378,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
 	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params,magnet_files,error_code,error_params,
-	uploaded,ratio,seed_seconds,seeding_over,seed_mark_ratio,seed_mark_seconds,work_files,browser_file,unpacked,audio_lang`
+	uploaded,ratio,seed_seconds,seeding_over,seed_mark_ratio,seed_mark_seconds,work_files,browser_file,unpacked,audio_lang,sponsor_block,series`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -493,7 +499,7 @@ func (s *Store) Save(t *core.Task) error {
 		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
 		serviceJob, seedingEnded, t.SkipCode, codeParams(t.SkipParams), t.RejectCode, codeParams(t.RejectParams),
 		magnetFiles, string(t.ErrorCode), codeParams(t.ErrorParams),
-		t.Uploaded, t.Ratio, t.SeedSeconds, t.SeedingOver, t.SeedMark.Ratio, t.SeedMark.SeedSeconds, workFiles, t.BrowserFile, unpacked, t.AudioLang)
+		t.Uploaded, t.Ratio, t.SeedSeconds, t.SeedingOver, t.SeedMark.Ratio, t.SeedMark.SeedSeconds, workFiles, t.BrowserFile, unpacked, t.AudioLang, string(t.SponsorBlock), string(t.Series))
 	if err != nil {
 		return err
 	}
@@ -530,7 +536,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	for rows.Next() {
 		t := &core.Task{}
 		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob string
-		var skipParams, rejectParams, magnetFiles, errorCode, errorParams, workFiles, unpacked string
+		var skipParams, rejectParams, magnetFiles, errorCode, errorParams, workFiles, unpacked, sponsorBlock, series string
 		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue, seedingEnded int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -545,7 +551,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
 			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded,
 			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams, &magnetFiles, &errorCode, &errorParams,
-			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver, &t.SeedMark.Ratio, &t.SeedMark.SeedSeconds, &workFiles, &t.BrowserFile, &unpacked, &t.AudioLang); err != nil {
+			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver, &t.SeedMark.Ratio, &t.SeedMark.SeedSeconds, &workFiles, &t.BrowserFile, &unpacked, &t.AudioLang, &sponsorBlock, &series); err != nil {
 			return nil, err
 		}
 		s.openPasswords(t)
@@ -579,6 +585,12 @@ func (s *Store) All() ([]*core.Task, error) {
 		if resumable.Valid {
 			v := resumable.Bool
 			t.Resumable = &v
+		}
+		if sponsorBlock != "" {
+			t.SponsorBlock = json.RawMessage(sponsorBlock)
+		}
+		if series != "" {
+			t.Series = json.RawMessage(series)
 		}
 		if matched != "" {
 			// A malformed list is not worth failing the reload over; it only

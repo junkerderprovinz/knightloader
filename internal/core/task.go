@@ -1,7 +1,10 @@
 // Package core holds KnightLoader's shared domain types.
 package core
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // Status is the lifecycle state of a download task.
 type Status string
@@ -635,6 +638,13 @@ type Task struct {
 	// source has its audio in several (see ytdlp.Options.AudioLang). Empty
 	// leaves it to the instance's setting.
 	AudioLang string `json:"audioLang,omitempty"`
+	// SponsorBlock is a yt-dlp row's own SponsorBlock choice, as the JSON of
+	// a ytdlp.SponsorBlock, which this package cannot name. Nil leaves it to
+	// the instance's setting.
+	SponsorBlock json.RawMessage `json:"-"`
+	// Series files a yt-dlp video row as an episode of a show, as the JSON of
+	// a ytdlp.Series. Nil files it under its title.
+	Series json.RawMessage `json:"-"`
 	// Category is the id of the settings.Category this link is filed under,
 	// or empty for the instance defaults.
 	//

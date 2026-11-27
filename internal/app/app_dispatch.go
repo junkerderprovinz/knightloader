@@ -1500,7 +1500,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		if u.Reason != "" {
 			t.Reason = u.Reason
 		} else {
-			t.Reason = classify(f)
+			t.Reason = regionRefusal(t.URL, classify(f))
 		}
 		code, params := codeFor(f, t.Reason)
 		if code == "" {

@@ -10,7 +10,7 @@ import (
 // An install that never opens the resolver options page downloads as it always
 // has, because ytdlp.Defaults() is the zero value.
 func TestDefaultsYtdlpIsTheZeroValue(t *testing.T) {
-	if got := Defaults().Ytdlp; got != (ytdlp.Options{}) {
+	if got := Defaults().Ytdlp; !reflect.DeepEqual(got, ytdlp.Options{}) {
 		t.Errorf("Defaults().Ytdlp = %+v, want the zero value", got)
 	}
 }
@@ -57,7 +57,7 @@ func TestYtdlpOptionsSurviveTheStoreRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 	back := reloaded.Get().Ytdlp
-	if back != saved.Ytdlp {
+	if !reflect.DeepEqual(back, saved.Ytdlp) {
 		t.Errorf("after reload Ytdlp = %+v, want %+v", back, saved.Ytdlp)
 	}
 }
@@ -68,7 +68,7 @@ func TestYtdlpOptionsSurviveTheStoreRoundTrip(t *testing.T) {
 func TestYtdlpOptionsCarryNoSecretRedactedIsAPlainCopy(t *testing.T) {
 	n := Defaults()
 	n.Ytdlp.CustomFormat = "bestvideo+bestaudio"
-	if got := n.Redacted().Ytdlp; got != n.Ytdlp {
+	if got := n.Redacted().Ytdlp; !reflect.DeepEqual(got, n.Ytdlp) {
 		t.Errorf("Redacted().Ytdlp = %+v, want it unchanged from %+v", got, n.Ytdlp)
 	}
 }

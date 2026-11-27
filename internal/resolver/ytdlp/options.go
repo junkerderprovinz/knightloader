@@ -103,6 +103,12 @@ type Options struct {
 	Measure Measure `json:"measure"`
 	// Live bounds a livestream recording.
 	Live Live `json:"live"`
+	// SponsorBlock is what the video and audio rows cut out or mark as
+	// chapters. A task of a subscription can bring its own.
+	SponsorBlock SponsorBlock `json:"sponsorBlock"`
+	// Series files a video row as an episode of a show instead of under its
+	// title. Like VideoPick it is a task's own choice and has no settings key.
+	Series *Series `json:"-"`
 }
 
 // Embed is what gets written into the finished file, or for the NFO next to
@@ -593,6 +599,11 @@ func (o Options) Sanitize() Options {
 	o.OutputTemplate = sanitizeTemplate(o.OutputTemplate)
 	o.Measure = o.Measure.sanitize()
 	o.Live = o.Live.sanitize()
+	o.SponsorBlock = o.SponsorBlock.Sanitize()
+	if o.Series != nil {
+		s := o.Series.Sanitize()
+		o.Series = &s
+	}
 	return o
 }
 

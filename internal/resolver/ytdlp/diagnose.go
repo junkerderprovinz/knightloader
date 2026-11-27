@@ -45,10 +45,20 @@ var diagnoses = []struct {
 
 	// Geo before gone: YouTube's regional block starts with "Video
 	// unavailable.", and filing it as gone would get the link deleted.
+	// yt-dlp closes every GeoRestrictedError with the VPN line, whatever the
+	// extractor said before it, as ARD's "not available due to geoblocking"
+	// or arte's "Video restricted to 'DE_FR'".
+	{"a vpn or a proxy server", core.ReasonGeoBlocked},
 	{"not available from your location", core.ReasonGeoBlocked},
 	{"not made this video available in your country", core.ReasonGeoBlocked},
 	{"blocked it in your country", core.ReasonGeoBlocked},
 	{"geo restriction", core.ReasonGeoBlocked},
+	{"geo-restrict", core.ReasonGeoBlocked},
+	{"geoblock", core.ReasonGeoBlocked},
+	{"not available in your country", core.ReasonGeoBlocked},
+	{"unavailable in your country", core.ReasonGeoBlocked},
+	{"not available in your region", core.ReasonGeoBlocked},
+	{"unavailable in your region", core.ReasonGeoBlocked},
 
 	// A removed video, a terminated account and a 404 all have the same
 	// remedy, so they share one reason.

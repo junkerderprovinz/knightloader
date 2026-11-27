@@ -267,3 +267,35 @@ func TestExhaustedChainIsUnsupported(t *testing.T) {
 		t.Errorf("reason = %q, want %q", reason, core.ReasonUnsupported)
 	}
 }
+
+// A Mediathek file only some countries may fetch is refused with a bare 403
+// everywhere else, which a plain download would otherwise call a refused
+// login.
+func TestARefusedMediathekFileOfOneCountryReadsAsARegionBlock(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+
+	for url, want := range map[string]core.ErrorCode{
+		"https://nrodlzdf-a.akamaihd.net/de/zdf/26/11/261126_x/1/261126_x_3360k_p36v17.mp4":   core.CodeGeoBlocked,
+		"https://nrodlzdf-a.akamaihd.net/none/zdf/26/11/261126_x/1/261126_x_3360k_p36v17.mp4": core.CodeAccessDenied,
+		"https://host.example/de/f.bin": core.CodeAccessDenied,
+	} {
+		a.mu.Lock()
+		task := &core.Task{ID: a.freshIDLocked(), URL: url, Resolver: "direct", Status: core.StatusRunning}
+		a.tasks[task.ID] = task
+		a.active[task.ID] = true
+		a.started[task.ID] = true
+		a.mu.Unlock()
+
+		a.onUpdate(task.ID, core.Update{Status: core.StatusError, Err: "http request fail, code:403"})
+		a.mu.Lock()
+		got := task.ErrorCode
+		a.mu.Unlock()
+		if got != want {
+			t.Errorf("%s: code = %q, want %q", url, got, want)
+		}
+	}
+}

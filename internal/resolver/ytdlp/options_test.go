@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -122,7 +123,7 @@ func TestSanitizeTemplateNeverEscapesTheDirectoryItIsJoinedOnto(t *testing.T) {
 }
 
 func TestDefaultsIsTheZeroValue(t *testing.T) {
-	if got := Defaults(); got != (Options{}) {
+	if got := Defaults(); !reflect.DeepEqual(got, Options{}) {
 		t.Errorf("Defaults() = %+v, want the zero value", got)
 	}
 }
