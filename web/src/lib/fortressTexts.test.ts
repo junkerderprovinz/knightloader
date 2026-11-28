@@ -5,7 +5,8 @@ import { fortressTexts } from './fortressTexts';
 import { load, AVAILABLE } from './locales';
 
 describe('internal/fortress/texts.json', () => {
-  it('holds the texts the locales have, so the status speaks like the interface', async () => {
+  // Loading every locale takes close to five seconds on a CI runner on its own.
+  it('holds the texts the locales have, so the status speaks like the interface', { timeout: 20_000 }, async () => {
     const dicts: Record<string, Record<string, string>> = {};
     for (const lang of AVAILABLE) dicts[lang] = await load(lang);
     // Run `node scripts/gen-fortress-texts.mjs` when this fails.
