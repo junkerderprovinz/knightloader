@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { appAddress } from '../../../lib/basePath';
+import { copyToClipboard } from '../../../lib/clipboard';
 import { ModuleCard } from '../ModuleToggle';
 import { Reading } from '../health/Reading';
 import { IconCheckDrawn, IconCopy } from '../../../lib/icons';
@@ -23,23 +24,20 @@ export function ScrapeCard({ hue }: { hue: number }) {
     <ModuleCard id="metrics" hue={hue} switchHue={0} hint={t('settings.health.scrapeHint')}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Reading label={t('settings.health.scrapeUrl')} value={address} />
-        {/* navigator.clipboard is missing on a plain-HTTP LAN address. */}
-        {'clipboard' in navigator && (
-          <Button
-            icon={copied ? <IconCheckDrawn /> : <IconCopy />}
-            kind="secondary"
-            className="px-2.5 text-xs"
-            confirm={copies}
-            onClick={async () => {
-              await navigator.clipboard.writeText(address);
-              setCopied(true);
-              setCopies((n) => n + 1);
-              setTimeout(() => setCopied(false), 1800);
-            }}
-          >
-            {copied ? t('settings.health.scrapeCopied') : t('settings.health.scrapeCopy')}
-          </Button>
-        )}
+        <Button
+          icon={copied ? <IconCheckDrawn /> : <IconCopy />}
+          kind="secondary"
+          className="px-2.5 text-xs"
+          confirm={copies}
+          onClick={async () => {
+            if (!(await copyToClipboard(address))) return;
+            setCopied(true);
+            setCopies((n) => n + 1);
+            setTimeout(() => setCopied(false), 1800);
+          }}
+        >
+          {copied ? t('settings.health.scrapeCopied') : t('settings.health.scrapeCopy')}
+        </Button>
       </div>
     </ModuleCard>
   );

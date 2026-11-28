@@ -6,6 +6,7 @@ import { QRCode } from './QRCode';
 import { hueVars } from '../lib/appearance';
 import { qrMatrix } from '../lib/qrmatrix';
 import { IconCheckDrawn, IconClose, IconCopy } from '../lib/icons';
+import { copyToClipboard } from '../lib/clipboard';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../lib/donate';
 import { useT } from '../lib/i18n';
 import { useLabelMode } from '../lib/labelModes';
@@ -101,7 +102,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
           icon={copied ? <IconCheckDrawn /> : <IconCopy />}
           kind="primary"
           onClick={() => {
-            void navigator.clipboard?.writeText(network.address).then(() => setCopied(true));
+            void copyToClipboard(network.address).then(setCopied);
           }}
         >
           {copied ? t('common.copied') : t('common.copy')}
